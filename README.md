@@ -1,0 +1,1 @@
+# snto-smart-tourism-observatory
