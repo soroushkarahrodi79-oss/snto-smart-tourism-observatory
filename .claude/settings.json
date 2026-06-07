@@ -3,7 +3,8 @@
     "allow": [
       "Read(//c/Users/Dell/.claude/projects/c--workspace-SMART-TOURISM-OBSERVATORY-snto-smart-tourism-observatory/memory/**)",
       "Bash(python -c ' *)",
-      "Bash(python run_phase7_report.py)"
+      "Bash(python run_phase7_report.py)",
+      "Bash(python etl_raster_processor.py)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Dell\\.claude\\projects\\c--workspace-SMART-TOURISM-OBSERVATORY-snto-smart-tourism-observatory\\memory"
