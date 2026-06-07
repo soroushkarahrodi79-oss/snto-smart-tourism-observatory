@@ -12,14 +12,22 @@ from src.decision_confidence.assessor import (
     MAX_DQ, MAX_MS, MAX_SC, MAX_SS, MAX_TR,
     DCSInputs, compute_dcs,
 )
+from src.features.spectral import extract_spectral_features
 from src.geospatial.geometry import enrich_asset_geometry
 from src.ingestion.multiyear_adapter import MultiYearAdapter, _NDVI_ANOMALY
+from src.risk_engine.components import (
+    RiskComponents,
+    compute_ecological_degradation,
+    compute_vulnerability_index,
+)
 from src.risk_engine.ehs import compute_ehs, interpret_ehs
 from src.risk_engine.human_pressure import GeoProximityFactors, compute_geo_human_pressure
 from src.spatial_causality.analyzer import SpatialCausalityAnalyzer
+from src.time_series.anomaly import AnomalyResult
 from src.time_series.climatology import build_climatology, detect_anomaly_events
 from src.time_series.decomposition import harmonic_decompose
 from src.time_series.mann_kendall import classify_trend_severity, mann_kendall_test
+from src.time_series.trend import compute_linear_trend
 
 SEP = "=" * 72
 DIV = "-" * 72
@@ -91,6 +99,26 @@ def build_all_inputs():
         residual_std=decomp.residual_std,
     )
 
+    # Risk components (for DCS signal-strength coherence check)
+    features = extract_spectral_features(obs)
+    linear_trend = compute_linear_trend(ndvi_series)
+    if anomalies:
+        mean_z = statistics.mean(e.z_score for e in anomalies)
+        summary_anomaly = AnomalyResult(
+            z_score=mean_z,
+            is_anomaly=abs(mean_z) >= 1.5,
+            direction="low" if mean_z < -0.1 else ("high" if mean_z > 0.1 else "none"),
+        )
+    else:
+        summary_anomaly = AnomalyResult(z_score=0.0, is_anomaly=False, direction="none")
+    eco = compute_ecological_degradation(features, linear_trend)
+    vuln = compute_vulnerability_index(features, summary_anomaly, asset.elevation_m)
+    risk_comp = RiskComponents(
+        ecological_degradation=eco,
+        human_pressure_proxy=hp,
+        vulnerability_index=vuln,
+    )
+
     return DCSInputs(
         asset_id=asset.asset_id,
         recommendation="annual_monitoring",
@@ -107,7 +135,8 @@ def build_all_inputs():
         annual_ndvi_means=annual_means,
         anomaly_events=anomalies,
         ehs_components=ehs_comp,
-    ), ehs_comp, scm_result, mk, decomp, anomalies, hp
+        risk_components=risk_comp,
+    ), ehs_comp, scm_result, mk, decomp, anomalies, hp, risk_comp
 
 
 def word_wrap(text: str, width: int = 70, indent: str = "  ") -> str:
@@ -125,7 +154,7 @@ def word_wrap(text: str, width: int = 70, indent: str = "  ") -> str:
 
 
 def main():
-    inputs, ehs_comp, scm_result, mk, decomp, anomalies, hp = build_all_inputs()
+    inputs, ehs_comp, scm_result, mk, decomp, anomalies, hp, risk_comp = build_all_inputs()
     result = compute_dcs(inputs)
     comp = result.components
 
@@ -258,8 +287,11 @@ def main():
     if comp.signal_strength < 10:
         improvements.append((
             "Collect visitor count data (minimum 1 counter for 12 months).",
-            "The three EHS components (ecological=0.58, pressure=0.31, vuln=0.06) "
-            "diverge significantly, reducing signal coherence. Actual visitor count "
+            f"The three risk components diverge "
+            f"(ecological={risk_comp.ecological_degradation:.2f}, "
+            f"pressure={risk_comp.human_pressure_proxy:.2f}, "
+            f"vuln={risk_comp.vulnerability_index:.2f}), "
+            "reducing signal coherence. Actual visitor count "
             "data would replace the geo-proxy for human pressure and unify the model.",
             "+2-3 pts SS"
         ))
@@ -280,18 +312,18 @@ def main():
     print()
     scenarios = [
         ("Current state (5 years, 96.7% coverage)",
-         inputs.n_valid, inputs.n_possible, inputs.n_years,
+         inputs.n_valid_observations, inputs.n_possible_observations, inputs.n_years,
          inputs.mk_result.p_value),
         ("3 years only (36 months)",
-         min(inputs.n_valid, 33), 36, 3,
+         min(inputs.n_valid_observations, 33), 36, 3,
          inputs.mk_result.p_value),
         ("10 years (120 months, projected)",
          115, 120, 10, 0.25),  # assume more stable trend with 10 years
         ("Low coverage (winter cloud, 75% valid)",
-         int(inputs.n_possible * 0.75), inputs.n_possible,
+         int(inputs.n_possible_observations * 0.75), inputs.n_possible_observations,
          inputs.n_years, inputs.mk_result.p_value),
         ("Declining trend confirmed (p=0.015)",
-         inputs.n_valid, inputs.n_possible, inputs.n_years, 0.015),
+         inputs.n_valid_observations, inputs.n_possible_observations, inputs.n_years, 0.015),
     ]
 
     print(f"  {'Scenario':45s}  {'DCS':>6}  {'Class'}")
@@ -350,11 +382,15 @@ def main():
     print()
     print("  IN PLAIN LANGUAGE:")
     print()
+    _conf_adverb = {
+        "VERY HIGH": "very highly", "HIGH": "highly",
+        "MODERATE": "moderately",  "LOW": "minimally",
+    }.get(result.classification, result.classification.lower())
     text = (
         f"The SNTO system has monitored this trail for 5 years using satellite imagery. "
         f"Based on {inputs.n_valid_observations} valid monthly observations, "
         f"our recommendation is to MONITOR ONLY (no intervention required). "
-        f"We are {result.classification.replace('_', ' ').lower().title()} confident in this conclusion "
+        f"We are {_conf_adverb} confident in this conclusion "
         f"({result.dcs:.0f}/100 confidence score). "
         f"The main reason for any residual uncertainty is that the trend test "
         f"(p={mk.p_value:.3f}) is close to the borderline of statistical significance -- "

@@ -105,8 +105,6 @@ DCS CLASSIFICATION
    0-39:  LOW CONFIDENCE       -- collect more data before acting
 """
 
-from __future__ import annotations
-
 import math
 import statistics
 from dataclasses import dataclass, field
@@ -114,6 +112,7 @@ from typing import Optional
 
 import numpy as np
 
+from src.risk_engine.components import RiskComponents
 from src.risk_engine.ehs import EHSComponents
 from src.spatial_causality.analyzer import SpatialCausalityResult
 from src.time_series.climatology import AnomalyEvent
@@ -168,6 +167,7 @@ class DCSInputs:
     # --- Signal strength inputs ---
     anomaly_events: list[AnomalyEvent]  # from detect_anomaly_events()
     ehs_components: EHSComponents       # from compute_ehs()
+    risk_components: Optional[RiskComponents] = None  # from RiskScorer; used for coherence check
 
 
 # ── Output containers ─────────────────────────────────────────────────────
@@ -341,10 +341,18 @@ def _signal_strength(inp: DCSInputs) -> tuple[float, dict]:
         mean_abs_z = statistics.mean(abs(e.z_score) for e in inp.anomaly_events)
         a = 8.0 * _clamp(mean_abs_z / 2.0, 0.0, 1.0)
 
-    # EHS component coherence
-    eco   = inp.ehs_components.ecological_degradation
-    press = inp.ehs_components.human_pressure_proxy
-    vuln  = inp.ehs_components.vulnerability_index
+    # Risk component coherence: when all three risk dimensions agree, interpretation
+    # is unambiguous.  Prefer the full RiskComponents if provided; fall back to the
+    # three most orthogonal EHS sub-risks (baseline ≈ structural, anomaly ≈ event
+    # frequency, stability ≈ inter-annual noise).
+    if inp.risk_components is not None:
+        eco   = inp.risk_components.ecological_degradation
+        press = inp.risk_components.human_pressure_proxy
+        vuln  = inp.risk_components.vulnerability_index
+    else:
+        eco   = inp.ehs_components.baseline_risk
+        press = inp.ehs_components.anomaly_risk
+        vuln  = inp.ehs_components.stability_risk
     comp_std = _std3(eco, press, vuln)
     b = 7.0 * (1.0 - _clamp(comp_std / 0.30, 0.0, 1.0))
 
@@ -444,7 +452,7 @@ def _explain_factors(
     if comp.model_stability >= 11:
         confidence.append(
             "NDVI and NDMI indices move consistently together, and annual "
-            "means are stable — the risk model produces consistent outputs."
+            "means are stable -- the risk model produces consistent outputs."
         )
     elif comp.model_stability < 8:
         uncertainty.append(

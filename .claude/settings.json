@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Dell/.claude/projects/c--workspace-SMART-TOURISM-OBSERVATORY-snto-smart-tourism-observatory/memory/**)",
+      "Bash(python -c ' *)",
+      "Bash(python run_phase7_report.py)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Dell\\.claude\\projects\\c--workspace-SMART-TOURISM-OBSERVATORY-snto-smart-tourism-observatory\\memory"
+    ]
+  }
+}
