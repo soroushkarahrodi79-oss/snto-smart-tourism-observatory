@@ -47,7 +47,7 @@ DB_HOST = os.getenv("SNTO_DB_HOST", "localhost")
 DB_PORT = int(os.getenv("SNTO_DB_PORT", "5432"))
 DB_NAME = os.getenv("SNTO_DB_NAME", "snto")
 DB_USER = os.getenv("SNTO_DB_USER", "postgres")
-DB_PASS = os.getenv("SNTO_DB_PASS", "secret")
+DB_PASS = os.getenv("SNTO_DB_PASS", "Navidesalehin_1379")
 
 SRID = 4326
 
@@ -105,15 +105,36 @@ def _s(val: object) -> str | None:
     return str(val)
 
 
-def _connect() -> psycopg2.extensions.connection:
+def _connect(dbname: str = DB_NAME) -> psycopg2.extensions.connection:
     return psycopg2.connect(
         host=DB_HOST,
         port=DB_PORT,
-        dbname=DB_NAME,
+        dbname=dbname,
         user=DB_USER,
         password=DB_PASS,
         connect_timeout=10,
     )
+
+
+def _ensure_database() -> None:
+    """Connect to the maintenance 'postgres' DB and CREATE DATABASE if missing.
+
+    CREATE DATABASE cannot run inside a transaction, so autocommit must be on.
+    """
+    boot = _connect(dbname="postgres")
+    boot.autocommit = True
+    try:
+        with boot.cursor() as cur:
+            cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", (DB_NAME,))
+            exists = cur.fetchone() is not None
+            if exists:
+                print(f"  Database '{DB_NAME}' already exists.")
+            else:
+                print(f"  Database '{DB_NAME}' not found — creating ...")
+                cur.execute(f'CREATE DATABASE "{DB_NAME}"')
+                print(f"  Database '{DB_NAME}' created successfully.")
+    finally:
+        boot.close()
 
 
 # ── Data preparation ──────────────────────────────────────────────────────────
@@ -241,27 +262,28 @@ def main() -> None:
     print(SEP)
     print()
 
-    # ── Step 1: Connect ───────────────────────────────────────────────────────
+    # ── Step 1: Bootstrap — ensure the target database exists ────────────────
     print("  [1/5] Connecting to PostgreSQL ...")
     try:
+        _ensure_database()
         conn = _connect()
-    except psycopg2.OperationalError as exc:
+    except (psycopg2.OperationalError, UnicodeDecodeError) as exc:
+        # UnicodeDecodeError: psycopg2 on Windows can fail to decode the OS
+        # socket error message (cp1252 locale) before raising OperationalError.
         print()
         print("  ERROR: Cannot reach the PostgreSQL server.")
-        print(f"  Detail: {exc}".replace("\n", " "))
+        print(f"  Detail: {type(exc).__name__} — server is likely not running.")
         print()
         print("  To resolve:")
-        print("    1. Start PostgreSQL (e.g. 'pg_ctl start' or via pgAdmin/Services)")
-        print("    2. Ensure the 'snto' database exists:")
-        print("         createdb -U postgres snto")
-        print("    3. Override credentials via env vars if needed:")
+        print("    1. Start PostgreSQL via pgAdmin or Windows Services")
+        print("    2. Override credentials via env vars if needed:")
         print("         SNTO_DB_HOST  SNTO_DB_PORT  SNTO_DB_NAME  SNTO_DB_USER  SNTO_DB_PASS")
-        print("    4. Re-run this script.")
+        print("    3. Re-run this script.")
         sys.exit(1)
 
     ver = conn.server_version
     major, minor = divmod(ver, 10000)
-    print(f"  Connected. PostgreSQL {major}.{minor // 100}")
+    print(f"  Connected to '{DB_NAME}'. PostgreSQL {major}.{minor // 100}")
     print()
 
     try:

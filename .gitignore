@@ -1,0 +1,58 @@
+# ============================================================
+# SMART TOURISM OBSERVATORY — .gitignore
+# ============================================================
+
+# --- Datos geoespaciales pesados (NUNCA subir a GitHub) -----
+data/
+
+# --- Formatos raster y archivos satelitales (por si escapan) -
+*.tif
+*.tiff
+*.img
+*.vrt
+*.nc
+*.zip
+*.tar.gz
+*.gz
+
+# --- Directorios de imágenes Sentinel-2 (formato ESA SAFE) --
+*.SAFE/
+
+# --- Python: caché y compilados -----------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# --- Entornos virtuales -------------------------------------
+.venv/
+venv/
+env/
+ENV/
+
+# --- pytest y cobertura -------------------------------------
+.pytest_cache/
+.coverage
+htmlcov/
+*.xml
+
+# --- Paquetes Python instalables ----------------------------
+*.egg-info/
+dist/
+build/
+*.egg
+
+# --- Variables de entorno (secretos) ------------------------
+.env
+!.env.example
+
+# --- Bases de datos locales ---------------------------------
+*.db
+*.sqlite3
+
+# --- IDEs y Sistemas Operativos -----------------------------
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*~
