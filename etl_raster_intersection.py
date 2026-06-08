@@ -47,7 +47,7 @@ DB_HOST = os.getenv("SNTO_DB_HOST", "localhost")
 DB_PORT = int(os.getenv("SNTO_DB_PORT", "5432"))
 DB_NAME = os.getenv("SNTO_DB_NAME", "snto")
 DB_USER = os.getenv("SNTO_DB_USER", "postgres")
-DB_PASS = os.getenv("SNTO_DB_PASS", "Navidesalehin_1379")
+DB_PASS = os.getenv("SNTO_DB_PASS", "")
 
 
 # ── Connection helpers ─────────────────────────────────────────────────────────
@@ -113,17 +113,27 @@ def _compute_zonal_stats(
     rasterstats. Returns a list of mean values positionally aligned to
     buffers_gdf.  Geometries that fall outside the raster extent return None.
     """
+    from pyproj import CRS as ProjCRS
+
     with rasterio.open(raster_path) as src:
-        raster_crs  = src.crs.to_string()
+        raster_crs    = src.crs          # rasterio.crs.CRS object
         raster_nodata = src.nodata
 
-    buf_crs = buffers_gdf.crs.to_string()
-    print(f"    Raster CRS ({label}): {raster_crs}")
-    print(f"    Buffer CRS         : {buf_crs}")
+    # Convert rasterio CRS to pyproj.CRS for semantic equality check.
+    # Comparing .to_string() values is unreliable: pyproj returns WKT2 while
+    # rasterio returns PROJ4 — the same authority produces different strings,
+    # so a naive string comparison always reports a mismatch.
+    raster_crs_obj = ProjCRS.from_user_input(raster_crs)
+    crs_match = buffers_gdf.crs.equals(raster_crs_obj)
 
-    if buf_crs != raster_crs:
-        print(f"    CRS mismatch — reprojecting buffers from {buf_crs} → {raster_crs}")
-        aligned = buffers_gdf.to_crs(raster_crs)
+    buf_epsg    = buffers_gdf.crs.to_epsg() or buffers_gdf.crs.to_string()
+    raster_epsg = raster_crs.to_epsg() or raster_crs.to_string()
+    print(f"    Raster CRS ({label}): EPSG:{raster_epsg}")
+    print(f"    Buffer CRS          : EPSG:{buf_epsg}")
+
+    if not crs_match:
+        print(f"    CRS mismatch — reprojecting buffers to raster CRS ...")
+        aligned = buffers_gdf.to_crs(raster_crs.to_wkt())
     else:
         print(f"    CRS match — no reprojection needed.")
         aligned = buffers_gdf
@@ -176,7 +186,7 @@ def main() -> None:
         sys.exit(1)
 
     major, minor = divmod(conn.server_version, 10000)
-    print(f"  Connected. PostgreSQL {major}.{minor // 100}")
+    print(f"  Connected. PostgreSQL {major}.{minor}")
     print()
 
     # ── [3/7] Ensure output columns exist ────────────────────────────────────
@@ -187,12 +197,15 @@ def main() -> None:
     # ── [4/7] Load hiking trails ──────────────────────────────────────────────
     print("  [4/7] Loading hiking trails from PostGIS ...")
     engine = _engine()
-    trails_gdf = gpd.read_postgis(
-        "SELECT id, name, geometry FROM production_hiking_trails ORDER BY id",
-        con=engine,
-        geom_col="geometry",
-        crs="EPSG:4326",
-    )
+    try:
+        trails_gdf = gpd.read_postgis(
+            "SELECT id, name, geometry FROM production_hiking_trails ORDER BY id",
+            con=engine,
+            geom_col="geometry",
+            crs="EPSG:4326",
+        )
+    finally:
+        engine.dispose()
     n_total = len(trails_gdf)
     print(f"    Loaded {n_total} features from production_hiking_trails")
     print(f"    Native CRS: {trails_gdf.crs.to_string()}")

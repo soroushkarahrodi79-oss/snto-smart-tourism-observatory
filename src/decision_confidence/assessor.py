@@ -108,7 +108,6 @@ DCS CLASSIFICATION
 import math
 import statistics
 from dataclasses import dataclass, field
-from typing import Optional
 
 import numpy as np
 
@@ -167,7 +166,7 @@ class DCSInputs:
     # --- Signal strength inputs ---
     anomaly_events: list[AnomalyEvent]  # from detect_anomaly_events()
     ehs_components: EHSComponents       # from compute_ehs()
-    risk_components: Optional[RiskComponents] = None  # from RiskScorer; used for coherence check
+    risk_components: RiskComponents | None = None  # from RiskScorer; used for coherence check
 
 
 # ── Output containers ─────────────────────────────────────────────────────

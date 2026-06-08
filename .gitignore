@@ -26,6 +26,7 @@ __pycache__/
 
 # --- Entornos virtuales -------------------------------------
 .venv/
+.venv-*/
 venv/
 env/
 ENV/
@@ -56,3 +57,7 @@ Thumbs.db
 .idea/
 *.swp
 *~
+
+# --- Archivos de salida sueltos -----------------------------
+CUsers*.txt
+*.out.txt

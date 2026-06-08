@@ -54,7 +54,7 @@ DB_HOST = os.getenv("SNTO_DB_HOST", "localhost")
 DB_PORT = int(os.getenv("SNTO_DB_PORT", "5432"))
 DB_NAME = os.getenv("SNTO_DB_NAME", "snto")
 DB_USER = os.getenv("SNTO_DB_USER", "postgres")
-DB_PASS = os.getenv("SNTO_DB_PASS", "Navidesalehin_1379")
+DB_PASS = os.getenv("SNTO_DB_PASS", "")
 
 
 # ── Connection helper ─────────────────────────────────────────────────────────
@@ -200,7 +200,7 @@ def main() -> None:
         sys.exit(1)
 
     major, minor = divmod(conn.server_version, 10000)
-    print(f"  Connected to '{DB_NAME}'. PostgreSQL {major}.{minor // 100}")
+    print(f"  Connected to '{DB_NAME}'. PostgreSQL {major}.{minor}")
     print()
 
     try:

@@ -47,7 +47,7 @@ DB_HOST = os.getenv("SNTO_DB_HOST", "localhost")
 DB_PORT = int(os.getenv("SNTO_DB_PORT", "5432"))
 DB_NAME = os.getenv("SNTO_DB_NAME", "snto")
 DB_USER = os.getenv("SNTO_DB_USER", "postgres")
-DB_PASS = os.getenv("SNTO_DB_PASS", "Navidesalehin_1379")
+DB_PASS = os.getenv("SNTO_DB_PASS", "")
 
 SRID = 4326
 
@@ -168,17 +168,33 @@ def _prepare_viewpoints(gdf: gpd.GeoDataFrame) -> list[tuple]:
 
 
 def _prepare_protected_areas(gdf: gpd.GeoDataFrame) -> list[tuple]:
+    # Resolve column names once via case-insensitive lookup before iterating.
+    # The ENP GeoJSON column case varies by GDAL driver version (Sup_ha / SUP_HA).
+    _lower = {c.lower(): c for c in gdf.columns}
+    area_col      = _lower.get("sup_ha")
+    site_code_col = _lower.get("site_code_")
+    site_name_col = _lower.get("site_name")
+    odesig_col    = _lower.get("odesignate")
+
+    if area_col is None:
+        print(f"    WARNING: area column 'Sup_ha' not found. "
+              f"Available columns: {list(gdf.columns)}")
+
     rows: list[tuple] = []
     for _, row in gdf.iterrows():
         geom = row.geometry
         if geom is None or geom.is_empty:
             continue
-        area = row.get("Sup_ha")
-        area_ha = float(area) if area is not None and not (isinstance(area, float) and math.isnan(area)) else 0.0
+        area = row[area_col] if area_col is not None else None
+        area_ha = (
+            float(area)
+            if area is not None and not (isinstance(area, float) and math.isnan(area))
+            else 0.0
+        )
         rows.append((
-            _s(row.get("SITE_CODE_")),
-            _s(row.get("SITE_NAME")),
-            _s(row.get("ODESIGNATE")),
+            _s(row[site_code_col] if site_code_col else None),
+            _s(row[site_name_col] if site_name_col else None),
+            _s(row[odesig_col]    if odesig_col    else None),
             area_ha,
             geom.wkt,
         ))
@@ -283,7 +299,7 @@ def main() -> None:
 
     ver = conn.server_version
     major, minor = divmod(ver, 10000)
-    print(f"  Connected to '{DB_NAME}'. PostgreSQL {major}.{minor // 100}")
+    print(f"  Connected to '{DB_NAME}'. PostgreSQL {major}.{minor}")
     print()
 
     try:

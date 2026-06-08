@@ -68,16 +68,26 @@ DB_HOST = os.getenv("SNTO_DB_HOST", "localhost")
 DB_PORT = int(os.getenv("SNTO_DB_PORT", "5432"))
 DB_NAME = os.getenv("SNTO_DB_NAME", "snto")
 DB_USER = os.getenv("SNTO_DB_USER", "postgres")
-DB_PASS = os.getenv("SNTO_DB_PASS", "Navidesalehin_1379")
+DB_PASS = os.getenv("SNTO_DB_PASS", "")
 
 
 # ── EHS ───────────────────────────────────────────────────────────────────────
 
 def _ehs(ndvi: float | None, ndmi: float | None) -> float:
-    """EHS = 100 − (NDVI × 50 + NDMI × 50). None values default to 0.0."""
-    v = ndvi if ndvi is not None else 0.0
-    m = ndmi if ndmi is not None else 0.0
-    return round(100.0 - (v * 50.0 + m * 50.0), 4)
+    """
+    Per-season EHS stress index [0–100], formula aligned with tis_engine.py:
+      norm_ndvi = clamp(ndvi, 0, 1)
+      norm_ndmi = clamp((ndmi + 1) / 2, 0, 1)   maps [-1, 1] → [0, 1]
+      EHS = ((1 - norm_ndvi) + (1 - norm_ndmi)) / 2 × 100
+
+    None inputs default to 0 in their normalised domain (maximum stress
+    contribution), consistent with the tis_engine.py convention for missing data.
+    The old formula `100 − (NDVI×50 + NDMI×50)` used raw NDMI, which could
+    produce EHS > 100 for negative NDMI values (e.g. NDMI=−0.5 → EHS=110).
+    """
+    norm_ndvi = max(0.0, min(1.0, ndvi)) if ndvi is not None else 0.0
+    norm_ndmi = max(0.0, min(1.0, (ndmi + 1.0) / 2.0)) if ndmi is not None else 0.0
+    return round(((1.0 - norm_ndvi) + (1.0 - norm_ndmi)) / 2.0 * 100.0, 4)
 
 
 # ── DB helpers ────────────────────────────────────────────────────────────────
@@ -209,7 +219,7 @@ def main() -> None:
         sys.exit(1)
 
     major, minor = divmod(conn.server_version, 10000)
-    print(f"  Connected. PostgreSQL {major}.{minor // 100}")
+    print(f"  Connected. PostgreSQL {major}.{minor}")
     print()
 
     # ── [3/9] Ensure output columns ───────────────────────────────────────────
@@ -220,12 +230,15 @@ def main() -> None:
     # ── [4/9] Load hiking trails ──────────────────────────────────────────────
     print("  [4/9] Loading hiking trails from PostGIS ...")
     engine = _engine()
-    trails_gdf = gpd.read_postgis(
-        "SELECT id, name, geometry FROM production_hiking_trails ORDER BY id",
-        con=engine,
-        geom_col="geometry",
-        crs="EPSG:4326",
-    )
+    try:
+        trails_gdf = gpd.read_postgis(
+            "SELECT id, name, geometry FROM production_hiking_trails ORDER BY id",
+            con=engine,
+            geom_col="geometry",
+            crs="EPSG:4326",
+        )
+    finally:
+        engine.dispose()
     n_total = len(trails_gdf)
     valid_mask = trails_gdf.geometry.notna() & ~trails_gdf.geometry.is_empty
     trails_gdf = trails_gdf[valid_mask].copy()

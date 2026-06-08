@@ -73,15 +73,21 @@ def _extract_bands(zip_path: Path) -> tuple[Path, Path, Path]:
 
     with zipfile.ZipFile(zip_path) as z:
         names = z.namelist()
-        b04_entry = next(
-            n for n in names if "IMG_DATA/R10m" in n and "B04_10m.jp2" in n
-        )
-        b08_entry = next(
-            n for n in names if "IMG_DATA/R10m" in n and "B08_10m.jp2" in n
-        )
-        b11_entry = next(
-            n for n in names if "IMG_DATA/R20m" in n and "B11_20m.jp2" in n
-        )
+
+        def _find_band(pattern_dir: str, pattern_file: str) -> str:
+            matches = [n for n in names if pattern_dir in n and pattern_file in n]
+            if not matches:
+                raise FileNotFoundError(
+                    f"Band file matching '{pattern_file}' in '{pattern_dir}' not found "
+                    f"inside {zip_path.name}. Found entries (sample): "
+                    f"{[n for n in names if '.jp2' in n][:6]}"
+                )
+            return matches[0]
+
+        b04_entry = _find_band("IMG_DATA/R10m", "B04_10m.jp2")
+        b08_entry = _find_band("IMG_DATA/R10m", "B08_10m.jp2")
+        b11_entry = _find_band("IMG_DATA/R20m", "B11_20m.jp2")
+
         print(f"  Extracting B04: {Path(b04_entry).name}")
         z.extract(b04_entry, TMP_DIR)
         print(f"  Extracting B08: {Path(b08_entry).name}")
@@ -190,109 +196,116 @@ def main() -> None:
     print(f"  B11 path: ...{b11_path.relative_to(TMP_DIR)}")
     print()
 
-    # -- Step 3: Build UTM clip geometry -----------------------------------
-    xmin_utm, ymin_utm, xmax_utm, ymax_utm = _bbox_to_utm()
-    clip_geom = mapping(box(xmin_utm, ymin_utm, xmax_utm, ymax_utm))
-    print(f"  Bbox (UTM {BAND_CRS_EPSG}):")
-    print(f"    xmin={xmin_utm:.0f}  ymin={ymin_utm:.0f}")
-    print(f"    xmax={xmax_utm:.0f}  ymax={ymax_utm:.0f}")
-    print()
+    try:
+        # -- Step 3: Build UTM clip geometry -----------------------------------
+        xmin_utm, ymin_utm, xmax_utm, ymax_utm = _bbox_to_utm()
+        clip_geom = mapping(box(xmin_utm, ymin_utm, xmax_utm, ymax_utm))
+        print(f"  Bbox (UTM {BAND_CRS_EPSG}):")
+        print(f"    xmin={xmin_utm:.0f}  ymin={ymin_utm:.0f}")
+        print(f"    xmax={xmax_utm:.0f}  ymax={ymax_utm:.0f}")
+        print()
 
-    # -- Step 4: Clip B04 (Red, 10m) and B08 (NIR, 10m) -------------------
-    print("  Clipping B04 (Red, 10m) ...")
-    b04_arr, ref_transform, ref_crs = _clip_band(b04_path, clip_geom)
-    ref_h, ref_w = b04_arr.shape
+        # -- Step 4: Clip B04 (Red, 10m) and B08 (NIR, 10m) -------------------
+        print("  Clipping B04 (Red, 10m) ...")
+        b04_arr, ref_transform, ref_crs = _clip_band(b04_path, clip_geom)
+        ref_h, ref_w = b04_arr.shape
 
-    print("  Clipping B08 (NIR, 10m) ...")
-    b08_arr, _, _ = _clip_band(b08_path, clip_geom)
+        print("  Clipping B08 (NIR, 10m) ...")
+        b08_arr, _, _ = _clip_band(b08_path, clip_geom)
 
-    print(f"  B04/B08 clipped shape: {ref_h} x {ref_w} pixels @ 10m")
-    print()
+        print(f"  B04/B08 clipped shape: {ref_h} x {ref_w} pixels @ 10m")
+        print()
 
-    # -- Step 5: Clip B11 (SWIR, 20m) and resample to 10m -----------------
-    print("  Clipping B11 (SWIR, 20m) ...")
-    b11_clipped, b11_transform_20m, b11_crs = _clip_band(b11_path, clip_geom)
-    print(f"  B11 clipped shape (native 20m): {b11_clipped.shape[0]} x {b11_clipped.shape[1]}")
+        # -- Step 5: Clip B11 (SWIR, 20m) and resample to 10m -----------------
+        print("  Clipping B11 (SWIR, 20m) ...")
+        b11_clipped, b11_transform_20m, b11_crs = _clip_band(b11_path, clip_geom)
+        print(f"  B11 clipped shape (native 20m): {b11_clipped.shape[0]} x {b11_clipped.shape[1]}")
 
-    # Derive a pixel-perfect 10m transform from the reference B04 bounds
-    ref_bounds = array_bounds(ref_h, ref_w, ref_transform)
-    ref_transform_10m = from_bounds(*ref_bounds, ref_w, ref_h)
+        # Derive a pixel-perfect 10m transform from the reference B04 bounds
+        ref_bounds = array_bounds(ref_h, ref_w, ref_transform)
+        ref_transform_10m = from_bounds(*ref_bounds, ref_w, ref_h)
 
-    print("  Resampling B11 to 10m via bilinear interpolation ...")
-    b11_arr = _resample_to_ref(
-        b11_clipped, b11_transform_20m, b11_crs,
-        ref_transform_10m, ref_crs, ref_h, ref_w,
-    )
-    print(f"  B11 resampled shape: {b11_arr.shape[0]} x {b11_arr.shape[1]}")
-    print()
+        print("  Resampling B11 to 10m via bilinear interpolation ...")
+        b11_arr = _resample_to_ref(
+            b11_clipped, b11_transform_20m, b11_crs,
+            ref_transform_10m, ref_crs, ref_h, ref_w,
+        )
+        print(f"  B11 resampled shape: {b11_arr.shape[0]} x {b11_arr.shape[1]}")
+        print()
 
-    # -- Step 6: Compute spectral indices ----------------------------------
-    print("  Computing NDVI = (B08 - B04) / (B08 + B04) ...")
-    ndvi = _compute_index(b08_arr, b04_arr)
+        # -- Step 6: Compute spectral indices ----------------------------------
+        print("  Computing NDVI = (B08 - B04) / (B08 + B04) ...")
+        ndvi = _compute_index(b08_arr, b04_arr)
 
-    print("  Computing NDMI = (B08 - B11) / (B08 + B11) ...")
-    ndmi = _compute_index(b08_arr, b11_arr)
-    print()
+        print("  Computing NDMI = (B08 - B11) / (B08 + B11) ...")
+        ndmi = _compute_index(b08_arr, b11_arr)
+        print()
 
-    # -- Step 7: Write outputs ---------------------------------------------
-    band_profile: dict = {
-        "driver":    "GTiff",
-        "dtype":     "uint16",
-        "width":     ref_w,
-        "height":    ref_h,
-        "count":     1,
-        "crs":       ref_crs,
-        "transform": ref_transform,
-        "compress":  "lzw",
-    }
-    index_profile: dict = {
-        **band_profile,
-        "dtype":  "float32",
-        "nodata": -9999.0,
-    }
+        # -- Step 7: Write outputs ---------------------------------------------
+        band_profile: dict = {
+            "driver":    "GTiff",
+            "dtype":     "uint16",
+            "width":     ref_w,
+            "height":    ref_h,
+            "count":     1,
+            "crs":       ref_crs,
+            "transform": ref_transform,
+            "compress":  "lzw",
+        }
+        index_profile: dict = {
+            **band_profile,
+            "dtype":  "float32",
+            "nodata": -9999.0,
+        }
 
-    outputs: list[tuple[str, np.ndarray, dict]] = [
-        ("clean_S2_B04_red.tif",  b04_arr.astype(np.uint16),  band_profile),
-        ("clean_S2_B08_nir.tif",  b08_arr.astype(np.uint16),  band_profile),
-        ("clean_S2_B11_swir.tif", b11_arr.astype(np.uint16),  band_profile),
-        ("clean_S2_NDVI.tif",     ndvi,                        index_profile),
-        ("clean_S2_NDMI.tif",     ndmi,                        index_profile),
-    ]
+        outputs: list[tuple[str, np.ndarray, dict]] = [
+            ("clean_S2_B04_red.tif",  b04_arr.astype(np.uint16),                        band_profile),
+            ("clean_S2_B08_nir.tif",  b08_arr.astype(np.uint16),                        band_profile),
+            # b11_arr is float32 after bilinear resampling; clip before uint16 cast to
+            # prevent negative-float wraparound (e.g. -0.001 → 65535 without clip).
+            ("clean_S2_B11_swir.tif", np.clip(b11_arr, 0, 65535).astype(np.uint16),     band_profile),
+            ("clean_S2_NDVI.tif",     ndvi,                                               index_profile),
+            ("clean_S2_NDMI.tif",     ndmi,                                               index_profile),
+        ]
 
-    print("  Writing GeoTIFFs:")
-    for fname, data, profile in outputs:
-        out_path = CLEAN_DIR / fname
-        _write_tif(out_path, data, profile)
-        size_mb = out_path.stat().st_size / 1_048_576
-        print(f"    {fname:<30}  {size_mb:6.1f} MB")
-    print()
+        print("  Writing GeoTIFFs:")
+        for fname, data, profile in outputs:
+            out_path = CLEAN_DIR / fname
+            _write_tif(out_path, data, profile)
+            size_mb = out_path.stat().st_size / 1_048_576
+            print(f"    {fname:<30}  {size_mb:6.1f} MB")
+        print()
 
-    # -- Step 8: Cleanup ---------------------------------------------------
-    if TMP_DIR.exists():
-        shutil.rmtree(TMP_DIR)
-    print("  Temporary extraction directory removed.")
-    print()
+        # -- Step 9: Summary ---------------------------------------------------
+        print(DIV)
+        print("  INDEX STATISTICS")
+        print(DIV)
 
-    # -- Step 9: Summary ---------------------------------------------------
-    print(DIV)
-    print("  INDEX STATISTICS")
-    print(DIV)
+        # A pixel is valid when at least one source band has a positive DN value.
+        # Using (b04 > 0) | (b08 > 0) is more precise than `ndvi != 0`, which
+        # wrongly discards legitimate zero-NDVI pixels (bare soil, water edges).
+        valid_mask = (b04_arr > 0) | (b08_arr > 0)
+        valid_ndvi = ndvi[valid_mask]
+        valid_ndmi = ndmi[valid_mask]
 
-    valid_ndvi = ndvi[ndvi != 0]
-    valid_ndmi = ndmi[ndmi != 0]
+        print(f"  NDVI  min={ndvi.min():.4f}  max={ndvi.max():.4f}"
+              f"  mean={valid_ndvi.mean():.4f}  (valid px: {len(valid_ndvi):,})")
+        print(f"  NDMI  min={ndmi.min():.4f}  max={ndmi.max():.4f}"
+              f"  mean={valid_ndmi.mean():.4f}  (valid px: {len(valid_ndmi):,})")
+        print()
+        print(f"  Note: NDVI mean ~0.30-0.45 expected for August Mediterranean scrubland.")
+        print()
+        print(DIV)
+        print()
+        print(f"  Done. 5 GeoTIFFs written to: {CLEAN_DIR}")
+        print()
+        print(SEP)
 
-    print(f"  NDVI  min={ndvi.min():.4f}  max={ndvi.max():.4f}"
-          f"  mean={valid_ndvi.mean():.4f}  (valid px: {len(valid_ndvi):,})")
-    print(f"  NDMI  min={ndmi.min():.4f}  max={ndmi.max():.4f}"
-          f"  mean={valid_ndmi.mean():.4f}  (valid px: {len(valid_ndmi):,})")
-    print()
-    print(f"  Note: NDVI mean ~0.30-0.45 expected for August Mediterranean scrubland.")
-    print()
-    print(DIV)
-    print()
-    print(f"  Done. 5 GeoTIFFs written to: {CLEAN_DIR}")
-    print()
-    print(SEP)
+    finally:
+        # -- Step 8: Cleanup (always runs, even on error) ----------------------
+        if TMP_DIR.exists():
+            shutil.rmtree(TMP_DIR)
+        print("  Temporary extraction directory removed.")
 
 
 if __name__ == "__main__":

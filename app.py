@@ -26,7 +26,7 @@ _DB_HOST = os.getenv("SNTO_DB_HOST", "localhost")
 _DB_PORT = int(os.getenv("SNTO_DB_PORT", "5432"))
 _DB_NAME = os.getenv("SNTO_DB_NAME", "snto")
 _DB_USER = os.getenv("SNTO_DB_USER", "postgres")
-_DB_PASS = os.getenv("SNTO_DB_PASS", "Navidesalehin_1379")
+_DB_PASS = os.getenv("SNTO_DB_PASS", "")
 
 # Sierra del Rincón Biosphere Reserve, northeast Madrid province
 _MAP_CENTER = [41.14, -3.52]
@@ -42,12 +42,15 @@ def load_trails() -> gpd.GeoDataFrame:
         f"postgresql+psycopg2://{_DB_USER}:{_DB_PASS}"
         f"@{_DB_HOST}:{_DB_PORT}/{_DB_NAME}"
     )
-    # SELECT * includes the primary key `id`, required for fallback name generation
-    gdf = gpd.read_postgis(
-        "SELECT * FROM production_hiking_trails ORDER BY id",
-        engine,
-        geom_col="geometry",
-    )
+    try:
+        # SELECT * includes the primary key `id`, required for fallback name generation
+        gdf = gpd.read_postgis(
+            "SELECT * FROM production_hiking_trails ORDER BY id",
+            engine,
+            geom_col="geometry",
+        )
+    finally:
+        engine.dispose()
 
     # Ensure CRS is EPSG:4326 (Folium requires WGS-84)
     if gdf.crs is None:
@@ -224,7 +227,7 @@ legend_html = """
 """
 m.get_root().html.add_child(folium.Element(legend_html))
 
-st_folium(m, width='stretch', height=520)
+st_folium(m, use_container_width=True, height=520)
 
 st.divider()
 
@@ -263,7 +266,7 @@ styled = priority_df.style.format(fmt_map, na_rep="N/A")
 if "Priority Score" in priority_df.columns:
     styled = styled.background_gradient(subset=["Priority Score"], cmap="RdYlGn_r")
 
-st.dataframe(styled, width='stretch')
+st.dataframe(styled, use_container_width=True)
 
 st.caption(
     "EHS (Environmental Health Stress) 0–100: higher = more degraded vegetation. "

@@ -11,10 +11,11 @@ from src.decision_confidence.assessor import (
     DCS_HIGH, DCS_MODERATE, DCS_VERY_HIGH,
     MAX_DQ, MAX_MS, MAX_SC, MAX_SS, MAX_TR,
     DCSInputs, compute_dcs,
+    _classify_dcs, _data_quality, _temporal_robustness,
 )
 from src.features.spectral import extract_spectral_features
 from src.geospatial.geometry import enrich_asset_geometry
-from src.ingestion.multiyear_adapter import MultiYearAdapter, _NDVI_ANOMALY
+from src.ingestion.multiyear_adapter import MultiYearAdapter
 from src.risk_engine.components import (
     RiskComponents,
     compute_ecological_degradation,
@@ -26,7 +27,9 @@ from src.spatial_causality.analyzer import SpatialCausalityAnalyzer
 from src.time_series.anomaly import AnomalyResult
 from src.time_series.climatology import build_climatology, detect_anomaly_events
 from src.time_series.decomposition import harmonic_decompose
-from src.time_series.mann_kendall import classify_trend_severity, mann_kendall_test
+from src.time_series.mann_kendall import (
+    MannKendallResult, classify_trend_severity, mann_kendall_test,
+)
 from src.time_series.trend import compute_linear_trend
 
 SEP = "=" * 72
@@ -329,14 +332,12 @@ def main():
     print(f"  {'Scenario':45s}  {'DCS':>6}  {'Class'}")
     print("  " + DIV[:65])
     for name, n_v, n_p, n_y, mk_p in scenarios:
-        from src.time_series.mann_kendall import MannKendallResult
         mk_s = MannKendallResult(
             s_statistic=0, z_score=mk_p, p_value=mk_p, kendalls_tau=0.0,
             sens_slope=0.0 if mk_p > 0.05 else -0.003,
             trend_direction="no_trend" if mk_p > 0.05 else "decreasing",
             is_significant=(mk_p <= 0.05), alpha=0.05, n=n_v,
         )
-        from src.decision_confidence.assessor import _data_quality, _temporal_robustness
         dq_s, _ = _data_quality(DCSInputs(
             asset_id="test", recommendation="annual_monitoring",
             n_valid_observations=n_v, n_possible_observations=n_p,
@@ -365,7 +366,6 @@ def main():
         ))
         approx_dcs = min(100, dq_s + tr_s + comp.spatial_consistency
                          + comp.model_stability + comp.signal_strength)
-        from src.decision_confidence.assessor import _classify_dcs
         print(f"  {name:45s}  {approx_dcs:6.1f}  {_classify_dcs(approx_dcs)}")
     print()
 
