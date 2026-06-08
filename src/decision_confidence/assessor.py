@@ -111,6 +111,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from src.config.constants import DCS_MIN_DQ_FOR_ACTION, DCS_MIN_TR_FOR_ACTION
 from src.risk_engine.components import RiskComponents
 from src.risk_engine.ehs import EHSComponents
 from src.spatial_causality.analyzer import SpatialCausalityResult
@@ -241,12 +242,21 @@ def compute_dcs(inputs: DCSInputs) -> DCSResult:
     )
 
     classification = _classify_dcs(total)
+
+    # Quality gate: weak DQ or TR can inflate the score via SC/MS/SS while the
+    # foundational data is insufficient for a formal management decision.
+    _gate_triggered = (dq < DCS_MIN_DQ_FOR_ACTION) or (tr < DCS_MIN_TR_FOR_ACTION)
+    if _gate_triggered and classification in ("HIGH", "VERY HIGH"):
+        classification = "MODERATE"
+
     uncertainty_factors, confidence_factors = _explain_factors(components, inputs)
     confidence_statement = _confidence_statement(
         inputs, total, classification, components
     )
-    can_act = total >= DCS_HIGH
-    can_act_reasoning = _can_act_reasoning(total, classification, components, inputs)
+    can_act = (total >= DCS_HIGH) and not _gate_triggered
+    can_act_reasoning = _can_act_reasoning(
+        total, classification, components, inputs, gate_triggered=_gate_triggered
+    )
 
     return DCSResult(
         asset_id=inputs.asset_id,
@@ -497,8 +507,16 @@ def _confidence_statement(
 
 
 def _can_act_reasoning(
-    dcs: float, classification: str, comp: DCSComponents, inp: DCSInputs
+    dcs: float, classification: str, comp: DCSComponents, inp: DCSInputs,
+    gate_triggered: bool = False,
 ) -> str:
+    if gate_triggered:
+        return (
+            f"NOT YET -- data quality gate triggered: DQ or TR below minimum "
+            f"threshold for actionable recommendation. "
+            f"DCS = {dcs:.0f}/100. Collect more observations before triggering "
+            f"any management response."
+        )
     if dcs >= DCS_VERY_HIGH:
         return (
             f"YES -- you can act on this recommendation with full confidence. "

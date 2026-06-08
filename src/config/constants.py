@@ -36,3 +36,44 @@ HP_SLOPE_MAX_DEG: float = 30.0      # slope (degrees) above which access is zero
 
 # Spectral fallback disturbance threshold (deseasonalized NDVI std)
 HP_MAX_DISTURBANCE_STD: float = 0.05
+
+# ── Operational EHS — per-scene percentile anchoring ─────────────────────────
+# Governs calculate_delta_ehs.py. All five values are intentionally exposed
+# here (not hardcoded in the logic) so they can be calibrated and defended.
+#
+# P_BASE / P_FLOOR are computed from the actual pixel distribution of each
+# Sentinel-2 scene, per season, after excluding SCL-masked and trail-buffer
+# pixels.  Adjust to match the ecological dynamics of the target territory.
+#
+# EHS_SEASON_FOR_BUDGET must be "summer" or "spring"; it selects which
+# seasonal EHS column tis_engine.py reads for priority and budget.
+EHS_P_BASE: int = 90              # percentile → baseline_sano (healthy reference)
+EHS_P_FLOOR: int = 10             # percentile → suelo (degraded floor)
+EHS_W_NDVI: float = 0.5           # weight of NDVI deficit in composite EHS
+EHS_W_NDMI: float = 0.5           # weight of NDMI deficit in composite EHS
+EHS_SEASON_FOR_BUDGET: str = "summer"  # season driving priority_score & tis_budget
+
+# ── Operational SCM — raster-based SIG thresholds & causal factors ────────────
+# Governs run_scm_operational.py and tis_engine.py.
+#
+# SIG = (NDVI_landscape − NDVI_core) / max(NDVI_landscape, 0.01)
+# Thresholds match src/spatial_causality/analyzer.py for cross-module consistency.
+#
+# Causal factors apply the polluter-pays principle to the restoration budget:
+# investment should be proportional to the fraction of degradation attributable
+# to human pressure rather than to climate forcing beyond local control.
+# These are starting values; adjust after field validation.
+SCM_SIG_LOCALIZED_THRESHOLD: float = 0.15  # SIG above this → LOCALIZED_IMPACT
+SCM_SIG_LANDSCAPE_THRESHOLD: float = 0.07  # SIG below this → LANDSCAPE_DRIVEN
+
+SCM_LOCALIZED_FACTOR: float = 1.0   # trail use is the driver — full budget
+SCM_MIXED_FACTOR: float = 0.5       # ambiguous cause — half budget
+SCM_LANDSCAPE_FACTOR: float = 0.0   # climate is the driver — no local budget
+
+# ── Decision Confidence Score — minimum quality gates for can_act ─────────────
+# Prevents issuing an actionable recommendation when foundational data quality
+# or time-series robustness falls below minimum thresholds, even if the total
+# DCS score reaches the HIGH band through strong spatial or signal scores.
+# These are starting values; adjust after operational calibration.
+DCS_MIN_DQ_FOR_ACTION: int = 10   # minimum DQ score (out of 25) to enable can_act
+DCS_MIN_TR_FOR_ACTION: int = 12   # minimum TR score (out of 25) to enable can_act

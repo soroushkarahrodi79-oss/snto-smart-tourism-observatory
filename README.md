@@ -70,11 +70,15 @@ $$\text{NDVI} = \frac{\rho_{NIR} - \rho_{Red}}{\rho_{NIR} + \rho_{Red}} \qquad \
 
 El **EHS** es el indicador operativo principal de SNTO. Convierte la señal espectral dual (NDVI + NDMI) en un **índice de degradación de 0 a 100** donde valores más altos indican mayor estrés ecológico — convenio inverso que alinea directamente el indicador con la lógica financiera del modelo de restauración.
 
-### Fórmula operacional (pipeline del dashboard — `tis_engine.py`)
+### Fórmula operacional (`calculate_delta_ehs.py` + `tis_engine.py`)
 
-$$\boxed{\text{EHS} = 100 - \left(\text{NDVI} \times 50 + \text{NDMI}_{norm} \times 50\right)}$$
+$$D_{index} = \text{clamp}\!\left(\frac{\text{baseline}_{sano} - \text{observed}}{\text{baseline}_{sano} - \text{suelo}},\ 0,\ 1\right)$$
 
-Donde $\text{NDMI}_{norm} = (\text{NDMI} + 1) / 2$ normaliza el índice de $[-1, +1]$ a $[0, 1]$.
+$$\boxed{\text{EHS} = 100 \times \left(W_{NDVI} \cdot D_{NDVI} + W_{NDMI} \cdot D_{NDMI}\right)}$$
+
+Donde **baseline\_sano** = P90 y **suelo** = P10 de los píxeles válidos de la escena Sentinel-2, calculados excluyendo píxeles SCL no-vegetación y los propios buffers de sendero. EHS = 0 → observación igual o mejor que el baseline (sin estrés). EHS = 100 → degradación máxima (observación igual o peor que el suelo).
+
+Los pesos ($W_{NDVI} = W_{NDMI} = 0.5$) y los percentiles (P90/P10) se configuran en `src/config/constants.py`.
 
 ### Motor EHS de investigación (implementación estadística completa — `src/risk_engine/ehs.py`)
 
@@ -232,12 +236,13 @@ snto-smart-tourism-observatory/
 │   └── clean_assets/             # GeoTIFFs procesados
 ├── tests/                        # 27 módulos de test, 400+ casos
 ├── app.py                        # Dashboard Streamlit
-├── tis_engine.py                 # Motor TIS: EHS → prioridad → presupuesto
-├── etl_raster_processor.py       # Extracción de bandas, NDVI/NDMI
-├── etl_raster_intersection.py    # Estadísticas zonales → PostGIS
-├── etl_vector_cleaner.py         # Limpieza de geometrías OSM
-├── calculate_delta_ehs.py        # ΔEHS estacional
-├── db_production_seeder.py       # Inicialización PostgreSQL/PostGIS
+├── db_production_seeder.py       # Inicialización PostgreSQL/PostGIS (paso 0)
+├── etl_raster_processor.py       # Extracción de bandas, NDVI/NDMI (paso 1)
+├── etl_vector_cleaner.py         # Limpieza de geometrías OSM (paso 2)
+├── etl_raster_intersection.py    # Estadísticas zonales → PostGIS (paso 3)
+├── calculate_delta_ehs.py        # EHS estacional percentil-anclado (paso 4)
+├── run_scm_operational.py        # SIG espacial real → scm_classification (paso 5)
+├── tis_engine.py                 # Motor TIS: prioridad + presupuesto causal (paso 6)
 └── WHITEPAPER_SNTO_Architecture_Blueprint.md  # Documento de referencia técnica
 ```
 
@@ -247,12 +252,32 @@ snto-smart-tourism-observatory/
 
 ### Pipeline ETL completo
 
+Orden de ejecución obligatorio. Cada script depende de las salidas del anterior.
+
 ```bash
-python etl_raster_processor.py       # Extrae bandas y calcula NDVI/NDMI
-python etl_vector_cleaner.py         # Limpia geometrías vectoriales
-python etl_raster_intersection.py    # Estadísticas zonales → PostGIS
-python tis_engine.py                 # Calcula EHS, prioridad y presupuesto
-python calculate_delta_ehs.py        # ΔEHS estacional por sendero
+# 0. Inicializa la base de datos (una sola vez por entorno)
+python db_production_seeder.py
+
+# 1. Procesa los rasters Sentinel-2: bandas crudas → NDVI/NDMI GeoTIFF
+python etl_raster_processor.py
+
+# 2. Limpia y valida las geometrías vectoriales OSM
+python etl_vector_cleaner.py
+
+# 3. Estadísticas zonales (avg_ndvi, avg_ndmi) → PostGIS
+python etl_raster_intersection.py
+
+# 4. EHS estacional anclado a percentiles reales de cada escena
+#    Escribe: ehs_spring, ehs_summer, delta_ehs
+python calculate_delta_ehs.py
+
+# 5. Gradiente de Impacto Espacial desde rasters reales
+#    Escribe: scm_classification, scm_sig_spring, scm_sig_summer
+python run_scm_operational.py
+
+# 6. Motor TIS: prioridad + presupuesto bruto + presupuesto causal (SCM)
+#    Escribe: priority_score, needs_intervention, tis_budget_eur, tis_budget_causal_eur
+python tis_engine.py
 ```
 
 ### Dashboard

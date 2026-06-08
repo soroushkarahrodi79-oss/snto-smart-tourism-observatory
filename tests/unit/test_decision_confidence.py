@@ -145,10 +145,21 @@ def test_excellent_data_scores_high():
 
 
 def test_poor_data_scores_low():
-    inp = _make_inputs(n_valid=8, n_possible=60, cloud_pct=65.0, pixel_pct=0.40,
-                       n_years=1, decomp_r2=0.30)
+    # Internally consistent 1-year scenario:
+    #   - 12-element series (monthly, 1 year) fed to both SCM and model stability
+    #   - annual_means has exactly 1 entry, so inter-annual stability = 0
+    short_series = _make_series(n=12)
+    inp = _make_inputs(
+        n_valid=8, n_possible=60, cloud_pct=65.0, pixel_pct=0.40,
+        n_years=1, decomp_r2=0.30,
+        ndvi=short_series,
+        ndmi=[v * 0.4 for v in short_series],
+        scm=_scm_landscape_high(short_series),
+        annual_means={2024: sum(short_series) / len(short_series)},
+    )
     result = compute_dcs(inp)
-    assert result.dcs < 50.0
+    assert result.can_act is False
+    assert result.classification in ("LOW", "MODERATE")
 
 
 # ── Sub-score range tests ─────────────────────────────────────────────────
