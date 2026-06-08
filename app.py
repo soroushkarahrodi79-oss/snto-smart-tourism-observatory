@@ -9,6 +9,10 @@ from __future__ import annotations
 
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()  # carga .env antes de cualquier os.getenv() a nivel de módulo
+
 import folium
 import geopandas as gpd
 import streamlit as st

@@ -38,7 +38,10 @@ if hasattr(sys.stdout, "buffer"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 import psycopg2
+from dotenv import load_dotenv
 from psycopg2.extras import execute_values
+
+load_dotenv()  # carga .env antes de os.getenv() a nivel de módulo
 
 SEP = "=" * 72
 DIV = "-" * 72

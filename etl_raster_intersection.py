@@ -27,8 +27,11 @@ from pathlib import Path
 import geopandas as gpd
 import psycopg2
 import rasterio
+from dotenv import load_dotenv
 from rasterstats import zonal_stats
 from sqlalchemy import create_engine
+
+load_dotenv()  # carga .env antes de os.getenv() a nivel de módulo
 
 SEP = "=" * 72
 DIV = "-" * 72

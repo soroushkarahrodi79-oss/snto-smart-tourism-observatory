@@ -34,7 +34,10 @@ from pathlib import Path
 
 import geopandas as gpd
 import psycopg2
+from dotenv import load_dotenv
 from psycopg2.extras import execute_values
+
+load_dotenv()  # carga .env antes de os.getenv() a nivel de módulo
 
 SEP = "=" * 72
 DIV = "-" * 72
