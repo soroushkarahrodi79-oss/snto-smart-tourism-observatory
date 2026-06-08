@@ -224,7 +224,7 @@ legend_html = """
 """
 m.get_root().html.add_child(folium.Element(legend_html))
 
-st_folium(m, use_container_width=True, height=520)
+st_folium(m, width='stretch', height=520)
 
 st.divider()
 
@@ -263,7 +263,7 @@ styled = priority_df.style.format(fmt_map, na_rep="N/A")
 if "Priority Score" in priority_df.columns:
     styled = styled.background_gradient(subset=["Priority Score"], cmap="RdYlGn_r")
 
-st.dataframe(styled, use_container_width=True)
+st.dataframe(styled, width='stretch')
 
 st.caption(
     "EHS (Environmental Health Stress) 0–100: higher = more degraded vegetation. "
