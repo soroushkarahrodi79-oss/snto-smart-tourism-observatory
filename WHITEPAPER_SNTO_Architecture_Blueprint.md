@@ -86,6 +86,8 @@ Spectral signals are spatially aggregated within **50-metre geometric buffers** 
 
 Trail vector geometries are sourced from OpenStreetMap, cleaned through the `etl_vector_cleaner.py` pipeline, validated for topological integrity, and stored with PostGIS spatial indexing (GIST index on `geometry` column).
 
+**Observación vs. acción — escala de intervención:** El buffer de 50 m es la unidad de observación satelital: captura la señal NDVI/NDMI del entorno del sendero para detectar estrés vegetal difuso. La unidad de acción de restauración es la traza del sendero (1–2 m de ancho), sobre la que se aplican las intervenciones físicas (descompactación, fajinas transversales, revegetación). El coste unitario de 15,50 €/m lineal corresponde a esta escala de actuación.
+
 ## 3.3 Spectral Index Formulation
 
 ### 3.3.1 NDVI — Normalised Difference Vegetation Index
@@ -112,22 +114,29 @@ Where $\rho_{SWIR1}$ is surface reflectance in Band B11 (resampled to 10 m). NDM
 
 The **Environmental Health Score (EHS)** is the SNTO's principal operational indicator. It is designed to translate the dual spectral signal (NDVI and NDMI) into a single, intuitive **degradation index scaled from 0 to 100**, where:
 
-- **0** = maximally degraded / bare / non-functional ecosystem
+- **0** = no deviation from healthy baseline (optimal state)
 - **100** = maximal stress / complete degradation
 
 This inverse convention — where higher scores indicate *worse* ecological condition — is deliberately adopted to align the EHS with financial logic: a **higher EHS score directly implies a higher restoration budget requirement**, making the ecological-financial relationship intuitively transparent to non-specialist decision-makers.
 
 ## 4.2 Core EHS Formula (Operational Dashboard Implementation)
 
-The operational EHS formula implemented in the SNTO dashboard pipeline (`tis_engine.py`) uses equal weighting across both indices:
+The operational EHS formula implemented in the `calculate_delta_ehs.py` pipeline uses a **scene-specific percentile-anchored deficit formulation** that normalises each observation against the actual healthy and degraded pixel distributions of the same scene:
 
-$$\boxed{\text{EHS} = 100 - \left(\text{NDVI} \times 50 + \text{NDMI}_{norm} \times 50\right)}$$
+$$D = \text{clamp}\!\left(\frac{B_{percentile} - X}{B_{percentile} - Floor_{percentile}},\ 0,\ 1\right)$$
+
+$$\boxed{\text{EHS} = 100 \times \left(W_{NDVI} \cdot D_{NDVI} + W_{NDMI} \cdot D_{NDMI}\right)}$$
 
 Where:
-- **NDVI** is the mean NDVI value extracted via zonal statistics within the 50 m trail buffer, clamped to [0, 1].
-- **NDMI_norm** is NDMI normalised from its native range [−1, +1] to [0, 1]: $\text{NDMI}_{norm} = \frac{\text{NDMI} + 1}{2}$, then clamped to [0, 1].
+- $X$ is the mean NDVI (or NDMI) value extracted via zonal statistics within the 50 m trail buffer.
+- $B_{percentile}$ is the healthy reference level — the P90 percentile of valid vegetation pixels (SCL class 4) in the scene, excluding trail buffers.
+- $Floor_{percentile}$ is the degraded floor — the P10 percentile of the same pixel distribution.
+- $D_{NDVI}$, $D_{NDMI}$ are per-index deficit fractions, each clamped to [0, 1].
+- $W_{NDVI} = W_{NDMI} = 0.5$ (equal weighting, configurable in `src/config/constants.py`).
 
-**Algebraic interpretation:** The formula computes a **composite health index** (midpoint of normalised NDVI and NDMI) and inverts it to a stress scale. A trail with NDVI = 0.8 and NDMI_norm = 0.7 yields EHS = 100 − (40 + 35) = **25** (low stress). A trail with NDVI = 0.2 and NDMI_norm = 0.3 yields EHS = 100 − (10 + 15) = **75** (high stress).
+**Operational parameters** (`src/config/constants.py`): `EHS_P_BASE = 90`, `EHS_P_FLOOR = 10`, `EHS_W_NDVI = 0.5`, `EHS_W_NDMI = 0.5`.
+
+**Algebraic interpretation:** The formula computes a scene-specific deficit of each index relative to the observed healthy range in the same image. A trail at the P90 reference level yields $D = 0$ (no deficit, EHS contribution = 0). A trail at or below the P10 floor yields $D = 1$ (maximum deficit, full EHS contribution). This approach normalises against the actual ecological conditions of each acquisition, making EHS robust to inter-seasonal and inter-annual radiometric variability.
 
 ## 4.3 Research-Grade EHS Engine (Full Statistical Implementation)
 
@@ -292,9 +301,9 @@ The SNTO restoration budget model is anchored to a **unit restoration cost of �
 
 | Cost Component | Standard Source | Unit Cost Contribution |
 |---|---|---|
-| **Soil decompaction** (mechanical scarification) | TRAGSA Price List 2023 (Chapter 15: Forest Work) | €4.20 / linear metre |
-| **Erosion control** (fajinas — brushwood check dams; albarradas — stone barriers) | TRAGSA Price List 2023 (Chapter 8: Hydraulic Works) | €6.80 / linear metre |
-| **Native revegetation** (autochthonous shrub planting, seed mix for *Quercus*, *Cistus*, *Rosmarinus* assemblage) | Spanish National Plan for Ecological Transition 2021–2025, Unit Price Schedule | €4.50 / linear metre |
+| **Soil decompaction** (mechanical scarification) | TRAGSA Price List 2023 (Chapter 15: Forest Work) | €4.20 / linear metre [pendiente de verificar: Tarifas TRAGSA, Resolución oficial, Cap. 15, año 2023] |
+| **Erosion control** (fajinas — brushwood check dams; albarradas — stone barriers) | TRAGSA Price List 2023 (Chapter 8: Hydraulic Works) | €6.80 / linear metre [pendiente de verificar: Tarifas TRAGSA, Resolución oficial, Cap. 8, año 2023] |
+| **Native revegetation** (autochthonous shrub planting, seed mix for *Quercus*, *Cistus*, *Rosmarinus* assemblage) | Spanish National Plan for Ecological Transition 2021–2025, Unit Price Schedule | €4.50 / linear metre [pendiente de verificar: PNMT 2021–2025, Resolución oficial, año 2021] |
 | **Total** | | **€15.50 / linear metre** |
 
 This unit rate is consistent with published restoration costs for trail rehabilitation in Mediterranean mountain environments (Barros et al., 2013; Spanish MITERD ecological restoration tender baselines, 2022–2024).
@@ -318,9 +327,10 @@ For a representative Sierra del Rincón network of 20 km of monitored trail:
 
 | Scenario | Mean Priority Score | Total Budget |
 |---|---|---|
-| Low stress year (NDVI near baseline) | 35 | €108,500 |
 | Moderate stress year | 65 | €201,500 |
 | High stress year (post-drought + peak visitation) | 82 | €254,200 |
+
+> **Nota:** Senderos con priority ≤ 60 no generan presupuesto de intervención; pasan a monitorización anual.
 
 These budget envelopes are fully reproducible from satellite data with no field survey requirement, enabling **annual budget forecasting calibrated to real ecological conditions** — a key CETS Phase I deliverable.
 
@@ -383,7 +393,7 @@ Future development priorities include: (1) machine learning classification of de
 |---|---|---|
 | NDVI | — | (B8 − B4) / (B8 + B4) |
 | NDMI | — | (B8 − B11) / (B8 + B11) |
-| EHS (Operational) | EHS | 100 − (NDVI × 50 + NDMI_norm × 50) |
+| EHS (Operational) | EHS | 100 × (W_NDVI × D_NDVI + W_NDMI × D_NDMI); D = clamp((B_p90 − X) / (B_p90 − B_p10), 0, 1) |
 | Delta EHS (Seasonal) | ΔEHS | EHS_Summer − EHS_Spring |
 | Priority Score | P | EHS × 0.60 + traffic_index × 0.40 |
 | TIS Budget | B | L_m × 15.50 × (P / 100) |
