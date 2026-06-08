@@ -1,231 +1,364 @@
-# 🌍 Smart Tourism Observatory (SNTO)
+# 🌍 Smart Natural Tourism Observatory (SNTO)
 
-## Gobernanza Inteligente y Transición Regenerativa para Destinos Turísticos
+## Gobernanza Inteligente y Transición Regenerativa en la Reserva de la Biosfera Sierra del Rincón
+### Hoja de Ruta para la Candidatura a la Fase I de la CETS
 
-Smart Tourism Observatory (SNTO) es una plataforma de inteligencia territorial diseñada para monitorizar, analizar y apoyar la toma de decisiones sobre activos turísticos naturales mediante el uso combinado de teledetección satelital, análisis geoespacial, Open Data y modelos de evaluación ambiental.
+El **Smart Natural Tourism Observatory (SNTO)** es una plataforma abierta, espacialmente explícita y orientada a datos, diseñada para transitar la gestión de destinos turísticos naturales desde un paradigma de mantenimiento reactivo hacia un modelo proactivo de **Turismo Regenerativo**. Desarrollada en el contexto de la Reserva de la Biosfera Sierra del Rincón (Madrid, España) y su candidatura a la **Carta Europea de Turismo Sostenible (CETS) Fase I**, la plataforma operacionaliza el principio regenerativo central: la infraestructura turística debe restaurar activamente la capacidad de carga ecológica que consume.
 
-El sistema permite evaluar el estado de senderos, miradores, áreas recreativas y otros recursos turísticos mediante indicadores ambientales derivados de imágenes Sentinel-2, análisis temporal multianual y modelos de interpretación espacial orientados a la gestión pública.
-
----
-
-# 🎯 Objetivos del Proyecto
-
-SNTO ha sido desarrollado para responder a preguntas clave de gestión territorial:
-
-* ¿Qué activos turísticos presentan signos de deterioro ambiental?
-* ¿Los cambios observados se deben a presión humana o a factores climáticos?
-* ¿Qué lugares requieren seguimiento prioritario?
-* ¿Dónde deberían concentrarse las inversiones públicas?
-* ¿Qué activos pueden promocionarse de forma segura dentro de estrategias de turismo sostenible?
+> El documento de referencia técnica completo se encuentra en [`WHITEPAPER_SNTO_Architecture_Blueprint.md`](WHITEPAPER_SNTO_Architecture_Blueprint.md).
 
 ---
 
-# 🛰️ Tecnologías y Fuentes de Datos
+## 🎯 Objetivos del Proyecto
+
+El SNTO responde a preguntas clave de gobernanza territorial:
+
+- ¿Qué senderos presentan degradación ambiental atribuible a presión turística?
+- ¿Los cambios observados por satélite se deben a impacto humano local o a forzamiento climático regional?
+- ¿Qué activos requieren intervención inmediata y cuál es su presupuesto de restauración?
+- ¿Dónde maximiza el retorno ecológico cada euro de inversión pública?
+- ¿Qué activos pueden promocionarse con respaldo científico dentro de estrategias de turismo regenerativo?
+
+---
+
+## 🛰️ Fuentes de Datos y Stack Tecnológico
 
 ### Observación de la Tierra
 
-* Sentinel-2 (Copernicus Programme)
-* Índices espectrales:
+| Fuente | Producto | Bandas utilizadas |
+|--------|----------|-------------------|
+| ESA Copernicus Sentinel-2 A/B | Nivel L2A (reflectancia superficial) | B4 (Rojo, 10 m) · B8 (NIR, 10 m) · B11 (SWIR1, 20 m→10 m) |
 
-  * NDVI (Vegetación)
-  * NDMI (Humedad)
-  * NBR (Riesgo de degradación e incendios)
+**Índices espectrales calculados:**
+- **NDVI** — Normalized Difference Vegetation Index: capacidad fotosintética y biomasa aérea
+- **NDMI** — Normalized Difference Moisture Index: contenido hídrico del dosel y compactación del suelo
+- **NBR** — Normalized Burn Ratio: degradación por fuego e incidentes extremos
 
-### Datos Territoriales
+### Datos Territoriales y Vectoriales
 
-* OpenStreetMap
-* Modelos Digitales de Elevación (DEM)
-* Cartografía de activos turísticos
+- **OpenStreetMap** — geometrías de senderos, miradores y áreas recreativas
+- **DEM SRTM** — elevación, pendiente y accesibilidad física
+- **PostGIS** — almacenamiento espacial con índices GIST, consultas `ST_Length`, `ST_Buffer`
 
-### Datos Climáticos
+### Stack de Procesamiento
 
-* Series históricas y anomalías climáticas
-* Indicadores de sequía y recuperación ambiental
-
----
-
-# 🧠 Capacidades Actuales
-
-## 1. Monitorización Ambiental Multianual
-
-Reconstrucción histórica de indicadores ambientales mediante series temporales de hasta 5 años.
-
-### Funcionalidades
-
-* Tendencias temporales
-* Detección de anomalías
-* Evaluación de resiliencia ambiental
-* Análisis de recuperación post-sequía
+| Capa | Tecnología | Versión |
+|------|-----------|---------|
+| Raster I/O | `rasterio` | ≥ 1.3 |
+| Estadísticas zonales | `rasterstats` | ≥ 0.19 |
+| DataFrames geoespaciales | `geopandas` + `shapely` | ≥ 1.0 / ≥ 2.0 |
+| Base de datos | PostgreSQL + PostGIS | 16 + 3.4 |
+| Dashboard interactivo | `streamlit` + `folium` | ≥ 1.35 / ≥ 0.16 |
+| API REST | `fastapi` + `uvicorn` | ≥ 0.111 |
+| Cómputo numérico | `numpy` | ≥ 1.26 |
 
 ---
 
-## 2. Environmental Health Score (EHS)
+## 🧪 Metodología Central
 
-Indicador compuesto (0–100) que evalúa la salud ambiental de cada activo turístico considerando:
+### Geometría espacial: buffers de 50 m en EPSG:25830
 
-* Estado de la vegetación
-* Tendencia temporal
-* Frecuencia de anomalías
-* Estabilidad ecológica
-* Capacidad de recuperación
+Todos los índices espectrales se agregan dentro de **buffers de 50 metros** generados alrededor de los ejes de los senderos, proyectados en **EPSG:25830 (ETRS89 / UTM Zona 30N)** — el sistema de referencia métrico oficial para la España peninsular. Este radio captura la zona de compactación del suelo inducida por el pisoteo (10–50 m desde el eje) y garantiza ≥ 250 píxeles por kilómetro de sendero para estadísticas zonales estables.
 
----
+### Fórmulas de los índices
 
-## 3. Spatial Causality Module (SCM)
-
-Módulo diseñado para distinguir entre:
-
-### Impacto Localizado
-
-Posible influencia de actividades humanas o presión turística.
-
-### Impacto de Escala Territorial
-
-Cambios explicados por factores climáticos o ambientales regionales.
-
-El análisis se realiza mediante la comparación de señales ambientales en diferentes zonas espaciales alrededor del activo.
+$$\text{NDVI} = \frac{\rho_{NIR} - \rho_{Red}}{\rho_{NIR} + \rho_{Red}} \qquad \text{NDMI} = \frac{\rho_{NIR} - \rho_{SWIR1}}{\rho_{NIR} + \rho_{SWIR1}}$$
 
 ---
 
-## 4. Decision Confidence Score (DCS)
+## 📊 Environmental Health Score (EHS)
 
-Sistema de evaluación de confianza para la toma de decisiones.
+El **EHS** es el indicador operativo principal de SNTO. Convierte la señal espectral dual (NDVI + NDMI) en un **índice de degradación de 0 a 100** donde valores más altos indican mayor estrés ecológico — convenio inverso que alinea directamente el indicador con la lógica financiera del modelo de restauración.
 
-Cada recomendación emitida por SNTO incorpora una puntuación de confianza basada en:
+### Fórmula operacional (pipeline del dashboard — `tis_engine.py`)
 
-* Calidad de los datos
-* Robustez temporal
-* Consistencia espacial
-* Estabilidad del modelo
-* Intensidad de la señal observada
+$$\boxed{\text{EHS} = 100 - \left(\text{NDVI} \times 50 + \text{NDMI}_{norm} \times 50\right)}$$
 
-Esto permite que las administraciones públicas conozcan no solo la recomendación, sino también el nivel de certeza asociado.
+Donde $\text{NDMI}_{norm} = (\text{NDMI} + 1) / 2$ normaliza el índice de $[-1, +1]$ a $[0, 1]$.
+
+### Motor EHS de investigación (implementación estadística completa — `src/risk_engine/ehs.py`)
+
+$$\text{EHS}_{research} = 100 \times (1 - r_{composite})$$
+
+| Componente de riesgo | Peso | Definición |
+|---|---|---|
+| Riesgo de baseline | 30 % | Distancia NDVI por debajo del baseline saludable (0.55) |
+| Riesgo de tendencia | 25 % | Pendiente de Mann-Kendall significativa en declive (p < 0.05) |
+| Riesgo de anomalía | 25 % | Fracción de meses con anomalía severa (\|z\| ≥ 1.5 σ) |
+| Riesgo de recuperación | 10 % | Ratio NDVI post-sequía respecto al nivel pre-sequía |
+| Riesgo de estabilidad | 10 % | Variabilidad residual interanual relativa a la media |
+
+### Escala de clasificación EHS
+
+| Rango EHS | Clase | Implicación de gestión |
+|---|---|---|
+| 0–39 | **Excelente** | Vegetación sobre baseline regional; elegible para promoción activa |
+| 40–59 | **Buena** | Estrés estacional moderado; monitorización rutinaria |
+| 60–74 | **Moderada** | Estrés crónico incipiente; monitorización anual recomendada |
+| 75–89 | **Deficiente** | Degradación persistente; intervención preventiva activada |
+| 90–100 | **Crítica** | Degradación severa; restauración inmediata mandatada |
+
+### Delta EHS — Sistema de Alerta Temprana
+
+$$\Delta\text{EHS} = \text{EHS}_{Verano} - \text{EHS}_{Primavera}$$
+
+Un $\Delta\text{EHS}$ positivo por encima de la línea base climatológica indica que el estrés antropogénico está amplificando la sequía estacional — señal de alerta temprana antes de que se alcancen umbrales de degradación irreversible. Calculado por `calculate_delta_ehs.py`.
 
 ---
 
-# 📊 Caso Piloto: Masatrigo Trail (Badajoz)
+## 💰 Modelo Financiero-Ecológico (TIS Engine)
 
-El activo piloto utilizado para la validación del sistema fue el sendero de Masatrigo (Extremadura).
+El **Tourism Impact Score Engine** (`tis_engine.py`) traduce el EHS en presupuestos de restauración accionables:
 
-### Principales hallazgos
+### Puntuación de prioridad
 
-* No existe evidencia estadísticamente significativa de degradación estructural.
-* La disminución observada en 2022 estuvo asociada a una sequía extrema regional.
-* El ecosistema mostró una recuperación completa durante 2023.
-* El activo mantiene una buena integridad ambiental.
+$$P_{score} = \text{EHS} \times 0.60 + \text{traffic\_index} \times 0.40$$
 
-### Resultados
+Ponderación que privilegia la urgencia ecológica (60 %) sobre la presión de visitantes (40 %).
 
-* Environmental Health Score (EHS): 77.7 / 100
-* Clasificación: GOOD
-* Tendencia: Sin deterioro significativo
-* Recomendación: Monitorización periódica y promoción responsable
+### Presupuesto dinámico de restauración
+
+$$\boxed{B_{restauración} = L_m \times 15{,}50 \frac{\text{EUR}}{m} \times \frac{P_{score}}{100}}$$
+
+El coste unitario de **15,50 €/m lineal** está calibrado sobre las tarifas oficiales TRAGSA 2023:
+
+| Componente | Fuente | Coste |
+|---|---|---|
+| Descompactación del suelo (escarificación mecánica) | TRAGSA Cap. 15 — Trabajos forestales | 4,20 €/m |
+| Control de erosión (fajinas y albarradas) | TRAGSA Cap. 8 — Obras hidráulicas | 6,80 €/m |
+| Revegetación autóctona (*Quercus*, *Cistus*, *Rosmarinus*) | Plan Nacional de Transición Ecológica 2021–2025 | 4,50 €/m |
+| **Total** | | **15,50 €/m** |
+
+Los senderos con $P_{score} \leq 60$ reciben asignación €0; su estado se mantiene mediante monitorización rutinaria.
 
 ---
 
-# 🏗️ Arquitectura del Proyecto
+## 🧠 Módulos Analíticos Avanzados
 
-```text
-src/
-├── assets/
-├── ingestion/
-├── geospatial/
-├── features/
-├── time_series/
-├── calibration/
-├── risk_engine/
-├── ranking/
-├── alerts/
-├── reporting/
-├── api/
-└── config/
+### Spatial Causality Module (SCM) — `src/spatial_causality/analyzer.py`
+
+Distingue degradación **antropogénica (localizada)** de estrés **climático (territorial)** mediante el análisis del Gradiente de Impacto Espacial (SIG) en tres zonas concéntricas:
+
+| Zona | Radio | Interpretación |
+|---|---|---|
+| Core | 0–50 m | Huella directa del sendero |
+| Near | 50–200 m | Entorno inmediato |
+| Landscape | 200–1000 m | Background regional |
+
+$$\text{SIG} = \frac{\text{NDVI}_{landscape} - \text{NDVI}_{core}}{\text{NDVI}_{landscape}}$$
+
+- **SIG > 0.15** → `LOCALIZED_IMPACT` (presión turística dominante)
+- **SIG < 0.07** → `LANDSCAPE_DRIVEN` (forzamiento climático dominante)
+- **0.07–0.15** → `MIXED`
+
+### Decision Confidence Score (DCS) — `src/decision_confidence/assessor.py`
+
+Evalúa la **fiabilidad de cada recomendación** (0–100) antes de activar ninguna obligación presupuestaria. Activos con DCS < 55 son desviados a protocolos de recopilación de evidencia en lugar de restauración completa.
+
+| DCS | Clasificación | Acción |
+|---|---|---|
+| 80–100 | Muy alta confianza | Presupuesto completo asignado |
+| 60–79 | Alta confianza | Intervención aprobada |
+| 40–59 | Confianza moderada | Monitorización adicional requerida |
+| 0–39 | Baja confianza | Solo recopilación de evidencia |
+
+### Territorial Priority Index (TPI) — `src/territorial/tpi.py`
+
+Clasifica cada activo en una **cartera territorial de cuatro niveles** para la priorización de inversión:
+
+$$\text{TPI} = U_{condition}\ [0\text{–}40] + S_{evidence}\ [0\text{–}25] + V_{strategic}\ [0\text{–}20] + C_{causality}\ [0\text{–}15]$$
+
+| Nivel | Clasificación | Criterio |
+|---|---|---|
+| Tier 1 | Atención Inmediata | Alerta crítica/urgente O EHS < 45 |
+| Tier 2 | Acción Preventiva | TPI ≥ 38 y EHS < 75 |
+| Tier 3 | Monitorización Rutinaria | Resto de activos |
+| Tier 4 | Oportunidad de Promoción | EHS ≥ 75, DCS ≥ 55, tendencia estable |
+
+---
+
+## 🔄 Pipeline de Datos: Del Satélite al Dashboard
+
+```
+[ETAPA 1: INGESTIÓN]    Sentinel-2 L2A ZIP (.SAFE) → B04, B08, B11 JP2
+          ↓
+[ETAPA 2: PROCESO]      Reproyección EPSG:25830 → NDVI/NDMI GeoTIFF (LZW)
+          ↓
+[ETAPA 3: INTEGRACIÓN]  Estadísticas zonales (50 m buffers) → PostGIS → TIS Engine
+          ↓
+[ETAPA 4: SERVICIO]     Dashboard Streamlit → Mapa + KPIs + Tabla de prioridades
 ```
 
+**GeoTIFFs producidos en `data/clean_assets/`:**
+- `clean_S2_B04_red.tif` · `clean_S2_B08_nir.tif` · `clean_S2_B11_swir.tif`
+- `clean_S2_NDVI.tif` · `clean_S2_NDMI.tif`
+
 ---
 
-# 📦 Scripts Principales
-
-### Validación
+## 📊 Dashboard Interactivo
 
 ```bash
-python run_masatrigo_validation.py
+streamlit run app.py
 ```
 
-Valida la consistencia de los resultados obtenidos con datos observados.
+El dashboard (`app.py`) proporciona una interfaz de soporte a la decisión para gestores de parques y evaluadores de la CETS:
 
-### Evaluación Fase 3
-
-```bash
-python run_phase3_report.py
-```
-
-Genera el informe de validación inicial y calibración del sistema.
-
-### Evaluación Fase 4
-
-```bash
-python run_phase4_report.py
-```
-
-Reconstrucción multianual, análisis de tendencias y evaluación ambiental histórica.
-
-### Spatial Causality Module
-
-```bash
-python run_scm_report.py
-```
-
-Analiza si los cambios observados tienen origen local o territorial.
-
-### Decision Confidence Score
-
-```bash
-python run_dcs_report.py
-```
-
-Calcula el nivel de confianza asociado a las recomendaciones generadas.
+- **Tarjetas KPI:** senderos analizados · senderos críticos · presupuesto total de restauración · volumen máximo de visitantes
+- **Mapa Folium:** senderos coloreados por estado de salud (verde: EHS ≤ 60 · rojo: EHS > 60), centrado en Sierra del Rincón (41.14°N, −3.52°E)
+- **Tabla de intervención prioritaria:** top 10 senderos por puntuación de prioridad descendente con coloración gradiente RdYlGn
+- **Panel temporal:** visualización de ΔEH (Verano − Primavera) por sendero
 
 ---
 
-# 🛠️ Instalación
+## 🏗️ Arquitectura del Proyecto
 
-Clonar el repositorio:
+```
+snto-smart-tourism-observatory/
+├── src/
+│   ├── ingestion/          # Adaptadores GEE, calibrado, multi-año, mock
+│   ├── features/           # Extracción NDVI/NDMI/NBR (spectral.py)
+│   ├── geospatial/         # Buffers, estadísticas zonales, geometría
+│   ├── time_series/        # Mann-Kendall, z-score, descomposición armónica
+│   ├── risk_engine/        # EHS, componentes de riesgo, presión humana
+│   ├── spatial_causality/  # SCM — análisis de gradiente espacial (SIG)
+│   ├── decision_confidence/# DCS — fiabilidad de recomendaciones
+│   ├── territorial/        # TPI, asignador de presupuesto, cartera
+│   ├── intervention/       # Modelado de impacto y escenarios
+│   ├── platform/           # Dashboard ejecutivo, madurez, stakeholders
+│   ├── api/                # Endpoints FastAPI (evaluate, ranking, alerts)
+│   └── config/             # Constantes, settings, variables de entorno
+├── data/
+│   ├── raw_assets/raster_data/   # ZIP Sentinel-2 L2A
+│   └── clean_assets/             # GeoTIFFs procesados
+├── tests/                        # 27 módulos de test, 400+ casos
+├── app.py                        # Dashboard Streamlit
+├── tis_engine.py                 # Motor TIS: EHS → prioridad → presupuesto
+├── etl_raster_processor.py       # Extracción de bandas, NDVI/NDMI
+├── etl_raster_intersection.py    # Estadísticas zonales → PostGIS
+├── etl_vector_cleaner.py         # Limpieza de geometrías OSM
+├── calculate_delta_ehs.py        # ΔEHS estacional
+├── db_production_seeder.py       # Inicialización PostgreSQL/PostGIS
+└── WHITEPAPER_SNTO_Architecture_Blueprint.md  # Documento de referencia técnica
+```
+
+---
+
+## 📦 Scripts de Ejecución
+
+### Pipeline ETL completo
+
+```bash
+python etl_raster_processor.py       # Extrae bandas y calcula NDVI/NDMI
+python etl_vector_cleaner.py         # Limpia geometrías vectoriales
+python etl_raster_intersection.py    # Estadísticas zonales → PostGIS
+python tis_engine.py                 # Calcula EHS, prioridad y presupuesto
+python calculate_delta_ehs.py        # ΔEHS estacional por sendero
+```
+
+### Dashboard
+
+```bash
+streamlit run app.py
+```
+
+### API REST
+
+```bash
+uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+```
+
+### Informes de validación y análisis
+
+```bash
+python run_masatrigo_validation.py   # Validación caso piloto
+python run_phase3_report.py          # Validación inicial y calibración
+python run_phase4_report.py          # Reconstrucción multianual (4–5 años)
+python run_scm_report.py             # Módulo de causalidad espacial
+python run_dcs_report.py             # Puntuación de confianza de decisión
+python run_phase5_report.py          # Análisis de inteligencia territorial
+python run_phase6_report.py          # Impacto de intervención y escenarios
+python run_phase7_report.py          # Plataforma estratégica completa
+```
+
+---
+
+## 🚀 Instalación
 
 ```bash
 git clone <repository_url>
-cd SNTO
-```
-
-Instalar dependencias:
-
-```bash
+cd snto-smart-tourism-observatory
 pip install -r requirements.txt
+cp .env.example .env
+# Editar .env con credenciales PostgreSQL y, opcionalmente, Google Earth Engine
 ```
 
-Configurar variables de entorno:
+### Variables de entorno clave (`.env.example`)
 
 ```bash
-cp .env.example .env
+SNTO_DB_HOST=localhost
+SNTO_DB_PORT=5432
+SNTO_DB_NAME=snto
+SNTO_DB_USER=postgres
+SNTO_DB_PASS=TU_CONTRASEÑA_AQUI
+USE_MOCK_DATA=true          # false para usar Google Earth Engine real
+```
+
+### Inicializar la base de datos
+
+```bash
+python db_production_seeder.py
 ```
 
 ---
 
-# 🚀 Visión del Proyecto
+## 🧪 Tests
 
-SNTO no pretende ser únicamente una herramienta de análisis geoespacial.
+```bash
+pytest tests/ -v --cov=src
+```
 
-La visión a largo plazo es construir una plataforma de inteligencia territorial capaz de apoyar la gestión sostenible de destinos turísticos mediante información objetiva, transparente y científicamente defendible.
-
-El sistema está orientado a:
-
-* Administraciones públicas
-* Observatorios turísticos
-* Gestores de espacios naturales
-* Organismos de planificación territorial
-* Iniciativas de turismo inteligente y regenerativo
+El proyecto incluye 27 módulos de test con más de 400 casos que cubren: EHS, SCM, DCS, análisis temporal, scoring de riesgo, modelos de activos y endpoints de API.
 
 ---
 
-# 📄 Licencia
+## 📋 Caso Piloto: Sendero de Masatrigo (Badajoz, Extremadura)
+
+| Indicador | Resultado |
+|---|---|
+| Environmental Health Score (EHS) | 77.7 / 100 |
+| Clasificación | GOOD |
+| Causalidad (SCM) | Degradación 2022 asociada a sequía regional extrema |
+| Recuperación | Completa en 2023 |
+| Tendencia | Sin deterioro estructural significativo |
+| Recomendación | Monitorización periódica y promoción responsable |
+
+---
+
+## 🌿 Contribución a la CETS Fase I
+
+El SNTO satisface directamente los tres requisitos de evidencia de la certificación CETS Fase I:
+
+1. **Sistema de monitorización operacional:** el EHS derivado de satélite proporciona indicadores ambientales continuos, auditables y actualizables mensualmente.
+2. **Minimización de la huella ecológica:** el modelo financiero-ecológico crea un vínculo jurídicamente defendible entre visitación turística, degradación medible e inversión de restauración obligatoria.
+3. **Dashboard orientado a stakeholders:** la interfaz Streamlit traduce datos satelitales complejos en KPIs y mapas accesibles para gestores de parques, stakeholders municipales y evaluadores de la CETS.
+
+---
+
+## 🔭 Visión y Escalabilidad
+
+La arquitectura del SNTO es directamente transferible a cualquier:
+- Reserva de Biosfera europea con cobertura Sentinel-2
+- Territorio certificado o candidato a la CETS
+- Espacio natural protegido con infraestructura de senderos digitalizada en OpenStreetMap
+
+El stack completo (Python, PostGIS, Streamlit) no requiere licencias propietarias y los datos Sentinel-2 son accesibles públicamente a través del Copernicus Open Access Hub.
+
+**Usuarios objetivo:** administraciones públicas · observatorios turísticos · gestores de espacios naturales · organismos de planificación territorial · iniciativas de turismo inteligente y regenerativo.
+
+---
+
+## 📄 Licencia
 
 Este proyecto se distribuye con fines académicos, de investigación y desarrollo de soluciones de inteligencia territorial para la gestión sostenible del turismo.
+
+**Versión:** 0.1.0 | **Python:** ≥ 3.12 | **Contacto:** soroush.karahrodi79@gmail.com
