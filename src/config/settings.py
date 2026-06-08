@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     api_port: int = 8000
     log_level: str = "INFO"
 
-    model_config = {"env_file": ".env"}
+    model_config = {"env_file": ".env", "extra": "ignore"}
 
 
 settings = Settings()
