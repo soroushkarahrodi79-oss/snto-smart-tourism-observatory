@@ -49,8 +49,11 @@ from pathlib import Path
 import geopandas as gpd
 import psycopg2
 import rasterio
+from dotenv import load_dotenv
 from rasterstats import zonal_stats
 from sqlalchemy import create_engine
+
+load_dotenv()  # carga .env antes de os.getenv() a nivel de módulo
 
 SEP = "=" * 72
 DIV = "-" * 72
@@ -152,12 +155,29 @@ def _extract_band(
     a single band. Returns a list of mean values aligned to buffers_gdf.
     Geometries that fall entirely outside the raster extent return None.
     """
-    with rasterio.open(raster_path) as src:
-        raster_crs    = src.crs.to_string()
-        raster_nodata = src.nodata
+    from pyproj import CRS as ProjCRS
 
-    if buffers_gdf.crs.to_string() != raster_crs:
-        aligned = buffers_gdf.to_crs(raster_crs)
+    with rasterio.open(raster_path) as src:
+        raster_crs_raw = src.crs
+        raster_nodata  = src.nodata
+
+    # Some seasonal rasters carry a LOCAL_CS tag (malformed metadata produced by
+    # certain Sentinel-2 tile processors).  LOCAL_CS has no geodetic basis, so
+    # pyproj cannot build a transformer from it.  The raster data is already in
+    # the same UTM 30N coordinate space as the buffers (confirmed by bounds), so
+    # no reprojection is needed.
+    raster_wkt = raster_crs_raw.to_wkt()
+    if "LOCAL_CS" in raster_wkt:
+        crs_match = True
+    else:
+        try:
+            raster_crs_obj = ProjCRS.from_user_input(raster_crs_raw)
+            crs_match = buffers_gdf.crs.equals(raster_crs_obj)
+        except Exception:
+            crs_match = True
+
+    if not crs_match:
+        aligned = buffers_gdf.to_crs(raster_wkt)
     else:
         aligned = buffers_gdf
 
