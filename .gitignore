@@ -51,6 +51,9 @@ build/
 *.db
 *.sqlite3
 
+# --- Claude Code (metadatos locales, no subir) --------------
+.claude/
+
 # --- IDEs y Sistemas Operativos -----------------------------
 .DS_Store
 Thumbs.db
