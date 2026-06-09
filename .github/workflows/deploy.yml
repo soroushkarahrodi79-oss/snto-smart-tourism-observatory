@@ -1,0 +1,51 @@
+name: Build and Push to Azure ACR
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Create Production Dockerfile
+      run: |
+        cat > Dockerfile <<'EOF'
+        FROM python:3.12-slim
+        ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 PIP_NO_CACHE_DIR=1 USE_MOCK_DATA=true
+        WORKDIR /app
+        COPY requirements.txt .
+        RUN python -m pip install --upgrade pip && python -m pip install --only-binary=:all: -r requirements.txt
+        COPY . .
+        RUN useradd --create-home --uid 10001 appuser && chown -R appuser:appuser /app
+        USER appuser
+        EXPOSE 8501
+        CMD streamlit run app.py --server.port=${PORT:-8501} --server.address=0.0.0.0 --server.headless=true --server.enableCORS=false --server.enableXsrfProtection=false --browser.gatherUsageStats=false
+        EOF
+        
+        cat > .dockerignore <<'EOF'
+        data/
+        *.tif
+        .git/
+        .venv*/
+        __pycache__/
+        tests/
+        .env
+        *.md
+        EOF
+
+    - name: Log in to Azure Container Registry
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+
+    - name: Build and push Docker image
+      run: |
+        docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/snto:latest .
+        docker push ${{ secrets.ACR_LOGIN_SERVER }}/snto:latest
