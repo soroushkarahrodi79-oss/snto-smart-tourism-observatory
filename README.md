@@ -13,7 +13,7 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 [![Status](https://img.shields.io/badge/estado-TFM%20en%20curso-orange)](#1-estado-del-proyecto)
 [![License](https://img.shields.io/badge/uso-acad%C3%A9mico-lightgrey)](#11-licencia--uso-acad%C3%A9mico)
 
-**🔴 [Dashboard en vivo](https://snto-observatory.azurecontainerapps.io)** · 📄 [Whitepaper](WHITEPAPER_SNTO_Architecture_Blueprint.md) · 🏗 [Arquitectura](ARCHITECTURE.md)
+**🔴 [Dashboard en vivo](https://snto-observatory.happyground-be027676.swedencentral.azurecontainerapps.io/)** · 📄 [Whitepaper](WHITEPAPER_SNTO_Architecture_Blueprint.md) · 🏗 [Arquitectura](ARCHITECTURE.md)
 
 </div>
 
@@ -31,15 +31,9 @@ La mayoría de los espacios naturales protegidos gestionan el impacto del turism
 
 <div align="center">
 
-<!-- Sustituye esta línea por la captura real:
-     1. Lanza el dashboard (ver §7) o abre la demo en vivo
-     2. Guarda la captura en docs/screenshot-dashboard.png
-     3. Descomenta la línea siguiente -->
+![Dashboard ejecutivo SNTO](docs/screenshot-dashboard.png)
 
-<!-- ![Dashboard ejecutivo SNTO](docs/screenshot-dashboard.png) -->
-
-_Dashboard ejecutivo con 10 KPIs territoriales, mapa folium de activos y modelo de madurez de destino de 5 niveles._
-_(captura pendiente — añade `docs/screenshot-dashboard.png`)_
+_Dashboard ejecutivo con 10 KPIs territoriales, mapa folium de activos y modelo de madurez de destino de 5 niveles. Desplegado en Azure Container Apps (Sweden Central)._
 
 </div>
 
@@ -264,8 +258,7 @@ bash deploy/azure-bootstrap.sh
 
 Secrets requeridos en GitHub (`Settings ▸ Secrets and variables ▸ Actions`): `AZURE_CREDENTIALS`, `ACR_NAME`. Ver cabecera de [`.github/workflows/deploy-azure-container-apps.yml`](.github/workflows/deploy-azure-container-apps.yml) para el detalle.
 
-> **🔴 Dashboard en vivo:** https://snto-observatory.azurecontainerapps.io
-> _(reemplaza por tu FQDN real — lo obtienes con `az containerapp show -g rg-snto-observatory -n snto-observatory --query properties.configuration.ingress.fqdn -o tsv`)_
+> **🔴 Dashboard en vivo:** https://snto-observatory.happyground-be027676.swedencentral.azurecontainerapps.io/
 
 ---
 
