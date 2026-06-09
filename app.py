@@ -438,7 +438,8 @@ st.set_page_config(
     menu_items={
         "About": (
             "Smart Natural Tourism Observatory (SNTO) v0.1 · "
-            "Plataforma de Inteligencia Estratégica de Destinos · Extremadura, España"
+            "Plataforma de Inteligencia Estratégica de Destinos · "
+            "Reserva de la Biosfera Sierra del Rincón, Madrid (España)"
         ),
     },
 )
@@ -551,7 +552,7 @@ with st.sidebar:
         st.markdown(f"🟢 **{n_ok}** indicador(es) normal / óptimo")
     st.divider()
     st.caption("SNTO v0.1 · Datos sintéticos de validación")
-    st.caption("Piloto: Geoparque Villuercas-Ibores-Jara")
+    st.caption("Piloto: Reserva de la Biosfera Sierra del Rincón (Madrid)")
 
 
 # ── Encabezado ────────────────────────────────────────────────────────────────
@@ -594,6 +595,6 @@ st.divider()
 st.caption(
     "Smart Natural Tourism Observatory (SNTO) · "
     "Plataforma de Inteligencia Estratégica de Destinos v0.1 · "
-    "Extremadura, España · Datos sintéticos de validación "
-    "(piloto Geoparque Villuercas-Ibores-Jara)"
+    "Sierra del Rincón, Madrid (España) · Datos sintéticos de validación "
+    "(piloto Reserva de la Biosfera Sierra del Rincón)"
 )
