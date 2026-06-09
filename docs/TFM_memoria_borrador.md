@@ -105,7 +105,19 @@ Se analizaron **73 senderos** (longitud total **149,4 km**) dentro de la Reserva
 
 *(Resultados completos por sendero en `data/outputs/pipeline_a_results.csv`; resumen en `pipeline_a_summary.json`.)*
 
-[INSERTAR (opcional): figuras — mapa de EHS/ΔEHS por sendero e histograma; pueden generarse desde el CSV.]
+**Figura 5.1 — Salud ambiental por sendero (EHS verano).**
+![Mapa EHS por sendero](figures/ehs_map.png)
+*Senderos coloreados por EHS de verano (verde = sano, rojo = degradado). Los focos rojos se concentran en accesos y senderos perimetrales de uso intenso; los 5 de mayor degradación estacional aparecen etiquetados.*
+
+**Figura 5.2 — Distribución de ΔEHS (señal de alerta estacional).**
+![Histograma ΔEHS](figures/delta_ehs_hist.png)
+*La media territorial es negativa (recuperación neta), pero la cola derecha (ΔEHS > 0) reúne 27 de 73 senderos que se degradan hacia el verano — la población objetivo de la intervención preventiva.*
+
+**Figura 5.3 — Atribución causal (SCM).**
+![Desglose SCM](figures/scm_breakdown.png)
+*Reparto de los 73 senderos entre impacto antrópico localizado, mixto y forzamiento de paisaje (climático). Solo los dos primeros generan obligación presupuestaria local.*
+
+*(Figuras reproducibles con `python make_pipeline_a_figures.py`.)*
 
 ### 5.2 Pipeline B — capacidades demostradas
 La demostración sobre 20 activos sintéticos calibrados valida de extremo a extremo la cadena analítica: reconstrucción histórica multi-anual, detección de tendencia (Mann-Kendall), descomposición armónica estacional, DCS con *gate* de calidad, ranking TPI en 4 tiers, cinco escenarios de intervención (A–E) con análisis contrafactual, e informe ejecutivo de 10 KPIs para 5 perfiles de stakeholders. El caso de validación de calibración (Masatrigo) arroja un DCS de 78,7 (clasificación HIGH), confirmando el comportamiento del *gate*. La suite de pruebas comprende **266 tests** sin regresiones.
