@@ -44,18 +44,20 @@ El compromiso CETS exige **mejora continua mediante seguimiento e informe perió
 
 ## 2. Correspondencia con los 10 principios de la Carta
 
-| # | Principio CETS (EUROPARC) | ¿Lo aborda el SNTO? | Módulo / indicador SNTO | Madurez |
+> **Redacción literal verificada** contra el Apéndice 1 ("Principios de la Carta") del texto oficial de la *Carta Europea de Turismo Sostenible en los Espacios Protegidos* (EUROPARC Federation, edición española difundida por MITECO/CENEAM). Las columnas de cita son textuales; el resto es análisis propio.
+
+| # | Principio CETS (texto oficial) | ¿Lo aborda el SNTO? | Módulo / indicador SNTO | Madurez |
 |---|---|---|---|---|
-| 1 | **Cooperación** entre todos los actores | 🟡 Instrumental | Informes segmentados por 5 perfiles de stakeholder (alimenta el foro, no lo sustituye) | **2** |
-| 2 | **Elaboración de la Estrategia y Plan de Acción** | 🟢 Sí | TPI + escenarios TIS A–E + contrafactual | **3** |
-| 3 | **Protección y valorización del patrimonio natural y cultural** | 🟢 Núcleo | EHS + SCM + presupuesto de restauración causal | **4** |
-| 4 | **Satisfacción del visitante / calidad de la experiencia** | 🔴 No | — (fuera del alcance del sistema actual) | **1** |
-| 5 | **Información y sensibilización** | 🟡 Parcial | Dashboard público como herramienta de transparencia ciudadana | **3** |
-| 6 | **Productos turísticos específicos del espacio protegido** | 🔴 No | — (programático, no técnico) | **1** |
-| 7 | **Formación** | 🔴 No | — (programático) | **1** |
-| 8 | **Mantenimiento de la calidad de vida local** | 🟡 Débil | Proxy de presión humana geo-based (sin indicador socioeconómico directo) | **2** |
-| 9 | **Beneficios para la economía local** | 🟡 Débil | Modelo de coste de restauración (licitación pública local); sin medición de gasto turístico | **2** |
-| 10 | **Gestión de los flujos de visitantes** | 🟢 Sí | KPI-6 (capacidad de visitantes en riesgo), proxy de presión, integración MITMA prevista | **3** |
+| 1 | «Hacer partícipes a aquellos implicados en el turismo dentro y alrededor del área protegida, para su gestión y desarrollo» (foro permanente) | 🟡 Instrumental | Informes segmentados por 5 perfiles de stakeholder (alimenta el foro, no lo sustituye) | **2** |
+| 2 | «Elaborar y aplicar una estrategia y un plan de acción sobre el turismo sostenible del área protegida» | 🟢 Sí | TPI + escenarios TIS A–E + contrafactual | **3** |
+| 3 | «Proteger y potenciar el patrimonio natural y cultural del área, para y a través del turismo, así como protegerla de un excesivo desarrollo turístico» | 🟢 Núcleo | EHS + SCM + presupuesto de restauración causal | **4** |
+| 4 | «Ofrecer a los visitantes una experiencia turística de alta calidad en todos los ámbitos» | 🔴 No | — (fuera del alcance del sistema actual) | **1** |
+| 5 | «Informar bien a los visitantes acerca de las cualidades especiales del área» | 🟡 Parcial | Dashboard público como herramienta de transparencia ciudadana | **3** |
+| 6 | «Promover los productos turísticos específicos con el fin de descubrir y comprender la zona» | 🔴 No | — (programático, no técnico) | **1** |
+| 7 | «Que las partes implicadas en el turismo profundicen su conocimiento sobre el área protegida y su sostenibilidad» (formación) | 🔴 No | — (programático) | **1** |
+| 8 | «Garantizar que el turismo apoye, y no reduzca, la calidad de vida de los residentes» | 🟡 Débil | Proxy de presión humana geo-based (sin indicador socioeconómico directo) | **2** |
+| 9 | «Aumentar los beneficios derivados del turismo en favor de la economía local» | 🟡 Débil | Modelo de coste de restauración (licitación pública local); sin medición de gasto turístico | **2** |
+| 10 | «Controlar y seguir los flujos de turistas para reducir su potencial impacto negativo» (registro del número de visitantes en el tiempo y el espacio) | 🟢 Sí | KPI-6 (capacidad de visitantes en riesgo), proxy de presión, integración MITMA prevista | **3** |
 
 ---
 
@@ -89,5 +91,6 @@ El compromiso CETS exige **mejora continua mediante seguimiento e informe perió
 - [Fase I CETS — EUROPARC-España](http://www.redeuroparc.org/actividades/carta-europea-turismo-sostenible/fase-i-cets)
 - [Carta Europea de Turismo Sostenible — EUROPARC-España](https://redeuroparc.org/carta-europea-turismo-sostenible/)
 - [The European Charter for Sustainable Tourism in Protected Areas — EUROPARC Federation](https://www.europarc.org/sustainable-tourism/)
+- [Carta Europea de Turismo Sostenible en los Espacios Protegidos — texto oficial (EUROPARC, ed. española MITECO/CENEAM, PDF)](https://www.miteco.gob.es/content/dam/miteco/es/ceneam/grupos-de-trabajo-y-seminarios/turismo-sostenible/CETS_tcm30-168772.pdf) — Apéndice 1: Principios de la Carta
 
-*Documento generado para el TFM "Gobernanza Inteligente y Transición Regenerativa en la Reserva de la Biosfera Sierra del Rincón" · SNTO v0.1.0 · junio 2026. La terminología oficial de la CETS debe cotejarse con el Manual de EUROPARC-España antes de la entrega definitiva.*
+*Documento generado para el TFM "Gobernanza Inteligente y Transición Regenerativa en la Reserva de la Biosfera Sierra del Rincón" · SNTO v0.1.0 · junio 2026. Redacción literal de los 10 principios verificada verbatim contra el Apéndice 1 del texto oficial de la Carta (fuente MITECO/CENEAM).*
