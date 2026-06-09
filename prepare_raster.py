@@ -3,9 +3,10 @@ SNTO -- Sentinel-2 Raster Preparation (Production)
 ===================================================
 Pilot Territory: Sierra del Rincón Biosphere Reserve, Madrid, Spain
 
-Reads Band 4 (Red) and Band 8 (NIR) from a Sentinel-2 L2A .SAFE directory,
-reprojects both to EPSG:25830, computes NDVI, and writes a 2-band GeoTIFF
-(Band 1: NDVI, Band 2: NDMI placeholder) to data/clean_assets/.
+Reads Band 4 (Red, 10 m), Band 8 (NIR, 10 m) and Band 11 (SWIR, 20 m) from a
+Sentinel-2 L2A .SAFE directory, reprojects all three to EPSG:25830, resamples
+B11 to the 10 m reference grid, computes NDVI and NDMI, and writes a 2-band
+GeoTIFF (Band 1: NDVI, Band 2: NDMI) to data/clean_assets/.
 
 Usage
 -----
@@ -229,6 +230,21 @@ def _compute_ndvi(nir: np.ndarray, red: np.ndarray) -> np.ndarray:
     return ndvi.astype(np.float32)
 
 
+def _compute_ndmi(nir: np.ndarray, swir: np.ndarray) -> np.ndarray:
+    """
+    NDMI = (NIR - SWIR) / (NIR + SWIR + epsilon).
+
+    Normalised Difference Moisture Index using B08 (NIR, 10 m) and B11 (SWIR,
+    20 m resampled to 10 m). epsilon avoids division by zero; pixels where
+    either input is NODATA are preserved as NODATA.
+    """
+    nodata_mask = (nir == NODATA) | (swir == NODATA)
+    with np.errstate(invalid="ignore"):
+        ndmi = (nir - swir) / (nir + swir + EPSILON)
+    ndmi[nodata_mask] = NODATA
+    return ndmi.astype(np.float32)
+
+
 # ── Argument parsing ──────────────────────────────────────────────────────────
 
 def _parse_args() -> argparse.Namespace:
@@ -296,16 +312,19 @@ def main() -> None:
     print()
 
     # ── [2/6] Locate IMG_DATA and band files ─────────────────────────────────
-    print("  [2/6] Locating IMG_DATA and 10 m band files ...")
+    print("  [2/6] Locating IMG_DATA and band files ...")
     try:
         img_data_dir = _find_img_data(safe_dir)
-        print(f"    IMG_DATA : {img_data_dir}")
+        print(f"    IMG_DATA  : {img_data_dir}")
 
         b04_path = _find_band(img_data_dir, "_B04_10m.jp2")
-        print(f"    B04 (Red): {os.path.basename(b04_path)}")
+        print(f"    B04 (Red) : {os.path.basename(b04_path)}")
 
         b08_path = _find_band(img_data_dir, "_B08_10m.jp2")
-        print(f"    B08 (NIR): {os.path.basename(b08_path)}")
+        print(f"    B08 (NIR) : {os.path.basename(b08_path)}")
+
+        b11_path = _find_band(img_data_dir, "_B11_20m.jp2")
+        print(f"    B11 (SWIR): {os.path.basename(b11_path)}")
 
     except FileNotFoundError as exc:
         print(f"\n  ERROR: Band discovery failed.\n  {exc}")
@@ -324,6 +343,11 @@ def main() -> None:
         print(f"    B08 shape : {b08_data.shape}  "
               f"CRS: {b08_profile['crs']}  "
               f"dtype: {b08_data.dtype}")
+
+        b11_data, b11_profile = _read_band(b11_path)
+        print(f"    B11 shape : {b11_data.shape}  "
+              f"CRS: {b11_profile['crs']}  "
+              f"dtype: {b11_data.dtype}  (native 20 m)")
 
     except rasterio.errors.RasterioIOError as exc:
         print(f"\n  ERROR: Failed to read band file.\n  {exc}")
@@ -347,6 +371,13 @@ def main() -> None:
         b08_data, b08_profile = _reproject_to_epsg25830(b08_data, b08_profile)
         print(f"    B08 final shape : {b08_data.shape}")
 
+        if b11_profile["crs"] == TARGET_CRS:
+            print(f"    B11: already in EPSG:25830 — no reprojection needed.")
+        else:
+            print(f"    B11: {b11_profile['crs']} → EPSG:25830 ...")
+        b11_data, b11_profile = _reproject_to_epsg25830(b11_data, b11_profile)
+        print(f"    B11 final shape : {b11_data.shape}  (still 20 m grid)")
+
     except Exception as exc:
         print(f"\n  ERROR: Reprojection to EPSG:25830 failed.\n  {exc}")
         sys.exit(1)
@@ -364,12 +395,24 @@ def main() -> None:
             sys.exit(1)
     else:
         print("    Grid check  : B04 and B08 grids match — no alignment needed.")
+
+    # B11 is natively 20 m: resample to the 10 m B04 reference grid so NDMI
+    # aligns pixel-for-pixel with NDVI. Bilinear resampling (20 m → 10 m).
+    print()
+    print(f"    Resampling B11 (20 m) → B04 reference grid (10 m) ...")
+    try:
+        b11_data = _align_to_reference(b11_data, b11_profile, b04_profile)
+        print(f"    B11 resampled : {b11_data.shape}")
+    except Exception as exc:
+        print(f"\n  ERROR: Resampling of B11 to B04 grid failed.\n  {exc}")
+        sys.exit(1)
     print()
 
     # ── [5/6] Compute NDVI and NDMI ──────────────────────────────────────────
     print("  [5/6] Computing spectral indices ...")
     ndvi = _compute_ndvi(b08_data, b04_data)
-    del b04_data, b08_data  # free memory before writing
+    ndmi = _compute_ndmi(b08_data, b11_data)
+    del b04_data, b08_data, b11_data  # free memory before writing
 
     valid_ndvi = ndvi[ndvi != NODATA]
     print(f"    NDVI  — valid pixels : {len(valid_ndvi):>12,}")
@@ -378,9 +421,12 @@ def main() -> None:
               f"{valid_ndvi.max():.4f}]")
         print(f"            mean         :  {valid_ndvi.mean():.4f}")
 
-    # NDMI placeholder: full zero array on the same grid.
-    ndmi = np.zeros(ndvi.shape, dtype=np.float32)
-    print(f"    NDMI  — placeholder  : 0.0 (full grid, {ndmi.shape})")
+    valid_ndmi = ndmi[ndmi != NODATA]
+    print(f"    NDMI  — valid pixels : {len(valid_ndmi):>12,}")
+    if len(valid_ndmi):
+        print(f"            range        : [{valid_ndmi.min():.4f},  "
+              f"{valid_ndmi.max():.4f}]")
+        print(f"            mean         :  {valid_ndmi.mean():.4f}")
     print()
 
     # ── [6/6] Write 2-band GeoTIFF ───────────────────────────────────────────
@@ -406,7 +452,7 @@ def main() -> None:
             dst.write(ndmi,  2)
             dst.update_tags(
                 BAND_1="NDVI = (B08 - B04) / (B08 + B04 + 1e-8)",
-                BAND_2="NDMI = 0.0 (placeholder — replace with full SWIR calculation)",
+                BAND_2="NDMI = (B08 - B11) / (B08 + B11 + 1e-8)  [B11 resampled 20m->10m]",
                 SOURCE=os.path.basename(safe_dir),
                 CRS="EPSG:25830",
                 NODATA=str(NODATA),

@@ -68,7 +68,7 @@ def main() -> None:
         ax.annotate(r["name"][:22], xy=(c.x, c.y), fontsize=7, color="black",
                     bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="0.5", alpha=0.8))
     ax.set_title("Salud ambiental por sendero (EHS verano) — Reserva de la Biosfera Sierra del Rincón\n"
-                 "73 senderos · 149,4 km · Sentinel-2 (modo NDVI-only)", fontsize=11)
+                 "73 senderos · 149,4 km · Sentinel-2 (EHS bi-índice NDVI+NDMI)", fontsize=11)
     ax.set_xlabel("Easting (EPSG:25830, m)"); ax.set_ylabel("Northing (m)")
     ax.ticklabel_format(style="plain")
     fig.tight_layout()
