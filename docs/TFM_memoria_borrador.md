@@ -78,9 +78,34 @@ Esta separación es una decisión de diseño deliberada y constituye la principa
 ## 5. Resultados
 
 ### 5.1 Pipeline A — Sierra del Rincón (datos reales)
-[INSERTAR: número de senderos analizados, rango y distribución de EHS por activo, valores de ΔEHS estacional, activos con ΔEHS > 0 (alerta), clasificación SCM resultante por activo y presupuesto de restauración estimado. Estos valores proceden de la ejecución de `calculate_delta_ehs.py`, `run_scm_operational.py` y `tis_engine.py`.]
 
-[INSERTAR: 1–2 figuras — mapa de EHS por sendero y/o histograma de ΔEHS.]
+Se analizaron **73 senderos** (longitud total **149,4 km**) dentro de la Reserva de la Biosfera Sierra del Rincón, derivados de OpenStreetMap (vías con `highway = path | footway | track | bridleway` y etiqueta de nombre, disueltas por nombre) y evaluados sobre dos escenas Sentinel-2 L2A reales (verano: agosto 2025; primavera: abril 2026). El cómputo se ejecutó en modo fichero (`run_pipeline_a_filemode.py`), reutilizando la misma matemática de `calculate_delta_ehs.py` y `run_scm_operational.py` sin dependencia de PostGIS.
+
+**Salud ambiental (EHS, escala 0–100; alto = peor estado).** EHS de verano: media **21,6**, máximo **63,1**, mínimo 0,0. Los valores son moderados-bajos en promedio, consistentes con una masa vegetal mayoritariamente sana en el conjunto del territorio, con focos puntuales de estrés.
+
+**Señal de alerta estacional (ΔEHS = EHS_verano − EHS_primavera).** Media territorial **−6,79** (recuperación estacional neta), pero **27 de 73 senderos (37 %) presentan ΔEHS > 0**, es decir, degradación amplificada hacia el verano — la señal de alerta temprana que el sistema busca. Los 5 senderos con mayor degradación estacional, todos clasificados como `LOCALIZED_IMPACT`, son:
+
+| Sendero | ΔEHS | EHS_verano | Clasificación SCM |
+|---|---|---|---|
+| Calle Plazuela | +48,5 | 51,4 | LOCALIZED_IMPACT |
+| Calle Chorrera | +42,3 | 50,5 | LOCALIZED_IMPACT |
+| Camino de Rosuero a Riofrío de Riaza | +41,5 | 50,3 | LOCALIZED_IMPACT |
+| Camino Rades | +38,2 | 38,2 | LOCALIZED_IMPACT |
+| Cañada Real Segoviana | +31,5 | 51,6 | LOCALIZED_IMPACT |
+
+**Atribución causal (SCM).** De los 73 senderos: **27 LOCALIZED_IMPACT** (impacto antrópico dominante, factor causal 1,0), **9 MIXED** (0,5) y **37 LANDSCAPE_DRIVEN** (forzamiento climático, 0,0); 0 sin dato. Que los 5 senderos más degradados sean simultáneamente `LOCALIZED_IMPACT` es coherente con la hipótesis del sistema: la degradación más severa se concentra donde el gradiente espacial delata presión de uso, no clima.
+
+**Presupuesto de restauración (indicativo).** Aplicando `B = longitud × 15,50 €/m × (EHS_verano/100) × factor_causal`, el presupuesto total imputable a presión turística asciende a **≈ 157.194 €**. Es una estimación de orden de magnitud (ver limitaciones §7.2).
+
+> **Provenance y caveats (honestidad metodológica):**
+> 1. **Conjunto de senderos.** Procede de OSM, no del conjunto curado original de 20 activos; es plenamente reproducible desde fuentes abiertas, pero el inventario difiere.
+> 2. **EHS calculado en modo NDVI-only.** Los rásters disponibles en `data/clean_assets/` tienen la **banda NDMI (banda 2) degenerada (todo ceros)**; el EHS se computó por tanto solo con NDVI a peso completo. Para el EHS bi-índice de diseño debe regenerarse el NDMI desde la banda SWIR (B11) de los productos SAFE (presentes en `data/raw_assets/raster_data/`).
+> 3. **Presupuesto sin índice de tráfico.** En modo fichero no hay `traffic_index`; el `priority_score` se aproximó por el EHS_verano. El coste unitario TRAGSA (15,50 €/m) es estimación de orden de magnitud pendiente de cita oficial.
+> 4. **ΔEHS inter-anual.** Las dos escenas pertenecen a años distintos (verano 2025 / primavera 2026); el contraste es estacional, no una serie temporal — coherente con §4.3.
+
+*(Resultados completos por sendero en `data/outputs/pipeline_a_results.csv`; resumen en `pipeline_a_summary.json`.)*
+
+[INSERTAR (opcional): figuras — mapa de EHS/ΔEHS por sendero e histograma; pueden generarse desde el CSV.]
 
 ### 5.2 Pipeline B — capacidades demostradas
 La demostración sobre 20 activos sintéticos calibrados valida de extremo a extremo la cadena analítica: reconstrucción histórica multi-anual, detección de tendencia (Mann-Kendall), descomposición armónica estacional, DCS con *gate* de calidad, ranking TPI en 4 tiers, cinco escenarios de intervención (A–E) con análisis contrafactual, e informe ejecutivo de 10 KPIs para 5 perfiles de stakeholders. El caso de validación de calibración (Masatrigo) arroja un DCS de 78,7 (clasificación HIGH), confirmando el comportamiento del *gate*. La suite de pruebas comprende **266 tests** sin regresiones.
@@ -111,6 +136,7 @@ El SNTO *es*, en sí mismo, el sistema de monitorización objetiva y de cuantifi
 ### 7.2 Limitaciones
 De forma explícita y deliberada:
 - **Profundidad temporal del Pipeline A:** una sola anualidad real; la serie multi-anual (GEE 2021–2025) es trabajo en curso (ver `docs/GEE_setup_timebox.md`). El método de tendencia está implementado; lo que se acota es sobre qué territorio se afirma un hallazgo frente a una capacidad.
+- **Banda NDMI no operativa en los rásters actuales:** la banda 2 de los GeoTIFFs estacionales está a cero, por lo que el EHS de los resultados de §5.1 se calculó en modo NDVI-only. La regeneración del NDMI desde la banda SWIR de los productos SAFE restauraría el EHS bi-índice de diseño y es requisito antes de fijar las cifras como definitivas.
 - **Dimensión socioeconómica:** el sistema es fuerte en lo ambiental y débil en indicadores socioeconómicos (empleo, gasto turístico, satisfacción residente); se propone la integración de datos MITMA y encuestas como desarrollo.
 - **Principios programáticos de la CETS (4, 6, 7):** satisfacción del visitante, productos turísticos y formación quedan fuera del alcance de un sistema técnico, por ser acciones humanas y organizativas.
 - **Costes unitarios de restauración:** calibrados con tarifas TRAGSA 2023; deben tratarse como estimación de orden de magnitud hasta cerrar la cita de la resolución oficial por partida.
