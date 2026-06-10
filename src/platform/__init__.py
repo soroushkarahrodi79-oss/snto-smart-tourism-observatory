@@ -30,6 +30,14 @@ from .value import (
     compute_institutional_value, format_value_report,
 )
 from .reporter import generate_phase7_report
+from .map_layers import (
+    build_pydeck_deck,
+    build_pydeck_deck_spectral,
+    assets_to_geojson,
+    TIER_COLORS,
+    LEGEND_ITEMS,
+)
+from .charts import build_portfolio_matrix, build_time_series_chart
 
 __all__ = [
     # stakeholders
@@ -54,4 +62,13 @@ __all__ = [
     "compute_institutional_value", "format_value_report",
     # reporter
     "generate_phase7_report",
+    # map layers
+    "build_pydeck_deck",
+    "build_pydeck_deck_spectral",
+    "assets_to_geojson",
+    "TIER_COLORS",
+    "LEGEND_ITEMS",
+    # charts
+    "build_portfolio_matrix",
+    "build_time_series_chart",
 ]
