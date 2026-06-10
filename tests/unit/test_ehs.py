@@ -99,3 +99,73 @@ def test_components_sum_consistent():
     )
     # EHS = 100 * (1 - composite_risk)
     assert abs(comp.ehs - 100 * (1 - comp.composite_risk)) < 0.2
+
+
+# ── Dense-canopy saturation tests ─────────────────────────────────────────────
+
+def test_dense_canopy_flag_set_above_threshold():
+    comp = compute_ehs(
+        mean_ndvi=0.85, mk_result=_stable_mk(),
+        n_anomalous_months=2, n_total_months=48,
+        residual_std=0.015,
+    )
+    assert comp.is_dense_canopy is True
+
+
+def test_normal_canopy_flag_not_set():
+    comp = compute_ehs(
+        mean_ndvi=0.50, mk_result=_stable_mk(),
+        n_anomalous_months=2, n_total_months=48,
+        residual_std=0.015,
+    )
+    assert comp.is_dense_canopy is False
+
+
+def test_dense_canopy_evi_used_for_baseline():
+    # With NDVI=0.90 (saturated) and EVI=0.20 (stressed understory),
+    # the EVI-based baseline_risk should be higher than if NDVI were used alone.
+    comp_evi = compute_ehs(
+        mean_ndvi=0.90, mk_result=_stable_mk(),
+        n_anomalous_months=2, n_total_months=48,
+        residual_std=0.015, mean_evi=0.20,
+    )
+    comp_no_evi = compute_ehs(
+        mean_ndvi=0.90, mk_result=_stable_mk(),
+        n_anomalous_months=2, n_total_months=48,
+        residual_std=0.015,
+    )
+    # With low EVI, understory stress is captured → baseline_risk higher
+    assert comp_evi.baseline_risk > comp_no_evi.baseline_risk
+    assert comp_evi.ehs < comp_no_evi.ehs
+
+
+def test_dense_canopy_healthy_evi_lowers_baseline_risk():
+    # Healthy dense forest: NDVI saturated but EVI still good (~0.45)
+    comp = compute_ehs(
+        mean_ndvi=0.88, mk_result=_stable_mk(),
+        n_anomalous_months=1, n_total_months=48,
+        residual_std=0.010, mean_evi=0.45,
+    )
+    assert comp.is_dense_canopy is True
+    # EVI=0.45 matches _BASELINE_EVI_DENSE=0.40 → very low baseline_risk
+    assert comp.baseline_risk < 0.20
+
+
+def test_dense_canopy_ehs_still_in_range():
+    comp = compute_ehs(
+        mean_ndvi=0.92, mk_result=_declining_mk(),
+        n_anomalous_months=15, n_total_months=48,
+        residual_std=0.030, mean_evi=0.25,
+    )
+    assert 0.0 <= comp.ehs <= 100.0
+
+
+def test_backward_compat_no_evi_parameter():
+    # Existing call sites without mean_evi must still work identically.
+    comp = compute_ehs(
+        mean_ndvi=0.35, mk_result=_stable_mk(),
+        n_anomalous_months=3, n_total_months=48,
+        residual_std=0.020,
+    )
+    assert comp.ehs >= 0.0
+    assert comp.is_dense_canopy is False

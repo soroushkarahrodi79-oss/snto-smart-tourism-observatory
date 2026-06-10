@@ -4,14 +4,22 @@ SNTO ETL -- Raster Intersection (Zonal Statistics)
 Pilot Territory: Sierra del Rincón Biosphere Reserve, Madrid, Spain
 
 For each hiking trail in production_hiking_trails:
-  1. Projects the LineString to EPSG:25830 (UTM zone 30N) for metric buffering
-  2. Creates a 50 m buffer polygon around the line
-  3. Reprojects the buffer to match each raster's native CRS before extraction
-  4. Computes mean NDVI and mean NDMI within each buffer using rasterstats
-  5. Writes avg_ndvi / avg_ndmi back to the PostGIS table
+  1. Fetches the Copernicus DEM GLO-30 for the study area via STAC / COG
+  2. Computes terrain slope and aspect from the DEM window
+  3. Projects each trail to EPSG:25830 (UTM zone 30N)
+  4. Creates an asymmetric buffer (15 m upslope / 60 m downslope) informed
+     by the slope direction — capturing the runoff corridor more accurately
+     than a generic 50 m symmetric buffer (Wemple et al. 2001)
+  5. Reprojects buffers to match each raster's native CRS before extraction
+  6. Computes mean NDVI and mean NDMI via rasterstats zonal statistics
+  7. Writes avg_ndvi / avg_ndmi back to the PostGIS table
+
+Falls back to a symmetric 50 m buffer if the DEM STAC fetch fails (e.g.
+in offline environments or when the catalogue is temporarily unavailable).
 
 Dependencies:
   pip install geopandas psycopg2-binary sqlalchemy rasterio rasterstats
+  pip install pystac-client affine
 """
 from __future__ import annotations
 
@@ -42,8 +50,12 @@ CLEAN_DIR    = PROJECT_ROOT / "data" / "clean_assets"
 NDVI_PATH = CLEAN_DIR / "clean_S2_NDVI.tif"
 NDMI_PATH = CLEAN_DIR / "clean_S2_NDMI.tif"
 
-BUFFER_M   = 50        # Buffer radius in metres
-BUFFER_CRS = "EPSG:25830"   # UTM zone 30N — covers mainland Spain
+# Asymmetric buffer distances (Science: downslope zone is 4× wider to capture
+# the runoff and sediment deposition corridor — Wemple et al. 2001)
+UPSLOPE_M   = 15       # Buffer on the uphill side (metres)
+DOWNSLOPE_M = 60       # Buffer on the downhill side (metres)
+BUFFER_M    = 50       # Symmetric fallback radius when DEM is unavailable
+BUFFER_CRS  = "EPSG:25830"  # UTM zone 30N — covers mainland Spain
 
 # ── Credentials (override via environment variables) ──────────────────────────
 DB_HOST = os.getenv("SNTO_DB_HOST", "localhost")
@@ -220,11 +232,45 @@ def main() -> None:
         print(f"    Dropped {n_total - n_valid} null/empty geometries. {n_valid} remain.")
     print()
 
-    # ── [5/7] Project to UTM and buffer ──────────────────────────────────────
-    print(f"  [5/7] Projecting to {BUFFER_CRS} and creating {BUFFER_M} m buffers ...")
-    projected      = trails_gdf.to_crs(BUFFER_CRS)
-    buffers_gdf    = projected.copy()
-    buffers_gdf["geometry"] = projected.geometry.buffer(BUFFER_M)
+    # ── [5/7] Fetch DEM + build asymmetric trail buffers ─────────────────────
+    from src.geospatial.geometry import build_trail_buffer, fetch_dem_window
+
+    # Determine overall bounding box (W, S, E, N) in EPSG:4326
+    bounds = trails_gdf.total_bounds   # [minx, miny, maxx, maxy]
+    dem_bbox = (float(bounds[0]), float(bounds[1]), float(bounds[2]), float(bounds[3]))
+
+    dem_array = dem_transform = dem_crs = None
+    print("  [5/7] Fetching Copernicus DEM GLO-30 for study area ...")
+    try:
+        dem_array, dem_transform, dem_crs = fetch_dem_window(dem_bbox)
+        print(
+            f"    DEM loaded: {dem_array.shape[1]}×{dem_array.shape[0]} px  "
+            f"elevation range {dem_array.min():.0f}–{dem_array.max():.0f} m"
+        )
+        print(
+            f"    Asymmetric buffer: {UPSLOPE_M} m upslope / {DOWNSLOPE_M} m downslope"
+        )
+    except Exception as exc:
+        print(f"    DEM fetch failed ({exc})")
+        print(f"    Falling back to symmetric {BUFFER_M} m buffer.")
+
+    print(f"    Building buffers in {BUFFER_CRS} ...")
+    buffer_polygons = []
+    for geom in trails_gdf.geometry:
+        buf = build_trail_buffer(
+            geom, dem_array, dem_transform, dem_crs,
+            upslope_m=UPSLOPE_M,
+            downslope_m=DOWNSLOPE_M,
+            symmetric_fallback_m=BUFFER_M,
+            target_crs=BUFFER_CRS,
+        )
+        buffer_polygons.append(buf)
+
+    buffers_gdf = gpd.GeoDataFrame(
+        trails_gdf.drop(columns=["geometry"]),
+        geometry=buffer_polygons,
+        crs=BUFFER_CRS,
+    )
 
     n_empty = buffers_gdf.geometry.is_empty.sum()
     if n_empty:

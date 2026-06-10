@@ -26,18 +26,18 @@ where:
 
 Components
 ----------
-1. baseline_risk (weight 0.30)
-   How far the long-term mean NDVI sits below the healthy reference baseline.
-   baseline_risk = clamp((baseline_ndvi - mean_ndvi) / baseline_ndvi)
+1. baseline_risk (weight 0.30 — or 0.20 in dense-canopy mode)
+   How far the long-term mean NDVI (or EVI) sits below the healthy reference.
+   baseline_risk = clamp((baseline_ref - effective_vi) / baseline_ref)
    Full range: 0 (at or above baseline) → 1 (completely bare soil)
 
-2. trend_risk (weight 0.25)
+2. trend_risk (weight 0.25 — or 0.30 in dense-canopy mode)
    Magnitude of statistically significant negative Sen's slope.
    trend_risk = clamp(|slope| / max_slope) when slope < 0 AND p < 0.05
    max_slope = 0.005 NDVI units/month (severe sustained decline)
    = 0 when slope >= 0 or trend not significant
 
-3. anomaly_risk (weight 0.25)
+3. anomaly_risk (weight 0.25 — or 0.30 in dense-canopy mode)
    Fraction of months classified as severely anomalous (|z| >= 1.5).
    anomaly_risk = n_anomalous / n_total
    Captures both drought frequency and severity.
@@ -53,6 +53,23 @@ Components
    stability_risk = clamp(residual_std / (mean_ndvi * 0.20))
    20% of mean NDVI is the upper bound of acceptable inter-annual variability.
 
+DENSE-CANOPY ADAPTATION
+========================
+When mean_ndvi >= DENSE_CANOPY_NDVI_THRESHOLD (0.80), NDVI saturates in
+closed-canopy ecosystems (beech groves, dense oak/pine stands).  In this
+regime the score switches to "dense-canopy mode":
+
+  1. If mean_evi is provided, it replaces NDVI for baseline_risk, using a
+     separate EVI healthy reference (BASELINE_EVI_DENSE = 0.40).  EVI does
+     not saturate in dense forests.
+  2. Component weights shift away from the now-less-informative baseline term
+     toward trend and anomaly, where NDMI-derived signals are embedded:
+       baseline 0.30 → 0.20   (less reliable at saturation)
+       trend    0.25 → 0.30   (temporal decline still measurable)
+       anomaly  0.25 → 0.30   (NDMI anomalies captured here)
+       recovery 0.10 → 0.10   (unchanged)
+       stability0.10 → 0.10   (unchanged)
+
 CALIBRATION
 ===========
 Weights derived from expert elicitation for Mediterranean scrubland monitoring
@@ -67,7 +84,7 @@ INTERPRETATION SCALE
    75–89: Good      — moderate seasonal stress, stable long-term condition
    60–74: Moderate  — noticeable chronic stress, annual monitoring recommended
    40–59: Poor      — persistent degradation or recurring anomalies, intervention needed
-    0-39: Critical  -- severe, likely irreversible degradation
+    0-39: Critical  — severe, likely irreversible degradation
 """
 
 import math
@@ -85,19 +102,34 @@ class EHSComponents:
     stability_risk: float
     composite_risk: float
     ehs: float
+    is_dense_canopy: bool = False   # True when NDVI saturation guard was triggered
 
 
-# Component weights
-_W_BASELINE: float = 0.30
-_W_TREND: float = 0.25
-_W_ANOMALY: float = 0.25
-_W_RECOVERY: float = 0.10
+# ── Normal-mode weights (Mediterranean scrubland) ─────────────────────────────
+_W_BASELINE:  float = 0.30
+_W_TREND:     float = 0.25
+_W_ANOMALY:   float = 0.25
+_W_RECOVERY:  float = 0.10
 _W_STABILITY: float = 0.10
 
-# Calibration constants
+# ── Dense-canopy mode weights ─────────────────────────────────────────────────
+# Shift 0.10 from baseline (saturated NDVI) to trend + anomaly where
+# NDMI-derived signals are more sensitive to sub-canopy stress.
+_W_BASELINE_DENSE:  float = 0.20
+_W_TREND_DENSE:     float = 0.30
+_W_ANOMALY_DENSE:   float = 0.30
+_W_RECOVERY_DENSE:  float = 0.10
+_W_STABILITY_DENSE: float = 0.10
+
+# ── Calibration constants ─────────────────────────────────────────────────────
 _BASELINE_NDVI: float = 0.55        # healthy Mediterranean scrubland
+_BASELINE_EVI_DENSE: float = 0.40   # healthy dense forest (EVI reference; Huete et al.)
 _MAX_TREND_SLOPE: float = 0.005     # severe sustained decline (NDVI units/month)
 _MAX_RESIDUAL_FRACTION: float = 0.20  # 20% of mean NDVI = max acceptable inter-annual σ
+
+# Threshold above which NDVI saturates in closed-canopy ecosystems.
+# Based on Myneni et al. (1995) and confirmed for Iberian Hayedos.
+DENSE_CANOPY_NDVI_THRESHOLD: float = 0.80
 
 
 def _clamp(v: float) -> float:
@@ -112,6 +144,7 @@ def compute_ehs(
     pre_drought_ndvi: float | None = None,
     post_drought_ndvi: float | None = None,
     residual_std: float = 0.0,
+    mean_evi: float | None = None,
 ) -> EHSComponents:
     """
     Compute the Environmental Health Score from multi-year analysis outputs.
@@ -126,12 +159,36 @@ def compute_ehs(
         post_drought_ndvi:    Mean NDVI in the 12 months after the worst drought.
                               None if no drought event or insufficient post data.
         residual_std:         Std of decomposition residuals (inter-annual noise).
+        mean_evi:             Mean EVI over the full record.  When provided and
+                              mean_ndvi >= DENSE_CANOPY_NDVI_THRESHOLD, EVI
+                              replaces NDVI for the baseline_risk component.
 
     Returns:
-        EHSComponents with all sub-scores and final EHS value.
+        EHSComponents with all sub-scores, final EHS, and is_dense_canopy flag.
     """
+    # ── Dense-canopy detection ────────────────────────────────────────────────
+    is_dense_canopy = mean_ndvi >= DENSE_CANOPY_NDVI_THRESHOLD
+
+    if is_dense_canopy:
+        w_baseline  = _W_BASELINE_DENSE
+        w_trend     = _W_TREND_DENSE
+        w_anomaly   = _W_ANOMALY_DENSE
+        w_recovery  = _W_RECOVERY_DENSE
+        w_stability = _W_STABILITY_DENSE
+    else:
+        w_baseline  = _W_BASELINE
+        w_trend     = _W_TREND
+        w_anomaly   = _W_ANOMALY
+        w_recovery  = _W_RECOVERY
+        w_stability = _W_STABILITY
+
     # 1. Baseline risk
-    baseline_risk = _clamp((_BASELINE_NDVI - mean_ndvi) / _BASELINE_NDVI)
+    # In dense-canopy mode, use EVI if available (no saturation above 0.80).
+    # Fall back to NDVI if EVI is absent — the reduced weight mitigates bias.
+    if is_dense_canopy and mean_evi is not None:
+        baseline_risk = _clamp((_BASELINE_EVI_DENSE - mean_evi) / _BASELINE_EVI_DENSE)
+    else:
+        baseline_risk = _clamp((_BASELINE_NDVI - mean_ndvi) / _BASELINE_NDVI)
 
     # 2. Trend risk — only penalises statistically significant declines
     if mk_result.is_significant and mk_result.sens_slope < 0:
@@ -150,18 +207,19 @@ def compute_ehs(
         recovery_risk = 0.0
 
     # 5. Stability risk — inter-annual variability relative to mean
-    if mean_ndvi > 0:
-        stability_risk = _clamp(residual_std / (mean_ndvi * _MAX_RESIDUAL_FRACTION))
+    ref_vi = mean_evi if (is_dense_canopy and mean_evi is not None) else mean_ndvi
+    if ref_vi > 0:
+        stability_risk = _clamp(residual_std / (ref_vi * _MAX_RESIDUAL_FRACTION))
     else:
         stability_risk = 1.0
 
     # Weighted composite
     composite = (
-        _W_BASELINE * baseline_risk
-        + _W_TREND * trend_risk
-        + _W_ANOMALY * anomaly_risk
-        + _W_RECOVERY * recovery_risk
-        + _W_STABILITY * stability_risk
+        w_baseline  * baseline_risk
+        + w_trend   * trend_risk
+        + w_anomaly * anomaly_risk
+        + w_recovery  * recovery_risk
+        + w_stability * stability_risk
     )
 
     ehs = round(100.0 * (1.0 - composite), 1)
@@ -174,6 +232,7 @@ def compute_ehs(
         stability_risk=round(stability_risk, 4),
         composite_risk=round(composite, 4),
         ehs=ehs,
+        is_dense_canopy=is_dense_canopy,
     )
 
 

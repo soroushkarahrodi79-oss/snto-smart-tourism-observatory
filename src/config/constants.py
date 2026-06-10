@@ -70,6 +70,15 @@ SCM_LOCALIZED_FACTOR: float = 1.0   # trail use is the driver — full budget
 SCM_MIXED_FACTOR: float = 0.5       # ambiguous cause — half budget
 SCM_LANDSCAPE_FACTOR: float = 0.0   # climate is the driver — no local budget
 
+# ── Dense-canopy NDVI saturation guard (Task 2) ──────────────────────────────
+# Above this mean NDVI, the index saturates in closed forest canopies (e.g.
+# beech groves – Hayedos) and loses sensitivity to sub-canopy stress.
+# EHS weight is dynamically shifted toward NDMI, which continues to track
+# water-content gradients even when the canopy is spectrally opaque in NIR.
+EHS_DENSE_CANOPY_NDVI_THRESHOLD: float = 0.80  # saturation onset
+EHS_W_NDVI_DENSE: float = 0.20  # NDVI weight in dense-canopy mode
+EHS_W_NDMI_DENSE: float = 0.80  # NDMI weight in dense-canopy mode
+
 # ── Decision Confidence Score — minimum quality gates for can_act ─────────────
 # Prevents issuing an actionable recommendation when foundational data quality
 # or time-series robustness falls below minimum thresholds, even if the total

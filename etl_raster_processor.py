@@ -1,15 +1,24 @@
 """
-SNTO ETL Phase 0 -- Sentinel-2 Raster Processor
-=================================================
+SNTO ETL Phase 0 -- Sentinel-2 Raster Processor  [STAC / COG Edition]
+======================================================================
 Pilot Territory: Sierra del Rincón Biosphere Reserve, Madrid, Spain
 
-Locates the Sentinel-2A L2A ZIP in data/raw_assets/raster_data/, selectively
-extracts only the three required bands (B04 Red 10m, B08 NIR 10m, B11 SWIR
-20m), clips them to the Sierra del Rincón bounding box, resamples B11 to 10m
-via bilinear interpolation, computes NDVI and NDMI, and writes 5 production-
-ready GeoTIFFs to data/clean_assets/.
+Replaces the local-ZIP workflow with a fully cloud-native approach:
 
-Inputs  : data/raw_assets/raster_data/S2A_MSIL2A_*.zip
+  1. Queries AWS Earth Search (public STAC v1, no auth) for the least-cloudy
+     Sentinel-2 L2A scene covering the study bbox in the requested date window.
+  2. Resolves the COG href for each required band (B04 Red 10 m, B08 NIR 10 m,
+     B11 SWIR 20 m) directly from the STAC item assets.
+  3. Streams ONLY the study-area window from each COG via rasterio windowed-read
+     over HTTPS — no full-file download, no temporary extraction.
+  4. Resamples B11 from 20 m to 10 m on-the-fly using rasterio's out_shape.
+  5. Computes NDVI and NDMI, writes 5 production-ready GeoTIFFs to clean_assets/.
+
+ENV overrides (optional):
+  SNTO_S2_DATE_RANGE    e.g. "2022-06-01/2022-09-30"   default: 2023-07-01/2023-09-30
+  SNTO_S2_CLOUD_PCT     e.g. "15"                       default: 20
+
+Inputs  : STAC API — https://earth-search.aws.element84.com/v1
 Outputs : data/clean_assets/clean_S2_B04_red.tif
           data/clean_assets/clean_S2_B08_nir.tif
           data/clean_assets/clean_S2_B11_swir.tif
@@ -19,293 +28,323 @@ Outputs : data/clean_assets/clean_S2_B04_red.tif
 from __future__ import annotations
 
 import io
-import shutil
+import os
 import sys
-import zipfile
 from pathlib import Path
-
-# Ensure UTF-8 output regardless of terminal code page
-if hasattr(sys.stdout, "buffer"):
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 import numpy as np
 import rasterio
 from pyproj import Transformer
 from rasterio.enums import Resampling
-from rasterio.mask import mask as rio_mask
-from rasterio.transform import array_bounds, from_bounds
-from rasterio.warp import reproject as rio_reproject
-from shapely.geometry import box, mapping
+from rasterio.transform import from_bounds as transform_from_bounds
+from rasterio.windows import bounds as window_bounds
+from rasterio.windows import from_bounds as window_from_bounds
+
+# pystac-client is a runtime dependency only needed when actually calling the
+# STAC API.  The lazy import lets the module be imported in test environments
+# where the package may not be installed, while still failing explicitly at
+# call time if the library is missing.
+try:
+    from pystac_client import Client
+except ImportError:  # pragma: no cover
+    Client = None  # type: ignore[assignment,misc]
 
 SEP = "=" * 72
 DIV = "-" * 72
 
 PROJECT_ROOT = Path(__file__).parent
-RASTER_DIR   = PROJECT_ROOT / "data" / "raw_assets" / "raster_data"
 CLEAN_DIR    = PROJECT_ROOT / "data" / "clean_assets"
-TMP_DIR      = RASTER_DIR / "tmp_sentinel"
 
-# Sierra del Rincón study bounding box (EPSG:4326)
-BBOX_4326 = (-3.65, 41.05, -3.30, 41.20)   # minx, miny, maxx, maxy
+# ── Study area ────────────────────────────────────────────────────────────────
+BBOX_4326: tuple[float, float, float, float] = (-3.65, 41.05, -3.30, 41.20)  # W S E N
 
-# Sentinel-2 tile T30TVL → WGS84 / UTM Zone 30N
-BAND_CRS_EPSG = 32630
+# ── STAC / scene settings (overridable via env) ───────────────────────────────
+STAC_URL      = "https://earth-search.aws.element84.com/v1"
+COLLECTION    = "sentinel-2-l2a"
+DATE_RANGE    = os.environ.get("SNTO_S2_DATE_RANGE", "2023-07-01/2023-09-30")
+MAX_CLOUD_PCT = float(os.environ.get("SNTO_S2_CLOUD_PCT", "20"))
+
+# Asset key lookup order (AWS Earth Search keys listed first; MPC keys as fallback)
+_KEYS_B04: tuple[str, ...] = ("red",   "B04")
+_KEYS_B08: tuple[str, ...] = ("nir",   "nir08", "B08")   # catalogue-dependent
+_KEYS_B11: tuple[str, ...] = ("swir16", "B11")
+
+# GDAL environment hints that activate HTTP range-request optimisation for COGs
+_GDAL_COG_ENV: dict[str, str] = {
+    "GDAL_HTTP_MERGE_CONSECUTIVE_RANGES": "YES",
+    "GDAL_HTTP_MULTIPLEX":               "YES",
+    "GDAL_HTTP_VERSION":                 "2",
+    "GDAL_DISABLE_READDIR_ON_OPEN":      "EMPTY_DIR",
+    "CPL_VSIL_CURL_ALLOWED_EXTENSIONS":  ".tif,.tiff",
+}
 
 
-def _locate_zip() -> Path:
-    """Find the single Sentinel-2A L2A ZIP file in RASTER_DIR."""
-    zips = list(RASTER_DIR.glob("S2A_MSIL2A*.zip"))
-    if len(zips) != 1:
-        raise FileNotFoundError(
-            f"Expected exactly 1 Sentinel-2A ZIP in {RASTER_DIR}, found {len(zips)}"
-        )
-    return zips[0]
+# ── STAC helpers ──────────────────────────────────────────────────────────────
 
+def search_best_item(
+    bbox: tuple[float, float, float, float],
+    date_range: str,
+    max_cloud_pct: float,
+    stac_url: str = STAC_URL,
+    collection: str = COLLECTION,
+) -> object:
+    """Return the least-cloudy S2 L2A STAC item intersecting *bbox*.
 
-def _extract_bands(zip_path: Path) -> tuple[Path, Path, Path]:
-    """Selectively extract B04, B08, B11 JP2 files from the ZIP.
-
-    Extracts only ~252 MB instead of the full 1+ GB archive.
-    Returns (b04_path, b08_path, b11_path).
+    Items are filtered server-side by cloud cover then sorted client-side to
+    avoid catalogue-specific *sortby* syntax differences.
     """
-    TMP_DIR.mkdir(parents=True, exist_ok=True)
-    safe_name = zip_path.stem + ".SAFE"
-
-    with zipfile.ZipFile(zip_path) as z:
-        names = z.namelist()
-
-        def _find_band(pattern_dir: str, pattern_file: str) -> str:
-            matches = [n for n in names if pattern_dir in n and pattern_file in n]
-            if not matches:
-                raise FileNotFoundError(
-                    f"Band file matching '{pattern_file}' in '{pattern_dir}' not found "
-                    f"inside {zip_path.name}. Found entries (sample): "
-                    f"{[n for n in names if '.jp2' in n][:6]}"
-                )
-            return matches[0]
-
-        b04_entry = _find_band("IMG_DATA/R10m", "B04_10m.jp2")
-        b08_entry = _find_band("IMG_DATA/R10m", "B08_10m.jp2")
-        b11_entry = _find_band("IMG_DATA/R20m", "B11_20m.jp2")
-
-        print(f"  Extracting B04: {Path(b04_entry).name}")
-        z.extract(b04_entry, TMP_DIR)
-        print(f"  Extracting B08: {Path(b08_entry).name}")
-        z.extract(b08_entry, TMP_DIR)
-        print(f"  Extracting B11: {Path(b11_entry).name}")
-        z.extract(b11_entry, TMP_DIR)
-
-    safe_dir = TMP_DIR / safe_name
-    b04_path = next(safe_dir.glob("GRANULE/*/IMG_DATA/R10m/*_B04_10m.jp2"))
-    b08_path = next(safe_dir.glob("GRANULE/*/IMG_DATA/R10m/*_B08_10m.jp2"))
-    b11_path = next(safe_dir.glob("GRANULE/*/IMG_DATA/R20m/*_B11_20m.jp2"))
-    return b04_path, b08_path, b11_path
+    if Client is None:  # pragma: no cover
+        raise ImportError("pystac-client is required: pip install pystac-client")
+    catalog = Client.open(stac_url)
+    search = catalog.search(
+        collections=[collection],
+        bbox=list(bbox),
+        datetime=date_range,
+        query={"eo:cloud_cover": {"lt": max_cloud_pct}},
+        max_items=50,
+    )
+    items = list(search.items())
+    if not items:
+        raise RuntimeError(
+            f"No S2 L2A scene found for bbox={bbox}, dates={date_range}, "
+            f"cloud < {max_cloud_pct}%. "
+            "Widen DATE_RANGE or raise SNTO_S2_CLOUD_PCT."
+        )
+    items.sort(key=lambda it: float(it.properties.get("eo:cloud_cover", 100)))
+    return items[0]
 
 
-def _bbox_to_utm() -> tuple[float, float, float, float]:
-    """Transform Sierra del Rincón bbox from EPSG:4326 to UTM Zone 30N."""
-    t = Transformer.from_crs(4326, BAND_CRS_EPSG, always_xy=True)
-    xmin, ymin = t.transform(BBOX_4326[0], BBOX_4326[1])
-    xmax, ymax = t.transform(BBOX_4326[2], BBOX_4326[3])
+def resolve_asset_href(item: object, *candidate_keys: str) -> str:
+    """Return the href for the first matching asset key in *item*.
+
+    Raises KeyError listing available assets when none of *candidate_keys* match.
+    """
+    for key in candidate_keys:
+        asset = item.assets.get(key)  # type: ignore[union-attr]
+        if asset is not None:
+            return asset.href
+    available = list(item.assets.keys())  # type: ignore[union-attr]
+    raise KeyError(
+        f"None of {candidate_keys!r} found in STAC item '{item.id}'. "  # type: ignore[union-attr]
+        f"Available assets: {available}"
+    )
+
+
+# ── COG windowed-read ─────────────────────────────────────────────────────────
+
+def bbox_to_native_crs(
+    bbox_4326: tuple[float, float, float, float],
+    target_crs: object,
+) -> tuple[float, float, float, float]:
+    """Reproject a (W, S, E, N) bbox from EPSG:4326 into *target_crs*."""
+    t = Transformer.from_crs(4326, target_crs, always_xy=True)
+    xmin, ymin = t.transform(bbox_4326[0], bbox_4326[1])
+    xmax, ymax = t.transform(bbox_4326[2], bbox_4326[3])
     return xmin, ymin, xmax, ymax
 
 
-def _clip_band(
-    band_path: Path,
-    clip_geom: dict,
+def read_cog_window(
+    href: str,
+    bbox_4326: tuple[float, float, float, float],
+    out_shape: tuple[int, int] | None = None,
+    resampling: Resampling = Resampling.bilinear,
 ) -> tuple[np.ndarray, object, object]:
-    """Open a JP2 band, clip to study area, return (data_uint16[H,W], transform, crs)."""
-    with rasterio.open(band_path) as ds:
-        out, transform = rio_mask(ds, [clip_geom], crop=True, nodata=0)
-        crs = ds.crs
-    return out[0], transform, crs
+    """Stream a windowed read from a COG without downloading the full file.
 
+    No data is written to disk.  Only the HTTP ranges that cover the study
+    window are fetched, which corresponds to a small fraction of the full tile.
 
-def _resample_to_ref(
-    src_arr: np.ndarray,
-    src_transform: object,
-    src_crs: object,
-    ref_transform: object,
-    ref_crs: object,
-    ref_h: int,
-    ref_w: int,
-) -> np.ndarray:
-    """Bilinear-resample src_arr to the reference grid (ref_h x ref_w).
+    Args:
+        href:       HTTPS URL pointing to a Cloud-Optimised GeoTIFF.
+        bbox_4326:  Study-area bounds (W, S, E, N) in EPSG:4326.
+        out_shape:  (H, W) target; rasterio resamples on-the-fly when set.
+                    Pass the reference (H, W) to coerce a 20 m band to 10 m.
+        resampling: Algorithm used when *out_shape* differs from native size.
 
-    rasterio.mask does not support out_shape, so resampling uses warp.reproject.
+    Returns:
+        Tuple of (array[H, W] uint16, affine_transform, rasterio.CRS).
     """
-    dst = np.empty((1, ref_h, ref_w), dtype=np.float32)
-    rio_reproject(
-        source=src_arr.astype(np.float32)[np.newaxis],
-        destination=dst,
-        src_transform=src_transform,
-        src_crs=src_crs,
-        dst_transform=ref_transform,
-        dst_crs=ref_crs,
-        resampling=Resampling.bilinear,
-    )
-    return dst[0]
+    with rasterio.Env(**_GDAL_COG_ENV):
+        with rasterio.open(href) as ds:
+            xmin, ymin, xmax, ymax = bbox_to_native_crs(bbox_4326, ds.crs)
+            win = window_from_bounds(xmin, ymin, xmax, ymax, ds.transform)
+
+            read_kwargs: dict = {"window": win}
+            if out_shape is not None:
+                read_kwargs["out_shape"]   = (1, out_shape[0], out_shape[1])
+                read_kwargs["resampling"]  = resampling
+
+            data = ds.read(1, **read_kwargs)
+
+            # Derive the output affine transform from the geographic window bounds
+            # and the actual pixel dimensions (which may differ from the native
+            # window size when out_shape is given).
+            geo_bounds = window_bounds(win, ds.transform)   # left, bottom, right, top
+            h, w = data.shape
+            out_transform = transform_from_bounds(*geo_bounds, w, h)
+            crs = ds.crs
+
+    return data, out_transform, crs
 
 
-def _compute_index(band_a: np.ndarray, band_b: np.ndarray) -> np.ndarray:
-    """Compute normalised difference index (A - B) / (A + B) with zero guard.
+# ── Spectral indices ──────────────────────────────────────────────────────────
 
-    np.where evaluates both branches before masking, so we suppress the
-    divide-by-zero RuntimeWarning that would otherwise appear for zero pixels.
+def compute_normalised_index(
+    band_a: np.ndarray,
+    band_b: np.ndarray,
+) -> np.ndarray:
+    """Return (A – B) / (A + B) as float32 with zero-denominator guard.
+
+    np.errstate suppresses the RuntimeWarning that would otherwise appear for
+    zero-denominator pixels before np.where applies the mask.
     """
     a = band_a.astype(np.float32)
     b = band_b.astype(np.float32)
     denom = a + b
     with np.errstate(divide="ignore", invalid="ignore"):
-        result = np.where(denom == 0, 0.0, (a - b) / denom)
+        result = np.where(denom == 0.0, 0.0, (a - b) / denom)
     return result.astype(np.float32)
 
 
-def _write_tif(
-    out_path: Path,
-    data: np.ndarray,
-    profile: dict,
-) -> None:
-    """Write a single-band array to a GeoTIFF."""
+# ── Writer ────────────────────────────────────────────────────────────────────
+
+def write_tif(out_path: Path, data: np.ndarray, profile: dict) -> None:
+    """Write a single-band 2-D array to a GeoTIFF."""
     with rasterio.open(out_path, "w", **profile) as dst:
         dst.write(data[np.newaxis])
 
 
+# ── Orchestration ─────────────────────────────────────────────────────────────
+
+def run(
+    bbox: tuple[float, float, float, float] = BBOX_4326,
+    date_range: str = DATE_RANGE,
+    max_cloud_pct: float = MAX_CLOUD_PCT,
+    clean_dir: Path = CLEAN_DIR,
+) -> dict[str, Path]:
+    """Full ETL run.  Returns a mapping of output name → Path for callers."""
+    clean_dir.mkdir(parents=True, exist_ok=True)
+
+    # Step 1 — discover scene
+    print("  Searching STAC catalogue …")
+    item = search_best_item(bbox, date_range, max_cloud_pct)
+    cloud_pct = item.properties.get("eo:cloud_cover", "?")
+    print(f"  Selected item : {item.id}")
+    print(f"  Date          : {item.datetime}")
+    print(f"  Cloud cover   : {cloud_pct} %")
+    print()
+
+    # Step 2 — resolve COG hrefs
+    href_b04 = resolve_asset_href(item, *_KEYS_B04)
+    href_b08 = resolve_asset_href(item, *_KEYS_B08)
+    href_b11 = resolve_asset_href(item, *_KEYS_B11)
+    print("  COG hrefs:")
+    print(f"    B04 : …{href_b04[-70:]}")
+    print(f"    B08 : …{href_b08[-70:]}")
+    print(f"    B11 : …{href_b11[-70:]}")
+    print()
+
+    # Step 3 — stream B04 (10 m, reference grid)
+    print("  Streaming B04 (Red, 10 m) …")
+    b04_arr, ref_transform, ref_crs = read_cog_window(href_b04, bbox)
+    ref_h, ref_w = b04_arr.shape
+    print(f"  B04 clipped shape : {ref_h} × {ref_w} px @ 10 m")
+
+    # Step 4 — stream B08 (10 m, same native grid as B04)
+    print("  Streaming B08 (NIR, 10 m) …")
+    b08_arr, _, _ = read_cog_window(href_b08, bbox)
+    print(f"  B08 clipped shape : {b08_arr.shape[0]} × {b08_arr.shape[1]} px")
+
+    # Step 5 — stream B11 (20 m), resample to 10 m on-the-fly
+    print("  Streaming B11 (SWIR, 20 m) → resampling to 10 m on-the-fly …")
+    b11_arr, _, _ = read_cog_window(
+        href_b11, bbox,
+        out_shape=(ref_h, ref_w),
+        resampling=Resampling.bilinear,
+    )
+    print(f"  B11 resampled     : {b11_arr.shape[0]} × {b11_arr.shape[1]} px")
+    print()
+
+    # Step 6 — spectral indices
+    print("  Computing NDVI = (B08 – B04) / (B08 + B04) …")
+    ndvi = compute_normalised_index(b08_arr, b04_arr)
+
+    print("  Computing NDMI = (B08 – B11) / (B08 + B11) …")
+    ndmi = compute_normalised_index(b08_arr, b11_arr)
+    print()
+
+    # Step 7 — write outputs
+    band_profile: dict = {
+        "driver":    "GTiff",
+        "dtype":     "uint16",
+        "width":     ref_w,
+        "height":    ref_h,
+        "count":     1,
+        "crs":       ref_crs,
+        "transform": ref_transform,
+        "compress":  "lzw",
+    }
+    index_profile: dict = {**band_profile, "dtype": "float32", "nodata": -9999.0}
+
+    outputs: list[tuple[str, np.ndarray, dict]] = [
+        ("clean_S2_B04_red.tif",  b04_arr.astype(np.uint16),                    band_profile),
+        ("clean_S2_B08_nir.tif",  b08_arr.astype(np.uint16),                    band_profile),
+        # clip before uint16 cast: bilinear resampling can produce tiny negatives
+        ("clean_S2_B11_swir.tif", np.clip(b11_arr, 0, 65535).astype(np.uint16), band_profile),
+        ("clean_S2_NDVI.tif",     ndvi,                                           index_profile),
+        ("clean_S2_NDMI.tif",     ndmi,                                           index_profile),
+    ]
+
+    result_paths: dict[str, Path] = {}
+    print("  Writing GeoTIFFs:")
+    for fname, data, profile in outputs:
+        out_path = clean_dir / fname
+        write_tif(out_path, data, profile)
+        size_mb = out_path.stat().st_size / 1_048_576
+        print(f"    {fname:<30}  {size_mb:5.1f} MB")
+        result_paths[fname] = out_path
+    print()
+
+    # Step 8 — summary statistics
+    print(DIV)
+    print("  INDEX STATISTICS")
+    print(DIV)
+    valid_mask = (b04_arr > 0) | (b08_arr > 0)
+    valid_ndvi = ndvi[valid_mask]
+    valid_ndmi = ndmi[valid_mask]
+    print(
+        f"  NDVI  min={ndvi.min():.4f}  max={ndvi.max():.4f}"
+        f"  mean={valid_ndvi.mean():.4f}  (valid px: {len(valid_ndvi):,})"
+    )
+    print(
+        f"  NDMI  min={ndmi.min():.4f}  max={ndmi.max():.4f}"
+        f"  mean={valid_ndmi.mean():.4f}  (valid px: {len(valid_ndmi):,})"
+    )
+    print()
+    print("  Note: NDVI mean ~0.30–0.45 expected for summer Mediterranean landscape.")
+    print()
+    print(DIV)
+    print(f"  Done. 5 GeoTIFFs written to: {clean_dir}")
+
+    return result_paths
+
+
 def main() -> None:
+    # UTF-8 output for Windows terminals with non-Unicode code pages
+    if hasattr(sys.stdout, "buffer"):
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
     print(SEP)
-    print("  SNTO ETL -- Sentinel-2 Raster Processor")
+    print("  SNTO ETL -- Sentinel-2 Raster Processor  [STAC / COG Edition]")
     print("  Pilot: Sierra del Rincón Biosphere Reserve, Madrid, Spain")
-    print(f"  Bbox (WGS84): {BBOX_4326}")
-    print(f"  Output: {CLEAN_DIR}")
+    print(f"  Bbox (WGS84) : {BBOX_4326}")
+    print(f"  STAC URL     : {STAC_URL}")
+    print(f"  Date range   : {DATE_RANGE}  (cloud < {MAX_CLOUD_PCT} %)")
+    print(f"  Output       : {CLEAN_DIR}")
     print(SEP)
     print()
-
-    CLEAN_DIR.mkdir(parents=True, exist_ok=True)
-
-    # -- Step 1: Locate ZIP ------------------------------------------------
-    zip_path = _locate_zip()
-    print(f"  Source ZIP : {zip_path.name}")
-    print()
-
-    # -- Step 2: Extract 3 bands -------------------------------------------
-    print("  Selective extraction (B04, B08, B11 only):")
-    b04_path, b08_path, b11_path = _extract_bands(zip_path)
-    print()
-    print(f"  B04 path: ...{b04_path.relative_to(TMP_DIR)}")
-    print(f"  B08 path: ...{b08_path.relative_to(TMP_DIR)}")
-    print(f"  B11 path: ...{b11_path.relative_to(TMP_DIR)}")
-    print()
-
-    try:
-        # -- Step 3: Build UTM clip geometry -----------------------------------
-        xmin_utm, ymin_utm, xmax_utm, ymax_utm = _bbox_to_utm()
-        clip_geom = mapping(box(xmin_utm, ymin_utm, xmax_utm, ymax_utm))
-        print(f"  Bbox (UTM {BAND_CRS_EPSG}):")
-        print(f"    xmin={xmin_utm:.0f}  ymin={ymin_utm:.0f}")
-        print(f"    xmax={xmax_utm:.0f}  ymax={ymax_utm:.0f}")
-        print()
-
-        # -- Step 4: Clip B04 (Red, 10m) and B08 (NIR, 10m) -------------------
-        print("  Clipping B04 (Red, 10m) ...")
-        b04_arr, ref_transform, ref_crs = _clip_band(b04_path, clip_geom)
-        ref_h, ref_w = b04_arr.shape
-
-        print("  Clipping B08 (NIR, 10m) ...")
-        b08_arr, _, _ = _clip_band(b08_path, clip_geom)
-
-        print(f"  B04/B08 clipped shape: {ref_h} x {ref_w} pixels @ 10m")
-        print()
-
-        # -- Step 5: Clip B11 (SWIR, 20m) and resample to 10m -----------------
-        print("  Clipping B11 (SWIR, 20m) ...")
-        b11_clipped, b11_transform_20m, b11_crs = _clip_band(b11_path, clip_geom)
-        print(f"  B11 clipped shape (native 20m): {b11_clipped.shape[0]} x {b11_clipped.shape[1]}")
-
-        # Derive a pixel-perfect 10m transform from the reference B04 bounds
-        ref_bounds = array_bounds(ref_h, ref_w, ref_transform)
-        ref_transform_10m = from_bounds(*ref_bounds, ref_w, ref_h)
-
-        print("  Resampling B11 to 10m via bilinear interpolation ...")
-        b11_arr = _resample_to_ref(
-            b11_clipped, b11_transform_20m, b11_crs,
-            ref_transform_10m, ref_crs, ref_h, ref_w,
-        )
-        print(f"  B11 resampled shape: {b11_arr.shape[0]} x {b11_arr.shape[1]}")
-        print()
-
-        # -- Step 6: Compute spectral indices ----------------------------------
-        print("  Computing NDVI = (B08 - B04) / (B08 + B04) ...")
-        ndvi = _compute_index(b08_arr, b04_arr)
-
-        print("  Computing NDMI = (B08 - B11) / (B08 + B11) ...")
-        ndmi = _compute_index(b08_arr, b11_arr)
-        print()
-
-        # -- Step 7: Write outputs ---------------------------------------------
-        band_profile: dict = {
-            "driver":    "GTiff",
-            "dtype":     "uint16",
-            "width":     ref_w,
-            "height":    ref_h,
-            "count":     1,
-            "crs":       ref_crs,
-            "transform": ref_transform,
-            "compress":  "lzw",
-        }
-        index_profile: dict = {
-            **band_profile,
-            "dtype":  "float32",
-            "nodata": -9999.0,
-        }
-
-        outputs: list[tuple[str, np.ndarray, dict]] = [
-            ("clean_S2_B04_red.tif",  b04_arr.astype(np.uint16),                        band_profile),
-            ("clean_S2_B08_nir.tif",  b08_arr.astype(np.uint16),                        band_profile),
-            # b11_arr is float32 after bilinear resampling; clip before uint16 cast to
-            # prevent negative-float wraparound (e.g. -0.001 → 65535 without clip).
-            ("clean_S2_B11_swir.tif", np.clip(b11_arr, 0, 65535).astype(np.uint16),     band_profile),
-            ("clean_S2_NDVI.tif",     ndvi,                                               index_profile),
-            ("clean_S2_NDMI.tif",     ndmi,                                               index_profile),
-        ]
-
-        print("  Writing GeoTIFFs:")
-        for fname, data, profile in outputs:
-            out_path = CLEAN_DIR / fname
-            _write_tif(out_path, data, profile)
-            size_mb = out_path.stat().st_size / 1_048_576
-            print(f"    {fname:<30}  {size_mb:6.1f} MB")
-        print()
-
-        # -- Step 9: Summary ---------------------------------------------------
-        print(DIV)
-        print("  INDEX STATISTICS")
-        print(DIV)
-
-        # A pixel is valid when at least one source band has a positive DN value.
-        # Using (b04 > 0) | (b08 > 0) is more precise than `ndvi != 0`, which
-        # wrongly discards legitimate zero-NDVI pixels (bare soil, water edges).
-        valid_mask = (b04_arr > 0) | (b08_arr > 0)
-        valid_ndvi = ndvi[valid_mask]
-        valid_ndmi = ndmi[valid_mask]
-
-        print(f"  NDVI  min={ndvi.min():.4f}  max={ndvi.max():.4f}"
-              f"  mean={valid_ndvi.mean():.4f}  (valid px: {len(valid_ndvi):,})")
-        print(f"  NDMI  min={ndmi.min():.4f}  max={ndmi.max():.4f}"
-              f"  mean={valid_ndmi.mean():.4f}  (valid px: {len(valid_ndmi):,})")
-        print()
-        print(f"  Note: NDVI mean ~0.30-0.45 expected for August Mediterranean scrubland.")
-        print()
-        print(DIV)
-        print()
-        print(f"  Done. 5 GeoTIFFs written to: {CLEAN_DIR}")
-        print()
-        print(SEP)
-
-    finally:
-        # -- Step 8: Cleanup (always runs, even on error) ----------------------
-        if TMP_DIR.exists():
-            shutil.rmtree(TMP_DIR)
-        print("  Temporary extraction directory removed.")
+    run()
+    print(SEP)
 
 
 if __name__ == "__main__":

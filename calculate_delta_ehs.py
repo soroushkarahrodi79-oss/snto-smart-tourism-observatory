@@ -93,6 +93,9 @@ from src.config.constants import (
     EHS_W_NDVI,
     EHS_W_NDMI,
     EHS_SEASON_FOR_BUDGET,
+    EHS_DENSE_CANOPY_NDVI_THRESHOLD,
+    EHS_W_NDVI_DENSE,
+    EHS_W_NDMI_DENSE,
 )
 
 load_dotenv()  # carga .env antes de os.getenv() a nivel de módulo
@@ -167,12 +170,23 @@ def _trail_ehs(
     EHS = 0   → both indices at their season's healthy reference (no stress).
     EHS = 100 → both indices at their season's degraded floor (full stress).
 
+    Dense-canopy dynamic weight rule:
+    When the trail buffer's mean NDVI exceeds EHS_DENSE_CANOPY_NDVI_THRESHOLD
+    (default 0.80), NDVI saturates and loses sensitivity to sub-canopy stress.
+    The weights are automatically switched to EHS_W_NDVI_DENSE / EHS_W_NDMI_DENSE
+    so that NDMI (moisture stress) dominates in this regime.
+
     Returns None when both inputs are missing.
     When only one index is available, it carries full weight so the result
     stays in [0, 100] rather than collapsing to half-scale.
     """
     if ndvi_obs is None and ndmi_obs is None:
         return None
+
+    # Dense-canopy saturation guard: upweight NDMI when NDVI is in saturation zone
+    if ndvi_obs is not None and ndvi_obs > EHS_DENSE_CANOPY_NDVI_THRESHOLD:
+        w_ndvi = EHS_W_NDVI_DENSE
+        w_ndmi = EHS_W_NDMI_DENSE
 
     d_ndvi = _deficit(ndvi_obs, ndvi_baseline, ndvi_floor) if ndvi_obs is not None else None
     d_ndmi = _deficit(ndmi_obs, ndmi_baseline, ndmi_floor) if ndmi_obs is not None else None
