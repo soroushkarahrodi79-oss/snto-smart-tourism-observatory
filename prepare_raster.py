@@ -248,6 +248,8 @@ def _compute_ndmi(nir: np.ndarray, swir: np.ndarray) -> np.ndarray:
 # ── Argument parsing ──────────────────────────────────────────────────────────
 
 def _parse_args() -> argparse.Namespace:
+    from src.config.territories import list_keys
+
     parser = argparse.ArgumentParser(
         description=(
             "Prepare a Sentinel-2 L2A .SAFE scene → 2-band NDVI/NDMI GeoTIFF "
@@ -256,10 +258,20 @@ def _parse_args() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
-            "  python prepare_raster.py "
+            "  python prepare_raster.py --territory sierra_del_rincon "
             "--input scene.SAFE --output spring_raster.tif\n"
-            "  python prepare_raster.py "
-            "--input scene.SAFE --output summer_raster.tif\n"
+            "  python prepare_raster.py --territory pnsg "
+            "--input scene.SAFE --output spring_raster.tif\n"
+        ),
+    )
+    parser.add_argument(
+        "--territory",
+        default=None,
+        metavar="KEY",
+        help=(
+            f"Territory key: {', '.join(list_keys())}. "
+            "When set, output is written to data/clean_assets/<territory>/<FILENAME>. "
+            "Omit to keep the legacy flat layout (data/clean_assets/<FILENAME>)."
         ),
     )
     parser.add_argument(
@@ -274,7 +286,7 @@ def _parse_args() -> argparse.Namespace:
         metavar="FILENAME",
         help=(
             "Output filename, e.g. spring_raster.tif. "
-            "Written to data/clean_assets/<FILENAME>."
+            "Written to data/clean_assets/[<territory>/]<FILENAME>."
         ),
     )
     return parser.parse_args()
@@ -290,13 +302,23 @@ def main() -> None:
     if not output_name.lower().endswith(".tif"):
         output_name += ".tif"
 
+    # Resolve output directory: territory-scoped subfolder or legacy flat layout
+    if args.territory:
+        from src.config.territories import get as get_territory
+        territory = get_territory(args.territory)  # raises KeyError for unknown keys
+        out_dir  = os.path.join(CLEAN_DIR, territory.key)
+        territory_label = territory.display_name
+    else:
+        out_dir  = CLEAN_DIR
+        territory_label = "Sierra del Rincón Biosphere Reserve, Madrid, Spain"
+
     print(SEP)
     print("  SNTO -- Sentinel-2 Raster Preparation")
-    print("  Pilot: Sierra del Rincón Biosphere Reserve, Madrid, Spain")
+    print(f"  Territory: {territory_label}")
     print(SEP)
     print()
     print(f"  Input  : {safe_dir}")
-    print(f"  Output : data/clean_assets/{output_name}")
+    print(f"  Output : {os.path.join(out_dir, output_name)}")
     print()
 
     # ── [1/6] Validate .SAFE directory ───────────────────────────────────────
@@ -430,8 +452,8 @@ def main() -> None:
     print()
 
     # ── [6/6] Write 2-band GeoTIFF ───────────────────────────────────────────
-    os.makedirs(CLEAN_DIR, exist_ok=True)
-    out_path = os.path.join(CLEAN_DIR, output_name)
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, output_name)
 
     print(f"  [6/6] Writing 2-band GeoTIFF → {out_path} ...")
     try:
