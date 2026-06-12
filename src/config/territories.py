@@ -69,7 +69,7 @@ TERRITORIES: dict[str, TerritoryConfig] = {
         s2_tile="T30TVL",
         raw_raster_folder="PNSG",
         protection_category="National Park (Red de Parques Nacionales)",
-        trails_geojson="pnsg_hiking_trails.geojson",
+        trails_geojson="pnsg_oapn_trails.geojson",  # cartografía OFICIAL OAPN (225 sendas)
         dashboard_key="pnsg",
         notes="Larger territory with diverse municipalities: Cercedilla, "
               "Navacerrada, Guadarrama, Los Molinos, Collado Mediano, "

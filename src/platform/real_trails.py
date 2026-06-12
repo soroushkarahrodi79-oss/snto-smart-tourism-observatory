@@ -79,6 +79,10 @@ class RealTrail:
     scm_class: Optional[str]
     budget_eur: Optional[float]
     geometry: dict[str, Any]   # GeoJSON geometry (LineString/MultiLineString) WGS84
+    # Enriquecimiento PRUG (solo PNSG; None en territorios sin zonificación)
+    prug_zone: Optional[str] = None
+    prug_protection_weight: Optional[float] = None
+    priority_index: Optional[float] = None   # (100−salud) × peso_protección
 
     # ── Derivados ──
     @property
@@ -132,6 +136,24 @@ class RealTrailDataset:
         """Top-N sendas con mayor deterioro estacional (ΔEHS de salud más negativo)."""
         degrading = [t for t in self.trails if t.delta_ehs is not None]
         return sorted(degrading, key=lambda t: t.delta_ehs)[:n]
+
+    @property
+    def has_prug(self) -> bool:
+        """True si las sendas llevan zonificación PRUG (solo PNSG)."""
+        return any(t.priority_index is not None for t in self.trails)
+
+    def ranked_by_priority_index(self) -> list[RealTrail]:
+        """Sendas por índice de prioridad combinado (degradación × protección PRUG).
+
+        Mayor índice primero. Si no hay PRUG (p. ej. SNR), cae a salud ascendente.
+        """
+        if self.has_prug:
+            return sorted(
+                self.trails,
+                key=lambda t: (t.priority_index is None,
+                               -(t.priority_index if t.priority_index is not None else -1)),
+            )
+        return self.ranked_by_priority()
 
 
 def _output_dir(dashboard_key: str) -> Optional[Path]:
@@ -194,6 +216,9 @@ def get_real_trails(dashboard_key: str) -> RealTrailDataset:
             scm_class=p.get("scm_class"),
             budget_eur=p.get("budget_eur"),
             geometry=feat.get("geometry") or {},
+            prug_zone=p.get("prug_zone"),
+            prug_protection_weight=p.get("prug_protection_weight"),
+            priority_index=p.get("priority_index"),
         ))
 
     # El resumen del pipeline está en convenio de degradación; lo convertimos a
@@ -253,6 +278,32 @@ def _ehs_to_rgba(ehs: Optional[float], alpha: int = 230) -> list[int]:
     return [128, 128, 128, alpha]
 
 
+_OAPN_DIR = _ROOT / "data" / "raw_assets" / "vector_data" / "oapn"
+
+# Límite oficial del parque por clave de dashboard (solo PNSG tiene capa OAPN).
+_BOUNDARY_FILE: dict[str, str] = {
+    "pnsg": "oapn_limite_pn.geojson",
+}
+
+
+def get_park_boundary(dashboard_key: str) -> Optional[dict[str, Any]]:
+    """Devuelve el FeatureCollection del límite oficial del parque, o None.
+
+    Fuente: capa oficial OAPN descargada por etl_oapn_wfs.py. Solo disponible
+    para territorios con límite publicado (PNSG). Se usa como contorno en el mapa.
+    """
+    fname = _BOUNDARY_FILE.get(dashboard_key)
+    if not fname:
+        return None
+    path = _OAPN_DIR / fname
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
 def build_real_trails_geojson(dataset: RealTrailDataset) -> dict[str, Any]:
     """FeatureCollection con geometría real coloreada por EHS, lista para PyDeck."""
     features = []
@@ -271,6 +322,7 @@ def build_real_trails_geojson(dataset: RealTrailDataset) -> dict[str, Any]:
                 "scm": t.scm_label_es,
                 "priority": t.priority_label,
                 "budget": f"€{t.budget_eur:,.0f}" if t.budget_eur is not None else "—",
+                "prug": t.prug_zone or "—",
                 "line_color": color,
             },
         })

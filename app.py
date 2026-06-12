@@ -21,7 +21,10 @@ from src.platform.map_layers import (
     assets_to_geojson, LEGEND_ITEMS, TIER_COLORS,
 )
 from src.platform.charts import build_portfolio_matrix, build_time_series_chart
-from src.platform.real_trails import get_real_trails, build_real_trails_geojson
+from src.platform.real_trails import (
+    get_real_trails, build_real_trails_geojson, get_park_boundary,
+)
+from src.platform.calibration import calibrate_territory, coverage_summary
 
 # ── Fecha global de informe ───────────────────────────────────────────────────
 REPORT_DATE = "2026-06-12"
@@ -2119,6 +2122,25 @@ with tab_assets:
         "Ordenados por TPI descendente (mayor urgencia primero)"
     )
 
+    # ── Validación cruzada con el satélite (Pipeline A) ───────────────────────
+    _calib = calibrate_territory(selected_key, ranked_assets)
+    _cov = coverage_summary(_calib)
+    with st.container():
+        cc1, cc2, cc3, cc4 = st.columns(4)
+        cc1.metric("✓ Satélite confirma", _cov["confirma"])
+        cc2.metric("⚠ Satélite más verde", _cov["mas_sano"])
+        cc3.metric("⚠ Satélite más degradado", _cov["mas_degradado"])
+        cc4.metric("— Sin senda equivalente", _cov["sin_dato"])
+    st.caption(
+        "**Validación cruzada (triangulación):** cada activo curado se contrasta con "
+        "el EHS satelital real de su senda concreta (Pipeline A · Sentinel-2). "
+        "El EHS curado mide *salud bajo presión turística* (juicio experto); el "
+        "satelital mide *verdor de la vegetación* (NDVI/NDMI). Divergen de forma "
+        "esperable en alta montaña (roca/canchal alpino tienen poco NDVI por geología, "
+        "no por turismo): por eso el satélite **valida**, no sustituye, el juicio experto."
+    )
+    st.divider()
+
     # Filtros
     f_col1, f_col2, f_col3 = st.columns(3)
     with f_col1:
@@ -2169,6 +2191,29 @@ with tab_assets:
         if asset.elevation_m:
             physical += f"&nbsp;·&nbsp; {asset.elevation_m:.0f} m"
 
+        # ── Sello de validación satelital ─────────────────────────────────────
+        _cal = _calib.get(asset.asset_id)
+        if _cal is not None:
+            _vemoji, _vlabel, _vcolor = _cal.badge
+            if _cal.satellite_ehs is not None:
+                _refs = "; ".join(_cal.matched_trails[:2])
+                if len(_cal.matched_trails) > 2:
+                    _refs += f" (+{len(_cal.matched_trails) - 2})"
+                _val_html = (
+                    f'<div style="margin-top:6px;font-size:0.72rem;color:{_vcolor}">'
+                    f'<b>{_vemoji} {_vlabel}</b> · EHS satélite '
+                    f'<b>{_cal.satellite_ehs:.0f}</b>/100 '
+                    f'(Δ {_cal.delta:+.0f} vs curado) '
+                    f'<span style="color:#9aa4af">← {_refs}</span></div>'
+                )
+            else:
+                _val_html = (
+                    f'<div style="margin-top:6px;font-size:0.72rem;color:{_vcolor}">'
+                    f'{_vemoji} {_vlabel} · sin senda satelital comparable</div>'
+                )
+        else:
+            _val_html = ""
+
         st.markdown(
             f"""<div class="kpi-card" style="border-left:5px solid {fg};margin-bottom:0.5rem;">
   <div style="display:flex;align-items:center;gap:12px;">
@@ -2199,6 +2244,7 @@ with tab_assets:
               border-top:1px solid #e8ecf0">
     {asset.description[:160]}{'…' if len(asset.description) > 160 else ''}
   </div>
+  {_val_html}
 </div>""",
             unsafe_allow_html=True,
         )
@@ -2263,8 +2309,10 @@ with tab_real:
         with _map_c:
             try:
                 _geo = build_real_trails_geojson(_real)
+                _boundary = get_park_boundary(selected_key)
                 _deck = build_real_trails_deck(
-                    _geo, map_lat=_mc[0], map_lon=_mc[1], map_zoom=_mc[2]
+                    _geo, map_lat=_mc[0], map_lon=_mc[1], map_zoom=_mc[2],
+                    boundary_geojson=_boundary,
                 )
                 st.pydeck_chart(_deck, use_container_width=True, height=460)
             except ImportError:
@@ -2289,13 +2337,38 @@ with tab_real:
                 "Color = NDVI/NDMI real del píxel sobre el buffer de 50 m de cada senda."
             )
 
+        # ── Zonificación PRUG (solo PNSG) ──
+        if _real.has_prug:
+            from collections import Counter
+            _zc = Counter(t.prug_zone for t in _real.trails if t.prug_zone)
+            _prot = sum(1 for t in _real.trails
+                        if t.prug_zone in ("Zona de Reserva", "Zona de Uso Restringido"))
+            st.markdown(
+                f'<div style="margin-top:8px;padding:10px 12px;background:#fffdf5;'
+                f'border-radius:6px;border-left:3px solid #d4a017;">'
+                f'<span style="font-size:0.72rem;color:#8a6d1a;text-transform:uppercase;'
+                f'letter-spacing:0.06em;font-weight:700">⛰ Zonificación PRUG oficial</span><br/>'
+                f'<span style="font-size:0.80rem;color:#444">'
+                f'{_prot} de {len(_real.trails)} sendas discurren por zonas de alta protección '
+                f'(Reserva / Uso Restringido). La prioridad de intervención pondera la '
+                f'degradación por el nivel de protección del PRUG.</span></div>',
+                unsafe_allow_html=True,
+            )
+
         st.divider()
 
-        # ── Tabla priorizada (peor EHS primero) ──
-        st.markdown("**Ranking de intervención · peor salud ecológica primero**")
-        _ranked = _real.ranked_by_priority()
-        _df = pd.DataFrame([
-            {
+        # ── Tabla priorizada ──
+        _has_prug = _real.has_prug
+        if _has_prug:
+            st.markdown("**Ranking de intervención · degradación × protección PRUG (prioridad combinada)**")
+            _ranked = _real.ranked_by_priority_index()
+        else:
+            st.markdown("**Ranking de intervención · peor salud ecológica primero**")
+            _ranked = _real.ranked_by_priority()
+
+        _rows = []
+        for t in _ranked:
+            row = {
                 "Senda":          t.name,
                 "Long. (km)":     t.length_km,
                 "EHS primavera":  round(t.ehs_spring, 1) if t.ehs_spring is not None else None,
@@ -2305,25 +2378,31 @@ with tab_real:
                 "Causa (SCM)":    t.scm_label_es,
                 "Presupuesto (€)": round(t.budget_eur, 0) if t.budget_eur is not None else None,
             }
-            for t in _ranked
-        ])
-        st.dataframe(
-            _df,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "EHS verano": st.column_config.ProgressColumn(
-                    "EHS verano", min_value=0, max_value=100, format="%.0f"),
-                "EHS primavera": st.column_config.NumberColumn(format="%.0f"),
-                "ΔEHS": st.column_config.NumberColumn(
-                    "ΔEHS", format="%.1f",
-                    help="Negativo = empeora en verano (caída de NDVI estacional)."),
-                "Presupuesto (€)": st.column_config.NumberColumn(format="€%d"),
-            },
-        )
+            if _has_prug:
+                row["Zona PRUG"] = (t.prug_zone or "—").replace("Zona de ", "")
+                row["Prioridad PRUG"] = t.priority_index
+            _rows.append(row)
+        _df = pd.DataFrame(_rows)
+
+        _colcfg = {
+            "EHS verano": st.column_config.ProgressColumn(
+                "EHS verano", min_value=0, max_value=100, format="%.0f"),
+            "EHS primavera": st.column_config.NumberColumn(format="%.0f"),
+            "ΔEHS": st.column_config.NumberColumn(
+                "ΔEHS", format="%.1f",
+                help="Negativo = empeora en verano (caída de NDVI estacional)."),
+            "Presupuesto (€)": st.column_config.NumberColumn(format="€%d"),
+        }
+        if _has_prug:
+            _colcfg["Prioridad PRUG"] = st.column_config.ProgressColumn(
+                "Prioridad PRUG", min_value=0, max_value=100, format="%.0f",
+                help="(100 − salud) × peso de protección PRUG. Mayor = más urgente.")
+        st.dataframe(_df, use_container_width=True, hide_index=True, column_config=_colcfg)
         _terr_folder = "sierra_del_rincon" if selected_key == "snr" else "pnsg"
+        _carto = ("Cartografía oficial OAPN (sendas homologadas + límite + zonificación PRUG)"
+                  if selected_key == "pnsg" else "Cartografía OpenStreetMap")
         st.caption(
-            "Fuente: Pipeline A (modo fichero) · Sentinel-2 tile T30TVL · "
+            f"Fuente: Pipeline A · Sentinel-2 tile T30TVL · {_carto} · "
             "Salida real, sin datos sintéticos. Provenance: "
             f"`data/outputs/{_terr_folder}/pipeline_a_results.geojson`"
         )

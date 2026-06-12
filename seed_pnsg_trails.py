@@ -42,7 +42,8 @@ SEP = "=" * 72
 DIV = "-" * 72
 
 PROJECT_ROOT = Path(__file__).parent
-PNSG_TRAILS_FILE = PROJECT_ROOT / "data" / "raw_assets" / "vector_data" / "pnsg_hiking_trails.geojson"
+# Cartografía OFICIAL OAPN (225 sendas homologadas del PN Sierra de Guadarrama).
+PNSG_TRAILS_FILE = PROJECT_ROOT / "data" / "raw_assets" / "vector_data" / "pnsg_oapn_trails.geojson"
 
 DB_HOST = os.getenv("SNTO_DB_HOST", "localhost")
 DB_PORT = int(os.getenv("SNTO_DB_PORT", "5432"))

@@ -431,6 +431,7 @@ def build_real_trails_deck(
     map_lat: float,
     map_lon: float,
     map_zoom: int,
+    boundary_geojson: dict | None = None,
 ) -> "pdk.Deck":
     """Build a Deck.gl deck from REAL trail geometry coloured by computed EHS.
 
@@ -465,6 +466,7 @@ def build_real_trails_deck(
             "<hr style='border:none;border-top:1px solid #2e4560;margin:6px 0'/>"
             "<b>EHS verano</b> {ehs_summer}/100 &nbsp;·&nbsp; <b>ΔEHS</b> {delta_ehs}<br/>"
             "<span style='font-size:11px;color:#c8d6e5'>Causa: {scm}</span><br/>"
+            "<span style='font-size:11px;color:#f0c674'>Zona PRUG: {prug}</span><br/>"
             "<span style='font-size:11px;color:#85b7eb'>Presupuesto: {budget}</span>"
             "</div>"
         ),
@@ -475,7 +477,26 @@ def build_real_trails_deck(
         },
     }
 
-    layer = pdk.Layer(
+    layers = []
+
+    # Contorno oficial del parque (debajo de las sendas), si se proporciona.
+    if boundary_geojson is not None:
+        layers.append(pdk.Layer(
+            "GeoJsonLayer",
+            data=boundary_geojson,
+            pickable=False,
+            stroked=True,
+            filled=True,
+            get_fill_color=[80, 140, 200, 28],     # azul muy tenue
+            get_line_color=[120, 180, 240, 200],   # contorno azul claro
+            get_line_width=60,
+            line_width_units="meters",
+            line_width_min_pixels=1,
+            line_width_max_pixels=3,
+            opacity=1.0,
+        ))
+
+    layers.append(pdk.Layer(
         "GeoJsonLayer",
         data=geojson,
         pickable=True,
@@ -487,14 +508,14 @@ def build_real_trails_deck(
         line_width_min_pixels=2,
         line_width_max_pixels=7,
         opacity=1.0,
-    )
+    ))
 
     view_state = pdk.ViewState(
         latitude=map_lat, longitude=map_lon, zoom=map_zoom, pitch=0, bearing=0,
     )
 
     return pdk.Deck(
-        layers=[layer],
+        layers=layers,
         initial_view_state=view_state,
         tooltip=tooltip,
         map_style="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
