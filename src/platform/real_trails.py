@@ -37,6 +37,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
 
+from src.metrics.semantics import delta_stress_to_delta_health, stress_to_health
+
 # Raíz del proyecto: .../src/platform/real_trails.py → subir 3 niveles
 _ROOT = Path(__file__).resolve().parents[2]
 _OUTPUTS = _ROOT / "data" / "outputs"
@@ -189,23 +191,14 @@ def get_real_trails(dashboard_key: str) -> RealTrailDataset:
         if summary_path.exists() else {}
     )
 
-    def _to_health(deg: Any) -> Optional[float]:
-        """Convierte degradación del pipeline (0=sano..100=degradado) a salud."""
-        if deg is None:
-            return None
-        return round(100.0 - float(deg), 4)
-
     trails: list[RealTrail] = []
     for feat in fc.get("features", []):
         p = feat.get("properties", {})
         # Convenio de SALUD (alto=sano), coherente con el resto del dashboard.
-        health_spring = _to_health(p.get("ehs_spring"))
-        health_summer = _to_health(p.get("ehs_summer"))
+        health_spring = stress_to_health(p.get("ehs_spring"))
+        health_summer = stress_to_health(p.get("ehs_summer"))
         # ΔEHS de salud: positivo = mejora, negativo = deterioro de verano.
-        delta_health = (
-            round(health_summer - health_spring, 4)
-            if (health_summer is not None and health_spring is not None) else None
-        )
+        delta_health = delta_stress_to_delta_health(p.get("delta_ehs"))
         trails.append(RealTrail(
             trail_id=int(p.get("id", 0)),
             name=p.get("name") or "(sin nombre)",

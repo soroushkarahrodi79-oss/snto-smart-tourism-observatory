@@ -3,9 +3,14 @@ SNTO — Delta EHS Calculator
 ============================
 Pilot Territory: Sierra del Rincón Biosphere Reserve, Madrid, Spain
 
-Computes the seasonal Environmental Health Score (EHS) for each hiking trail
-using spring and summer Sentinel-2 composite rasters, then writes the
-degradation delta back to the PostGIS production table.
+Computes the seasonal Environmental Stress Score for each hiking trail using
+spring and summer Sentinel-2 composite rasters, then writes the degradation
+delta back to the PostGIS production table.
+
+Naming note: the legacy database columns are still named ehs_spring,
+ehs_summer, and delta_ehs for compatibility, but their convention is STRESS:
+0 = no stress, 100 = maximum degradation. Dashboard health scores are derived
+as health = 100 - stress in src.metrics.semantics.
 
 Workflow:
    1. Verify GeoTIFF inputs (spring_raster.tif, summer_raster.tif)
@@ -150,7 +155,7 @@ def _deficit(observed: float, baseline: float, floor: float) -> float:
     return max(0.0, min(1.0, (baseline - observed) / (baseline - floor)))
 
 
-def _trail_ehs(
+def _trail_stress_score(
     ndvi_obs: float | None,
     ndmi_obs: float | None,
     ndvi_baseline: float,
@@ -161,14 +166,14 @@ def _trail_ehs(
     w_ndmi: float = EHS_W_NDMI,
 ) -> float | None:
     """
-    EHS = 100 × (W_NDVI × D_ndvi + W_NDMI × D_ndmi)
+    stress = 100 x (W_NDVI x D_ndvi + W_NDMI x D_ndmi)
 
     The baselines passed in are the scene-level P_BASE / P_FLOOR percentiles
     for the season being evaluated (spring or summer), computed exclusively
     from pixels that are neither SCL-masked nor inside trail buffers.
 
-    EHS = 0   → both indices at their season's healthy reference (no stress).
-    EHS = 100 → both indices at their season's degraded floor (full stress).
+    stress = 0   -> both indices at their season's healthy reference.
+    stress = 100 -> both indices at their season's degraded floor.
 
     Dense-canopy dynamic weight rule:
     When the trail buffer's mean NDVI exceeds EHS_DENSE_CANOPY_NDVI_THRESHOLD
@@ -199,6 +204,16 @@ def _trail_ehs(
         raw = d_ndmi   # type: ignore[assignment]
 
     return round(raw * 100.0, 4)
+
+
+def _trail_ehs(*args, **kwargs) -> float | None:
+    """Backward-compatible alias for the Pipeline A stress score.
+
+    Historical tests and scripts import ``_trail_ehs``. Keep that API stable,
+    but route all new code through ``_trail_stress_score`` so the score
+    direction is explicit at the call site.
+    """
+    return _trail_stress_score(*args, **kwargs)
 
 
 # ── Scene baseline computation ────────────────────────────────────────────────
@@ -578,16 +593,16 @@ def main() -> None:
     ids   = trails_gdf["id"].tolist()
     names = trails_gdf["name"].tolist()
 
-    ehs_spring_vals = [
-        _trail_ehs(
+    stress_spring_vals = [
+        _trail_stress_score(
             n, m,
             spring_ndvi_baseline, spring_ndvi_floor,
             spring_ndmi_baseline, spring_ndmi_floor,
         )
         for n, m in zip(spring_ndvi, spring_ndmi)
     ]
-    ehs_summer_vals = [
-        _trail_ehs(
+    stress_summer_vals = [
+        _trail_stress_score(
             n, m,
             summer_ndvi_baseline, summer_ndvi_floor,
             summer_ndmi_baseline, summer_ndmi_floor,
@@ -596,13 +611,13 @@ def main() -> None:
     ]
     delta_vals = [
         round(su - sp, 4) if su is not None and sp is not None else None
-        for sp, su in zip(ehs_spring_vals, ehs_summer_vals)
+        for sp, su in zip(stress_spring_vals, stress_summer_vals)
     ]
 
     updated = 0
     with conn.cursor() as cur:
-        for trail_id, ehs_sp, ehs_su, d_ehs in zip(
-            ids, ehs_spring_vals, ehs_summer_vals, delta_vals
+        for trail_id, stress_sp, stress_su, d_ehs in zip(
+            ids, stress_spring_vals, stress_summer_vals, delta_vals
         ):
             cur.execute(
                 """
@@ -612,7 +627,7 @@ def main() -> None:
                        delta_ehs  = %s
                  WHERE id = %s
                 """,
-                (ehs_sp, ehs_su, d_ehs, int(trail_id)),
+                (stress_sp, stress_su, d_ehs, int(trail_id)),
             )
             updated += cur.rowcount
     conn.commit()
@@ -627,7 +642,7 @@ def main() -> None:
     sortable = [
         (tid, name, sp, su, d)
         for tid, name, sp, su, d
-        in zip(ids, names, ehs_spring_vals, ehs_summer_vals, delta_vals)
+        in zip(ids, names, stress_spring_vals, stress_summer_vals, delta_vals)
         if d is not None
     ]
     ranked = sorted(sortable, key=lambda r: r[4], reverse=True)

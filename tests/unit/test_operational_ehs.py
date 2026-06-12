@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import pytest
 
-from calculate_delta_ehs import _deficit, _trail_ehs
+from calculate_delta_ehs import _deficit, _trail_ehs, _trail_stress_score
 
 
 # ── _deficit boundary conditions ──────────────────────────────────────────────
@@ -76,6 +76,22 @@ def test_ehs_at_baseline_is_zero():
         w_ndvi=0.5, w_ndmi=0.5,
     )
     assert ehs == 0.0
+
+
+def test_trail_ehs_alias_matches_explicit_stress_score():
+    legacy = _trail_ehs(
+        ndvi_obs=_NDVI_FLOOR, ndmi_obs=_NDMI_FLOOR,
+        ndvi_baseline=_NDVI_BASE, ndvi_floor=_NDVI_FLOOR,
+        ndmi_baseline=_NDMI_BASE, ndmi_floor=_NDMI_FLOOR,
+        w_ndvi=0.5, w_ndmi=0.5,
+    )
+    explicit = _trail_stress_score(
+        ndvi_obs=_NDVI_FLOOR, ndmi_obs=_NDMI_FLOOR,
+        ndvi_baseline=_NDVI_BASE, ndvi_floor=_NDVI_FLOOR,
+        ndmi_baseline=_NDMI_BASE, ndmi_floor=_NDMI_FLOOR,
+        w_ndvi=0.5, w_ndmi=0.5,
+    )
+    assert legacy == explicit == 100.0
 
 
 def test_ehs_at_suelo_is_hundred():

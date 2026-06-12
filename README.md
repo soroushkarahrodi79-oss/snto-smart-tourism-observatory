@@ -4,7 +4,7 @@
 
 **Inteligencia territorial de código abierto para la gobernanza regenerativa de destinos de turismo natural.**
 
-De la teledetección Sentinel-2 a la decisión de inversión pública: indicadores ambientales calibrados, atribución causal de la degradación y priorización presupuestaria — al servicio de la candidatura a la **Fase I de la Carta Europea de Turismo Sostenible (CETS)** de la Reserva de la Biosfera Sierra del Rincón.
+De la teledetección Sentinel-2 a la decisión de inversión pública: indicadores ambientales calibrados, atribución causal de la degradación y priorización presupuestaria sobre el **Parque Nacional Sierra de Guadarrama (PNSG)**, primer territorio de la Red de Parques Nacionales (OAPN) integrado en el observatorio.
 
 [![Tests](https://img.shields.io/badge/tests-266%20passing-brightgreen)](#8-tests)
 [![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue)](https://www.python.org/)
@@ -23,7 +23,7 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 
 La mayoría de los espacios naturales protegidos gestionan el impacto del turismo de forma **reactiva**: actúan cuando la degradación ya es visible. El SNTO transforma ese paradigma en **gobernanza regenerativa proactiva** — detecta el estrés ecológico desde el satélite antes de que sea irreversible, distingue si la causa es el uso turístico o el clima, y traduce cada hallazgo en una **prioridad de inversión con presupuesto y nivel de confianza**.
 
-> **Para evaluadores y reclutadores:** este repositorio acompaña un Trabajo Fin de Máster en Turismo Inteligente, Sostenibilidad y Gobernanza Regenerativa. Demuestra un pipeline geoespacial real sobre la Reserva de la Biosfera Sierra del Rincón (Madrid) y un sistema completo de inteligencia territorial de 7 fases. **266 tests, CI/CD a Azure, dos pipelines arquitectónicamente desacoplados.**
+> **Para evaluadores y reclutadores:** este repositorio acompaña un Trabajo Fin de Máster en Turismo Inteligente, Sostenibilidad y Gobernanza Regenerativa. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (73 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases. **266 tests, CI/CD a Azure, dos pipelines arquitectónicamente desacoplados.** La metodología de gobernanza se inspira en el marco CETS / EUROPARC, validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
 
 ---
 
@@ -59,17 +59,32 @@ _Dashboard ejecutivo con 10 KPIs territoriales, mapa folium de activos y modelo 
 
 | Componente | Territorio | Estado |
 |---|---|---|
-| **Pipeline A — Geoespacial** | Sierra del Rincón (Reserva de la Biosfera, Madrid) | ✅ Operacional con datos Sentinel-2 reales (2 escenas: primavera + verano) |
+| **Pipeline A — Geoespacial** | **Parque Nacional Sierra de Guadarrama (PNSG)** — territorio principal | ✅ Operacional con datos Sentinel-2 reales (2 escenas: primavera 2026 + verano 2025); **73 senderos** con cartografía oficial OAPN |
+| **Pipeline A — Calibración metodológica** | Reserva de la Biosfera Sierra del Rincón (Madrid) | ✅ Piloto de validación del método (escenas reales propias) |
 | **Pipeline B — Inteligencia territorial (7 fases)** | Villuercas-Ibores-Jara Geopark (Extremadura) | ✅ Demostración funcional completa sobre 20 activos sintéticos calibrados |
-| **Dashboard ejecutivo** | Sierra del Rincón | ✅ Desplegado en Azure Container Apps (scale-to-zero) |
+| **Dashboard ejecutivo** | PNSG | ✅ Desplegado en Azure Container Apps (scale-to-zero) |
 | **CI/CD** | — | ✅ GitHub Actions → ACR build → roll Container App |
 | **Tests** | — | ✅ 266 passing, 0 regresiones (1 fallo legacy conocido, ver §8) |
 
-El Pipeline A produce indicadores ambientales reales para un territorio concreto; el Pipeline B demuestra el sistema de gobernanza de extremo a extremo. Están diseñados para integrarse cuando el Pipeline A disponga de series temporales multi-anuales reales.
+El Pipeline A produce indicadores ambientales reales: el **PNSG** es el territorio principal del observatorio y la **Reserva de la Biosfera Sierra del Rincón** se conserva como piloto de calibración metodológica (valida el método sobre un segundo territorio con datos reales). El Pipeline B demuestra el sistema de gobernanza de extremo a extremo. Ambos pipelines están diseñados para integrarse cuando el Pipeline A disponga de series temporales multi-anuales reales. El observatorio se expandirá a más espacios de la **Red de Parques Nacionales (OAPN)** en fases posteriores.
 
 ---
 
 ## 2. Arquitectura: dos pipelines
+
+### Convención de scores: salud vs estrés
+
+SNTO usa dos direcciones de score 0-100 y no deben mezclarse:
+
+- **Health Score / EHS de observatorio:** 0 = crítico, 100 = saludable. Es el
+  convenio usado por dashboard, TPI, tiers y comunicación ejecutiva.
+- **Stress Score / EHS operacional legacy:** 0 = sin estrés, 100 = máxima
+  degradación. Es el convenio que aún almacenan las columnas legacy
+  `ehs_spring`, `ehs_summer` y `delta_ehs` producidas por Pipeline A.
+
+La conversión oficial vive en `src.metrics.semantics`:
+`health = 100 - stress`. Esta separación evita que una métrica alta signifique
+"excelente" en una parte del sistema y "crítico" en otra.
 
 ### Pipeline A — Geoespacial de producción (datos reales)
 
@@ -277,7 +292,7 @@ pytest --tb=short
 
 Esta sección es deliberada: la transparencia metodológica es parte del valor académico del proyecto.
 
-- **Pipeline A — profundidad temporal:** 2 imágenes Sentinel-2 reales (primavera + verano, un único año). El resultado real para Sierra del Rincón es el **ΔEHS estacional** (señal de alerta temprana de presión antrópica), que es válido con dos escenas. El test de tendencia **Mann-Kendall se demuestra sobre el Pipeline B** como capacidad del sistema, no como hallazgo multi-anual de Sierra del Rincón; la serie real 2021–2025 vía Google Earth Engine es trabajo en curso.
+- **Pipeline A — profundidad temporal:** 2 imágenes Sentinel-2 reales (primavera 2026 + verano 2025, un único ciclo anual). El resultado real para el PNSG es el **ΔEHS estacional** (señal de alerta temprana de presión antrópica), que es válido con dos escenas. El test de tendencia **Mann-Kendall se demuestra sobre el Pipeline B** como capacidad del sistema, no como hallazgo multi-anual del PNSG; la serie real 2021–2026 vía Google Earth Engine es trabajo en curso (su andamiaje científico-técnico es la siguiente fase del roadmap).
 - **Pipeline B — naturaleza de los datos:** opera sobre 20 activos sintéticos calibrados con anomalías documentadas de AEMET / Copernicus. La calibración no sustituye a una validación con datos satelitales reales multi-anuales.
 - **Baselines EHS por tipo de hábitat:** mejora futura. La cartografía Natura 2000 está disponible pero su integración en el ETL está pendiente; el EHS operacional usa hoy percentiles de escena, no baselines por hábitat.
 - **Costes unitarios de restauración (15,50 €/m):** calibrados con tarifas TRAGSA 2023; la cita de la resolución oficial por partida está pendiente de cierre y debe tratarse como estimación de orden de magnitud hasta entonces.
@@ -298,7 +313,7 @@ El detalle completo está en el [Whitepaper](WHITEPAPER_SNTO_Architecture_Bluepr
 
 ## 11. Licencia / uso académico
 
-Proyecto desarrollado en contexto académico (Trabajo Fin de Máster). Territorio real de estudio: **Sierra del Rincón** (Reserva de la Biosfera, Madrid). Territorio de demostración: **Villuercas-Ibores-Jara Geopark** (Extremadura). Uso académico y de investigación.
+Proyecto desarrollado en contexto académico (Trabajo Fin de Máster). Territorio real principal: **Parque Nacional Sierra de Guadarrama** (Red de Parques Nacionales — OAPN). Territorio de calibración metodológica: **Reserva de la Biosfera Sierra del Rincón** (Madrid). Territorio de demostración de la inteligencia territorial: **Villuercas-Ibores-Jara Geopark** (Extremadura). Uso académico y de investigación.
 
 Supervisión académica: Carmen Mínguez · Susana Ramírez García (REGENERA) — Universidad Complutense de Madrid.
 

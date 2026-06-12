@@ -10,7 +10,8 @@ comparten los módulos analíticos de `src/`.
 
 ```
  PIPELINE A — GEOESPACIAL (datos reales)         PIPELINE B — INTELIGENCIA TERRITORIAL (demo)
- Sierra del Rincón (Madrid)                      Villuercas-Ibores-Jara (Extremadura)
+ PN Sierra de Guadarrama (Madrid/Segovia)        Villuercas-Ibores-Jara (Extremadura)
+ [+ Sierra del Rincón: calibración método]
  ───────────────────────────────────────         ─────────────────────────────────────────────
  ENTRADA                                          ENTRADA
    Sentinel-2 L2A (primavera + verano)              MultiYearAdapter (series calibradas con
@@ -67,6 +68,20 @@ comparten los módulos analíticos de `src/`.
 ---
 
 ## 3. Decisiones de diseño
+
+### 3.0 Convención de scores: salud vs estrés
+
+SNTO distingue explícitamente dos direcciones de score 0-100:
+
+- **Health Score:** 0 = crítico, 100 = saludable. Es el convenio del
+  observatorio, del TPI, de los tiers y de la comunicación a gestores.
+- **Stress Score:** 0 = sin estrés, 100 = máxima degradación. Es el convenio
+  operacional del Pipeline A y se conserva en las columnas legacy
+  `ehs_spring`, `ehs_summer` y `delta_ehs`.
+
+La conversión oficial está centralizada en `src.metrics.semantics`:
+`health = 100 - stress`. El puente `src.platform.real_trails` convierte la
+salida real del Pipeline A al convenio de salud antes de mostrarla en la app.
 
 ### 3.1 EHS operacional con percentiles de escena (P90/P10)
 
@@ -134,7 +149,7 @@ Sentinel-2 L2A (ZIP)        Capas vectoriales (GeoJSON)
         ▼                              ▼
  etl_raster_processor          etl_vector_cleaner
    B04/B08/B11 → clip            reproyección EPSG:4326
-   NDVI, NDMI (GeoTIFF)          filtro a AOI Sierra del Rincón
+   NDVI, NDMI (GeoTIFF)          filtro a AOI del territorio (PNSG)
         │                              │
         └──────────────┬───────────────┘
                        ▼

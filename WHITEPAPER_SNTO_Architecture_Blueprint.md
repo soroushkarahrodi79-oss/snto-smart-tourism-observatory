@@ -2,7 +2,7 @@
 ## Smart Natural Tourism Observatory (SNTO)
 ### *Whitepaper — Source of Truth Document*
 
-**Project:** Gobernanza Inteligente y Transición Regenerativa en la Reserva de la Biosfera Sierra del Rincón: Hoja de Ruta para la Candidatura a la Fase I de la CETS.
+**Project:** Gobernanza Inteligente y Transición Regenerativa en Espacios Naturales Protegidos. Territorio principal: **Parque Nacional Sierra de Guadarrama** (Red de Parques Nacionales — OAPN). Marco de gobernanza de referencia: Carta Europea de Turismo Sostenible (CETS / EUROPARC), empleada como metodología. Piloto de calibración: Reserva de la Biosfera Sierra del Rincón.
 
 **Version:** 1.0 | **Date:** June 2026 | **Author:** Smart Natural Tourism Observatory Research Team
 
@@ -10,7 +10,7 @@
 
 # 1. Executive Summary
 
-The **Smart Natural Tourism Observatory (SNTO)** is an open, spatially explicit, data-driven platform designed to transition natural tourism destination management from a reactive maintenance paradigm to a proactive, scientifically grounded **Regenerative Tourism** model. Developed within the context of the Sierra del Rincón Biosphere Reserve (Madrid, Spain) and its candidacy for the **European Charter for Sustainable Tourism (CETS) Phase I**, the SNTO operationalises the core regenerative principle that tourism infrastructure must actively restore the ecological carrying capacity it consumes.
+The **Smart Natural Tourism Observatory (SNTO)** is an open, spatially explicit, data-driven platform designed to transition natural tourism destination management from a reactive maintenance paradigm to a proactive, scientifically grounded **Regenerative Tourism** model. Developed primarily for the **Sierra de Guadarrama National Park (PNSG)** — the first site of the Spanish National Parks Network (OAPN) integrated into the observatory — and methodologically grounded in the **European Charter for Sustainable Tourism (CETS / EUROPARC)** governance framework, the SNTO operationalises the core regenerative principle that tourism infrastructure must actively restore the ecological carrying capacity it consumes. The method was initially calibrated on the Sierra del Rincón Biosphere Reserve, retained as a methodological calibration pilot.
 
 The platform ingests multitemporal **ESA Sentinel-2 Level-2A** satellite imagery to derive spatially explicit **vegetation stress and canopy moisture indices** along hiking trail corridors. These raw spectral signals are transformed through a validated algorithmic pipeline into an **Environmental Health Score (EHS)** — a normalised degradation index (0–100) that quantifies the cumulative biophysical impact of recreational trampling, soil compaction, and associated water stress on trail-adjacent ecosystems. The EHS feeds directly into a **financial model calibrated against TRAGSA official restoration rates**, generating dynamic, trail-specific restoration budgets that are surfaced to decision-makers through an interactive **Streamlit geospatial dashboard**.
 
@@ -64,7 +64,7 @@ The SNTO ingests imagery from the **ESA Copernicus Sentinel-2** constellation (s
 | **Radiometric resolution** | 12-bit (0–4095 DN) |
 | **Surface reflectance scaling** | Raw DN ÷ 10,000 → unitless [0, 1] |
 | **Processing level** | L2A (Bottom-of-Atmosphere, atmospherically corrected) |
-| **UTM tile** | T30TVL (covers Sierra del Rincón) |
+| **UTM tile** | T30TVL (covers both PN Sierra de Guadarrama and Sierra del Rincón) |
 
 **Band selection rationale:**
 
