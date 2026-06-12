@@ -47,18 +47,27 @@ except ImportError:  # pragma: no cover
 # Source: IGN Nomenclátor Geográfico (municipios de la sierra norte, Madrid)
 # Format: (latitude, longitude) — note GeoJSON uses [lon, lat]
 _REGION_CENTROIDS: dict[str, tuple[float, float]] = {
+    # ── Reserva Biosfera Sierra del Rincón ────────────────────────────────────
     "Montejo de la Sierra":    (41.1700, -3.4830),
     "La Hiruela":              (41.1200, -3.4730),
     "Horcajuelo de la Sierra": (41.1630, -3.4330),
     "Puebla de la Sierra":     (41.0830, -3.4520),
     "Prádena del Rincón":      (41.1130, -3.4970),
     "Robregordo":              (41.1750, -3.5640),
+    # ── Parque Nacional Sierra de Guadarrama ─────────────────────────────────
+    "Rascafría":               (40.8870, -3.8690),
+    "Cercedilla":              (40.7330, -4.0730),
+    "Navacerrada":             (40.7700, -4.0070),
+    "Manzanares El Real":      (40.7230, -3.8600),
+    "Los Molinos":             (40.7630, -4.0220),
+    "Guadarrama":              (40.6690, -4.0770),
+    "San Lorenzo de El Escorial": (40.5930, -4.1470),
 }
 
 # Fallback centroid for unknown regions (geographic centre of the reserve)
 _DEFAULT_CENTROID = (41.130, -3.490)
 
-# Map centre and initial zoom
+# Default map centre and initial zoom (Sierra del Rincón)
 _MAP_LATITUDE  = 41.130
 _MAP_LONGITUDE = -3.490
 _MAP_ZOOM      = 11
@@ -95,6 +104,15 @@ _ASSET_EMOJI: dict[str, str] = {
     "RECREATIONAL_AREA": "🌿",
     "NATURAL_PARK":      "🌲",
     "CYCLING_ROUTE":     "🚴",
+}
+
+# Functional designation per asset type (governance terminology, shown in tooltip)
+_ASSET_USAGE: dict[str, str] = {
+    "TRAIL":             "Senda de senderismo · Uso peatonal preferente",
+    "CYCLING_ROUTE":     "Ruta cicloturista · Uso compartido bici-peatón",
+    "VIEWPOINT":         "Mirador · Punto de observación paisajística",
+    "RECREATIONAL_AREA": "Área recreativa · Uso público regulado",
+    "NATURAL_PARK":      "Enclave natural · Conservación prioritaria",
 }
 
 # Metres per degree of latitude (near-constant globally)
@@ -153,6 +171,55 @@ def _heading_from_id(asset_id: str) -> float:
     return (h / 65535.0) * 360.0
 
 
+def _trail_path(
+    lat: float, lon: float, length_km: float, heading_deg: float, asset_id: str,
+    n_points: int = 11,
+) -> list[list[float]]:
+    """Generate an undulating polyline approximating a mountain trail trace.
+
+    Real trail geometry lives in PostGIS / hiking_trails.geojson; until that
+    integration, a straight 2-point segment misleads the territorial analyst.
+    This generator produces a deterministic curved path (same trace on every
+    reload, keyed on asset_id): points along the heading axis with
+    perpendicular sinusoidal offsets that mimic switchbacks and contour-following.
+
+    Returns a list of [lon, lat] vertices (GeoJSON order).
+    """
+    start, end = _trail_endpoints(lat, lon, length_km, heading_deg)
+    h = hash(asset_id)
+    # Two deterministic phase/amplitude seeds per trail
+    phase1 = ((h >> 4)  & 0xFF) / 255.0 * 2 * math.pi
+    phase2 = ((h >> 12) & 0xFF) / 255.0 * 2 * math.pi
+    amp_scale = 0.10 + (((h >> 20) & 0xFF) / 255.0) * 0.08   # 10-18 % of length
+
+    # Perpendicular unit vector to the heading (in degree-space, corrected for lat)
+    lat_rad = math.radians(lat)
+    heading_rad = math.radians(heading_deg)
+    # Axis direction in (dlon, dlat) degree-space
+    perp_dlat = -math.sin(heading_rad)
+    perp_dlon =  math.cos(heading_rad) / max(0.2, math.cos(lat_rad))
+
+    length_deg = length_km * 1000.0 / _M_PER_DEG_LAT   # rough scalar for amplitude
+    max_amp = length_deg * amp_scale
+
+    path = []
+    for i in range(n_points):
+        t = i / (n_points - 1)
+        base_lon = start[0] + (end[0] - start[0]) * t
+        base_lat = start[1] + (end[1] - start[1]) * t
+        # Sum of two sinusoids, pinned to zero at both endpoints
+        envelope = math.sin(math.pi * t)
+        offset = (
+            math.sin(2 * math.pi * t * 1.5 + phase1) * 0.6
+            + math.sin(2 * math.pi * t * 3.0 + phase2) * 0.4
+        ) * max_amp * envelope
+        path.append([
+            base_lon + perp_dlon * offset,
+            base_lat + perp_dlat * offset,
+        ])
+    return path
+
+
 def _point_radius_m(asset) -> float:
     """Return a display radius in metres appropriate for a point asset."""
     # Defaults by type — sized for zoom ~11 (≈ 1 px ≈ 30 m)
@@ -179,6 +246,7 @@ def _build_properties(asset) -> dict[str, Any]:
         "asset_id":    asset.asset_id,
         "name":        asset.name,
         "asset_type":  f"{emoji} {asset.asset_type.replace('_',' ').title()}",
+        "usage":       _ASSET_USAGE.get(asset.asset_type, "Activo turístico natural"),
         "region":      asset.region,
         "ehs":         round(asset.ehs, 1),
         "tier":        tier,
@@ -198,7 +266,7 @@ def _trail_feature(asset) -> dict[str, Any]:
     lat, lon = _jitter(asset.asset_id, lat, lon, spread=0.006)
     length_km = asset.length_km or 2.0
     heading   = _heading_from_id(asset.asset_id)
-    start, end = _trail_endpoints(lat, lon, length_km, heading)
+    path = _trail_path(lat, lon, length_km, heading, asset.asset_id)
 
     props = _build_properties(asset)
     props["length_km"] = asset.length_km or "—"
@@ -208,7 +276,7 @@ def _trail_feature(asset) -> dict[str, Any]:
         "type": "Feature",
         "geometry": {
             "type": "LineString",
-            "coordinates": [start, end],
+            "coordinates": path,
         },
         "properties": props,
     }
@@ -259,7 +327,12 @@ def assets_to_geojson(assets: list) -> dict[str, Any]:
     return {"type": "FeatureCollection", "features": features}
 
 
-def build_pydeck_deck(assets: list) -> "pdk.Deck":
+def build_pydeck_deck(
+    assets: list,
+    map_lat: float = _MAP_LATITUDE,
+    map_lon: float = _MAP_LONGITUDE,
+    map_zoom: int = _MAP_ZOOM,
+) -> "pdk.Deck":
     """Build a Deck.gl / PyDeck deck for the territorial asset portfolio.
 
     Uses a single ``GeoJsonLayer`` so the browser issues one WebGL draw
@@ -292,6 +365,7 @@ def build_pydeck_deck(assets: list) -> "pdk.Deck":
             "line-height:1.5;"
             "'>"
             "<b style='font-size:13px'>{name}</b><br/>"
+            "<span style='color:#85b7eb;font-size:11px;font-weight:600'>{usage}</span><br/>"
             "<span style='color:#a0b0c0;font-size:11px'>{asset_type} · {region}</span>"
             "<hr style='border:none;border-top:1px solid #2e4560;margin:6px 0'/>"
             "<b>EHS</b> {ehs}/100 &nbsp;·&nbsp; "
@@ -326,18 +400,18 @@ def build_pydeck_deck(assets: list) -> "pdk.Deck":
         point_radius_min_pixels=5,
         point_radius_max_pixels=18,
         # Line-specific: width in metres (trails)
-        get_line_width=35,
+        get_line_width=22,
         line_width_units="meters",
         line_width_min_pixels=2,
-        line_width_max_pixels=8,
+        line_width_max_pixels=6,
         # Polygon fill opacity is handled via fill_color alpha channel
         opacity=1.0,
     )
 
     view_state = pdk.ViewState(
-        latitude=_MAP_LATITUDE,
-        longitude=_MAP_LONGITUDE,
-        zoom=_MAP_ZOOM,
+        latitude=map_lat,
+        longitude=map_lon,
+        zoom=map_zoom,
         pitch=0,
         bearing=0,
     )
@@ -414,7 +488,12 @@ def _assets_to_geojson_spectral(assets: list) -> dict[str, Any]:
     return {"type": "FeatureCollection", "features": features}
 
 
-def build_pydeck_deck_spectral(assets: list) -> "pdk.Deck":
+def build_pydeck_deck_spectral(
+    assets: list,
+    map_lat: float = _MAP_LATITUDE,
+    map_lon: float = _MAP_LONGITUDE,
+    map_zoom: int = _MAP_ZOOM,
+) -> "pdk.Deck":
     """Build a Deck.gl deck using the EHS spectral-gradient colour scheme.
 
     Identical layer config to build_pydeck_deck() except colours encode
@@ -447,6 +526,7 @@ def build_pydeck_deck_spectral(assets: list) -> "pdk.Deck":
             "line-height:1.5;"
             "'>"
             "<b style='font-size:13px'>{name}</b><br/>"
+            "<span style='color:#85b7eb;font-size:11px;font-weight:600'>{usage}</span><br/>"
             "<span style='color:#a0b0c0;font-size:11px'>{asset_type} · {region}</span>"
             "<hr style='border:none;border-top:1px solid #2e4560;margin:6px 0'/>"
             "<b>EHS (Salud Ecológica)</b> {ehs}/100<br/>"
@@ -480,17 +560,17 @@ def build_pydeck_deck_spectral(assets: list) -> "pdk.Deck":
         point_radius_units="meters",
         point_radius_min_pixels=5,
         point_radius_max_pixels=18,
-        get_line_width=35,
+        get_line_width=22,
         line_width_units="meters",
         line_width_min_pixels=2,
-        line_width_max_pixels=8,
+        line_width_max_pixels=6,
         opacity=1.0,
     )
 
     view_state = pdk.ViewState(
-        latitude=_MAP_LATITUDE,
-        longitude=_MAP_LONGITUDE,
-        zoom=_MAP_ZOOM,
+        latitude=map_lat,
+        longitude=map_lon,
+        zoom=map_zoom,
         pitch=0,
         bearing=0,
     )
