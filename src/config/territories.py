@@ -28,6 +28,13 @@ class TerritoryConfig:
     s2_tile: str                          # Sentinel-2 MGRS tile (e.g. "T30TVL")
     raw_raster_folder: str                # sub-folder under data/raw_assets/raster_data/
     protection_category: str             # e.g. "Biosphere Reserve", "National Park"
+    # Trail cartography file under data/raw_assets/vector_data/ analysed by the
+    # Pipeline A (EHS / ΔEHS / SCM / budget). One GeoJSON of LineString trails.
+    trails_geojson: str = "hiking_trails.geojson"
+    # Dashboard discriminator used by app.py to bind the live observatory tab
+    # for this territory to the per-trail pipeline output. Matches the
+    # short key used by _TERRITORY_CONFIG / _BUILD_FN in app.py.
+    dashboard_key: str = ""
     region: str = "Comunidad de Madrid"
     country: str = "Spain"
     notes: str = ""
@@ -46,6 +53,8 @@ TERRITORIES: dict[str, TerritoryConfig] = {
         s2_tile="T30TVL",
         raw_raster_folder="Sierra del Rincón",
         protection_category="Biosphere Reserve (UNESCO MAB)",
+        trails_geojson="hiking_trails.geojson",
+        dashboard_key="snr",
         notes="Pilot territory. Small municipalities: Montejo de la Sierra, "
               "Prádena del Rincón, La Hiruela, Horcajuelo de la Sierra, Madarcos.",
         external_sources=["INE — padrón municipal", "OSM — senderos"],
@@ -60,6 +69,8 @@ TERRITORIES: dict[str, TerritoryConfig] = {
         s2_tile="T30TVL",
         raw_raster_folder="PNSG",
         protection_category="National Park (Red de Parques Nacionales)",
+        trails_geojson="pnsg_hiking_trails.geojson",
+        dashboard_key="pnsg",
         notes="Larger territory with diverse municipalities: Cercedilla, "
               "Navacerrada, Guadarrama, Los Molinos, Collado Mediano, "
               "Manzanares el Real, Rascafría, Lozoya. "

@@ -17,10 +17,11 @@ from src.territorial.tpi import rank_assets
 from src.intervention import compare_scenarios, allocate_tis_budget
 from src.platform import compute_executive_dashboard, ExecutiveDashboard
 from src.platform.map_layers import (
-    build_pydeck_deck, build_pydeck_deck_spectral,
+    build_pydeck_deck, build_pydeck_deck_spectral, build_real_trails_deck,
     assets_to_geojson, LEGEND_ITEMS, TIER_COLORS,
 )
 from src.platform.charts import build_portfolio_matrix, build_time_series_chart
+from src.platform.real_trails import get_real_trails, build_real_trails_geojson
 
 # ── Fecha global de informe ───────────────────────────────────────────────────
 REPORT_DATE = "2026-06-12"
@@ -1357,7 +1358,8 @@ st.markdown(
     'Módulos de análisis estratégico</div>',
     unsafe_allow_html=True,
 )
-tab_kpis, tab_portfolio, tab_timeseries, tab_simulator, tab_socioeco, tab_map, tab_assets = st.tabs([
+(tab_kpis, tab_portfolio, tab_timeseries, tab_simulator, tab_socioeco,
+ tab_map, tab_assets, tab_real) = st.tabs([
     "Indicadores",
     "Portafolio TPI",
     "Series espectrales",
@@ -1365,6 +1367,7 @@ tab_kpis, tab_portfolio, tab_timeseries, tab_simulator, tab_socioeco, tab_map, t
     "Impacto socioecon.",
     "Mapa territorial",
     "Catálogo de activos",
+    "🛰 Sendas reales (satélite)",
 ])
 
 
@@ -2198,6 +2201,131 @@ with tab_assets:
   </div>
 </div>""",
             unsafe_allow_html=True,
+        )
+
+
+# ── Tab 8: Sendas reales (salida del Pipeline A sobre Sentinel-2) ────────────
+with tab_real:
+    st.subheader("Sendas Reales — Análisis Satelital del Pipeline A")
+    st.caption(
+        "Esta capa NO usa datos curados: muestra exactamente lo que la ciencia "
+        "produce a partir de la **cartografía real de senderos × Sentinel-2** "
+        "(NDVI/NDMI) aplicando las fórmulas EHS / ΔEHS / SCM del proyecto. "
+        "Cada línea es el trazado cartográfico verdadero, coloreado por su Salud "
+        "Ecológica (EHS) de verano."
+    )
+
+    _real = get_real_trails(selected_key)
+
+    if not _real.available:
+        st.info(
+            "Aún no hay resultados del Pipeline A para este territorio.\n\n"
+            "Genera la salida ejecutando en la raíz del proyecto:\n\n"
+            "```\npython run_pipeline_a_filemode.py --territory all\n```\n\n"
+            "Esto cruza la cartografía de senderos con el ráster Sentinel-2 y "
+            "escribe `data/outputs/<territorio>/pipeline_a_results.geojson`.",
+            icon="🛰",
+        )
+    else:
+        s = _real.summary
+        import pandas as pd
+
+        # ── Tira de KPIs reales ──
+        k1, k2, k3, k4, k5 = st.columns(5)
+        _ehs_mean = s.get("ehs_summer_mean")
+        _ehs_color = ("#0F6E56" if (_ehs_mean or 0) >= 60
+                      else "#EF9F27" if (_ehs_mean or 0) >= 45 else "#A32D2D")
+        with k1:
+            st.metric("Sendas analizadas", s.get("n_trails", len(_real.trails)))
+        with k2:
+            st.metric("Longitud total", f"{s.get('total_length_km', 0):.0f} km")
+        with k3:
+            st.markdown(
+                f'<div style="font-size:0.78rem;color:#7a8899">EHS verano medio</div>'
+                f'<div style="font-size:1.6rem;font-weight:700;color:{_ehs_color}">'
+                f'{_ehs_mean if _ehs_mean is not None else "—"}'
+                f'<span style="font-size:0.8rem;color:#9aa4af">/100</span></div>',
+                unsafe_allow_html=True,
+            )
+        with k4:
+            st.metric("Sendas en deterioro", s.get("n_degrading_positive_delta", 0),
+                      help="ΔEHS > 0: la salud ecológica empeora de primavera a verano.")
+        with k5:
+            st.metric("Presupuesto indicativo",
+                      f"€{s.get('total_budget_eur', 0):,.0f}",
+                      help="Σ longitud × coste/m × (EHS/100) × factor causal SCM.")
+
+        st.divider()
+
+        # ── Mapa real + leyenda EHS ──
+        _mc = _terr_cfg["map_center"]
+        _map_c, _leg_c = st.columns([4, 1], gap="medium")
+        with _map_c:
+            try:
+                _geo = build_real_trails_geojson(_real)
+                _deck = build_real_trails_deck(
+                    _geo, map_lat=_mc[0], map_lon=_mc[1], map_zoom=_mc[2]
+                )
+                st.pydeck_chart(_deck, use_container_width=True, height=460)
+            except ImportError:
+                st.error("pydeck no instalado — `pip install pydeck`", icon="⚠️")
+        with _leg_c:
+            st.markdown("**EHS (Salud Ecológica)**")
+            _legend = [
+                ("#1a9850", "≥ 75 · Saludable"),
+                ("#a6d96a", "60–75 · Estable"),
+                ("#ffffbf", "45–60 · Alerta"),
+                ("#fdae61", "30–45 · Estrés"),
+                ("#d73027", "< 30 · Crítico"),
+                ("#9e9e9e", "Sin dato"),
+            ]
+            for hexc, lbl in _legend:
+                st.markdown(
+                    f'<span class="legend-chip" style="background:{hexc};'
+                    f'border:1px solid #ccc"></span><small>{lbl}</small>',
+                    unsafe_allow_html=True,
+                )
+            st.caption(
+                "Color = NDVI/NDMI real del píxel sobre el buffer de 50 m de cada senda."
+            )
+
+        st.divider()
+
+        # ── Tabla priorizada (peor EHS primero) ──
+        st.markdown("**Ranking de intervención · peor salud ecológica primero**")
+        _ranked = _real.ranked_by_priority()
+        _df = pd.DataFrame([
+            {
+                "Senda":          t.name,
+                "Long. (km)":     t.length_km,
+                "EHS primavera":  round(t.ehs_spring, 1) if t.ehs_spring is not None else None,
+                "EHS verano":     round(t.ehs_summer, 1) if t.ehs_summer is not None else None,
+                "ΔEHS":           round(t.delta_ehs, 1) if t.delta_ehs is not None else None,
+                "Prioridad":      t.priority_label,
+                "Causa (SCM)":    t.scm_label_es,
+                "Presupuesto (€)": round(t.budget_eur, 0) if t.budget_eur is not None else None,
+            }
+            for t in _ranked
+        ])
+        st.dataframe(
+            _df,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "EHS verano": st.column_config.ProgressColumn(
+                    "EHS verano", min_value=0, max_value=100, format="%.0f"),
+                "EHS primavera": st.column_config.NumberColumn(format="%.0f"),
+                "ΔEHS": st.column_config.NumberColumn(
+                    "ΔEHS", format="%.1f",
+                    help="Negativo = empeora en verano (caída de NDVI estacional)."),
+                "Presupuesto (€)": st.column_config.NumberColumn(format="€%d"),
+            },
+        )
+        _terr_folder = "sierra_del_rincon" if selected_key == "snr" else "pnsg"
+        st.caption(
+            "Fuente: Pipeline A (modo fichero) · Sentinel-2 tile T30TVL · "
+            "Salida real, sin datos sintéticos. Provenance: "
+            f"`data/outputs/{_terr_folder}/pipeline_a_results.geojson`"
         )
 
 

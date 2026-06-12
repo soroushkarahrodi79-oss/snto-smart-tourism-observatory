@@ -1,7 +1,7 @@
 """
 SNTO — Pipeline A en modo fichero (sin PostGIS)
 ================================================
-Pilot: Reserva de la Biosfera Sierra del Rincón, Madrid.
+Multi-territorio: Sierra del Rincón y PN Sierra de Guadarrama.
 
 Ejecuta el Pipeline A real (EHS / ΔEHS / SCM / presupuesto) leyendo las
 geometrías de senderos desde un GeoJSON en lugar de PostGIS, e importando
@@ -9,15 +9,27 @@ LA MISMA matemática que usan calculate_delta_ehs.py y run_scm_operational.py
 (no se reimplementa nada: se reutilizan _compute_scene_baselines, _extract_band,
 _trail_ehs, _sig, _classify_sig, _extract_zone_ndvi).
 
-Entrada : data/raw_assets/vector_data/hiking_trails.geojson  (senderos OSM)
-          data/clean_assets/spring_raster.tif | summer_raster.tif (NDVI, NDMI)
-Salida  : data/outputs/pipeline_a_results.csv  + _summary.json
+El ráster Sentinel-2 (tile T30TVL, 110×110 km) cubre AMBOS territorios, así que
+los dos comparten data/clean_assets/spring_raster.tif | summer_raster.tif. Lo
+único que cambia por territorio es qué cartografía de senderos se analiza y
+dónde se escribe la salida.
 
-Nota de provenance: los senderos provienen de OpenStreetMap (ways con
-highway=path|footway|track|bridleway y tag name), disueltos por nombre.
+Uso
+---
+    python run_pipeline_a_filemode.py                       # Sierra del Rincón (por defecto)
+    python run_pipeline_a_filemode.py --territory pnsg      # PN Sierra de Guadarrama
+    python run_pipeline_a_filemode.py --territory all       # ambos territorios
+
+Entrada : data/raw_assets/vector_data/<trails_geojson del territorio>
+          data/clean_assets/spring_raster.tif | summer_raster.tif (NDVI, NDMI)
+Salida  : data/outputs/<territorio>/pipeline_a_results.csv  + _summary.json
+
+Nota de provenance: los senderos de Rincón provienen de OpenStreetMap; los de
+PNSG son una red cartográfica curada por sectores del parque.
 """
 from __future__ import annotations
 
+import argparse
 import io
 import json
 import sys
@@ -40,14 +52,16 @@ from src.config.constants import (
     EHS_P_BASE, EHS_P_FLOOR,
     SCM_LOCALIZED_FACTOR, SCM_MIXED_FACTOR, SCM_LANDSCAPE_FACTOR,
 )
+from src.config.territories import TERRITORIES, get as get_territory
 
 CLEAN = _ROOT / "data" / "clean_assets"
+# Rásters compartidos: el tile T30TVL cubre Rincón y Guadarrama.
 SPRING = CLEAN / "spring_raster.tif"
 SUMMER = CLEAN / "summer_raster.tif"
 SPRING_SCL = CLEAN / "spring_scl.tif"   # ausente → masking SCL omitido
 SUMMER_SCL = CLEAN / "summer_scl.tif"
-TRAILS = _ROOT / "data" / "raw_assets" / "vector_data" / "hiking_trails.geojson"
-OUTDIR = _ROOT / "data" / "outputs"
+VECTOR_DIR = _ROOT / "data" / "raw_assets" / "vector_data"
+OUTDIR_ROOT = _ROOT / "data" / "outputs"
 
 BUFFER_M = 50
 CORE_M, NEAR_M, LAND_M = 50, 200, 1000
@@ -62,9 +76,9 @@ _CAUSAL = {
 }
 
 
-def load_trails_dissolved() -> gpd.GeoDataFrame:
-    """Carga senderos OSM y los disuelve por nombre (1 geometría por nombre)."""
-    gdf = gpd.read_file(TRAILS)
+def load_trails_dissolved(trails_path: Path) -> gpd.GeoDataFrame:
+    """Carga senderos del GeoJSON y los disuelve por nombre (1 geometría por nombre)."""
+    gdf = gpd.read_file(trails_path)
     gdf = gdf[gdf.geometry.notna() & ~gdf.geometry.is_empty].copy()
     merged = []
     for name, grp in gdf.groupby("name"):
@@ -79,13 +93,27 @@ def load_trails_dissolved() -> gpd.GeoDataFrame:
     return out
 
 
-def main() -> None:
+def run_territory(territory_key: str) -> dict:
+    """Ejecuta el Pipeline A para un territorio. Devuelve el dict de resumen."""
+    cfg = get_territory(territory_key)
+    trails_path = VECTOR_DIR / cfg.trails_geojson
+    outdir = OUTDIR_ROOT / cfg.key
+
     print("=" * 72)
-    print("  SNTO — Pipeline A (modo fichero, sin PostGIS)")
-    print("  Senderos: OpenStreetMap (disueltos por nombre)")
+    print(f"  SNTO — Pipeline A (modo fichero) · {cfg.display_name}")
+    print(f"  Cartografía: {cfg.trails_geojson}")
     print("=" * 72)
 
-    trails = load_trails_dissolved()
+    if not trails_path.exists():
+        print(f"  ERROR: No se encuentra la cartografía: {trails_path}")
+        sys.exit(1)
+    for r in (SPRING, SUMMER):
+        if not r.exists():
+            print(f"  ERROR: Falta el ráster compartido: {r}")
+            print("  Genera spring_raster.tif / summer_raster.tif con prepare_raster.py")
+            sys.exit(1)
+
+    trails = load_trails_dissolved(trails_path)
     utm = trails.to_crs(UTM)
     print(f"  Senderos (nombres únicos): {len(trails)}")
     total_km = utm.geometry.length.sum() / 1000
@@ -130,6 +158,7 @@ def main() -> None:
     print()
 
     rows = []
+    geo_features = []
     for i in range(len(trails)):
         # NDMI sólo si la banda es válida; si está muerta, None → EHS NDVI-only.
         sp_nm = sp_ndmi[i] if ndmi_ok_spring else None
@@ -158,11 +187,35 @@ def main() -> None:
             "budget_eur": budget,
         })
 
-    OUTDIR.mkdir(parents=True, exist_ok=True)
+        # Geometría real (WGS84) + propiedades calculadas → GeoJSON para el mapa.
+        # mapping() devuelve coordenadas en el CRS del GeoDataFrame (EPSG:4326).
+        from shapely.geometry import mapping
+        geo_features.append({
+            "type": "Feature",
+            "geometry": mapping(trails.geometry.iloc[i]),
+            "properties": {
+                "id": int(trails.id.iloc[i]),
+                "name": trails.name.iloc[i],
+                "length_km": round(length_m / 1000.0, 2),
+                "ehs_spring": ehs_sp,
+                "ehs_summer": ehs_su,
+                "delta_ehs": delta,
+                "scm_class": scm,
+                "budget_eur": budget,
+            },
+        })
+
+    outdir.mkdir(parents=True, exist_ok=True)
     import csv
-    with (OUTDIR / "pipeline_a_results.csv").open("w", newline="", encoding="utf-8") as f:
+    with (outdir / "pipeline_a_results.csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         w.writeheader(); w.writerows(rows)
+
+    # GeoJSON con geometría real + propiedades calculadas (consumido por el mapa).
+    geojson = {"type": "FeatureCollection", "features": geo_features}
+    (outdir / "pipeline_a_results.geojson").write_text(
+        json.dumps(geojson, ensure_ascii=False), encoding="utf-8"
+    )
 
     # ── Resumen ──
     valid_d = [r["delta_ehs"] for r in rows if r["delta_ehs"] is not None]
@@ -174,6 +227,8 @@ def main() -> None:
     def _mean(xs): return sum(xs) / len(xs) if xs else None
 
     summary = {
+        "territory": cfg.key,
+        "territory_name": cfg.display_name,
         "n_trails": len(rows),
         "total_length_km": round(total_km, 1),
         "ehs_summer_mean": round(_mean(valid_ehs), 2) if valid_ehs else None,
@@ -188,10 +243,12 @@ def main() -> None:
         "scm_null": scm_counts.get(None, 0),
         "total_budget_eur": round(sum(budgets), 2) if budgets else 0.0,
     }
-    (OUTDIR / "pipeline_a_summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
+    (outdir / "pipeline_a_summary.json").write_text(
+        json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
     print("-" * 72)
-    print("  RESUMEN PIPELINE A — Sierra del Rincón (datos reales Sentinel-2)")
+    print(f"  RESUMEN PIPELINE A — {cfg.display_name} (datos reales Sentinel-2)")
     print("-" * 72)
     for k, v in summary.items():
         print(f"  {k:<32} {v}")
@@ -202,8 +259,30 @@ def main() -> None:
     for r in ranked:
         print(f"    {r['name'][:40]:<40} Δ={r['delta_ehs']:+6.2f}  EHS_v={r['ehs_summer']}  SCM={r['scm_class']}")
     print()
-    print(f"  CSV:  {OUTDIR/'pipeline_a_results.csv'}")
-    print(f"  JSON: {OUTDIR/'pipeline_a_summary.json'}")
+    print(f"  CSV:     {outdir/'pipeline_a_results.csv'}")
+    print(f"  GeoJSON: {outdir/'pipeline_a_results.geojson'}")
+    print(f"  JSON:    {outdir/'pipeline_a_summary.json'}")
+    print()
+    return summary
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Pipeline A multi-territorio (EHS/ΔEHS/SCM/presupuesto por senda)."
+    )
+    parser.add_argument(
+        "--territory", default="sierra_del_rincon",
+        help=f"Territorio: {', '.join(TERRITORIES)} o 'all'. Defecto: sierra_del_rincon",
+    )
+    args = parser.parse_args()
+
+    if args.territory == "all":
+        keys = list(TERRITORIES)
+    else:
+        keys = [args.territory]
+
+    for key in keys:
+        run_territory(key)
 
 
 if __name__ == "__main__":

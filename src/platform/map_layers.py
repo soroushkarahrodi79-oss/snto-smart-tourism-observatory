@@ -424,6 +424,83 @@ def build_pydeck_deck(
     )
 
 
+# ── Real-trail diagnostic view (Pipeline A output) ────────────────────────────
+
+def build_real_trails_deck(
+    geojson: dict,
+    map_lat: float,
+    map_lon: float,
+    map_zoom: int,
+) -> "pdk.Deck":
+    """Build a Deck.gl deck from REAL trail geometry coloured by computed EHS.
+
+    Unlike build_pydeck_deck (which synthesises trail shapes from municipality
+    centroids), this consumes the GeoJSON produced by the Pipeline A bridge
+    (src.platform.real_trails.build_real_trails_geojson) where every LineString
+    is the true cartographic trace and the colour encodes the satellite-derived
+    Ecological Health Score.
+
+    Args:
+        geojson: FeatureCollection with per-feature 'line_color' [R,G,B,A].
+        map_lat, map_lon, map_zoom: initial view state.
+
+    Returns:
+        pydeck.Deck ready for st.pydeck_chart().
+
+    Raises:
+        ImportError: if pydeck is not installed.
+    """
+    if not _PYDECK_AVAILABLE:
+        raise ImportError(
+            "pydeck is required for map rendering. Install it with: pip install pydeck"
+        )
+
+    tooltip = {
+        "html": (
+            "<div style='font-family:system-ui,sans-serif;padding:10px 12px;"
+            "max-width:260px;line-height:1.5;'>"
+            "<b style='font-size:13px'>{name}</b><br/>"
+            "<span style='color:#a0b0c0;font-size:11px'>{length_km} km · "
+            "Prioridad: {priority}</span>"
+            "<hr style='border:none;border-top:1px solid #2e4560;margin:6px 0'/>"
+            "<b>EHS verano</b> {ehs_summer}/100 &nbsp;·&nbsp; <b>ΔEHS</b> {delta_ehs}<br/>"
+            "<span style='font-size:11px;color:#c8d6e5'>Causa: {scm}</span><br/>"
+            "<span style='font-size:11px;color:#85b7eb'>Presupuesto: {budget}</span>"
+            "</div>"
+        ),
+        "style": {
+            "background": "#1b2d42", "color": "white",
+            "border-radius": "6px", "padding": "0",
+            "box-shadow": "0 4px 12px rgba(0,0,0,.4)",
+        },
+    }
+
+    layer = pdk.Layer(
+        "GeoJsonLayer",
+        data=geojson,
+        pickable=True,
+        stroked=True,
+        filled=False,
+        get_line_color="properties.line_color",
+        get_line_width=30,
+        line_width_units="meters",
+        line_width_min_pixels=2,
+        line_width_max_pixels=7,
+        opacity=1.0,
+    )
+
+    view_state = pdk.ViewState(
+        latitude=map_lat, longitude=map_lon, zoom=map_zoom, pitch=0, bearing=0,
+    )
+
+    return pdk.Deck(
+        layers=[layer],
+        initial_view_state=view_state,
+        tooltip=tooltip,
+        map_style="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+    )
+
+
 # ── Spectral diagnostic view ──────────────────────────────────────────────────
 
 # RdYlGn colour ramp anchored at EHS breakpoints (ColorBrewer 5-class diverging).
