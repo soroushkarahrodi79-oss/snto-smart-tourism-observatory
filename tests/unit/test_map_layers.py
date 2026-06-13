@@ -292,7 +292,12 @@ class TestAssetsToGeojson:
         fc = assets_to_geojson([_trail()])
         geom = fc["features"][0]["geometry"]
         assert geom["type"] == "LineString"
-        assert len(geom["coordinates"]) == 2   # start + end
+        # _trail_path() renders an undulating polyline (≥2 vertices) rather
+        # than a straight start→end segment, so the trace doesn't mislead the
+        # territorial analyst. Endpoints must still be distinct.
+        coords = geom["coordinates"]
+        assert len(coords) >= 2
+        assert coords[0] != coords[-1]   # start ≠ end
 
     def test_viewpoint_produces_point(self):
         fc = assets_to_geojson([_viewpoint()])

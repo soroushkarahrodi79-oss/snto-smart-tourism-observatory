@@ -6,8 +6,9 @@
 
 De la teledetección Sentinel-2 a la decisión de inversión pública: indicadores ambientales calibrados, atribución causal de la degradación y priorización presupuestaria sobre el **Parque Nacional Sierra de Guadarrama (PNSG)**, primer territorio de la Red de Parques Nacionales (OAPN) integrado en el observatorio.
 
-[![Tests](https://img.shields.io/badge/tests-266%20passing-brightgreen)](#8-tests)
+[![Tests](https://img.shields.io/badge/tests-454%20passing-brightgreen)](#8-tests)
 [![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue)](https://www.python.org/)
+[![CI](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml)
 [![Deploy](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml)
 [![Deploy target](https://img.shields.io/badge/deploy-Azure%20Container%20Apps-0078D4?logo=microsoftazure&logoColor=white)](#7-despliegue)
 [![Status](https://img.shields.io/badge/estado-TFM%20en%20curso-orange)](#1-estado-del-proyecto)
@@ -23,7 +24,7 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 
 La mayoría de los espacios naturales protegidos gestionan el impacto del turismo de forma **reactiva**: actúan cuando la degradación ya es visible. El SNTO transforma ese paradigma en **gobernanza regenerativa proactiva** — detecta el estrés ecológico desde el satélite antes de que sea irreversible, distingue si la causa es el uso turístico o el clima, y traduce cada hallazgo en una **prioridad de inversión con presupuesto y nivel de confianza**.
 
-> **Para evaluadores y reclutadores:** este repositorio acompaña un Trabajo Fin de Máster en Turismo Inteligente, Sostenibilidad y Gobernanza Regenerativa. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (73 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases. **266 tests, CI/CD a Azure, dos pipelines arquitectónicamente desacoplados.** La metodología de gobernanza se inspira en el marco CETS / EUROPARC, validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
+> **Para evaluadores y reclutadores:** este repositorio acompaña un Trabajo Fin de Máster en Turismo Inteligente, Sostenibilidad y Gobernanza Regenerativa. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (73 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases, con capas de **andamiaje temporal (serie 2021–2026), trazabilidad/confianza del dato, baselines estratificados, incertidumbre del ranking y validación de campo**. **454 tests, CI separado del deploy, dos pipelines arquitectónicamente desacoplados.** La metodología de gobernanza se inspira en el marco CETS / EUROPARC, validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
 
 ---
 
@@ -64,7 +65,7 @@ _Dashboard ejecutivo con 10 KPIs territoriales, mapa folium de activos y modelo 
 | **Pipeline B — Inteligencia territorial (7 fases)** | Villuercas-Ibores-Jara Geopark (Extremadura) | ✅ Demostración funcional completa sobre 20 activos sintéticos calibrados |
 | **Dashboard ejecutivo** | PNSG | ✅ Desplegado en Azure Container Apps (scale-to-zero) |
 | **CI/CD** | — | ✅ GitHub Actions → ACR build → roll Container App |
-| **Tests** | — | ✅ 266 passing, 0 regresiones (1 fallo legacy conocido, ver §8) |
+| **Tests** | — | ✅ 454 passing, 0 regresiones (suite verde, ver §8) |
 
 El Pipeline A produce indicadores ambientales reales: el **PNSG** es el territorio principal del observatorio y la **Reserva de la Biosfera Sierra del Rincón** se conserva como piloto de calibración metodológica (valida el método sobre un segundo territorio con datos reales). El Pipeline B demuestra el sistema de gobernanza de extremo a extremo. Ambos pipelines están diseñados para integrarse cuando el Pipeline A disponga de series temporales multi-anuales reales. El observatorio se expandirá a más espacios de la **Red de Parques Nacionales (OAPN)** en fases posteriores.
 
@@ -148,6 +149,11 @@ run_phase7_report.py   → plataforma estratégica (dashboard 10 KPIs, 5 perfile
 - **TPI (Territorial Priority Index)** para ranking de activos y asignación de recursos en 4 tiers (atención inmediata → promoción activa).
 - **TIS — escenarios de intervención** con simulación de impacto, optimizador de presupuesto y análisis contrafactual (coste de no actuar).
 - **Dashboard ejecutivo** de 10 KPIs, modelo de madurez de destino de 5 niveles y 5 perfiles de stakeholders.
+- **Andamiaje temporal (serie 2021–2026)** — `src/temporal/`: especificación declarativa de la serie (`PNSG_5Y` = 72 meses), **gate de validez Mann-Kendall** (qué inferencia sostiene cada profundidad: ΔEHS estacional vs tendencia) y **manifiesto de procedencia** por periodo. Ver [docs/temporal_series_design.md](docs/temporal_series_design.md).
+- **Trazabilidad y confianza del dato** — `src/platform/provenance.py`: etiquetas visibles **dato real / calibrado / sintético**, fechas de escena reales, cobertura y *caveats* de confianza en el dashboard.
+- **Baselines estratificados + incertidumbre** — `src/risk_engine/baselines.py` (P90/P10 por estrato ecológico con fallback) y `src/analysis/sensitivity.py` (banda de pesos, **ranking robusto** y Monte-Carlo). Ver [docs/baselines_uncertainty_design.md](docs/baselines_uncertainty_design.md).
+- **Validación de campo / pseudo-validación** — `src/validation/`: esquema de observación de campo y métricas de concordancia satélite↔terreno (Spearman, contraste control-impacto BACI). Ver [docs/field_validation_protocol.md](docs/field_validation_protocol.md).
+- **Dashboard de 3 vistas** (`src/platform/views.py`): técnica / gestor / tribunal-CETS, con la verbosidad de confianza adaptada a cada audiencia.
 
 ---
 
@@ -201,14 +207,18 @@ snto-smart-tourism-observatory/
 │   ├── decision_confidence/    # DCS + data quality gate
 │   ├── territorial/            # TPI, portfolio, presupuesto, asignación (Phase 5)
 │   ├── intervention/           # impacto, escenarios, TIS, reporter (Phase 6)
-│   ├── platform/               # dashboard, madurez, stakeholders, playbooks (Phase 7)
+│   ├── platform/               # dashboard, madurez, stakeholders, provenance, views (Phase 7 + F3/F7)
+│   ├── temporal/               # serie 2021-2026: spec, gate Mann-Kendall, manifiesto (F2)
+│   ├── analysis/               # sensibilidad de pesos / ranking robusto / Monte-Carlo (F4)
+│   ├── validation/             # esquema de campo + concordancia satélite-terreno (F5)
+│   ├── metrics/                # semántica de scores salud/estrés (F1)
 │   ├── calibration/            # validador y calibración
 │   ├── alerts/                 # motor de alertas
 │   ├── ranking/                # ranker de activos
 │   ├── reporting/              # constructor de informes
 │   ├── api/                    # FastAPI (routers: evaluate, ranking, alerts)
 │   ├── assets/                 # modelos de activos
-│   └── config/                 # constants.py, settings.py
+│   └── config/                 # constants.py, logging_setup.py, run_context.py
 │
 ├── tests/
 │   ├── unit/                   # EHS, DCS, Mann-Kendall, scorer, TIS, ...
@@ -262,7 +272,9 @@ streamlit run app.py          # lanzar el dashboard en local
 
 ## 7. Despliegue
 
-El dashboard se despliega en **Azure Container Apps** con `scale-to-zero` (coste ≈ 0 €/mes en Azure for Students). Cada `push` a `main` dispara el workflow `deploy-azure-container-apps.yml`, que reconstruye la imagen en Azure Container Registry (ACR) y actualiza el Container App.
+**CI separado del deploy.** El workflow [`ci.yml`](.github/workflows/ci.yml) (lint de módulos mantenidos + import smoke + suite pytest) es la puerta de salud del código y corre en cada `push` y `pull_request` a `main`, **independiente de Azure**. El despliegue [`deploy-azure-container-apps.yml`](.github/workflows/deploy-azure-container-apps.yml) se dispara por `workflow_run` **solo si CI concluye con éxito** (o por dispatch manual): nunca se despliega sobre tests en rojo.
+
+El dashboard se despliega en **Azure Container Apps** con `scale-to-zero` (coste ≈ 0 €/mes en Azure for Students). Tras pasar CI, el deploy reconstruye la imagen en Azure Container Registry (ACR) y actualiza el Container App.
 
 ```bash
 # Bootstrap único de los recursos Azure:
@@ -283,8 +295,9 @@ Secrets requeridos en GitHub (`Settings ▸ Secrets and variables ▸ Actions`):
 pytest --tb=short
 ```
 
-- **266 passing, 0 regresiones.**
-- **1 fallo legacy conocido:** `test_poor_data_scores_low`. El comportamiento que verificaba está resuelto mediante el data quality gate en `src/decision_confidence/assessor.py` (`can_act = False` si DQ < 10 o TR < 12); la fixture legacy está pendiente de limpieza.
+- **454 passing, 0 regresiones, suite verde.**
+- El antiguo fallo legacy `test_poor_data_scores_low` está resuelto: el data quality gate en `src/decision_confidence/assessor.py` (`can_act = False` si DQ < 10 o TR < 12) hace que el test pase.
+- **CI (`ci.yml`)** ejecuta además `ruff` bloqueante sobre los módulos mantenidos (F0–F7), `ruff` informativo sobre el resto (deuda de lint en reducción), import smoke y `py_compile` de los entry points.
 
 ---
 
@@ -294,7 +307,9 @@ Esta sección es deliberada: la transparencia metodológica es parte del valor a
 
 - **Pipeline A — profundidad temporal:** 2 imágenes Sentinel-2 reales (primavera 2026 + verano 2025, un único ciclo anual). El resultado real para el PNSG es el **ΔEHS estacional** (señal de alerta temprana de presión antrópica), que es válido con dos escenas. El test de tendencia **Mann-Kendall se demuestra sobre el Pipeline B** como capacidad del sistema, no como hallazgo multi-anual del PNSG; la serie real 2021–2026 vía Google Earth Engine es trabajo en curso (su andamiaje científico-técnico es la siguiente fase del roadmap).
 - **Pipeline B — naturaleza de los datos:** opera sobre 20 activos sintéticos calibrados con anomalías documentadas de AEMET / Copernicus. La calibración no sustituye a una validación con datos satelitales reales multi-anuales.
-- **Baselines EHS por tipo de hábitat:** mejora futura. La cartografía Natura 2000 está disponible pero su integración en el ETL está pendiente; el EHS operacional usa hoy percentiles de escena, no baselines por hábitat.
+- **Baselines EHS por hábitat:** el **framework** de baselines estratificados ya existe (`src/risk_engine/baselines.py`, con fallback a percentil de escena), pero la estratificación operativa por altitud/orientación requiere un **DEM aún no integrado** y el EHS operacional usa hoy percentiles de escena. Es una brecha de datos, no de método.
+- **Serie temporal 2021–2026:** el andamiaje (spec, gate Mann-Kendall, manifiesto) está montado y probado; **falta la ingesta real vía Google Earth Engine** (credenciales + cómputo). Hasta entonces, sobre el PNSG solo se afirma el ΔEHS estacional, no la tendencia.
+- **Validación de campo:** el esquema y las métricas de concordancia (`src/validation/`) están listos; **falta la campaña de terreno** (penetrómetro, parcelas, control) o, en su defecto, la pseudo-validación con puntos de control satelitales.
 - **Costes unitarios de restauración (15,50 €/m):** calibrados con tarifas TRAGSA 2023; la cita de la resolución oficial por partida está pendiente de cierre y debe tratarse como estimación de orden de magnitud hasta entonces.
 
 ---
@@ -320,5 +335,5 @@ Supervisión académica: Carmen Mínguez · Susana Ramírez García (REGENERA) �
 ---
 
 <div align="center">
-<sub>SNTO v0.1.0 · Python ≥ 3.12 · 266 tests passing · junio 2026</sub>
+<sub>SNTO v0.1.0 · Python ≥ 3.12 · 454 tests passing · junio 2026</sub>
 </div>

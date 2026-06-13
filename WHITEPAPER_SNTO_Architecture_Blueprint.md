@@ -395,9 +395,33 @@ The SNTO acknowledges the following methodological constraints:
 - **Spectral confoundedness:** Drought-induced and trampling-induced NDVI depression produce similar spectral signatures; the SCM module mitigates but cannot fully eliminate this confounding in extreme drought years.
 - **Trail width assumption:** The 50 m buffer standardisation may underrepresent impact zones in heavily-used trails or overestimate them in lightly-used corridors; field-calibrated buffer widths would improve precision.
 - **Visitor count data quality:** The traffic_index component currently relies on permit or estimation data; integration with automated counting infrastructure (LiDAR or infrared counters) would substantially improve model precision.
-- **Temporal depth:** Full statistical validity of the Mann-Kendall trend component requires ≥ 5 years of monthly observations; the current operational pipeline provides 3–4 years of validated data for the study area.
+- **Temporal depth:** Full statistical validity of the Mann-Kendall trend component requires a multi-year monthly series. The current real PNSG data is a two-scene seasonal snapshot, so only the seasonal ΔEHS is asserted there; the 2021–2026 series is scaffolded (§7.5) but not yet ingested, and the validity gate (`src/temporal/trend_gate.py`) enforces this distinction.
 
 Future development priorities include: (1) machine learning classification of degradation typology (trampling vs. drought vs. wildfire); (2) integration of hyperspectral UAV data for validation sub-sampling; (3) extension of the platform to monitor CETS socio-economic indicators alongside ecological ones.
+
+## 7.5 Methodological extensions implemented (F0–F7)
+
+Following an external technical audit, the observatory was repositioned around
+the **Sierra de Guadarrama National Park** and extended with the following
+layers, each documented and unit-tested. Several are *frameworks* whose full
+activation depends on declared data inputs, not on further method design:
+
+| Layer | Module | Status |
+|---|---|---|
+| Score semantics (health vs stress) | `src/metrics/semantics.py` | ✅ unified across pipeline & dashboard |
+| Temporal series scaffolding (2021–2026) | `src/temporal/` | ✅ spec + Mann-Kendall validity gate + provenance manifest; ingestion pending (GEE) |
+| Data provenance & confidence surfacing | `src/platform/provenance.py` | ✅ real/calibrated/synthetic labels in dashboard |
+| Stratified baselines | `src/risk_engine/baselines.py` | ✅ framework; per-habitat/altitude needs a DEM |
+| Ranking uncertainty & sensitivity | `src/analysis/sensitivity.py` | ✅ weight band, robust-top-N, Monte-Carlo |
+| Field validation & pseudo-validation | `src/validation/` | ✅ schema + agreement metrics; field campaign pending |
+| Engineering: CI≠deploy, logging, run context | `.github/workflows/ci.yml`, `src/config/` | ✅ CI gates deploy; reproducible run provenance |
+| Three-audience dashboard views | `src/platform/views.py` | ✅ técnica / gestor / tribunal with confidence verbosity |
+
+Design notes: [`docs/temporal_series_design.md`](docs/temporal_series_design.md),
+[`docs/baselines_uncertainty_design.md`](docs/baselines_uncertainty_design.md),
+[`docs/field_validation_protocol.md`](docs/field_validation_protocol.md) and the
+consolidated assumptions/limits register in
+[`docs/informe_tecnico_limites.md`](docs/informe_tecnico_limites.md).
 
 ---
 
