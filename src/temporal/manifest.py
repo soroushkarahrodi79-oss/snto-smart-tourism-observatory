@@ -160,7 +160,8 @@ def build_manifest_from_observations(
 
     records: list[PeriodRecord] = []
     for period in spec.periods():
-        obs = best.get((period.year, period.month)) if period.month is not None else None
+        obs = (best.get((period.year, period.month))
+               if period.month is not None else None)
         if obs is None:
             records.append(PeriodRecord(
                 period_key=period.key, year=period.year, month=period.month,

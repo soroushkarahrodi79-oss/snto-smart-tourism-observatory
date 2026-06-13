@@ -69,7 +69,8 @@ def weight_band(
     steps: int = 9,
 ) -> WeightBand:
     """Stress-score band for one item across the NDVI weight range [w_min, w_max]."""
-    scores = [stress_score(d_ndvi, d_ndmi, w) for w in _weight_grid(w_min, w_max, steps)]
+    grid = _weight_grid(w_min, w_max, steps)
+    scores = [stress_score(d_ndvi, d_ndmi, w) for w in grid]
     lo, hi = min(scores), max(scores)
     return WeightBand(
         min_score=round(lo, 4),

@@ -1,0 +1,58 @@
+name: CI
+
+# Code-health gate, fully independent of Azure/deploy. Runs on every push and
+# PR to main: lint (maintained modules), import smoke, and the test suite.
+# Deploy (deploy-azure-container-apps.yml) only runs after this workflow
+# concludes successfully on main.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ruff
+        run: python -m pip install --upgrade pip ruff
+      - name: Ruff — maintained modules (blocking)
+        run: |
+          ruff check \
+            src/temporal src/analysis src/metrics \
+            src/config/logging_setup.py src/config/run_context.py \
+            src/platform/provenance.py src/risk_engine/baselines.py
+      - name: Ruff — full repo (report-only, lint debt)
+        continue-on-error: true
+        run: ruff check src tests *.py --output-format=github
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+      - name: Import smoke (core packages)
+        run: |
+          python -c "import src.temporal, src.analysis, src.metrics"
+          python -c "import src.platform.provenance, src.risk_engine.baselines"
+          python -c "import src.config.logging_setup, src.config.run_context"
+      - name: Syntax smoke (entry points)
+        run: python -m py_compile app.py run_pipeline_a_timeseries.py calculate_delta_ehs.py
+      - name: Run test suite
+        run: python -m pytest -q

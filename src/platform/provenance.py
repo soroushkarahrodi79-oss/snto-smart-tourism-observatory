@@ -40,7 +40,7 @@ _OUTPUTS_DIR = _ROOT / "data" / "outputs"
 # Sentinel-2 L2A product name → acquisition date (e.g. S2A_MSIL2A_20250810T110701_...)
 _SAFE_DATE_RE = re.compile(r"S2[AB]_MSIL2A_(\d{8})T", re.IGNORECASE)
 
-# Dashboard key → pipeline territory folder (mirrors real_trails._DASHBOARD_TO_TERRITORY).
+# Dashboard key → pipeline territory folder (mirrors real_trails mapping).
 _DASHBOARD_TO_TERRITORY: dict[str, str] = {
     "snr": "sierra_del_rincon",
     "pnsg": "pnsg",

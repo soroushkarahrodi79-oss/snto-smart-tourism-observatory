@@ -54,6 +54,8 @@ from src.assets.models import (
     AssetObservation, AssetType, GeoJSONGeometry, GeometryType, TourismAsset,
 )
 from src.config import territories
+from src.config.logging_setup import configure_logging
+from src.config.run_context import capture as capture_run_context
 from src.features.spectral import extract_spectral_features
 from src.risk_engine.ehs import compute_ehs, interpret_ehs
 from src.temporal import (
@@ -62,11 +64,7 @@ from src.temporal import (
 )
 from src.time_series.mann_kendall import classify_trend_severity, mann_kendall_test
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s  %(levelname)-8s  %(name)s — %(message)s",
-    datefmt="%H:%M:%S",
-)
+configure_logging()
 logger = logging.getLogger("pipeline_a_ts")
 
 SEP = "=" * 72
@@ -405,6 +403,15 @@ def main(argv: list[str] | None = None) -> None:
     json_path = outdir / "pipeline_a_ts_summary.json"
     json_path.write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
 
+    # Reproducible run provenance (git sha, timestamp, params) next to outputs.
+    ctx_path = capture_run_context(
+        tool="run_pipeline_a_timeseries",
+        territory=args.territory,
+        years=args.years,
+        cadence=spec.cadence.value,
+        mode="dry-run" if args.dry_run else "GEE:S2_SR_HARMONIZED",
+    ).write_json(outdir)
+
     # ── Print summary ─────────────────────────────────────────────────────────
     print()
     print(DIV)
@@ -432,6 +439,7 @@ def main(argv: list[str] | None = None) -> None:
     print(f"  CSV      : {csv_path}")
     print(f"  JSON     : {json_path}")
     print(f"  MANIFEST : {manifest_path}")
+    print(f"  RUN CTX  : {ctx_path}")
     print(SEP)
 
 

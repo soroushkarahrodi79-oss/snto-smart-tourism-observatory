@@ -65,7 +65,9 @@ class StratifiedBaselineSet:
         return sum(1 for b in self.by_stratum.values() if b.fell_back)
 
 
-def _percentiles(values: np.ndarray, p_base_pct: int, p_floor_pct: int) -> tuple[float, float]:
+def _percentiles(
+    values: np.ndarray, p_base_pct: int, p_floor_pct: int
+) -> tuple[float, float]:
     return (
         float(np.percentile(values, p_base_pct)),
         float(np.percentile(values, p_floor_pct)),

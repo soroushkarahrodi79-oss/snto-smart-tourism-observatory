@@ -4,6 +4,13 @@ Declarative series specification, Mann-Kendall validity gate and provenance
 manifest. These structure the path from the current 2-scene PNSG snapshot to a
 reproducible, auditable 2021–2026 monthly series, without yet ingesting data.
 """
+from src.temporal.manifest import (
+    DataStatus,
+    PeriodRecord,
+    SeriesManifest,
+    build_manifest_from_observations,
+    classify_source,
+)
 from src.temporal.series_spec import (
     PNSG_5Y,
     Cadence,
@@ -17,13 +24,6 @@ from src.temporal.trend_gate import (
     TrendGateResult,
     TrendReadiness,
     assess_trend_readiness,
-)
-from src.temporal.manifest import (
-    DataStatus,
-    PeriodRecord,
-    SeriesManifest,
-    build_manifest_from_observations,
-    classify_source,
 )
 
 __all__ = [
