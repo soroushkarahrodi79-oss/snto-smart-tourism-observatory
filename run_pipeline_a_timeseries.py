@@ -1,12 +1,15 @@
 """
 SNTO — Pipeline A: Multi-Year Time Series Analysis (GEE Edition)
 ================================================================
-Pilot Territory: Sierra del Rincón Biosphere Reserve, Madrid, Spain
+Primary territory: Parque Nacional Sierra de Guadarrama (PNSG). Territory is
+selectable via --territory from the registry (src/config/territories.py).
 
-Fetches 2021–2025 monthly Sentinel-2 observations via Google Earth Engine
-for each hiking trail, runs the Mann-Kendall trend test on NDVI / NDMI / EVI,
-computes the Environmental Health Score (EHS) with the dense-canopy adaptive
-weight rule, and writes per-trail results to CSV and JSON.
+Fetches the territory's reference series (PNSG: monthly 2021–2026, see
+src/temporal/series_spec.py) via Google Earth Engine for each hiking trail,
+runs the Mann-Kendall trend test on NDVI / NDMI / EVI gated by the temporal
+validity tier (src/temporal/trend_gate.py), computes the Environmental Health
+Score (EHS) with the dense-canopy adaptive weight rule, and writes per-trail
+results plus a provenance manifest (src/temporal/manifest.py) to CSV and JSON.
 
 This script is the TEMPORAL counterpart of run_pipeline_a_filemode.py (which
 computes EHS from two seasonal raster snapshots).  Both modes are valid; this
@@ -24,9 +27,10 @@ Usage:
   python run_pipeline_a_timeseries.py --years 2022 2023 2024
   python run_pipeline_a_timeseries.py --dry-run    # offline, uses mock data
 
-Inputs  : data/raw_assets/vector_data/hiking_trails.geojson
-Outputs : data/outputs/pipeline_a_ts_results.csv
-          data/outputs/pipeline_a_ts_summary.json
+Inputs  : data/raw_assets/vector_data/<territory trails>.geojson
+Outputs : data/outputs/<territory>/pipeline_a_ts_results.csv
+          data/outputs/<territory>/pipeline_a_ts_summary.json
+          data/outputs/<territory>/pipeline_a_ts_manifest.json
 """
 from __future__ import annotations
 
@@ -49,8 +53,13 @@ from shapely.ops import linemerge, unary_union
 from src.assets.models import (
     AssetObservation, AssetType, GeoJSONGeometry, GeometryType, TourismAsset,
 )
+from src.config import territories
 from src.features.spectral import extract_spectral_features
 from src.risk_engine.ehs import compute_ehs, interpret_ehs
+from src.temporal import (
+    PNSG_5Y, assess_trend_readiness, build_manifest_from_observations,
+    spec_for_territory,
+)
 from src.time_series.mann_kendall import classify_trend_severity, mann_kendall_test
 
 logging.basicConfig(
@@ -63,10 +72,11 @@ logger = logging.getLogger("pipeline_a_ts")
 SEP = "=" * 72
 DIV = "-" * 72
 
-TRAILS_PATH = _ROOT / "data" / "raw_assets" / "vector_data" / "hiking_trails.geojson"
-OUTDIR = _ROOT / "data" / "outputs"
+_VECTOR_DIR = _ROOT / "data" / "raw_assets" / "vector_data"
+_OUTDIR_ROOT = _ROOT / "data" / "outputs"
 
-DEFAULT_YEARS = list(range(2021, 2026))   # 2021 … 2025
+DEFAULT_TERRITORY = "pnsg"                 # territorio principal del observatorio
+DEFAULT_YEARS = PNSG_5Y.years()            # 2021 … 2026 (serie de referencia)
 
 
 # ── Trail loading ──────────────────────────────────────────────────────────────
@@ -88,20 +98,20 @@ def load_trails(path: Path) -> gpd.GeoDataFrame:
     return out
 
 
-def _gdf_row_to_asset(row) -> TourismAsset:
+def _gdf_row_to_asset(row, region: str) -> TourismAsset:
     """Convert a GeoDataFrame row (LineString geometry) to a TourismAsset."""
     geom = row.geometry
     # GeoJSON LineString coordinates are [[lon, lat], ...]
     coords = list(geom.coords)
     return TourismAsset(
         asset_id=str(row.id),
-        name=str(row["name"]),
+        name=str(row.name),
         asset_type=AssetType.TRAIL,
         geometry=GeoJSONGeometry(
             type=GeometryType.LINESTRING,
             coordinates=[[c[0], c[1]] for c in coords],
         ),
-        region="Sierra del Rincón",
+        region=region,
         country="Spain",
     )
 
@@ -141,11 +151,14 @@ def analyse_trail(
     observations: list[AssetObservation],
 ) -> dict:
     """Run MK test + EHS for one trail given its full observation list."""
-    if len(observations) < 4:
+    gate = assess_trend_readiness(len(observations))
+    if not gate.mann_kendall_justified:
         return {
             "asset_id": asset.asset_id,
             "name": asset.name,
             "n_obs": len(observations),
+            "trend_readiness": gate.readiness.value,
+            "mann_kendall_justified": gate.mann_kendall_justified,
             "error": "insufficient_observations",
         }
 
@@ -209,6 +222,8 @@ def analyse_trail(
         "ehs_anomaly_risk": ehs_components.anomaly_risk,
         "ehs_is_dense_canopy": ehs_components.is_dense_canopy,
         "trend_severity": trend_label,
+        "trend_readiness": gate.readiness.value,
+        "mann_kendall_justified": gate.mann_kendall_justified,
         "n_anomalous_months": n_anomalous,
         "data_source": observations[0].data_source,
         "error": None,
@@ -223,6 +238,11 @@ def main(argv: list[str] | None = None) -> None:
 
     parser = argparse.ArgumentParser(
         description="SNTO Pipeline A — multi-year time series via GEE"
+    )
+    parser.add_argument(
+        "--territory", default=DEFAULT_TERRITORY,
+        help=f"Territory key from the registry (default: {DEFAULT_TERRITORY}). "
+             f"Available: {', '.join(territories.list_keys())}",
     )
     parser.add_argument(
         "--project", default=os.environ.get("GEE_PROJECT", ""),
@@ -243,23 +263,34 @@ def main(argv: list[str] | None = None) -> None:
     )
     args = parser.parse_args(argv)
 
+    try:
+        terr = territories.get(args.territory)
+    except KeyError as exc:
+        logger.error("%s", exc)
+        sys.exit(1)
+
+    spec = spec_for_territory(args.territory, min(args.years), max(args.years))
+    trails_path = _VECTOR_DIR / terr.trails_geojson
+    outdir = _OUTDIR_ROOT / args.territory
+
     print(SEP)
     print("  SNTO — Pipeline A: Multi-Year Time Series (GEE Edition)")
-    print("  Pilot: Sierra del Rincón Biosphere Reserve, Madrid, Spain")
-    print(f"  Years : {args.years}")
+    print(f"  Territory : {terr.display_name}")
+    print(f"  Series    : {spec.label()} · {spec.cadence.value} · tile {spec.s2_tile}")
+    print(f"  Years     : {args.years}")
     if args.dry_run:
-        print("  Mode  : DRY-RUN (synthetic mock data — no GEE connection)")
+        print("  Mode      : DRY-RUN (synthetic mock data — no GEE connection)")
     else:
         print(f"  GEE project : {args.project or '(personal auth)'}")
     print(SEP)
     print()
 
     # ── Load trails ───────────────────────────────────────────────────────────
-    if not TRAILS_PATH.exists():
-        logger.error("Trails GeoJSON not found: %s", TRAILS_PATH)
+    if not trails_path.exists():
+        logger.error("Trails GeoJSON not found: %s", trails_path)
         sys.exit(1)
 
-    trails = load_trails(TRAILS_PATH)
+    trails = load_trails(trails_path)
     logger.info("Loaded %d trails (dissolved by name)", len(trails))
 
     # ── Initialise adapter ────────────────────────────────────────────────────
@@ -275,8 +306,9 @@ def main(argv: list[str] | None = None) -> None:
         adapter = GEEAdapter(project_id=args.project, key_file=args.key_file)
 
     # ── Process each trail ────────────────────────────────────────────────────
-    OUTDIR.mkdir(parents=True, exist_ok=True)
+    outdir.mkdir(parents=True, exist_ok=True)
     results: list[dict] = []
+    all_observations: list[AssetObservation] = []   # union for the series manifest
     n_trails = len(trails)
 
     for i, row in enumerate(trails.itertuples(), 1):
@@ -294,7 +326,7 @@ def main(argv: list[str] | None = None) -> None:
         simple_row = SimpleNamespace(id=asset_id, name=name, geometry=geom)
 
         try:
-            asset = _gdf_row_to_asset(simple_row)
+            asset = _gdf_row_to_asset(simple_row, region=terr.display_name)
         except Exception as exc:
             logger.warning("Skipping '%s' (geometry conversion failed): %s", name, exc)
             continue
@@ -312,6 +344,7 @@ def main(argv: list[str] | None = None) -> None:
             })
             continue
 
+        all_observations.extend(observations)
         result = analyse_trail(asset, observations)
         results.append(result)
         logger.info(
@@ -328,7 +361,7 @@ def main(argv: list[str] | None = None) -> None:
         sys.exit(1)
 
     # ── Write CSV ─────────────────────────────────────────────────────────────
-    csv_path = OUTDIR / "pipeline_a_ts_results.csv"
+    csv_path = outdir / "pipeline_a_ts_results.csv"
     all_keys = list(results[0].keys())
     with csv_path.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=all_keys, extrasaction="ignore")
@@ -343,7 +376,12 @@ def main(argv: list[str] | None = None) -> None:
 
     def _mean(xs): return round(sum(xs) / len(xs), 4) if xs else None
 
+    # Series-level provenance manifest (coverage + trust tier per period).
+    manifest = build_manifest_from_observations(spec, all_observations)
+    manifest_path = manifest.write_json(outdir / "pipeline_a_ts_manifest.json")
+
     summary = {
+        "territory": args.territory,
         "n_trails_total": len(results),
         "n_trails_valid": len(valid),
         "years": args.years,
@@ -353,10 +391,18 @@ def main(argv: list[str] | None = None) -> None:
         "n_significant_decline": len(degrading),
         "n_dense_canopy": len(dense_canopy),
         "pct_degrading": round(100 * len(degrading) / max(len(valid), 1), 1),
+        # Temporal coverage + readiness (F2)
+        "series_n_expected": manifest.n_expected(),
+        "series_n_present": manifest.n_present(),
+        "series_coverage": manifest.coverage(),
+        "series_dominant_status": manifest.dominant_status().value,
+        "n_trails_trend_capable": sum(
+            1 for r in valid if r.get("mann_kendall_justified")
+        ),
         "mode": "dry-run" if args.dry_run else "GEE:S2_SR_HARMONIZED",
     }
 
-    json_path = OUTDIR / "pipeline_a_ts_summary.json"
+    json_path = outdir / "pipeline_a_ts_summary.json"
     json_path.write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
 
     # ── Print summary ─────────────────────────────────────────────────────────
@@ -383,8 +429,9 @@ def main(argv: list[str] | None = None) -> None:
             )
 
     print()
-    print(f"  CSV  : {csv_path}")
-    print(f"  JSON : {json_path}")
+    print(f"  CSV      : {csv_path}")
+    print(f"  JSON     : {json_path}")
+    print(f"  MANIFEST : {manifest_path}")
     print(SEP)
 
 
