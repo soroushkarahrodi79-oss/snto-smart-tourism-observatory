@@ -28,6 +28,7 @@ from src.platform.calibration import calibrate_territory, coverage_summary
 from src.platform.provenance import (
     data_status_badge, load_timeseries_coverage, snapshot_provenance,
 )
+from src.platform.views import ConfidenceDetail, get_view, view_modes
 from src.temporal import DataStatus
 
 # ── Fecha global de informe ───────────────────────────────────────────────────
@@ -1269,6 +1270,17 @@ with st.sidebar:
         label_visibility="collapsed",
     )
     st.divider()
+    st.markdown("**Vista / audiencia**")
+    _view_mode = st.radio(
+        "Vista",
+        options=view_modes(),
+        format_func=lambda m: f"{get_view(m).icon} {get_view(m).label}",
+        label_visibility="collapsed",
+        key="view_mode",
+    )
+    _view = get_view(_view_mode)
+    st.caption(_view.audience)
+    st.divider()
 
 # ── Cargar datos ──────────────────────────────────────────────────────────────
 dashboard, ranked_assets, base_comps, assets_by_id, base_budget, _terr_cfg = load_dashboard(selected_key)
@@ -1314,6 +1326,15 @@ with st.sidebar:
 
 # ── TAREA 1: Banner dinámico con contextual badging ──────────────────────────
 _render_banner(selected_key, _terr_cfg, dashboard, n_red, n_amb)
+
+# ── F7: Banner de vista / audiencia ───────────────────────────────────────────
+st.markdown(
+    f'<div style="padding:7px 14px;border-radius:6px;margin:4px 0 2px;'
+    f'background:#eef3f8;border-left:4px solid #33485c;font-size:0.82rem;color:#33485c">'
+    f'{_view.icon} <b>{_view.label}</b> — {_view.banner} '
+    f'<span style="color:#7a8899">Énfasis: {_view.emphasis}</span></div>',
+    unsafe_allow_html=True,
+)
 
 # ── Autorefresh: recarga la app cada 60 s (simula polling de datos en vivo) ───
 _refresh_count = st_autorefresh(interval=60_000, limit=None, key=f"live_{selected_key}")
@@ -2317,7 +2338,19 @@ with tab_real:
                 f"estado dominante: **{_cov['dominant_status']}** · "
                 f"huecos: {_cov['n_gaps']}."
             )
-        st.warning(_prov.caveat, icon="⚠️")
+        # Confianza modulada por la vista/audiencia activa (F7).
+        if _view.confidence_detail is ConfidenceDetail.FULL:
+            st.warning(_prov.caveat, icon="⚠️")
+            st.caption(
+                f"🔎 Trazabilidad: {_prov.inference_label} "
+                "Metodología y límites en docs/temporal_series_design.md y "
+                "docs/baselines_uncertainty_design.md."
+            )
+        elif _view.confidence_detail is ConfidenceDetail.CONCISE:
+            _ok = "usar como prioridad, no como orden de gasto"
+            st.caption(f"⚠️ Confianza: señal de alerta temprana — {_ok}.")
+        else:  # RAW (técnica): el dato crudo va en los KPIs y la tabla de abajo
+            st.caption(f"⚠️ {_prov.caveat}")
 
         # ── Tira de KPIs reales ──
         k1, k2, k3, k4, k5 = st.columns(5)
