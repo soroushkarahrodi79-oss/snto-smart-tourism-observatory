@@ -220,15 +220,32 @@ def _trail_path(
     return path
 
 
+_POINT_RADIUS_MIN_M = 100.0   # floor so tiny areas stay clickable on the map
+
+# Type defaults (metres) for assets without a known area_ha — sized for zoom ~11
+_POINT_RADIUS_DEFAULTS: dict[str, float] = {
+    "VIEWPOINT":         60.0,
+    "RECREATIONAL_AREA": 80.0,
+    "NATURAL_PARK":      90.0,
+}
+
+
 def _point_radius_m(asset) -> float:
-    """Return a display radius in metres appropriate for a point asset."""
-    # Defaults by type — sized for zoom ~11 (≈ 1 px ≈ 30 m)
-    defaults = {
-        "VIEWPOINT":         60.0,
-        "RECREATIONAL_AREA": 80.0,
-        "NATURAL_PARK":      90.0,
-    }
-    return defaults.get(asset.asset_type, 70.0)
+    """Return a display radius in metres appropriate for a point asset.
+
+    When the asset carries a footprint (``area_ha``) the radius is the
+    equivalent-circle radius of that area (r = √(A/π)), so a 100 ha park
+    renders ~564 m wide while a small recreational area stays compact —
+    a faithful footprint beats a flat cosmetic dot.  A floor keeps even
+    tiny areas clickable.  Assets with no area (viewpoints) fall back to
+    a type default.
+    """
+    area_ha = getattr(asset, "area_ha", None)
+    if area_ha and area_ha > 0:
+        area_m2 = area_ha * 10_000.0
+        radius = math.sqrt(area_m2 / math.pi)
+        return max(_POINT_RADIUS_MIN_M, radius)
+    return _POINT_RADIUS_DEFAULTS.get(asset.asset_type, 70.0)
 
 
 # ── GeoJSON feature builders ──────────────────────────────────────────────────
@@ -464,7 +481,7 @@ def build_real_trails_deck(
             "<span style='color:#a0b0c0;font-size:11px'>{length_km} km · "
             "Prioridad: {priority}</span>"
             "<hr style='border:none;border-top:1px solid #2e4560;margin:6px 0'/>"
-            "<b>EHS verano</b> {ehs_summer}/100 &nbsp;·&nbsp; <b>ΔEHS</b> {delta_ehs}<br/>"
+            "<b>EHS verano</b> {health_summer}/100 &nbsp;·&nbsp; <b>ΔEHS</b> {delta_health}<br/>"
             "<span style='font-size:11px;color:#c8d6e5'>Causa: {scm}</span><br/>"
             "<span style='font-size:11px;color:#f0c674'>Zona PRUG: {prug}</span><br/>"
             "<span style='font-size:11px;color:#85b7eb'>Presupuesto: {budget}</span>"

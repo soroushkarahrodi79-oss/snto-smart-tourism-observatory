@@ -14,21 +14,21 @@ Entrada (generada por run_pipeline_a_filemode.py):
 
 El dashboard llama get_real_trails(dashboard_key) con "snr" | "pnsg".
 
-CONVENIO DE EHS — IMPORTANTE
-----------------------------
-El Pipeline A (calculate_delta_ehs._trail_ehs) calcula EHS como un índice de
-DEGRADACIÓN: EHS_pipeline = 100 × déficit, donde 0 = vegetación sana (sin
-estrés) y 100 = máximamente degradada.
+CONVENIO DE SCORE — IMPORTANTE
+------------------------------
+El Pipeline A (calculate_delta_ehs._trail_stress_score) calcula un score de
+ESTRÉS/DEGRADACIÓN: stress = 100 × déficit, donde 0 = vegetación sana (sin
+estrés) y 100 = máximamente degradada. Las columnas legacy del GeoJSON de
+entrada (ehs_spring, ehs_summer, delta_ehs) almacenan ese convenio de estrés.
 
-El observatorio (app.py) usa "EHS = Salud Ecológica" en el sentido OPUESTO:
-alto = sano (Tier 4 promoción = EHS ≥ 75), bajo = crítico.
+El observatorio (app.py) habla en convenio de SALUD: alto = sano (Tier 4
+promoción = salud ≥ 75), bajo = crítico.
 
 Para que todo el dashboard hable un único idioma, este puente CONVIERTE la
-salida del pipeline al convenio de salud al cargar:
-
-    salud = 100 − degradación_pipeline
-
-Así, en toda la app: EHS alto = verde = sano; EHS bajo = rojo = crítico.
+salida del pipeline a salud al cargar, usando la conversión canónica de
+src.metrics.semantics (salud = 100 − estrés). Por eso los campos de RealTrail
+se llaman health_* y delta_health: contienen SALUD, no estrés. La etiqueta
+de marca "EHS" se conserva solo en la UI.
 """
 from __future__ import annotations
 
@@ -50,11 +50,11 @@ _DASHBOARD_TO_TERRITORY: dict[str, str] = {
     "pnsg": "pnsg",
 }
 
-# ── Clasificación de prioridad por EHS de verano ──────────────────────────────
+# ── Clasificación de prioridad por SALUD de verano ────────────────────────────
 # Coherente con las bandas ecológicas del proyecto (constants.py: degradado<30,
-# sano≥55). Un EHS bajo = vegetación estresada = prioridad alta de intervención.
+# sano≥55). Salud baja = vegetación estresada = prioridad alta de intervención.
 PRIORITY_BANDS: list[tuple[float, str, str]] = [
-    # (umbral_inferior_EHS, etiqueta, color_hex)
+    # (umbral_inferior_salud, etiqueta, color_hex)
     (0.0,  "Crítica",     "#c62828"),   # EHS < 30  — degradación severa
     (30.0, "Alta",        "#e65100"),   # 30–45     — estrés marcado
     (45.0, "Media",       "#f9a825"),   # 45–60     — señales de alerta
@@ -71,13 +71,18 @@ _SCM_LABEL_ES: dict[str, str] = {
 
 @dataclass(frozen=True)
 class RealTrail:
-    """Una senda real analizada por el Pipeline A."""
+    """Una senda real analizada por el Pipeline A.
+
+    Convenio de score: los campos health_* y delta_health están en SALUD
+    (0 = crítico, 100 = sano), ya convertidos desde el estrés del pipeline
+    vía src.metrics.semantics. delta_health > 0 ⇒ la salud MEJORA en verano.
+    """
     trail_id: int
     name: str
     length_km: float
-    ehs_spring: Optional[float]
-    ehs_summer: Optional[float]
-    delta_ehs: Optional[float]
+    health_spring: Optional[float]
+    health_summer: Optional[float]
+    delta_health: Optional[float]
     scm_class: Optional[str]
     budget_eur: Optional[float]
     geometry: dict[str, Any]   # GeoJSON geometry (LineString/MultiLineString) WGS84
@@ -89,11 +94,11 @@ class RealTrail:
     # ── Derivados ──
     @property
     def priority_label(self) -> str:
-        return _priority_for_ehs(self.ehs_summer)[0]
+        return _priority_for_health(self.health_summer)[0]
 
     @property
     def priority_color(self) -> str:
-        return _priority_for_ehs(self.ehs_summer)[1]
+        return _priority_for_health(self.health_summer)[1]
 
     @property
     def scm_label_es(self) -> str:
@@ -101,17 +106,17 @@ class RealTrail:
 
     @property
     def is_degrading(self) -> bool:
-        """En convenio de salud, ΔEHS < 0 ⇒ la salud cae de primavera a verano."""
-        return self.delta_ehs is not None and self.delta_ehs < 0
+        """En convenio de salud, delta_health < 0 ⇒ la salud cae de primavera a verano."""
+        return self.delta_health is not None and self.delta_health < 0
 
 
-def _priority_for_ehs(ehs: Optional[float]) -> tuple[str, str]:
-    """Devuelve (etiqueta, color) de prioridad para un EHS de verano."""
-    if ehs is None:
+def _priority_for_health(health: Optional[float]) -> tuple[str, str]:
+    """Devuelve (etiqueta, color) de prioridad para una salud de verano."""
+    if health is None:
         return ("Sin dato", "#9e9e9e")
     label, color = PRIORITY_BANDS[0][1], PRIORITY_BANDS[0][2]
     for low, lbl, col in PRIORITY_BANDS:
-        if ehs >= low:
+        if health >= low:
             label, color = lbl, col
     return (label, color)
 
@@ -125,19 +130,19 @@ class RealTrailDataset:
     summary: dict[str, Any]
 
     def ranked_by_priority(self) -> list[RealTrail]:
-        """Sendas ordenadas por urgencia: EHS de verano ascendente (peor primero).
+        """Sendas ordenadas por urgencia: salud de verano ascendente (peor primero).
 
-        Las sendas sin EHS van al final.
+        Las sendas sin salud van al final.
         """
         return sorted(
             self.trails,
-            key=lambda t: (t.ehs_summer is None, t.ehs_summer if t.ehs_summer is not None else 999),
+            key=lambda t: (t.health_summer is None, t.health_summer if t.health_summer is not None else 999),
         )
 
     def top_degrading(self, n: int = 5) -> list[RealTrail]:
-        """Top-N sendas con mayor deterioro estacional (ΔEHS de salud más negativo)."""
-        degrading = [t for t in self.trails if t.delta_ehs is not None]
-        return sorted(degrading, key=lambda t: t.delta_ehs)[:n]
+        """Top-N sendas con mayor deterioro estacional (delta_health más negativo)."""
+        degrading = [t for t in self.trails if t.delta_health is not None]
+        return sorted(degrading, key=lambda t: t.delta_health)[:n]
 
     @property
     def has_prug(self) -> bool:
@@ -203,9 +208,9 @@ def get_real_trails(dashboard_key: str) -> RealTrailDataset:
             trail_id=int(p.get("id", 0)),
             name=p.get("name") or "(sin nombre)",
             length_km=float(p.get("length_km") or 0.0),
-            ehs_spring=health_spring,
-            ehs_summer=health_summer,
-            delta_ehs=delta_health,
+            health_spring=health_spring,
+            health_summer=health_summer,
+            delta_health=delta_health,
             scm_class=p.get("scm_class"),
             budget_eur=p.get("budget_eur"),
             geometry=feat.get("geometry") or {},
@@ -248,9 +253,9 @@ def _summary_to_health(summary: dict[str, Any]) -> dict[str, Any]:
 
 # ── Construcción del GeoJSON coloreado por EHS para el mapa ────────────────────
 
-def _ehs_to_rgba(ehs: Optional[float], alpha: int = 230) -> list[int]:
-    """Color RdYlGn por EHS (rojo=degradado, verde=sano). Gris si no hay dato."""
-    if ehs is None:
+def _health_to_rgba(health: Optional[float], alpha: int = 230) -> list[int]:
+    """Color RdYlGn por salud (rojo=degradado, verde=sano). Gris si no hay dato."""
+    if health is None:
         return [158, 158, 158, alpha]
     # Rampa diverging de 5 clases anclada a las bandas ecológicas.
     ramp = [
@@ -261,7 +266,7 @@ def _ehs_to_rgba(ehs: Optional[float], alpha: int = 230) -> list[int]:
         (75.0,  [166, 217, 106]),
         (100.0, [ 26, 152,  80]),
     ]
-    e = max(0.0, min(100.0, ehs))
+    e = max(0.0, min(100.0, health))
     for i in range(len(ramp) - 1):
         lo_v, lo_c = ramp[i]
         hi_v, hi_c = ramp[i + 1]
@@ -298,20 +303,20 @@ def get_park_boundary(dashboard_key: str) -> Optional[dict[str, Any]]:
 
 
 def build_real_trails_geojson(dataset: RealTrailDataset) -> dict[str, Any]:
-    """FeatureCollection con geometría real coloreada por EHS, lista para PyDeck."""
+    """FeatureCollection con geometría real coloreada por salud, lista para PyDeck."""
     features = []
     for t in dataset.trails:
         if not t.geometry:
             continue
-        color = _ehs_to_rgba(t.ehs_summer)
+        color = _health_to_rgba(t.health_summer)
         features.append({
             "type": "Feature",
             "geometry": t.geometry,
             "properties": {
                 "name": t.name,
                 "length_km": t.length_km,
-                "ehs_summer": round(t.ehs_summer, 1) if t.ehs_summer is not None else "—",
-                "delta_ehs": round(t.delta_ehs, 1) if t.delta_ehs is not None else "—",
+                "health_summer": round(t.health_summer, 1) if t.health_summer is not None else "—",
+                "delta_health": round(t.delta_health, 1) if t.delta_health is not None else "—",
                 "scm": t.scm_label_es,
                 "priority": t.priority_label,
                 "budget": f"€{t.budget_eur:,.0f}" if t.budget_eur is not None else "—",

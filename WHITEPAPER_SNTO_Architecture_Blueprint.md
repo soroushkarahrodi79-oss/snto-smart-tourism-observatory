@@ -112,12 +112,26 @@ Where $\rho_{SWIR1}$ is surface reflectance in Band B11 (resampled to 10 m). NDM
 
 ## 4.1 Conceptual Design
 
-The **Environmental Health Score (EHS)** is the SNTO's principal operational indicator. It is designed to translate the dual spectral signal (NDVI and NDMI) into a single, intuitive **degradation index scaled from 0 to 100**, where:
+> **Normative note — two canonical score directions.** SNTO works with two
+> 0–100 score directions that must never be conflated. The canonical conversion
+> `health = 100 − stress` is centralised in `src/metrics/semantics.py`.
+>
+> | Direction | 0 means | 100 means | Where it lives |
+> |---|---|---|---|
+> | **Stress / Degradation Score** | no stress | maximal degradation | `calculate_delta_ehs.py` (Pipeline A) and the legacy DB columns `ehs_spring`, `ehs_summer`, `delta_ehs` |
+> | **Health Score** | critical | healthy | dashboard, TPI, tiers, `src/risk_engine/ehs.py` (§4.3), executive communication |
+>
+> **Delta convention:** `DeltaStress > 0` ⇒ condition worsens; the equivalent
+> `DeltaHealth = −DeltaStress < 0` ⇒ health falls. The live dashboard ingests
+> the Pipeline A stress output and converts it to health on load
+> (`src/platform/real_trails.py`), so every figure the user sees is health.
+
+The **Environmental Health Score (EHS)** is the SNTO's principal operational indicator. The operational Pipeline A formula below (§4.2) computes the **stress direction** — a **degradation index scaled from 0 to 100**, where:
 
 - **0** = no deviation from healthy baseline (optimal state)
 - **100** = maximal stress / complete degradation
 
-This inverse convention — where higher scores indicate *worse* ecological condition — is deliberately adopted to align the EHS with financial logic: a **higher EHS score directly implies a higher restoration budget requirement**, making the ecological-financial relationship intuitively transparent to non-specialist decision-makers.
+This stress direction is deliberately adopted *inside Pipeline A* to align with financial logic: a **higher stress score directly implies a higher restoration budget requirement**, making the ecological-financial relationship intuitively transparent. It is converted to the health direction (high = good) before reaching the dashboard, so the "EHS" the user reads is always a Health Score. The research-grade engine (§4.3) emits the health direction natively.
 
 ## 4.2 Core EHS Formula (Operational Dashboard Implementation)
 

@@ -103,14 +103,14 @@ def calibrate_asset(asset_id: str, curated_ehs: float, trails: list[RealTrail]) 
     subs = _ASSET_TRAIL_MAP.get(asset_id, [])
     matched = [
         t for t in trails
-        if t.ehs_summer is not None and any(s.lower() in t.name.lower() for s in subs)
+        if t.health_summer is not None and any(s.lower() in t.name.lower() for s in subs)
     ]
     if not matched:
         return CalibrationResult(
             asset_id=asset_id, curated_ehs=curated_ehs, satellite_ehs=None,
             matched_trails=[], n_trails=0, delta=None, flag="sin_dato",
         )
-    sat = round(sum(t.ehs_summer for t in matched) / len(matched), 1)
+    sat = round(sum(t.health_summer for t in matched) / len(matched), 1)
     return CalibrationResult(
         asset_id=asset_id,
         curated_ehs=curated_ehs,

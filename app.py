@@ -2295,7 +2295,8 @@ with tab_real:
             )
         with k4:
             st.metric("Sendas en deterioro", s.get("n_degrading_positive_delta", 0),
-                      help="ΔEHS > 0: la salud ecológica empeora de primavera a verano.")
+                      help="Sendas cuya salud ecológica cae de primavera a verano "
+                           "(ΔEHS de salud < 0, equivalente a un aumento del estrés).")
         with k5:
             st.metric("Presupuesto indicativo",
                       f"€{s.get('total_budget_eur', 0):,.0f}",
@@ -2371,9 +2372,9 @@ with tab_real:
             row = {
                 "Senda":          t.name,
                 "Long. (km)":     t.length_km,
-                "EHS primavera":  round(t.ehs_spring, 1) if t.ehs_spring is not None else None,
-                "EHS verano":     round(t.ehs_summer, 1) if t.ehs_summer is not None else None,
-                "ΔEHS":           round(t.delta_ehs, 1) if t.delta_ehs is not None else None,
+                "EHS primavera":  round(t.health_spring, 1) if t.health_spring is not None else None,
+                "EHS verano":     round(t.health_summer, 1) if t.health_summer is not None else None,
+                "ΔEHS":           round(t.delta_health, 1) if t.delta_health is not None else None,
                 "Prioridad":      t.priority_label,
                 "Causa (SCM)":    t.scm_label_es,
                 "Presupuesto (€)": round(t.budget_eur, 0) if t.budget_eur is not None else None,
