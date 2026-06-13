@@ -25,6 +25,10 @@ from src.platform.real_trails import (
     get_real_trails, build_real_trails_geojson, get_park_boundary,
 )
 from src.platform.calibration import calibrate_territory, coverage_summary
+from src.platform.provenance import (
+    data_status_badge, load_timeseries_coverage, snapshot_provenance,
+)
+from src.temporal import DataStatus
 
 # ── Fecha global de informe ───────────────────────────────────────────────────
 REPORT_DATE = "2026-06-12"
@@ -2121,6 +2125,15 @@ with tab_assets:
         f"{len(ranked_assets)} activos monitorizados · "
         "Ordenados por TPI descendente (mayor urgencia primero)"
     )
+    _cur_badge = data_status_badge(DataStatus.CALIBRATED)
+    st.markdown(
+        f'<div style="font-size:0.8rem;color:{_cur_badge.color};margin:-4px 0 8px">'
+        f'{_cur_badge.emoji} <b>{_cur_badge.label}</b> · estos activos son una capa '
+        f'narrativa de juicio experto, contrastada (no sustituida) por el satélite '
+        f'en la pestaña <i>Sendas Reales</i>. No usar para intervención formal sin '
+        f'el dato satelital de su senda.</div>',
+        unsafe_allow_html=True,
+    )
 
     # ── Validación cruzada con el satélite (Pipeline A) ───────────────────────
     _calib = calibrate_territory(selected_key, ranked_assets)
@@ -2275,6 +2288,36 @@ with tab_real:
     else:
         s = _real.summary
         import pandas as pd
+
+        # ── Calidad y trazabilidad del dato (F3) ──────────────────────────────
+        _prov = snapshot_provenance(selected_key)
+        _badge = data_status_badge(_prov.status)
+        _scenes = (" · ".join(_prov.scene_dates)
+                   if _prov.scene_dates else f"{_prov.n_scenes} escenas estacionales")
+        st.markdown(
+            f'<div style="padding:10px 14px;border-radius:8px;'
+            f'background:#f3f8f6;border-left:4px solid {_badge.color};margin-bottom:6px;">'
+            f'<span style="font-weight:700;color:{_badge.color}">'
+            f'{_badge.emoji} {_badge.label}</span> '
+            f'<span style="font-size:0.8rem;color:#5a6b7a">· {_badge.caveat}</span><br/>'
+            f'<span style="font-size:0.8rem;color:#33485c">'
+            f'<b>Escenas Sentinel-2:</b> {_scenes} &nbsp;·&nbsp; '
+            f'<b>Composición:</b> percentiles de escena (P90/P10) &nbsp;·&nbsp; '
+            f'<b>Tile:</b> T30TVL</span><br/>'
+            f'<span style="font-size:0.8rem;color:#33485c">'
+            f'<b>Profundidad temporal:</b> {_prov.inference_label}</span>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        _cov = load_timeseries_coverage(selected_key)
+        if _cov is not None:
+            st.caption(
+                f"📈 Serie multi-anual: cobertura **{_cov['fraction']*100:.0f}%** "
+                f"({_cov['n_present']}/{_cov['n_expected']} periodos) · "
+                f"estado dominante: **{_cov['dominant_status']}** · "
+                f"huecos: {_cov['n_gaps']}."
+            )
+        st.warning(_prov.caveat, icon="⚠️")
 
         # ── Tira de KPIs reales ──
         k1, k2, k3, k4, k5 = st.columns(5)
