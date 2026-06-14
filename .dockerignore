@@ -54,3 +54,10 @@ C:Users*
 Thumbs.db
 .idea/
 *.swp
+
+# ── Exceptions: ship the small curated PNSG outputs the dashboard needs ────────
+# data/ is excluded above; these specific files are tiny and required at runtime
+# for the "Sendas reales (satélite)" tab and the official park boundary.
+!data/outputs/pnsg/pipeline_a_results.geojson
+!data/outputs/pnsg/pipeline_a_summary.json
+!data/raw_assets/vector_data/oapn/oapn_limite_pn.geojson

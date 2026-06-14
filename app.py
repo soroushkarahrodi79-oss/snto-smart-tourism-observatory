@@ -655,6 +655,12 @@ _BUILD_FN = {
     "pnsg": build_pnsg_territory,
 }
 
+# Territorios VISIBLES en el selector de la UI. El PNSG es el territorio
+# principal del observatorio; Sierra del Rincón se conserva en el código, los
+# datos y los scripts del pipeline (raíz del proyecto), pero ya no se ofrece en
+# la vista. Para volver a mostrarlo, añade "snr" a esta lista.
+_VISIBLE_TERRITORIES = ["pnsg"]
+
 
 # ── Configuración de página ───────────────────────────────────────────────────
 st.set_page_config(
@@ -1267,12 +1273,21 @@ with st.sidebar:
     st.markdown("**Plataforma de Inteligencia  \nEstratégica de Destinos**")
     st.divider()
     st.markdown("**Observatorio activo**")
-    selected_key = st.radio(
-        "Territorio activo",
-        options=list(_TERRITORY_CONFIG.keys()),
-        format_func=lambda k: _TERRITORY_CONFIG[k]["short"],
-        label_visibility="collapsed",
-    )
+    if len(_VISIBLE_TERRITORIES) > 1:
+        selected_key = st.radio(
+            "Territorio activo",
+            options=_VISIBLE_TERRITORIES,
+            format_func=lambda k: _TERRITORY_CONFIG[k]["short"],
+            label_visibility="collapsed",
+        )
+    else:
+        # Un solo territorio visible: mostrarlo como etiqueta, sin selector.
+        selected_key = _VISIBLE_TERRITORIES[0]
+        st.markdown(
+            f'<div class="snto-side-row"><span class="snto-side-icon">🏔</span>'
+            f'<span><strong>{_TERRITORY_CONFIG[selected_key]["short"]}</strong></span></div>',
+            unsafe_allow_html=True,
+        )
     st.divider()
     st.markdown("**Vista / audiencia**")
     _view_mode = st.radio(
@@ -1325,7 +1340,7 @@ with st.sidebar:
         )
     st.divider()
     st.caption("SNTO v0.1 · Datos sintéticos de validación")
-    st.caption(f"Piloto activo: {_terr_cfg['short']} (Madrid)")
+    st.caption(f"Territorio principal: {_terr_cfg['short']} (Madrid · Segovia)")
 
 
 # ── TAREA 1: Banner dinámico con contextual badging ──────────────────────────

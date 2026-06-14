@@ -1,0 +1,17 @@
+{
+  "territory": "pnsg",
+  "territory_name": "Parque Nacional Sierra de Guadarrama",
+  "n_trails": 218,
+  "total_length_km": 1035.1,
+  "ehs_summer_mean": 11.51,
+  "ehs_summer_min": 0.0,
+  "ehs_summer_max": 71.96,
+  "delta_ehs_mean": -5.19,
+  "n_degrading_positive_delta": 46,
+  "n_with_valid_delta": 218,
+  "scm_localized": 24,
+  "scm_mixed": 29,
+  "scm_landscape": 165,
+  "scm_null": 0,
+  "total_budget_eur": 1435721.06
+}
