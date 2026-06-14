@@ -6,7 +6,7 @@
 
 De la teledetección Sentinel-2 a la decisión de inversión pública: indicadores ambientales calibrados, atribución causal de la degradación y priorización presupuestaria sobre el **Parque Nacional Sierra de Guadarrama (PNSG)**, primer territorio de la Red de Parques Nacionales (OAPN) integrado en el observatorio.
 
-[![Tests](https://img.shields.io/badge/tests-454%20passing-brightgreen)](#8-tests)
+[![Tests](https://img.shields.io/badge/tests-474%20passing-brightgreen)](#8-tests)
 [![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue)](https://www.python.org/)
 [![CI](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml)
 [![Deploy](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml)
@@ -63,9 +63,10 @@ _Dashboard ejecutivo con 10 KPIs territoriales, mapa folium de activos y modelo 
 | **Pipeline A — Geoespacial** | **Parque Nacional Sierra de Guadarrama (PNSG)** — territorio principal | ✅ Operacional con datos Sentinel-2 reales (2 escenas: primavera 2026 + verano 2025); **73 senderos** con cartografía oficial OAPN |
 | **Pipeline A — Calibración metodológica** | Reserva de la Biosfera Sierra del Rincón (Madrid) | ✅ Piloto de validación del método (escenas reales propias) |
 | **Pipeline B — Inteligencia territorial (7 fases)** | Villuercas-Ibores-Jara Geopark (Extremadura) | ✅ Demostración funcional completa sobre 20 activos sintéticos calibrados |
+| **Capa socioeconómica (ALMUDENA / INE)** | PNSG — 34 municipios | ✅ SVI + impacto en comunidad + empleos en riesgo, integrado en el dashboard |
 | **Dashboard ejecutivo** | PNSG | ✅ Desplegado en Azure Container Apps (scale-to-zero) |
 | **CI/CD** | — | ✅ GitHub Actions → ACR build → roll Container App |
-| **Tests** | — | ✅ 454 passing, 0 regresiones (suite verde, ver §8) |
+| **Tests** | — | ✅ 474 passing, 0 regresiones (suite verde, ver §8) |
 
 El Pipeline A produce indicadores ambientales reales: el **PNSG** es el territorio principal del observatorio y la **Reserva de la Biosfera Sierra del Rincón** se conserva como piloto de calibración metodológica (valida el método sobre un segundo territorio con datos reales). El Pipeline B demuestra el sistema de gobernanza de extremo a extremo. Ambos pipelines están diseñados para integrarse cuando el Pipeline A disponga de series temporales multi-anuales reales. El observatorio se expandirá a más espacios de la **Red de Parques Nacionales (OAPN)** en fases posteriores.
 
@@ -154,6 +155,7 @@ run_phase7_report.py   → plataforma estratégica (dashboard 10 KPIs, 5 perfile
 - **Baselines estratificados + incertidumbre** — `src/risk_engine/baselines.py` (P90/P10 por estrato ecológico con fallback) y `src/analysis/sensitivity.py` (banda de pesos, **ranking robusto** y Monte-Carlo). Ver [docs/baselines_uncertainty_design.md](docs/baselines_uncertainty_design.md).
 - **Validación de campo / pseudo-validación** — `src/validation/`: esquema de observación de campo y métricas de concordancia satélite↔terreno (Spearman, contraste control-impacto BACI). Ver [docs/field_validation_protocol.md](docs/field_validation_protocol.md).
 - **Dashboard de 3 vistas** (`src/platform/views.py`): técnica / gestor / auditoría científica, con la verbosidad de confianza adaptada a cada audiencia.
+- **Capa socioeconómica (ALMUDENA / INE)** — `src/socioeconomic/`: cruza el dato municipal real (padrón INE + Banco de Datos ALMUDENA de la Comunidad de Madrid) con el riesgo ambiental de los activos por municipio. Calcula el **SVI (Socioeconomic Vulnerability Index)** = 0,40·dependencia turística + 0,30·fragilidad demográfica + 0,30·exposición ambiental, el **impacto en la comunidad** (riesgo × dependencia económica) y los **empleos locales en riesgo** respaldados por datos (afiliación a hostelería × exposición). Snapshot curado de 34 municipios del PNSG (15 con economía ALMUDENA + 19 solo demografía, lado Segovia). Ver [docs/socioeconomic_integration_design.md](docs/socioeconomic_integration_design.md).
 
 ---
 
@@ -295,7 +297,7 @@ Secrets requeridos en GitHub (`Settings ▸ Secrets and variables ▸ Actions`):
 pytest --tb=short
 ```
 
-- **454 passing, 0 regresiones, suite verde.**
+- **474 passing, 0 regresiones, suite verde.**
 - El antiguo fallo legacy `test_poor_data_scores_low` está resuelto: el data quality gate en `src/decision_confidence/assessor.py` (`can_act = False` si DQ < 10 o TR < 12) hace que el test pase.
 - **CI (`ci.yml`)** ejecuta además `ruff` bloqueante sobre los módulos mantenidos (F0–F7), `ruff` informativo sobre el resto (deuda de lint en reducción), import smoke y `py_compile` de los entry points.
 
@@ -335,5 +337,5 @@ Supervisión académica: Carmen Mínguez · Susana Ramírez García (REGENERA) �
 ---
 
 <div align="center">
-<sub>SNTO v0.1.0 · Python ≥ 3.12 · 454 tests passing · junio 2026</sub>
+<sub>SNTO v0.1.0 · Python ≥ 3.12 · 474 tests passing · junio 2026</sub>
 </div>
