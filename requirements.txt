@@ -26,6 +26,7 @@ httpx>=0.27,<1.0
 
 # ── Dashboard ────────────────────────────────────────────────────────────────
 streamlit>=1.35,<2.0
+streamlit-autorefresh>=1.0,<2.0  # auto-refresh de alertas en vivo (usado en app.py:13)
 pydeck>=0.9,<1.0                 # Deck.gl WebGL map rendering (replaces Folium)
 plotly>=5.20,<6.0                # Interactive charts (Portfolio Matrix, time series)
 pandas>=2.1,<3.0                 # DataFrame layer for chart builders
