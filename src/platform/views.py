@@ -6,7 +6,7 @@ recommended separating them explicitly:
 
   * Técnica   — NDVI/NDMI, buffers, baselines, uncertainty, valid pixels.
   * Gestor    — ranking, priority, budget, recommended action.
-  * Tribunal  — methodology, traceability, evidence, declared limits.
+  * Auditoría — methodology, traceability, evidence, declared limits.
 
 This module defines those view profiles as pure data so ``app.py`` can render a
 single dataset through the right lens, with the right *confidence verbosity*,
@@ -64,12 +64,12 @@ _PROFILES: dict[ViewMode, ViewProfile] = {
     ),
     ViewMode.TRIBUNAL: ViewProfile(
         mode=ViewMode.TRIBUNAL,
-        label="Tribunal / CETS",
+        label="Auditoría científica",
         icon="⚖️",
-        audience="Tribunal académico / auditoría / CETS",
+        audience="Revisión metodológica / auditoría científica",
         emphasis="Metodología, trazabilidad del dato, evidencia y límites declarados.",
         confidence_detail=ConfidenceDetail.FULL,
-        banner="Vista tribunal: metodología, trazabilidad y límites explícitos. "
+        banner="Vista de auditoría: metodología, trazabilidad y límites explícitos. "
                "Cada cifra acompañada de su procedencia y nivel de confianza.",
     ),
 }

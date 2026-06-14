@@ -11,7 +11,7 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 [![CI](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml)
 [![Deploy](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml)
 [![Deploy target](https://img.shields.io/badge/deploy-Azure%20Container%20Apps-0078D4?logo=microsoftazure&logoColor=white)](#7-despliegue)
-[![Status](https://img.shields.io/badge/estado-TFM%20en%20curso-orange)](#1-estado-del-proyecto)
+[![Status](https://img.shields.io/badge/estado-investigaci%C3%B3n%20activa-blue)](#1-estado-del-proyecto)
 [![License](https://img.shields.io/badge/uso-acad%C3%A9mico-lightgrey)](#11-licencia--uso-acad%C3%A9mico)
 
 **🔴 [Dashboard en vivo](https://snto-observatory.happyground-be027676.swedencentral.azurecontainerapps.io/)** · 📄 [Whitepaper](WHITEPAPER_SNTO_Architecture_Blueprint.md) · 🏗 [Arquitectura](ARCHITECTURE.md)
@@ -24,7 +24,7 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 
 La mayoría de los espacios naturales protegidos gestionan el impacto del turismo de forma **reactiva**: actúan cuando la degradación ya es visible. El SNTO transforma ese paradigma en **gobernanza regenerativa proactiva** — detecta el estrés ecológico desde el satélite antes de que sea irreversible, distingue si la causa es el uso turístico o el clima, y traduce cada hallazgo en una **prioridad de inversión con presupuesto y nivel de confianza**.
 
-> **Para evaluadores y reclutadores:** este repositorio acompaña un Trabajo Fin de Máster en Turismo Inteligente, Sostenibilidad y Gobernanza Regenerativa. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (73 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases, con capas de **andamiaje temporal (serie 2021–2026), trazabilidad/confianza del dato, baselines estratificados, incertidumbre del ranking y validación de campo**. **454 tests, CI separado del deploy, dos pipelines arquitectónicamente desacoplados.** La metodología de gobernanza se inspira en el marco CETS / EUROPARC, validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
+> **Para evaluadores y revisores:** este repositorio es un proyecto de investigación académica de la **Universidad Complutense de Madrid (UCM)**: un observatorio que evalúa el estado de senderos y enclaves de turismo natural por teledetección satelital, detecta zonas de riesgo de degradación y prioriza la intervención con fórmulas financieras. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (73 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases, con capas de **andamiaje temporal (serie 2021–2026), trazabilidad/confianza del dato, baselines estratificados, incertidumbre del ranking y validación de campo**. **454 tests, CI separado del deploy, dos pipelines arquitectónicamente desacoplados.** La gobernanza se alinea con los marcos europeos de reporte de espacios protegidos (Natura 2000 / EUROPARC / SISMOTUR), validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
 
 ---
 
@@ -153,7 +153,7 @@ run_phase7_report.py   → plataforma estratégica (dashboard 10 KPIs, 5 perfile
 - **Trazabilidad y confianza del dato** — `src/platform/provenance.py`: etiquetas visibles **dato real / calibrado / sintético**, fechas de escena reales, cobertura y *caveats* de confianza en el dashboard.
 - **Baselines estratificados + incertidumbre** — `src/risk_engine/baselines.py` (P90/P10 por estrato ecológico con fallback) y `src/analysis/sensitivity.py` (banda de pesos, **ranking robusto** y Monte-Carlo). Ver [docs/baselines_uncertainty_design.md](docs/baselines_uncertainty_design.md).
 - **Validación de campo / pseudo-validación** — `src/validation/`: esquema de observación de campo y métricas de concordancia satélite↔terreno (Spearman, contraste control-impacto BACI). Ver [docs/field_validation_protocol.md](docs/field_validation_protocol.md).
-- **Dashboard de 3 vistas** (`src/platform/views.py`): técnica / gestor / tribunal-CETS, con la verbosidad de confianza adaptada a cada audiencia.
+- **Dashboard de 3 vistas** (`src/platform/views.py`): técnica / gestor / auditoría científica, con la verbosidad de confianza adaptada a cada audiencia.
 
 ---
 
@@ -328,7 +328,7 @@ El detalle completo está en el [Whitepaper](WHITEPAPER_SNTO_Architecture_Bluepr
 
 ## 11. Licencia / uso académico
 
-Proyecto desarrollado en contexto académico (Trabajo Fin de Máster). Territorio real principal: **Parque Nacional Sierra de Guadarrama** (Red de Parques Nacionales — OAPN). Territorio de calibración metodológica: **Reserva de la Biosfera Sierra del Rincón** (Madrid). Territorio de demostración de la inteligencia territorial: **Villuercas-Ibores-Jara Geopark** (Extremadura). Uso académico y de investigación.
+Proyecto de investigación académica independiente desarrollado en la **Universidad Complutense de Madrid (UCM)**. Territorio real principal: **Parque Nacional Sierra de Guadarrama** (Red de Parques Nacionales — OAPN). Territorio de calibración metodológica: **Reserva de la Biosfera Sierra del Rincón** (Madrid). Territorio de demostración de la inteligencia territorial: **Villuercas-Ibores-Jara Geopark** (Extremadura). Uso académico y de investigación.
 
 Supervisión académica: Carmen Mínguez · Susana Ramírez García (REGENERA) — Universidad Complutense de Madrid.
 
