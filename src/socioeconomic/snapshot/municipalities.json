@@ -1,0 +1,915 @@
+{
+  "schema_version": "1.0",
+  "source_snapshot_date": "2026-06",
+  "generated_at": "2026-06-14T18:49:33+00:00",
+  "n_municipalities": 34,
+  "n_full": 15,
+  "n_demographic_only": 19,
+  "sources": {
+    "crosswalk": "tabla_correspondencia_municipios_pnsg.csv",
+    "demographics": "INE Padrón (tablas 2881 Madrid / 2894 Segovia)",
+    "economy_tourism": "ALMUDENA Fichas Municipales (Comunidad de Madrid)"
+  },
+  "municipalities": {
+    "28003": {
+      "ine_code": "28003",
+      "name": "Alameda del Valle",
+      "province": "Madrid",
+      "pnsg_zone": "PN",
+      "almudena_code": "0035",
+      "population": 267,
+      "population_year": 2025,
+      "pop_change_5y_pct": 30.88,
+      "pct_over_65": 22.1,
+      "tourism_employment": 25,
+      "pct_second_homes": 72.05,
+      "income_per_capita_eur": 23880.0,
+      "gdp_per_capita_eur": 34274.0,
+      "unemployment_rate_pct": 6.37,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": [
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "28018": {
+      "ine_code": "28018",
+      "name": "Becerril de la Sierra",
+      "province": "Madrid",
+      "pnsg_zone": "PN",
+      "almudena_code": "0186",
+      "population": 6737,
+      "population_year": 2025,
+      "pop_change_5y_pct": 14.67,
+      "pct_over_65": 17.93,
+      "tourism_employment": 380,
+      "pct_second_homes": 42.21,
+      "income_per_capita_eur": 22001.0,
+      "gdp_per_capita_eur": 18086.0,
+      "unemployment_rate_pct": 4.85,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": []
+    },
+    "28023": {
+      "ine_code": "28023",
+      "name": "El Boalo",
+      "province": "Madrid",
+      "pnsg_zone": "PN",
+      "almudena_code": "0231",
+      "population": 8770,
+      "population_year": 2025,
+      "pop_change_5y_pct": 14.45,
+      "pct_over_65": 13.79,
+      "tourism_employment": 445,
+      "pct_second_homes": 36.29,
+      "income_per_capita_eur": 22635.0,
+      "gdp_per_capita_eur": 18650.0,
+      "unemployment_rate_pct": 4.14,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": []
+    },
+    "28034": {
+      "ine_code": "28034",
+      "name": "Canencia",
+      "province": "Madrid",
+      "pnsg_zone": "PN",
+      "almudena_code": "0344",
+      "population": 475,
+      "population_year": 2025,
+      "pop_change_5y_pct": 6.26,
+      "pct_over_65": 30.06,
+      "tourism_employment": 30,
+      "pct_second_homes": 63.39,
+      "income_per_capita_eur": 18063.0,
+      "gdp_per_capita_eur": 24067.0,
+      "unemployment_rate_pct": 5.05,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": [
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "28038": {
+      "ine_code": "28038",
+      "name": "Cercedilla",
+      "province": "Madrid",
+      "pnsg_zone": "PN",
+      "almudena_code": "0382",
+      "population": 7772,
+      "population_year": 2025,
+      "pop_change_5y_pct": 7.87,
+      "pct_over_65": 18.9,
+      "tourism_employment": 510,
+      "pct_second_homes": 44.76,
+      "income_per_capita_eur": 19477.0,
+      "gdp_per_capita_eur": 24515.0,
+      "unemployment_rate_pct": 4.64,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": []
+    },
+    "28068": {
+      "ine_code": "28068",
+      "name": "Guadarrama",
+      "province": "Madrid",
+      "pnsg_zone": "ZPP",
+      "almudena_code": "0685",
+      "population": 17547,
+      "population_year": 2025,
+      "pop_change_5y_pct": 5.96,
+      "pct_over_65": 18.85,
+      "tourism_employment": 1395,
+      "pct_second_homes": 39.21,
+      "income_per_capita_eur": 20395.0,
+      "gdp_per_capita_eur": 20785.0,
+      "unemployment_rate_pct": 3.88,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": []
+    },
+    "28076": {
+      "ine_code": "28076",
+      "name": "Lozoya",
+      "province": "Madrid",
+      "pnsg_zone": "PN",
+      "almudena_code": "0761",
+      "population": 598,
+      "population_year": 2025,
+      "pop_change_5y_pct": 3.1,
+      "pct_over_65": 31.0,
+      "tourism_employment": 40,
+      "pct_second_homes": 62.33,
+      "income_per_capita_eur": 20831.0,
+      "gdp_per_capita_eur": 38047.0,
+      "unemployment_rate_pct": 4.85,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": [
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "28082": {
+      "ine_code": "28082",
+      "name": "Manzanares el Real",
+      "province": "Madrid",
+      "pnsg_zone": "PN",
+      "almudena_code": "0822",
+      "population": 9648,
+      "population_year": 2025,
+      "pop_change_5y_pct": 7.97,
+      "pct_over_65": 14.71,
+      "tourism_employment": 350,
+      "pct_second_homes": 35.27,
+      "income_per_capita_eur": 21963.0,
+      "gdp_per_capita_eur": 15366.0,
+      "unemployment_rate_pct": 4.26,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": []
+    },
+    "28085": {
+      "ine_code": "28085",
+      "name": "Miraflores de la Sierra",
+      "province": "Madrid",
+      "pnsg_zone": "PN",
+      "almudena_code": "0856",
+      "population": 7350,
+      "population_year": 2025,
+      "pop_change_5y_pct": 15.53,
+      "pct_over_65": 15.98,
+      "tourism_employment": 410,
+      "pct_second_homes": 46.52,
+      "income_per_capita_eur": 20002.0,
+      "gdp_per_capita_eur": 16190.0,
+      "unemployment_rate_pct": 4.73,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": []
+    },
+    "28087": {
+      "ine_code": "28087",
+      "name": "Los Molinos",
+      "province": "Madrid",
+      "pnsg_zone": "ZPP",
+      "almudena_code": "0875",
+      "population": 4781,
+      "population_year": 2025,
+      "pop_change_5y_pct": 7.85,
+      "pct_over_65": 21.73,
+      "tourism_employment": 280,
+      "pct_second_homes": 39.48,
+      "income_per_capita_eur": 20682.0,
+      "gdp_per_capita_eur": 17415.0,
+      "unemployment_rate_pct": 4.58,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": []
+    },
+    "28093": {
+      "ine_code": "28093",
+      "name": "Navacerrada",
+      "province": "Madrid",
+      "pnsg_zone": "PN",
+      "almudena_code": "0936",
+      "population": 3311,
+      "population_year": 2025,
+      "pop_change_5y_pct": 7.12,
+      "pct_over_65": 19.77,
+      "tourism_employment": 350,
+      "pct_second_homes": 47.11,
+      "income_per_capita_eur": 23446.0,
+      "gdp_per_capita_eur": 21082.0,
+      "unemployment_rate_pct": 3.84,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": []
+    },
+    "28097": {
+      "ine_code": "28097",
+      "name": "Navarredonda y San Mamés",
+      "province": "Madrid",
+      "pnsg_zone": "PN",
+      "almudena_code": "0973",
+      "population": 163,
+      "population_year": 2025,
+      "pop_change_5y_pct": 26.36,
+      "pct_over_65": 28.48,
+      "tourism_employment": 5,
+      "pct_second_homes": 71.2,
+      "income_per_capita_eur": 24790.0,
+      "gdp_per_capita_eur": 110227.0,
+      "unemployment_rate_pct": 4.91,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": [
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico.",
+        "PIB per cápita atípico: artefacto de municipio muy pequeño, no usar como señal económica."
+      ]
+    },
+    "28112": {
+      "ine_code": "28112",
+      "name": "Pinilla del Valle",
+      "province": "Madrid",
+      "pnsg_zone": "PN",
+      "almudena_code": "1126",
+      "population": 200,
+      "population_year": 2025,
+      "pop_change_5y_pct": 5.26,
+      "pct_over_65": 31.0,
+      "tourism_employment": 5,
+      "pct_second_homes": 68.4,
+      "income_per_capita_eur": 21855.0,
+      "gdp_per_capita_eur": 27632.0,
+      "unemployment_rate_pct": 2.5,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": [
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "28120": {
+      "ine_code": "28120",
+      "name": "Rascafría",
+      "province": "Madrid",
+      "pnsg_zone": "PN",
+      "almudena_code": "1202",
+      "population": 1704,
+      "population_year": 2025,
+      "pop_change_5y_pct": -1.22,
+      "pct_over_65": 29.86,
+      "tourism_employment": 205,
+      "pct_second_homes": 56.05,
+      "income_per_capita_eur": 19755.0,
+      "gdp_per_capita_eur": 28349.0,
+      "unemployment_rate_pct": 4.05,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": []
+    },
+    "28144": {
+      "ine_code": "28144",
+      "name": "Soto del Real",
+      "province": "Madrid",
+      "pnsg_zone": "PN",
+      "almudena_code": "1441",
+      "population": 9400,
+      "population_year": 2025,
+      "pop_change_5y_pct": 4.67,
+      "pct_over_65": 18.87,
+      "tourism_employment": 635,
+      "pct_second_homes": 32.97,
+      "income_per_capita_eur": 24782.0,
+      "gdp_per_capita_eur": 23867.0,
+      "unemployment_rate_pct": 3.46,
+      "completeness": "FULL",
+      "provenance": {
+        "population": "INE Padrón (tabla 2881, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2881, 2020–2025)",
+        "pct_over_65": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "tourism_employment": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "pct_second_homes": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "income_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "gdp_per_capita_eur": "ALMUDENA Ficha Municipal (descarga 2026-06)",
+        "unemployment_rate_pct": "ALMUDENA Ficha Municipal (descarga 2026-06)"
+      },
+      "caveats": []
+    },
+    "40007": {
+      "ine_code": "40007",
+      "name": "Aldealengua de Pedraza",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 78,
+      "population_year": 2025,
+      "pop_change_5y_pct": 6.85,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón).",
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "40026": {
+      "ine_code": "40026",
+      "name": "Basardilla",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 136,
+      "population_year": 2025,
+      "pop_change_5y_pct": -4.9,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón).",
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "40059": {
+      "ine_code": "40059",
+      "name": "Collado Hermoso",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 116,
+      "population_year": 2025,
+      "pop_change_5y_pct": -6.45,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón).",
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "40076": {
+      "ine_code": "40076",
+      "name": "El Espinar",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 10409,
+      "population_year": 2025,
+      "pop_change_5y_pct": 14.56,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón)."
+      ]
+    },
+    "40093": {
+      "ine_code": "40093",
+      "name": "Gallegos",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 96,
+      "population_year": 2025,
+      "pop_change_5y_pct": -8.57,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón).",
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "40113": {
+      "ine_code": "40113",
+      "name": "La Losa",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 543,
+      "population_year": 2025,
+      "pop_change_5y_pct": 4.62,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón).",
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "40139": {
+      "ine_code": "40139",
+      "name": "Navafría",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 282,
+      "population_year": 2025,
+      "pop_change_5y_pct": -1.05,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón).",
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "40152": {
+      "ine_code": "40152",
+      "name": "Otero de Herreros",
+      "province": "Segovia",
+      "pnsg_zone": "ZPP",
+      "almudena_code": null,
+      "population": 987,
+      "population_year": 2025,
+      "pop_change_5y_pct": 4.67,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón).",
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "40155": {
+      "ine_code": "40155",
+      "name": "Palazuelos de Eresma",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 6107,
+      "population_year": 2025,
+      "pop_change_5y_pct": 10.27,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón)."
+      ]
+    },
+    "40181": {
+      "ine_code": "40181",
+      "name": "Real Sitio de San Ildefonso",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 5217,
+      "population_year": 2025,
+      "pop_change_5y_pct": -1.29,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón)."
+      ]
+    },
+    "40188": {
+      "ine_code": "40188",
+      "name": "Santiuste de Pedraza",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 81,
+      "population_year": 2025,
+      "pop_change_5y_pct": -10.99,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón).",
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "40190": {
+      "ine_code": "40190",
+      "name": "Santo Domingo de Pirón",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 51,
+      "population_year": 2025,
+      "pop_change_5y_pct": -3.77,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón).",
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "40194": {
+      "ine_code": "40194",
+      "name": "Segovia",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 52375,
+      "population_year": 2025,
+      "pop_change_5y_pct": 0.61,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón)."
+      ]
+    },
+    "40199": {
+      "ine_code": "40199",
+      "name": "Sotosalbos",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 132,
+      "population_year": 2025,
+      "pop_change_5y_pct": 11.86,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón).",
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "40203": {
+      "ine_code": "40203",
+      "name": "Torrecaballeros",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 1505,
+      "population_year": 2025,
+      "pop_change_5y_pct": 9.69,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón)."
+      ]
+    },
+    "40206": {
+      "ine_code": "40206",
+      "name": "Torre Val de San Pedro",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 165,
+      "population_year": 2025,
+      "pop_change_5y_pct": -14.06,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón).",
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "40207": {
+      "ine_code": "40207",
+      "name": "Trescasas",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 1130,
+      "population_year": 2025,
+      "pop_change_5y_pct": 5.21,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón)."
+      ]
+    },
+    "40901": {
+      "ine_code": "40901",
+      "name": "Ortigosa del Monte",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 608,
+      "population_year": 2025,
+      "pop_change_5y_pct": 11.76,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón).",
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    },
+    "40904": {
+      "ine_code": "40904",
+      "name": "Navas de Riofrío",
+      "province": "Segovia",
+      "pnsg_zone": "PN",
+      "almudena_code": null,
+      "population": 430,
+      "population_year": 2025,
+      "pop_change_5y_pct": 11.4,
+      "pct_over_65": null,
+      "tourism_employment": null,
+      "pct_second_homes": null,
+      "income_per_capita_eur": null,
+      "gdp_per_capita_eur": null,
+      "unemployment_rate_pct": null,
+      "completeness": "DEMOGRAPHIC_ONLY",
+      "provenance": {
+        "population": "INE Padrón (tabla 2894, 2020–2025)",
+        "pop_change_5y_pct": "INE Padrón (tabla 2894, 2020–2025)"
+      },
+      "caveats": [
+        "Sin cobertura ALMUDENA: solo demografía (INE padrón).",
+        "Municipio pequeño (<1.000 hab): indicadores volátiles / posible secreto estadístico."
+      ]
+    }
+  }
+}

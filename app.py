@@ -30,6 +30,10 @@ from src.platform.provenance import (
 )
 from src.platform.views import ConfidenceDetail, get_view, view_modes
 from src.temporal import DataStatus
+from src.socioeconomic.loader import load_municipalities, snapshot_exists
+from src.socioeconomic.indicators import (
+    aggregate_asset_risk, compute_svi, jobs_at_risk as compute_jobs_at_risk,
+)
 
 # ── Fecha global de informe ───────────────────────────────────────────────────
 REPORT_DATE = "2026-06-12"
@@ -1344,9 +1348,34 @@ _alerts_placeholder = st.empty()
 with _alerts_placeholder.container():
     _render_live_alerts(ranked_assets, _refresh_count)
 
+# ── F9: Capa socioeconómica real (ALMUDENA / INE) ────────────────────────────
+# Solo el PNSG tiene snapshot socioeconómico curado. Para otros territorios el
+# overlay es None y el dashboard usa el modelo proxy heredado.
+_socio = None
+if selected_key == "pnsg" and snapshot_exists():
+    _socio_snapshot = load_municipalities()
+    _socio_risk = aggregate_asset_risk(
+        ranked_assets, name_to_ine=_socio_snapshot.name_to_ine()
+    )
+    if _socio_risk:  # hay activos que cruzan con municipios del PNSG
+        _socio = {
+            "snapshot": _socio_snapshot,
+            "risk": _socio_risk,
+            "svi": compute_svi(_socio_snapshot, _socio_risk),
+            "jobs": compute_jobs_at_risk(_socio_snapshot, _socio_risk),
+        }
+
 # ── TAREA 2: Tira de 4 KPIs ejecutivos ───────────────────────────────────────
 _exec_kpis = _compute_exec_kpis(ranked_assets, base_budget, assets_by_id)
+if _socio:  # KPI "Empleos locales en riesgo" respaldado por datos reales
+    _exec_kpis["jobs_risk"] = _socio["jobs"].total
 _render_exec_kpis(_exec_kpis, selected_key)
+if _socio:
+    st.caption(
+        "ℹ️ *Empleos locales en riesgo* calculado con datos reales **ALMUDENA / INE** "
+        "(afiliados a hostelería del municipio × exposición ambiental de sus activos), "
+        "no con el proxy de visitantes. Detalle en la pestaña **Impacto socioecon.**"
+    )
 
 st.divider()
 
@@ -1806,6 +1835,122 @@ with tab_socioeco:
         "biosfera de España. **Coste de 'no actuar'** = ingresos de hostelería perdidos si "
         "un activo Tier 1 se degrada hasta requerir cierre preventivo."
     )
+
+    # ── F9: Datos socioeconómicos reales (ALMUDENA / INE) ─────────────────────
+    if _socio:
+        _snap = _socio["snapshot"]
+        _svi = _socio["svi"]
+        _risk = _socio["risk"]
+        _jobs = _socio["jobs"]
+
+        st.markdown(
+            '<div style="padding:8px 12px;border-radius:6px;margin:2px 0 10px;'
+            'background:#0d2818;color:#E1F5EE;font-size:0.82rem;border-left:4px solid #0F6E56">'
+            f'🟢 <b>Datos reales</b> · ALMUDENA (Banco de Datos Municipal, C. de Madrid) '
+            f'+ INE (Padrón, EOATR). Snapshot {_snap.source_snapshot_date} · '
+            f'{_snap.n_municipalities} municipios del PNSG ({_snap.n_full} con economía '
+            f'ALMUDENA, {_snap.n_demographic_only} solo demografía — lado Segovia).</div>',
+            unsafe_allow_html=True,
+        )
+
+        _muni_ids = list(_risk.keys())
+        _pop = sum((_snap.municipalities[i].population or 0) for i in _muni_ids)
+        _emp = sum((_snap.municipalities[i].tourism_employment or 0) for i in _muni_ids)
+        _svi_vals = [_svi[i].svi for i in _muni_ids if i in _svi]
+        _svi_mean = sum(_svi_vals) / len(_svi_vals) if _svi_vals else 0.0
+
+        _rk = st.columns(4)
+        for _col, _name, _val, _fg in [
+            (_rk[0], "Población de la comunidad",            f"{_pop:,.0f} hab", "#1565c0"),
+            (_rk[1], "Empleo en hostelería (afiliados SS)",  f"{_emp:,.0f}",     "#0F6E56"),
+            (_rk[2], "Empleos locales en riesgo",            f"{_jobs.total:,.1f}", "#c62828"),
+            (_rk[3], "SVI medio (comunidades con activos)",  f"{_svi_mean:.1f}/100", "#854F0B"),
+        ]:
+            with _col:
+                st.markdown(
+                    f'<div class="kpi-card" style="border-left:4px solid {_fg};">'
+                    f'<div class="kpi-meta">{_name}</div>'
+                    f'<div class="kpi-value" style="color:{_fg};font-size:1.4rem">{_val}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+        st.write("")
+
+        st.markdown(
+            "**Comunidades locales en riesgo** — riesgo ambiental × dependencia económica"
+        )
+        _svi_rows = []
+        for i in _muni_ids:
+            m, s = _snap.municipalities[i], _svi[i]
+            _svi_rows.append({
+                "Municipio": m.name,
+                "Impacto comunidad": s.community_impact,
+                "SVI": s.svi,
+                "Dependencia turística": s.dep,
+                "Fragilidad demográfica": s.dem,
+                "Exposición ambiental": s.exp,
+                "Población": m.population,
+                "Empleo hostelería": m.tourism_employment,
+                "% ≥65 años": m.pct_over_65,
+                "Δ pob. 5 años (%)": m.pop_change_5y_pct,
+            })
+        _svi_df = pd.DataFrame(_svi_rows).sort_values(
+            "Impacto comunidad", ascending=False, na_position="last"
+        )
+        st.dataframe(
+            _svi_df, use_container_width=True, hide_index=True,
+            column_config={
+                "Impacto comunidad": st.column_config.ProgressColumn(
+                    "Impacto comunidad", min_value=0, max_value=100, format="%.1f"),
+                "SVI": st.column_config.NumberColumn(format="%.1f"),
+                "Dependencia turística": st.column_config.NumberColumn(format="%.2f"),
+                "Fragilidad demográfica": st.column_config.NumberColumn(format="%.2f"),
+                "Exposición ambiental": st.column_config.NumberColumn(format="%.2f"),
+                "Población": st.column_config.NumberColumn(format="%d"),
+                "Empleo hostelería": st.column_config.NumberColumn(format="%d"),
+                "% ≥65 años": st.column_config.NumberColumn(format="%.1f"),
+                "Δ pob. 5 años (%)": st.column_config.NumberColumn(format="%.1f"),
+            },
+        )
+        st.caption(
+            "**SVI** = 0,40·Dependencia turística + 0,30·Fragilidad demográfica + "
+            "0,30·Exposición ambiental (pesos renormalizados sobre los componentes "
+            "disponibles). **Impacto comunidad** = exposición ambiental × dependencia "
+            "económica. Fuentes: ALMUDENA (hostelería, viviendas no principales, renta), "
+            "INE Padrón (población, envejecimiento, despoblación)."
+        )
+
+        if _view.confidence_detail == ConfidenceDetail.FULL:
+            with st.expander("⚖️ Procedencia y límites declarados (vista auditoría)", expanded=False):
+                st.markdown(
+                    "**Procedencia por fuente:**\n\n"
+                    f"- {_snap.sources.get('demographics', 'INE Padrón')}\n"
+                    f"- {_snap.sources.get('economy_tourism', 'ALMUDENA')}\n"
+                    f"- Crosswalk: {_snap.sources.get('crosswalk', '')}\n\n"
+                    "**Límites declarados:**\n\n"
+                    "- ALMUDENA solo cubre la Comunidad de Madrid: los municipios del lado "
+                    "de Segovia tienen SVI parcial (solo fragilidad demográfica).\n"
+                    "- EOATR (turismo rural) se publica por zona turística PNSG, no por municipio.\n"
+                    "- Municipios diminutos (<1.000 hab): indicadores volátiles / secreto estadístico.\n"
+                    "- Desfase temporal: socioeconómico (padrón 2025 / renta 2023) vs satélite "
+                    "(2025-26). Es contexto de enriquecimiento, no afirmación causal."
+                )
+                _cav = [
+                    (_snap.municipalities[i].name, c)
+                    for i in _muni_ids for c in _snap.municipalities[i].caveats
+                ]
+                if _cav:
+                    st.markdown("**Avisos por municipio:**")
+                    for _nm, _c in _cav:
+                        st.markdown(f"- *{_nm}*: {_c}")
+
+        st.divider()
+        st.markdown(
+            '<div style="font-size:0.72rem;color:#7a8899">Modelo proxy heredado '
+            '(gasto por visitante y ROI de conservación) — útil para el ROI '
+            'presupuestario, pero basado en estimaciones, no en ALMUDENA/INE:</div>',
+            unsafe_allow_html=True,
+        )
 
     # ── Constantes del modelo económico ──────────────────────────────────────
     _SPEND_PER_VISITOR_EUR  = 22.50   # gasto medio diario en restauración/comercio local

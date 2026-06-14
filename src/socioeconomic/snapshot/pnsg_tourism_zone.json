@@ -1,0 +1,179 @@
+{
+  "schema_version": "1.0",
+  "zone": "Parque Nacional Sierra de Guadarrama",
+  "source": "INE Encuesta de Ocupación en Alojamientos de Turismo Rural (EOATR)",
+  "generated_at": "2026-06-14T18:49:33+00:00",
+  "series": {
+    "75457": {
+      "kind": "demanda",
+      "source_file": "75457.csv",
+      "monthly": {
+        "Enero": null,
+        "Febrero": null,
+        "Marzo": null,
+        "Abril": null,
+        "Mayo": null,
+        "Junio": null,
+        "Julio": null,
+        "Agosto": null,
+        "Septiembre": null,
+        "Octubre": null,
+        "Noviembre": null,
+        "Diciembre": null
+      },
+      "annual_mean": null
+    },
+    "75458": {
+      "kind": "demanda",
+      "source_file": "75458.csv",
+      "monthly": {
+        "Enero": null,
+        "Febrero": null,
+        "Marzo": null,
+        "Abril": null,
+        "Mayo": null,
+        "Junio": null,
+        "Julio": null,
+        "Agosto": null,
+        "Septiembre": null,
+        "Octubre": null,
+        "Noviembre": null,
+        "Diciembre": null
+      },
+      "annual_mean": null
+    },
+    "75459": {
+      "kind": "demanda",
+      "source_file": "75459.csv",
+      "monthly": {
+        "Enero": null,
+        "Febrero": null,
+        "Marzo": null,
+        "Abril": null,
+        "Mayo": null,
+        "Junio": null,
+        "Julio": null,
+        "Agosto": null,
+        "Septiembre": null,
+        "Octubre": null,
+        "Noviembre": null,
+        "Diciembre": null
+      },
+      "annual_mean": null
+    },
+    "75451": {
+      "kind": "oferta",
+      "source_file": "75451.csv",
+      "monthly": {
+        "Enero": 99.0,
+        "Febrero": 104.0,
+        "Marzo": 104.0,
+        "Abril": 107.0,
+        "Mayo": 102.0,
+        "Junio": 103.0,
+        "Julio": 103.0,
+        "Agosto": 106.0,
+        "Septiembre": 106.0,
+        "Octubre": 111.0,
+        "Noviembre": 111.0,
+        "Diciembre": 106.0
+      },
+      "annual_mean": 105.2
+    },
+    "75452": {
+      "kind": "oferta",
+      "source_file": "75452.csv",
+      "monthly": {
+        "Enero": 1158.0,
+        "Febrero": 1258.0,
+        "Marzo": 1239.0,
+        "Abril": 1310.0,
+        "Mayo": 1214.0,
+        "Junio": 1208.0,
+        "Julio": 1219.0,
+        "Agosto": 1244.0,
+        "Septiembre": 1243.0,
+        "Octubre": 1305.0,
+        "Noviembre": 1286.0,
+        "Diciembre": 1237.0
+      },
+      "annual_mean": 1243.4
+    },
+    "75453": {
+      "kind": "oferta",
+      "source_file": "75453.csv",
+      "monthly": {
+        "Enero": 16.05,
+        "Febrero": 19.03,
+        "Marzo": 22.26,
+        "Abril": 17.82,
+        "Mayo": 23.79,
+        "Junio": 23.48,
+        "Julio": 23.82,
+        "Agosto": 34.2,
+        "Septiembre": 21.88,
+        "Octubre": 20.29,
+        "Noviembre": 21.91,
+        "Diciembre": 25.99
+      },
+      "annual_mean": 22.5
+    },
+    "75454": {
+      "kind": "oferta",
+      "source_file": "75454.csv",
+      "monthly": {
+        "Enero": 3320.0,
+        "Febrero": 4014.0,
+        "Marzo": 4171.0,
+        "Abril": 4033.0,
+        "Mayo": 4684.0,
+        "Junio": 5202.0,
+        "Julio": 4271.0,
+        "Agosto": 4850.0,
+        "Septiembre": 5661.0,
+        "Octubre": 5372.0,
+        "Noviembre": 4466.0,
+        "Diciembre": 4569.0
+      },
+      "annual_mean": 4551.1
+    },
+    "75455": {
+      "kind": "oferta",
+      "source_file": "75455.csv",
+      "monthly": {
+        "Enero": 18.63,
+        "Febrero": 23.97,
+        "Marzo": 24.84,
+        "Abril": 22.77,
+        "Mayo": 29.68,
+        "Junio": 28.94,
+        "Julio": 30.07,
+        "Agosto": 38.99,
+        "Septiembre": 28.2,
+        "Octubre": 25.92,
+        "Noviembre": 25.63,
+        "Diciembre": 31.7
+      },
+      "annual_mean": 27.4
+    },
+    "75456": {
+      "kind": "oferta",
+      "source_file": "75456.csv",
+      "monthly": {
+        "Enero": 189.0,
+        "Febrero": 214.0,
+        "Marzo": 232.0,
+        "Abril": 219.0,
+        "Mayo": 229.0,
+        "Junio": 218.0,
+        "Julio": 206.0,
+        "Agosto": 213.0,
+        "Septiembre": 218.0,
+        "Octubre": 209.0,
+        "Noviembre": 213.0,
+        "Diciembre": 206.0
+      },
+      "annual_mean": 213.8
+    }
+  }
+}
