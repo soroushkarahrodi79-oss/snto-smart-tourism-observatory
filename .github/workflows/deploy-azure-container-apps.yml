@@ -28,6 +28,7 @@ permissions:
   contents: read
 
 env:
+  RESOURCE_GROUP: rg-snto-observatory-app
   APP_NAME: snto-observatory
   IMAGE_REPO: snto
 
@@ -61,15 +62,8 @@ jobs:
 
       - name: Roll Container App to new image
         run: |
-          RG="$(az containerapp list \
-            --query "[?name=='${APP_NAME}'].resourceGroup | [0]" -o tsv)"
-          if [ -z "$RG" ]; then
-            echo "::error::Container App '${APP_NAME}' not found in this subscription."
-            exit 1
-          fi
-          echo "Resource group: $RG"
-          az containerapp update -g "$RG" -n "${APP_NAME}" \
+          az containerapp update -g "${RESOURCE_GROUP}" -n "${APP_NAME}" \
             --image "${{ secrets.ACR_LOGIN_SERVER }}/${IMAGE_REPO}:${GITHUB_SHA::8}"
-          FQDN="$(az containerapp show -g "$RG" -n "${APP_NAME}" \
+          FQDN="$(az containerapp show -g "${RESOURCE_GROUP}" -n "${APP_NAME}" \
             --query properties.configuration.ingress.fqdn -o tsv)"
           echo "### ✅ Deployed: https://${FQDN}" >> "$GITHUB_STEP_SUMMARY"
