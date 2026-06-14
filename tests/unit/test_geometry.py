@@ -357,8 +357,16 @@ class TestFetchDemWindow:
         return ds
 
     def _patch_client(self, mock_catalog):
-        """Patch Client.open on the already-injected pystac_client stub."""
-        return patch.object(_pystac_stub.Client, "open", return_value=mock_catalog)
+        """Patch Client.open on whichever pystac_client is live (stub or real).
+
+        When pystac-client is installed (e.g. CI), it may already be in
+        sys.modules before this module's ``setdefault`` stub injection, so the
+        real ``Client`` is what ``fetch_dem_window`` imports. Patching the live
+        module — instead of the orphaned ``_pystac_stub`` — keeps these tests
+        offline and deterministic in both environments.
+        """
+        import pystac_client  # resolves to the stub or the real module in sys.modules
+        return patch.object(pystac_client.Client, "open", return_value=mock_catalog)
 
     def test_returns_array_transform_crs(self):
         """Verify that fetch_dem_window returns (ndarray, transform, CRS) on success.
