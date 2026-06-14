@@ -1,23 +1,22 @@
 name: Deploy to Azure Container Apps
 
-# CI/CD: on every push to main, rebuild the image in ACR and roll the
-# Container App to it. Run deploy/azure-bootstrap.sh ONCE first to create the
-# resources, then configure the repository secrets listed below.
+# CI/CD: after CI passes on main, build the image, push it to ACR, and roll the
+# Container App to it.
 #
-# Required repo secrets (Settings ▸ Secrets and variables ▸ Actions):
-#   AZURE_CREDENTIALS  -> output of:
-#       az ad sp create-for-rbac --name snto-deployer \
-#         --role contributor \
-#         --scopes /subscriptions/<SUB_ID>/resourceGroups/rg-snto-observatory \
-#         --sdk-auth
-#   ACR_NAME           -> your ACR name (e.g. acrsnto12345)
+# Secrets used (Settings ▸ Secrets and variables ▸ Actions):
+#   ACR_LOGIN_SERVER   -> e.g. acrsnto12345.azurecr.io   (you already have this)
+#   ACR_USERNAME       -> ACR admin username             (you already have this)
+#   ACR_PASSWORD       -> ACR admin password             (you already have this)
+#   AZURE_CREDENTIALS  -> service-principal JSON for the final "roll" step.
+#                         Create it once in Azure Cloud Shell:
+#                           az ad sp create-for-rbac --name snto-deployer \
+#                             --role contributor \
+#                             --scopes /subscriptions/<SUB_ID> --sdk-auth
+#                         Paste the WHOLE JSON output as this secret.
 #
-# Required repo variables (or hard-code below):
-#   RESOURCE_GROUP=rg-snto-observatory
-#   APP_NAME=snto-observatory
+# Build & push use the ACR_* admin secrets (no Azure login needed). Only the
+# Container App update needs AZURE_CREDENTIALS (control-plane operation).
 
-# Gated on CI: this only runs after the "CI" workflow concludes successfully on
-# main (or via manual dispatch). It never runs on a push whose tests failed.
 on:
   workflow_run:
     workflows: ["CI"]
@@ -29,42 +28,48 @@ permissions:
   contents: read
 
 env:
-  RESOURCE_GROUP: rg-snto-observatory
   APP_NAME: snto-observatory
   IMAGE_REPO: snto
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Deploy only when CI passed (workflow_run) or when triggered manually.
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ── Build & push using the ACR admin credentials you already have ────────
+      - name: Log in to ACR
+        run: |
+          echo "${{ secrets.ACR_PASSWORD }}" | docker login \
+            "${{ secrets.ACR_LOGIN_SERVER }}" \
+            -u "${{ secrets.ACR_USERNAME }}" --password-stdin
+
+      - name: Build & push image
+        run: |
+          IMG="${{ secrets.ACR_LOGIN_SERVER }}/${IMAGE_REPO}"
+          docker build -t "${IMG}:${GITHUB_SHA::8}" -t "${IMG}:latest" .
+          docker push "${IMG}:${GITHUB_SHA::8}"
+          docker push "${IMG}:latest"
+
+      # ── Roll the Container App (needs Azure control-plane auth) ───────────────
       - name: Azure login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build image in ACR
-        run: |
-          az acr build \
-            --registry "${{ secrets.ACR_NAME }}" \
-            --image "${IMAGE_REPO}:${GITHUB_SHA::8}" \
-            --image "${IMAGE_REPO}:latest" \
-            .
-
       - name: Roll Container App to new image
         run: |
-          ACR_SERVER="$(az acr show -n "${{ secrets.ACR_NAME }}" --query loginServer -o tsv)"
-          az containerapp update \
-            -g "${RESOURCE_GROUP}" \
-            -n "${APP_NAME}" \
-            --image "${ACR_SERVER}/${IMAGE_REPO}:${GITHUB_SHA::8}"
-
-      - name: Output live URL
-        run: |
-          FQDN="$(az containerapp show -g "${RESOURCE_GROUP}" -n "${APP_NAME}" \
+          RG="$(az containerapp list \
+            --query "[?name=='${APP_NAME}'].resourceGroup | [0]" -o tsv)"
+          if [ -z "$RG" ]; then
+            echo "::error::Container App '${APP_NAME}' not found in this subscription."
+            exit 1
+          fi
+          echo "Resource group: $RG"
+          az containerapp update -g "$RG" -n "${APP_NAME}" \
+            --image "${{ secrets.ACR_LOGIN_SERVER }}/${IMAGE_REPO}:${GITHUB_SHA::8}"
+          FQDN="$(az containerapp show -g "$RG" -n "${APP_NAME}" \
             --query properties.configuration.ingress.fqdn -o tsv)"
           echo "### ✅ Deployed: https://${FQDN}" >> "$GITHUB_STEP_SUMMARY"
