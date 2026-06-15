@@ -2257,6 +2257,39 @@ with tab_socioeco:
             )
     st.write("")
 
+    # ── Análisis de sensibilidad del parámetro de mayor influencia ────────────
+    # El gasto/visitante (€22,50) es un multiplicador lineal: escala toda la
+    # exposición de ingresos. En vez de presentarlo como punto único, mostramos
+    # una banda ±20% (escenario bajo / central / alto) para hacer explícita la
+    # incertidumbre, sin alterar el valor por defecto del modelo.
+    _SENS_DELTA = 0.20
+    _sens = {
+        "Escenario bajo (−20% gasto/visitante)":  (total_revenue_risk * (1 - _SENS_DELTA), "#558b2f"),
+        "Central (€22,50 · MITECO 2023)":          (total_revenue_risk,                     "#c62828"),
+        "Escenario alto (+20% gasto/visitante)":   (total_revenue_risk * (1 + _SENS_DELTA), "#6a1b9a"),
+    }
+    st.markdown(
+        "**Análisis de sensibilidad** — exposición total de ingresos según el gasto/visitante "
+        "(€%.2f), el multiplicador más influyente del modelo:" % _SPEND_PER_VISITOR_EUR
+    )
+    _scol = st.columns(3)
+    for _c, (_lbl, (_v, _fg)) in zip(_scol, _sens.items()):
+        with _c:
+            st.markdown(
+                f'<div class="kpi-card" style="border-left:4px solid {_fg};">'
+                f'<div class="kpi-meta">{_lbl}</div>'
+                f'<div class="kpi-value" style="color:{_fg};font-size:1.25rem">€{_v:,.0f}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+    st.caption(
+        "Banda lineal ±20% sobre el gasto/visitante. Es un **análisis prospectivo de "
+        "incertidumbre** sobre un parámetro estimado, no un rango de confianza estadístico. "
+        "Trazabilidad y sensibilidad de todos los multiplicadores en la pestaña "
+        "**8️⃣ Fundamento y Trazabilidad**."
+    )
+    st.write("")
+
     # ── Filtro por municipio ──────────────────────────────────────────────────
     municipios = ["Todos los municipios"] + sorted(eco_df["Municipio"].unique().tolist())
     sel_muni = st.selectbox("Filtrar por municipio", municipios, index=0)
