@@ -1,0 +1,51 @@
+SNTO — Smart Nature Tourism Observatory
+Licencia de uso académico y de investigación
+=============================================
+
+Copyright (c) 2026 Soroush Karahrodi
+
+Proyecto de investigación académica independiente desarrollado en el marco de un
+Trabajo de Fin de Máster (TFM) en la Universidad Complutense de Madrid (UCM).
+Supervisión académica: Carmen Mínguez · Susana Ramírez García (REGENERA).
+
+
+1. CÓDIGO FUENTE
+
+Se concede permiso, libre de cargo, para usar, copiar, modificar y estudiar este
+código con fines ACADÉMICOS, DOCENTES Y DE INVESTIGACIÓN, siempre que:
+
+  a) Se cite la autoría original y la procedencia del proyecto (SNTO — Smart
+     Nature Tourism Observatory, UCM).
+  b) Esta nota de licencia y de atribución se conserve en las copias o partes
+     sustanciales del código.
+
+El uso COMERCIAL, así como la redistribución como producto o servicio, requiere
+autorización previa por escrito del autor.
+
+
+2. DATOS
+
+Este software REUTILIZA datos de terceros que NO están cubiertos por esta licencia
+y conservan las suyas propias. Su uso exige la atribución correspondiente:
+
+  - Sentinel-2 L2A (NDVI/NDMI): ESA / Copernicus — datos abiertos Copernicus.
+      Atribución: "Contiene datos Copernicus Sentinel-2 modificados (2025-2026)".
+  - Cartografía de sendas y zonificación PRUG: OAPN (Red de Parques Nacionales).
+      Atribución: "Cartografía oficial OAPN — Parque Nacional Sierra de Guadarrama".
+  - Cartografía complementaria: OpenStreetMap — Open Database License (ODbL).
+      Atribución: "© OpenStreetMap contributors".
+  - Padrón municipal y EOATR: Instituto Nacional de Estadística (INE).
+  - Economía municipal (hostelería, renta): ALMUDENA — Instituto de Estadística
+      de la Comunidad de Madrid.
+
+El detalle de fuentes y licencias está en el README (sección "Fuentes y licencias
+de datos") y en la pestaña "Fundamento y Trazabilidad" del observatorio.
+
+
+3. EXENCIÓN DE RESPONSABILIDAD
+
+EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO. Las salidas del
+modelo socioeconómico (ingresos, empleos y ratios) son ESCENARIOS PROSPECTIVOS, no
+mediciones ni predicciones, y no deben usarse como base única para decisiones de
+inversión real sin la validación de campo descrita en la documentación. El autor no
+asume responsabilidad por daños derivados del uso de este software o de sus datos.

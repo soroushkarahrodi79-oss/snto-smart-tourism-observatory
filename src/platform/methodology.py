@@ -509,6 +509,72 @@ def render_multiplier_table() -> None:
     st.dataframe(df, width="stretch", hide_index=True)
 
 
+@dataclass(frozen=True)
+class DataSource:
+    name: str
+    provider: str
+    license: str
+    attribution: str
+    use_in_snto: str
+
+
+DATA_SOURCES: list[DataSource] = [
+    DataSource(
+        "Sentinel-2 L2A (NDVI/NDMI)", "ESA / Copernicus",
+        "Copernicus open data (uso libre con atribución)",
+        "Contiene datos Copernicus Sentinel-2 modificados (2025–2026)",
+        "Cálculo del EHS, ΔEHS y SCM sobre las sendas reales del PNSG.",
+    ),
+    DataSource(
+        "Cartografía de sendas / zonificación", "OAPN (Red de Parques Nacionales)",
+        "Reutilización institucional con cita de la fuente",
+        "Cartografía oficial OAPN — Parque Nacional Sierra de Guadarrama",
+        "Geometría de las 73 sendas y zonificación PRUG.",
+    ),
+    DataSource(
+        "Cartografía complementaria", "OpenStreetMap",
+        "Open Database License (ODbL)",
+        "© OpenStreetMap contributors",
+        "Trazas y puntos de interés donde no hay cobertura OAPN.",
+    ),
+    DataSource(
+        "Padrón, EOATR (demografía y turismo)", "INE",
+        "Datos abiertos INE (reutilización con cita)",
+        "Instituto Nacional de Estadística (INE)",
+        "Población, envejecimiento, despoblación y ocupación turística.",
+    ),
+    DataSource(
+        "Economía municipal (hostelería, renta)", "ALMUDENA — Comunidad de Madrid",
+        "Banco de Datos Municipal y Zonal (reutilización con cita)",
+        "ALMUDENA, Instituto de Estadística de la Comunidad de Madrid",
+        "Empleo en hostelería y componentes del SVI (solo lado Madrid).",
+    ),
+]
+
+
+def render_data_sources() -> None:
+    """Sección de fuentes de datos y licencias (requisito de publicación)."""
+    import pandas as pd
+    import streamlit as st
+
+    st.markdown("#### D · Fuentes de datos y licencias")
+    st.caption(
+        "Atribución obligatoria de cada fuente para la publicación oficial del observatorio."
+    )
+    df = pd.DataFrame([{
+        "Fuente": s.name,
+        "Proveedor": s.provider,
+        "Licencia / condiciones": s.license,
+        "Atribución requerida": s.attribution,
+        "Uso en SNTO": s.use_in_snto,
+    } for s in DATA_SOURCES])
+    st.dataframe(df, width="stretch", hide_index=True)
+    st.caption(
+        "El código se distribuye para **uso académico y de investigación** (UCM). "
+        "Los datos pertenecen a sus respectivos proveedores y conservan sus licencias."
+    )
+
+
 def render_limitations() -> None:
     """Sección C — Limitaciones e incertidumbre."""
     import streamlit as st

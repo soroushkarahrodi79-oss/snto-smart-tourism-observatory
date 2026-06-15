@@ -29,7 +29,7 @@ from src.platform.enrichment import enrich_assets_with_satellite, enrichment_sum
 from src.platform.provenance import (
     data_status_badge, load_timeseries_coverage, snapshot_provenance,
 )
-from src.platform.views import ConfidenceDetail, get_view, view_modes
+from src.platform.views import ConfidenceDetail, ViewMode, get_view, view_modes
 from src.platform import methodology as method
 from src.temporal import DataStatus
 from src.socioeconomic.loader import load_municipalities, snapshot_exists
@@ -1367,10 +1367,15 @@ with st.sidebar:
         )
     st.divider()
     st.markdown("**Vista / audiencia**")
+    _modes = view_modes()
+    # Por defecto, vista Auditoría: es la que expone procedencia, fórmulas y límites,
+    # la adecuada para revisión metodológica / defensa académica.
+    _default_view_idx = _modes.index(ViewMode.TRIBUNAL)
     _view_mode = st.radio(
         "Vista",
-        options=view_modes(),
+        options=_modes,
         format_func=lambda m: f"{get_view(m).icon} {get_view(m).label}",
+        index=_default_view_idx,
         label_visibility="collapsed",
         key="view_mode",
     )
@@ -1418,7 +1423,7 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
     st.divider()
-    st.caption("SNTO v0.1 · Datos sintéticos de validación")
+    st.caption("SNTO v0.1 · Sentinel-2 real + INE/ALMUDENA + calibración")
     st.caption(f"Territorio principal: {_terr_cfg['short']} (Madrid · Segovia)")
 
 
@@ -2961,16 +2966,27 @@ with tab_method:
     method.render_traceability_matrix()
     st.divider()
     method.render_limitations()
+    st.divider()
+    method.render_data_sources()
 
 
 # ── Pie de página ─────────────────────────────────────────────────────────────
 st.divider()
 st.markdown(
-    f'<div style="font-size:0.72rem;color:#9aa4af;text-align:center;padding:4px 0 8px;">'
+    f'<div style="font-size:0.72rem;color:#9aa4af;text-align:center;padding:4px 0 2px;">'
     f'Smart Natural Tourism Observatory (SNTO) v0.1 · '
     f'Plataforma de Inteligencia Estratégica de Destinos · '
     f'{dashboard.territory_name} · Madrid (España) · '
-    f'Datos sintéticos de validación'
+    f'Sentinel-2 real (PNSG) + capa socioeconómica INE/ALMUDENA + activos de calibración'
     f'</div>',
+    unsafe_allow_html=True,
+)
+st.markdown(
+    '<div style="font-size:0.66rem;color:#9aa4af;text-align:center;padding:0 0 8px;">'
+    'Fuentes de datos: Contiene datos Copernicus Sentinel-2 modificados (ESA) · '
+    'cartografía © OpenStreetMap (ODbL) y OAPN (Red de Parques Nacionales) · '
+    'INE (Padrón, EOATR) · ALMUDENA, Comunidad de Madrid · '
+    'Procedencia y licencias en la pestaña «Fundamento y Trazabilidad».'
+    '</div>',
     unsafe_allow_html=True,
 )

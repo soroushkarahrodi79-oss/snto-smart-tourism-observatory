@@ -12,7 +12,7 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 [![Deploy](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml)
 [![Deploy target](https://img.shields.io/badge/deploy-Azure%20Container%20Apps-0078D4?logo=microsoftazure&logoColor=white)](#7-despliegue)
 [![Status](https://img.shields.io/badge/estado-investigaci%C3%B3n%20activa-blue)](#1-estado-del-proyecto)
-[![License](https://img.shields.io/badge/uso-acad%C3%A9mico-lightgrey)](#11-licencia--uso-acad%C3%A9mico)
+[![License](https://img.shields.io/badge/uso-acad%C3%A9mico-lightgrey)](LICENSE)
 
 **🔴 [Dashboard en vivo](https://snto-observatory.happyground-be027676.swedencentral.azurecontainerapps.io/)** · 📄 [Whitepaper](WHITEPAPER_SNTO_Architecture_Blueprint.md) · 🏗 [Arquitectura](ARCHITECTURE.md)
 
@@ -52,7 +52,8 @@ _Dashboard ejecutivo con 10 KPIs territoriales, mapa folium de activos y modelo 
 8. [Tests](#8-tests)
 9. [Honestidad sobre limitaciones](#9-honestidad-sobre-limitaciones)
 10. [Fundamento científico](#10-fundamento-científico)
-11. [Licencia / uso académico](#11-licencia--uso-académico)
+11. [Fuentes y licencias de datos](#11-fuentes-y-licencias-de-datos)
+12. [Licencia / uso académico](#12-licencia--uso-académico)
 
 ---
 
@@ -331,9 +332,27 @@ El detalle completo está en el [Whitepaper](WHITEPAPER_SNTO_Architecture_Bluepr
 
 ---
 
-## 11. Licencia / uso académico
+## 11. Fuentes y licencias de datos
+
+Atribución obligatoria de cada fuente (también consultable en vivo en la pestaña **8 · Fundamento y Trazabilidad** del observatorio):
+
+| Fuente | Proveedor | Licencia / condiciones | Atribución requerida |
+|---|---|---|---|
+| Sentinel-2 L2A (NDVI/NDMI) | ESA / Copernicus | Datos abiertos Copernicus (uso libre con atribución) | *Contiene datos Copernicus Sentinel-2 modificados (2025–2026)* |
+| Cartografía de sendas y zonificación PRUG | OAPN (Red de Parques Nacionales) | Reutilización institucional con cita | *Cartografía oficial OAPN — Parque Nacional Sierra de Guadarrama* |
+| Cartografía complementaria | OpenStreetMap | Open Database License (ODbL) | *© OpenStreetMap contributors* |
+| Padrón municipal, EOATR | INE | Datos abiertos INE (reutilización con cita) | *Instituto Nacional de Estadística (INE)* |
+| Economía municipal (hostelería, renta) | ALMUDENA — Comunidad de Madrid | Banco de Datos Municipal y Zonal (reutilización con cita) | *ALMUDENA, Instituto de Estadística de la Comunidad de Madrid* |
+
+El **código** se distribuye para **uso académico y de investigación**. Los **datos** pertenecen a sus respectivos proveedores y conservan sus licencias; este proyecto solo los reutiliza con la atribución indicada.
+
+---
+
+## 12. Licencia / uso académico
 
 Proyecto de investigación académica independiente desarrollado en la **Universidad Complutense de Madrid (UCM)**. Territorio real principal: **Parque Nacional Sierra de Guadarrama** (Red de Parques Nacionales — OAPN). Territorio de calibración metodológica: **Reserva de la Biosfera Sierra del Rincón** (Madrid). Territorio de demostración de la inteligencia territorial: **Villuercas-Ibores-Jara Geopark** (Extremadura). Uso académico y de investigación.
+
+Términos de uso del código y exención de responsabilidad: ver el fichero [`LICENSE`](LICENSE). El código es de uso académico/investigación con atribución; los datos pertenecen a sus proveedores y conservan sus licencias (sección 11).
 
 Supervisión académica: Carmen Mínguez · Susana Ramírez García (REGENERA) — Universidad Complutense de Madrid.
 
