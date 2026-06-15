@@ -2318,36 +2318,35 @@ with tab_diagnostic:
     )
 
     with st.expander("📐 Nota metodológica — índices espectrales, EHS y convención de signo", expanded=False):
+        st.markdown("**Índices espectrales (Sentinel-2 L2A, tile T30TVL):**")
+        st.latex(r"NDVI = \frac{NIR - RED}{NIR + RED}\ \ (B08, B04) \qquad "
+                 r"NDMI = \frac{NIR - SWIR}{NIR + SWIR}\ \ (B08, B11)")
         st.markdown(
-            r"""
-**Índices espectrales (Sentinel-2 L2A, tile T30TVL):**
-
-- **NDVI** $= \dfrac{NIR - RED}{NIR + RED}$ (B08, B04) — vigor de la vegetación.
-- **NDMI** $= \dfrac{NIR - SWIR}{NIR + SWIR}$ (B08, B11) — contenido hídrico foliar; detecta
-  estrés que el NDVI no ve cuando el dosel aún es verde.
-- En **dosel denso** (NDVI ≥ 0,80, p. ej. hayedos) el NDVI **satura**: el peso del EHS se
-  desplaza hacia el NDMI (y se usa EVI para la línea base) para no perder sensibilidad.
-
-**EHS por senda (Δ estacional):** se ancla en percentiles de la *propia escena*, no en
-constantes arbitrarias:
-
-$$D_x = \mathrm{clamp}\!\left(\frac{P_{90} - \bar{x}}{P_{90} - P_{10}}\right), \quad
-EHS = 100 \cdot (w_{NDVI} D_{NDVI} + w_{NDMI} D_{NDMI})$$
-
-donde **P90** (`EHS_P_BASE`) es la referencia sana y **P10** (`EHS_P_FLOOR`) el suelo
-degradado, calculados tras excluir píxeles enmascarados por SCL y el propio buffer de 50 m
-de la senda (para no medir el problema dentro de la referencia).
-
-**Convención de signo (clave para auditar):** el Pipeline A calcula *estrés* (0 = sano,
-100 = degradado); el dashboard habla *salud* (0 = crítico, 100 = sano). La conversión es
-**única**, en `src/platform/real_trails.py` (`stress_to_health`), de modo que todo el
-dashboard usa **alto = sano**. El **ΔEHS = salud_primavera − salud_verano**: ΔEHS negativo
-= deterioro estival.
-
-**Override conservador (Fase 2):** cuando el EHS satelital de la senda es *más degradado*
-que el juicio experto, **sobreescribe** al curado y escala tier/alerta; cuando es *más
-verde*, se mantiene el curado (posible geología, no degradación).
-            """
+            "- **NDVI** — vigor de la vegetación.\n"
+            "- **NDMI** — contenido hídrico foliar; detecta estrés que el NDVI no ve "
+            "cuando el dosel aún está verde.\n"
+            "- En **dosel denso** (NDVI ≥ 0,80, p. ej. hayedos) el NDVI **satura**: el peso "
+            "del EHS se desplaza hacia el NDMI (y se usa EVI para la línea base) para no "
+            "perder sensibilidad."
+        )
+        st.markdown(
+            "**EHS por senda (Δ estacional):** se ancla en percentiles de la *propia "
+            "escena*, no en constantes arbitrarias:"
+        )
+        st.latex(r"D_x = \mathrm{clamp}\!\left(\frac{P_{90} - \bar{x}}{P_{90} - P_{10}}\right)"
+                 r"\qquad EHS = 100\,(w_{NDVI}\,D_{NDVI} + w_{NDMI}\,D_{NDMI})")
+        st.markdown(
+            "donde **P90** (`EHS_P_BASE`) es la referencia sana y **P10** (`EHS_P_FLOOR`) el "
+            "suelo degradado, calculados tras excluir píxeles enmascarados por SCL y el propio "
+            "buffer de 50 m de la senda (para no medir el problema dentro de la referencia).\n\n"
+            "**Convención de signo (clave para auditar):** el Pipeline A calcula *estrés* "
+            "(0 = sano, 100 = degradado); el dashboard habla *salud* (0 = crítico, 100 = sano). "
+            "La conversión es **única**, en `src/platform/real_trails.py` (`stress_to_health`), "
+            "de modo que todo el dashboard usa **alto = sano**. El **ΔEHS = salud_primavera − "
+            "salud_verano**: ΔEHS negativo = deterioro estival.\n\n"
+            "**Override conservador (Fase 2):** cuando el EHS satelital de la senda es *más "
+            "degradado* que el juicio experto, **sobreescribe** al curado y escala tier/alerta; "
+            "cuando es *más verde*, se mantiene el curado (posible geología, no degradación)."
         )
 
     # ── Control de modo de visualización ─────────────────────────────────────
