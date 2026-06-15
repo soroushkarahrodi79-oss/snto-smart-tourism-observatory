@@ -1375,6 +1375,8 @@ with st.sidebar:
     )
     _view = get_view(_view_mode)
     st.caption(_view.audience)
+    if _view.shows:
+        st.caption(f"🔁 {_view.shows}")
     st.divider()
 
 # ── Cargar datos ──────────────────────────────────────────────────────────────
@@ -1509,6 +1511,24 @@ with tab_kpis:
         c.asset_id: c.scenarios[c.best_scenario_code].cost_eur
         for c in base_comps
     }
+
+    # ── Vista GESTOR: acción prioritaria en lenguaje de dirección ─────────────
+    if _view.simplified:
+        _priority = next((a for a in ranked_assets if (a.tier or 5) <= 2), None)
+        if _priority is not None:
+            _act = _priority.recommended_action_label or "intervención de conservación"
+            _cost = _cost_by_id.get(_priority.asset_id)
+            _cost_txt = f" · coste estimado **€{_cost:,.0f}**" if _cost else ""
+            st.markdown(
+                f'<div style="padding:12px 16px;border-radius:8px;margin-bottom:10px;'
+                f'background:#fff8f0;border-left:5px solid #EF9F27;">'
+                f'<div style="font-size:0.66rem;text-transform:uppercase;letter-spacing:.06em;'
+                f'color:#854F0B;font-weight:700">Acción prioritaria del territorio</div>'
+                f'<div style="font-size:0.95rem;color:#0d1b2a;margin-top:3px">'
+                f'<b>{_priority.name.split("—")[0].strip()}</b> ({_priority.region}) — '
+                f'{_act}{_cost_txt}</div></div>',
+                unsafe_allow_html=True,
+            )
 
     kpis = dashboard.kpis
     for row_start in range(0, len(kpis), 4):
@@ -1714,6 +1734,28 @@ with tab_timeseries:
         st.plotly_chart(ts_fig, width="stretch")
     except Exception as _e:
         st.error(f"Error al renderizar el gráfico: {_e}", icon="⚠️")
+
+    # ── Detalle modulado por vista/audiencia ──────────────────────────────────
+    _trend_es = {"decreasing": "↘ deterioro", "increasing": "↗ mejora",
+                 "no_trend": "→ estable"}.get(selected_asset.trend_direction, "→ estable")
+    if _view.simplified:
+        # GESTOR: una sola línea, sin jerga estadística.
+        st.info(
+            f"**Tendencia:** {_trend_es} · **Salud (EHS)** {selected_asset.ehs:.0f}/100. "
+            f"{'Requiere actuación.' if (selected_asset.tier or 5) <= 2 else 'Bajo control.'}",
+            icon="🧭",
+        )
+    if _view.technical:
+        # TÉCNICA / AUDITORÍA: estadística cruda del activo.
+        _sig = "significativa (p<0,05)" if selected_asset.mk_p_value < 0.05 else "no significativa"
+        st.caption(
+            f"🔬 **Mann-Kendall:** dirección `{selected_asset.trend_direction}` · "
+            f"p-valor **{selected_asset.mk_p_value:.3f}** ({_sig}) · "
+            f"**DCS** {selected_asset.dcs:.0f}/100 · "
+            f"**SCM** {selected_asset.scm_classification} "
+            f"(confianza {selected_asset.scm_confidence}) · "
+            f"riesgo {selected_asset.risk_score:.2f}."
+        )
 
     # ── Nota metodológica ─────────────────────────────────────────────────────
     with st.expander("ℹ️ Nota metodológica sobre la simulación", expanded=False):
@@ -2317,7 +2359,8 @@ with tab_diagnostic:
         "Sentinel-2 (Pipeline A) con su EHS y ΔEHS observados."
     )
 
-    with st.expander("📐 Nota metodológica — índices espectrales, EHS y convención de signo", expanded=False):
+    with st.expander("📐 Nota metodológica — índices espectrales, EHS y convención de signo",
+                     expanded=_view.technical):
         st.markdown("**Índices espectrales (Sentinel-2 L2A, tile T30TVL):**")
         st.latex(r"NDVI = \frac{NIR - RED}{NIR + RED}\ \ (B08, B04) \qquad "
                  r"NDMI = \frac{NIR - SWIR}{NIR + SWIR}\ \ (B08, B11)")
@@ -2494,26 +2537,51 @@ with tab_assets:
     # ── Validación cruzada con el satélite (Pipeline A) ───────────────────────
     # Se reutiliza la calibración calculada en load_dashboard (contra el EHS
     # curado ORIGINAL, antes del override) para no falsear la concordancia.
+    # Modulada por vista: GESTOR ve solo el titular; TÉCNICA/AUDITORÍA, el detalle.
     _calib = calibration
     _cov = coverage_summary(_calib)
-    with st.container():
-        cc1, cc2, cc3, cc4 = st.columns(4)
-        cc1.metric("✓ Satélite confirma", _cov["confirma"])
-        cc2.metric("⚠ Satélite más verde", _cov["mas_sano"])
-        cc3.metric("⚠ Satélite más degradado (override)", _cov["mas_degradado"])
-        cc4.metric("— Sin senda equivalente", _cov["sin_dato"])
-    st.caption(
-        "**Validación cruzada + override conservador:** cada activo curado se contrasta "
-        "con el EHS satelital real de su senda concreta (Pipeline A · Sentinel-2). "
-        "El EHS curado mide *salud bajo presión turística* (juicio experto); el "
-        "satelital mide *verdor de la vegetación* (NDVI/NDMI). Política aplicada: cuando "
-        "el satélite ve **más degradación** que el experto (*más degradado*), el dato "
-        "satelital **sobreescribe** el EHS curado y escala tier/alerta en todo el "
-        "dashboard. Cuando el satélite es **más verde** (*más verde*) se mantiene el "
-        "juicio curado, porque en alta montaña la roca/canchal alpino tiene poco NDVI "
-        "por geología, no por turismo. Así el satélite **escala**, nunca relaja, el "
-        "diagnóstico experto."
-    )
+    if _view.simplified:
+        st.caption(
+            f"🛰️ Validación satelital: **{_cov['mas_degradado']}** activo(s) con override "
+            f"(satélite más degradado), **{_cov['confirma']}** confirmados, "
+            f"**{_cov['sin_dato']}** sin senda equivalente. Detalle metodológico en la vista "
+            f"de Auditoría científica."
+        )
+    else:
+        with st.container():
+            cc1, cc2, cc3, cc4 = st.columns(4)
+            cc1.metric("✓ Satélite confirma", _cov["confirma"])
+            cc2.metric("⚠ Satélite más verde", _cov["mas_sano"])
+            cc3.metric("⚠ Satélite más degradado (override)", _cov["mas_degradado"])
+            cc4.metric("— Sin senda equivalente", _cov["sin_dato"])
+        st.caption(
+            "**Validación cruzada + override conservador:** cada activo curado se contrasta "
+            "con el EHS satelital real de su senda concreta (Pipeline A · Sentinel-2). "
+            "El EHS curado mide *salud bajo presión turística* (juicio experto); el "
+            "satelital mide *verdor de la vegetación* (NDVI/NDMI). Política aplicada: cuando "
+            "el satélite ve **más degradación** que el experto (*más degradado*), el dato "
+            "satelital **sobreescribe** el EHS curado y escala tier/alerta en todo el "
+            "dashboard. Cuando el satélite es **más verde** (*más verde*) se mantiene el "
+            "juicio curado, porque en alta montaña la roca/canchal alpino tiene poco NDVI "
+            "por geología, no por turismo. Así el satélite **escala**, nunca relaja, el "
+            "diagnóstico experto."
+        )
+        if _view.audit:
+            with st.expander("⚖️ Procedencia y límites declarados (vista auditoría)", expanded=False):
+                _real_badge = data_status_badge(DataStatus.REAL)
+                _syn_badge = data_status_badge(DataStatus.SYNTHETIC)
+                st.markdown(
+                    f"- {_real_badge.emoji} **EHS satelital:** {_real_badge.caveat} "
+                    f"Fuente Sentinel-2 L2A, tile T30TVL (Pipeline A).\n"
+                    f"- {_syn_badge.emoji} **EHS curado:** juicio experto de salud bajo presión "
+                    f"turística; capa narrativa contrastada (no sustituida al alza) por el satélite.\n"
+                    f"- **Override conservador:** solo escala cuando el satélite ve más "
+                    f"degradación (`mas_degradado`); nunca relaja el diagnóstico experto.\n"
+                    f"- **Mapeo activo↔senda:** `calibration._ASSET_TRAIL_MAP` "
+                    f"(solo correspondencias toponímicas defendibles; el resto, SIN_DATO).\n"
+                    f"- **Límites:** resolución ~10–30 m; sendas sin equivalente OSM/OAPN no "
+                    f"calibran; concordancia con banda ±12 EHS."
+                )
     st.divider()
 
     # Filtros

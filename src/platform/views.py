@@ -39,6 +39,14 @@ class ViewProfile:
     emphasis: str
     confidence_detail: ConfidenceDetail
     banner: str
+    # ── Política de divulgación por capas (F7) ────────────────────────────────
+    # Controlan qué muestra cada vista, para que las tres difieran de verdad y no
+    # solo en el banner. Principio aditivo: todas ven el núcleo; cada perfil suma
+    # o quita capas.
+    technical: bool = False    # NDVI/NDMI crudo, p-valores, componentes DCS, percentiles
+    simplified: bool = False   # lenguaje llano, oculta jerga, decisión primero
+    audit: bool = False        # procedencia, fechas de escena, override, validación cruzada, límites
+    shows: str = ""            # resumen de una línea de "qué cambia" (para el sidebar)
 
 
 _PROFILES: dict[ViewMode, ViewProfile] = {
@@ -51,6 +59,8 @@ _PROFILES: dict[ViewMode, ViewProfile] = {
         confidence_detail=ConfidenceDetail.RAW,
         banner="Vista técnica: índices espectrales, baselines y métricas de "
                "incertidumbre sin simplificar.",
+        technical=True,
+        shows="Añade p-valores Mann-Kendall, componentes DCS y notas espectrales abiertas.",
     ),
     ViewMode.GESTOR: ViewProfile(
         mode=ViewMode.GESTOR,
@@ -61,6 +71,8 @@ _PROFILES: dict[ViewMode, ViewProfile] = {
         confidence_detail=ConfidenceDetail.CONCISE,
         banner="Vista gestor: prioridad, presupuesto y acción — con el nivel de "
                "confianza resumido en una línea.",
+        simplified=True,
+        shows="Oculta la jerga estadística y añade la acción prioritaria del territorio.",
     ),
     ViewMode.TRIBUNAL: ViewProfile(
         mode=ViewMode.TRIBUNAL,
@@ -78,6 +90,9 @@ _PROFILES: dict[ViewMode, ViewProfile] = {
                "demográfica en Segovia. Límites: resolución ~10-30 m, profundidad temporal "
                "del snapshot y sendas sin equivalente OSM (SIN_DATO). Cada cifra lleva su "
                "procedencia y nivel de confianza (DCS).",
+        technical=True,
+        audit=True,
+        shows="Suma a la vista técnica la procedencia del dato, la validación cruzada y los límites declarados.",
     ),
 }
 
