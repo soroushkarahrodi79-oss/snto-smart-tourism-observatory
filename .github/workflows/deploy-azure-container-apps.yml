@@ -3,19 +3,37 @@ name: Deploy to Azure Container Apps
 # CI/CD: after CI passes on main, build the image, push it to ACR, and roll the
 # Container App to it.
 #
-# Secrets used (Settings ▸ Secrets and variables ▸ Actions):
-#   ACR_LOGIN_SERVER   -> e.g. acrsnto12345.azurecr.io   (you already have this)
-#   ACR_USERNAME       -> ACR admin username             (you already have this)
-#   ACR_PASSWORD       -> ACR admin password             (you already have this)
-#   AZURE_CREDENTIALS  -> service-principal JSON for the final "roll" step.
-#                         Create it once in Azure Cloud Shell:
-#                           az ad sp create-for-rbac --name snto-deployer \
-#                             --role contributor \
-#                             --scopes /subscriptions/<SUB_ID> --sdk-auth
-#                         Paste the WHOLE JSON output as this secret.
+# AUTENTICACIÓN: OIDC + user-assigned managed identity (UAMI).
+# El tenant de la UCM bloquea `az ad sp create-for-rbac` (app-registration), así
+# que NO se usa un service principal con secreto. En su lugar, una UAMI (recurso
+# ARM, permitido al owner de la suscripción) con una *federated credential* hacia
+# este repo permite a GitHub Actions obtener un token sin secretos.
 #
-# Build & push use the ACR_* admin secrets (no Azure login needed). Only the
-# Container App update needs AZURE_CREDENTIALS (control-plane operation).
+# Secrets/variables usados (Settings ▸ Secrets and variables ▸ Actions):
+#   ACR_LOGIN_SERVER       -> acrsnto1781009309.azurecr.io   (ya existe)
+#   ACR_USERNAME           -> usuario admin de ACR           (ya existe)
+#   ACR_PASSWORD           -> password admin de ACR          (ya existe)
+#   AZURE_CLIENT_ID        -> clientId de la UAMI            (nuevo, OIDC)
+#   AZURE_TENANT_ID        -> tenantId de Azure              (nuevo, OIDC)
+#   AZURE_SUBSCRIPTION_ID  -> id de la suscripción           (nuevo, OIDC)
+#
+# Provisión Azure (UNA sola vez, en Azure Cloud Shell con identidad owner):
+#   RG=rg-snto-observatory-app
+#   az identity create -g $RG -n id-snto-gha-deployer
+#   CID=$(az identity show -g $RG -n id-snto-gha-deployer --query clientId -o tsv)
+#   OID=$(az identity show -g $RG -n id-snto-gha-deployer --query principalId -o tsv)
+#   SUB=$(az account show --query id -o tsv)
+#   # Federated credential: rama main de este repo (cubre push y workflow_dispatch)
+#   az identity federated-credential create -g $RG --identity-name id-snto-gha-deployer \
+#     --name gha-main \
+#     --issuer https://token.actions.githubusercontent.com \
+#     --subject repo:soroushkarahrodi79-oss/snto-smart-tourism-observatory:ref:refs/heads/main \
+#     --audiences api://AzureADTokenExchange
+#   # Rol mínimo: Contributor sobre el RG (suficiente para containerapp update)
+#   az role assignment create --assignee-object-id $OID --assignee-principal-type ServicePrincipal \
+#     --role Contributor --scope /subscriptions/$SUB/resourceGroups/$RG
+#   echo "AZURE_CLIENT_ID=$CID"; echo "AZURE_TENANT_ID=$(az account show --query tenantId -o tsv)"; echo "AZURE_SUBSCRIPTION_ID=$SUB"
+# Copia esos 3 valores como secrets del repo.
 
 on:
   workflow_run:
@@ -26,6 +44,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write   # necesario para que azure/login obtenga el token OIDC
 
 env:
   RESOURCE_GROUP: rg-snto-observatory-app
@@ -40,7 +59,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── Build & push using the ACR admin credentials you already have ────────
+      # ── Build & push usando las credenciales admin de ACR (ya existentes) ────
       - name: Log in to ACR
         run: |
           echo "${{ secrets.ACR_PASSWORD }}" | docker login \
@@ -54,16 +73,33 @@ jobs:
           docker push "${IMG}:${GITHUB_SHA::8}"
           docker push "${IMG}:latest"
 
-      # ── Roll the Container App (needs Azure control-plane auth) ───────────────
-      - name: Azure login
+      # ── Roll de la Container App vía OIDC (sin secreto de service principal) ──
+      - name: Azure login (OIDC)
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Roll Container App to new image
         run: |
+          IMG="${{ secrets.ACR_LOGIN_SERVER }}/${IMAGE_REPO}:${GITHUB_SHA::8}"
+          # --revision-suffix fuerza una revisión nueva aunque el tag no cambiara.
           az containerapp update -g "${RESOURCE_GROUP}" -n "${APP_NAME}" \
-            --image "${{ secrets.ACR_LOGIN_SERVER }}/${IMAGE_REPO}:${GITHUB_SHA::8}"
+            --image "${IMG}" \
+            --revision-suffix "s${GITHUB_SHA::8}"
           FQDN="$(az containerapp show -g "${RESOURCE_GROUP}" -n "${APP_NAME}" \
             --query properties.configuration.ingress.fqdn -o tsv)"
           echo "### ✅ Deployed: https://${FQDN}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Health check
+        run: |
+          FQDN="$(az containerapp show -g "${RESOURCE_GROUP}" -n "${APP_NAME}" \
+            --query properties.configuration.ingress.fqdn -o tsv)"
+          for i in $(seq 1 10); do
+            code="$(curl -s -o /dev/null -w '%{http_code}' "https://${FQDN}/_stcore/health" || true)"
+            echo "intento ${i}: HTTP ${code}"
+            [ "${code}" = "200" ] && exit 0
+            sleep 15
+          done
+          echo "::warning::health check no devolvió 200 (posible arranque en frío); revisar manualmente"
