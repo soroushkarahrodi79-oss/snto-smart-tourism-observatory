@@ -1305,7 +1305,7 @@ def _render_kpi_drilldown(kpi, ranked_assets: list, cost_by_id: dict) -> None:
     ])
     st.dataframe(
         df,
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         column_config={
             "EHS": st.column_config.ProgressColumn(
@@ -1565,7 +1565,7 @@ with tab_portfolio:
 
     try:
         portfolio_fig = build_portfolio_matrix(ranked_assets)
-        st.plotly_chart(portfolio_fig, use_container_width=True)
+        st.plotly_chart(portfolio_fig, width="stretch")
     except Exception as _e:
         st.error(f"Error al renderizar la matriz: {_e}", icon="⚠️")
 
@@ -1591,7 +1591,7 @@ with tab_portfolio:
         df_table = pd.DataFrame(table_rows).sort_values("TPI", ascending=False)
         st.dataframe(
             df_table,
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             column_config={
                 "EHS":             st.column_config.ProgressColumn(
@@ -1711,7 +1711,7 @@ with tab_timeseries:
     # ── Gráfico de series temporales ──────────────────────────────────────────
     try:
         ts_fig = build_time_series_chart(selected_asset, n_months=n_months)
-        st.plotly_chart(ts_fig, use_container_width=True)
+        st.plotly_chart(ts_fig, width="stretch")
     except Exception as _e:
         st.error(f"Error al renderizar el gráfico: {_e}", icon="⚠️")
 
@@ -1914,7 +1914,7 @@ with tab_simulator:
                         font_size=12, bordercolor="#2e4560"),
     )
     try:
-        st.plotly_chart(bar_fig, use_container_width=True)
+        st.plotly_chart(bar_fig, width="stretch")
     except Exception as _e:
         st.error(f"Error al renderizar el gráfico: {_e}", icon="⚠️")
 
@@ -1939,7 +1939,7 @@ with tab_simulator:
         detail_df = pd.DataFrame(detail_rows)
         st.dataframe(
             detail_df,
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             column_config={
                 "TIS":      st.column_config.NumberColumn("TIS", format="%.1f"),
@@ -2034,7 +2034,7 @@ with tab_socioeco:
             "Impacto comunidad", ascending=False, na_position="last"
         )
         st.dataframe(
-            _svi_df, use_container_width=True, hide_index=True,
+            _svi_df, width="stretch", hide_index=True,
             column_config={
                 "Impacto comunidad": st.column_config.ProgressColumn(
                     "Impacto comunidad", min_value=0, max_value=100, format="%.1f"),
@@ -2208,7 +2208,7 @@ with tab_socioeco:
                         font_size=12, bordercolor="#2e4560"),
     )
     try:
-        st.plotly_chart(fig_roi, use_container_width=True)
+        st.plotly_chart(fig_roi, width="stretch")
     except Exception as _e:
         st.error(f"Error al renderizar el gráfico: {_e}", icon="⚠️")
 
@@ -2253,7 +2253,7 @@ with tab_socioeco:
                         font_size=12, bordercolor="#2e4560"),
     )
     try:
-        st.plotly_chart(fig_jobs, use_container_width=True)
+        st.plotly_chart(fig_jobs, width="stretch")
     except Exception as _e:
         st.error(f"Error al renderizar el gráfico: {_e}", icon="⚠️")
 
@@ -2267,7 +2267,7 @@ with tab_socioeco:
         ]
         st.dataframe(
             view_df[display_cols].sort_values("Ingresos Hostelería\nen Riesgo (€)", ascending=False),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             column_config={
                 "Visitantes/año":        st.column_config.NumberColumn(format="%d"),
@@ -2400,7 +2400,7 @@ with tab_diagnostic:
                 deck = build_pydeck_deck_spectral(ranked_assets, map_lat=_mc[0], map_lon=_mc[1], map_zoom=_mc[2], real_geoms=_real_geoms)
             else:
                 deck = build_pydeck_deck(ranked_assets, map_lat=_mc[0], map_lon=_mc[1], map_zoom=_mc[2], real_geoms=_real_geoms)
-            st.pydeck_chart(deck, use_container_width=True, height=540)
+            st.pydeck_chart(deck, width="stretch", height=540)
         except ImportError:
             st.error(
                 "**pydeck no instalado.** Ejecuta `pip install pydeck` y reinicia el servidor.",
@@ -2729,7 +2729,7 @@ with tab_diagnostic:
                     _geo, map_lat=_mc[0], map_lon=_mc[1], map_zoom=_mc[2],
                     boundary_geojson=_boundary,
                 )
-                st.pydeck_chart(_deck, use_container_width=True, height=460)
+                st.pydeck_chart(_deck, width="stretch", height=460)
             except ImportError:
                 st.error("pydeck no instalado — `pip install pydeck`", icon="⚠️")
         with _leg_c:
@@ -2812,7 +2812,7 @@ with tab_diagnostic:
             _colcfg["Prioridad PRUG"] = st.column_config.ProgressColumn(
                 "Prioridad PRUG", min_value=0, max_value=100, format="%.0f",
                 help="(100 − salud) × peso de protección PRUG. Mayor = más urgente.")
-        st.dataframe(_df, use_container_width=True, hide_index=True, column_config=_colcfg)
+        st.dataframe(_df, width="stretch", hide_index=True, column_config=_colcfg)
         _terr_folder = "sierra_del_rincon" if selected_key == "snr" else "pnsg"
         _carto = ("Cartografía oficial OAPN (sendas homologadas + límite + zonificación PRUG)"
                   if selected_key == "pnsg" else "Cartografía OpenStreetMap")
