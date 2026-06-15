@@ -36,9 +36,10 @@ name: Deploy to Azure Container Apps
 # Copia esos 3 valores como secrets del repo.
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types: [completed]
+  # Robustez: construir+subir en CADA push a main (sin depender de que termine CI;
+  # el encadenado workflow_run saltaba el job y la imagen se quedaba vieja).
+  # Actualizar la web = git push a main. CI sigue corriendo aparte como gate de calidad.
+  push:
     branches: [main]
   workflow_dispatch: {}
 
@@ -54,7 +55,6 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
