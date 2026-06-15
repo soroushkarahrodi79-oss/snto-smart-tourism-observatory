@@ -30,6 +30,7 @@ from src.platform.provenance import (
     data_status_badge, load_timeseries_coverage, snapshot_provenance,
 )
 from src.platform.views import ConfidenceDetail, get_view, view_modes
+from src.platform import methodology as method
 from src.temporal import DataStatus
 from src.socioeconomic.loader import load_municipalities, snapshot_exists
 from src.socioeconomic.indicators import (
@@ -1486,7 +1487,7 @@ st.markdown(
 # FASE 1: flujo narrativo ejecutivo → científico → táctico → financiero →
 # socioeconómico → temporal → auditoría (7 pestañas).
 (tab_kpis, tab_diagnostic, tab_portfolio, tab_simulator,
- tab_socioeco, tab_timeseries, tab_assets) = st.tabs([
+ tab_socioeco, tab_timeseries, tab_assets, tab_method) = st.tabs([
     "1️⃣ Resumen Ejecutivo (KPIs)",
     "2️⃣ Diagnóstico Satelital y Mapa",
     "3️⃣ Priorización y Alertas (Portafolio TPI)",
@@ -1494,6 +1495,7 @@ st.markdown(
     "5️⃣ Impacto Socioeconómico",
     "6️⃣ Evolución Temporal (Series Espectrales)",
     "7️⃣ Catálogo de Activos y Auditoría",
+    "8️⃣ Fundamento y Trazabilidad",
 ])
 
 
@@ -1529,6 +1531,21 @@ with tab_kpis:
                 f'{_act}{_cost_txt}</div></div>',
                 unsafe_allow_html=True,
             )
+
+    with st.expander("📐 Fórmulas de los índices (EHS · TPI · DCS)", expanded=False):
+        st.markdown(
+            "- **EHS (Ecosystem Health Score), 0–100, alto = sano.** Déficit de NDVI/NDMI "
+            "respecto a percentiles sanos de la propia escena Sentinel-2: "
+            "`EHS = 100·(1 − D)`. *Calculada desde observación satelital real.*\n"
+            "- **TPI (Territorial Priority Index), 0–100.** Urgencia (0–40) + evidencia "
+            "DCS (0–25) + valor estratégico (0–20) + claridad causal (0–15). *Índice "
+            "compuesto; los cortes de tier son heurísticos.*\n"
+            "- **DCS (Decision Confidence Score), 0–100.** Calidad del dato (25) + robustez "
+            "temporal (25) + consistencia espacial (20) + estabilidad de modelo (15) + "
+            "fuerza de señal (15). Es un *gate* que frena decidir con poca evidencia.\n\n"
+            "Matriz completa de trazabilidad, multiplicadores y límites en la pestaña "
+            "**8️⃣ Fundamento y Trazabilidad**."
+        )
 
     kpis = dashboard.kpis
     for row_start in range(0, len(kpis), 4):
@@ -1862,6 +1879,17 @@ with tab_simulator:
 </div>""",
         unsafe_allow_html=True,
     )
+    with st.expander("ℹ️ Qué significa «Capacidad de Visitantes Protegida»", expanded=False):
+        st.markdown(
+            "Es la **suma de `visitor_capacity_annual`** de los activos que el presupuesto "
+            "consigue financiar — es decir, la **capacidad de acogida bajo gestión/mitigación**, "
+            "no un conteo de empleos salvados ni de visitantes reales contabilizados.\n\n"
+            "- `visitor_capacity_annual` es un **atributo curado del activo** (parámetro de "
+            "planificación), no un aforo medido. Por eso esta cifra es un **indicador de "
+            "cobertura del escenario**, no una predicción de afluencia.\n"
+            "- El delta compara el escenario seleccionado con la base de €100.000.\n\n"
+            "Clasificación y trazabilidad en la pestaña **8️⃣ Fundamento y Trazabilidad**."
+        )
     st.write("")
 
     # ── KPIs secundarios ──────────────────────────────────────────────────────
@@ -2007,12 +2035,31 @@ with tab_socioeco:
     import plotly.graph_objects as go
 
     st.subheader("Impacto Socioeconómico — Economía Regenerativa del Destino")
-    st.caption(
-        "Vincula el éxito ecológico con la resiliencia económica local bajo el principio "
-        "de economía regenerativa. Modelo de gasto turístico calibrado para reservas de la "
-        "biosfera de España. **Coste de 'no actuar'** = ingresos de hostelería perdidos si "
-        "un activo Tier 1 se degrada hasta requerir cierre preventivo."
+    st.markdown(
+        method.scenario_badge(
+            "MODELO PROSPECTIVO",
+            "cifras de escenario, no economía observada",
+        ),
+        unsafe_allow_html=True,
     )
+    st.caption(
+        "Vincula la salud ecológica con la resiliencia económica local. Las cifras de gasto "
+        "y empleo de esta pestaña que dependen del proxy de visitantes son **estimaciones "
+        "condicionales (análisis prospectivo)**, no observaciones. La **exposición económica** "
+        "estima el gasto turístico que estaría en riesgo *bajo el supuesto* de que un activo "
+        "Tier 1 se degrade hasta requerir cierre preventivo — no es una pérdida observada. "
+        "Las cifras ALMUDENA/INE (población, empleo en hostelería) sí son dato real y se "
+        "etiquetan como tal."
+    )
+    with st.expander("🧪 Fundamento, fórmulas e incertidumbre del modelo económico", expanded=False):
+        st.markdown(
+            "Este modelo responde a *«¿cuánto valor turístico estaría expuesto SI un activo "
+            "crítico se degrada hasta requerir cierre?»*. Es un **escenario**, útil para "
+            "comparar el coste de intervenir frente al de no hacerlo, pero condicionado por "
+            "supuestos. Trazabilidad completa y sensibilidad en la pestaña "
+            "**8️⃣ Fundamento y Trazabilidad**."
+        )
+        method.render_multiplier_table()
 
     # ── F9: Datos socioeconómicos reales (ALMUDENA / INE) ─────────────────────
     if _socio:
@@ -2125,8 +2172,8 @@ with tab_socioeco:
         st.divider()
         st.markdown(
             '<div style="font-size:0.72rem;color:#7a8899">Modelo proxy heredado '
-            '(gasto por visitante y ROI de conservación) — útil para el ROI '
-            'presupuestario, pero basado en estimaciones, no en ALMUDENA/INE:</div>',
+            '(gasto por visitante y ratio coste-beneficio) — útil para comparar '
+            'escenarios presupuestarios, pero basado en estimaciones, no en ALMUDENA/INE:</div>',
             unsafe_allow_html=True,
         )
 
@@ -2185,11 +2232,11 @@ with tab_socioeco:
 
     e_col1, e_col2, e_col3, e_col4 = st.columns(4)
     kpi_eco = [
-        (e_col1, "Ingresos Hostelería en Riesgo",
+        (e_col1, "Ingresos potencialmente en riesgo (escenario)",
          f"€{total_revenue_risk:,.0f}", "#c62828", "#ffebee"),
-        (e_col2, "Empleos Locales Vinculados",
+        (e_col2, "Empleos vinculados al turismo (estimación)",
          f"{total_jobs_linked:.0f} empleos", "#1565c0", "#e3f2fd"),
-        (e_col3, "Empleos en Riesgo (Tier 1-2 sin fondos)",
+        (e_col3, "Empleos expuestos a degradación (escenario)",
          f"{total_jobs_risk:.1f} empleos", "#e65100", "#fff3e0"),
         (e_col4, "Activos Tier 1 sin Financiar",
          f"{tier1_unfunded} activos", "#6a1b9a", "#f3e5f5"),
@@ -2220,10 +2267,10 @@ with tab_socioeco:
     fig_roi.add_trace(go.Bar(
         y=chart_df["Activo"].apply(lambda n: n.split("—")[0].strip()[:30]),
         x=chart_df["Ingresos Hostelería\nen Riesgo (€)"],
-        name="Ingresos en Riesgo (€/año)",
+        name="Ingresos potencialmente en riesgo (escenario, €/año)",
         orientation="h",
         marker=dict(color="#c62828", opacity=0.80),
-        hovertemplate="<b>%{y}</b><br>Ingresos en riesgo: €%{x:,}<extra></extra>",
+        hovertemplate="<b>%{y}</b><br>Ingresos en riesgo (escenario): €%{x:,}<extra></extra>",
     ))
     fig_roi.add_trace(go.Bar(
         y=chart_df["Activo"].apply(lambda n: n.split("—")[0].strip()[:30]),
@@ -2235,7 +2282,7 @@ with tab_socioeco:
     ))
     fig_roi.update_layout(
         title=dict(
-            text="Coste de 'No Actuar' vs Inversión en Conservación — Activos Tier 1 y 2",
+            text="Escenario de exposición económica vs coste de intervención — Tier 1 y 2",
             font=dict(size=13, color="#0d1b2a"), x=0.0,
         ),
         xaxis=dict(title="Euros (€)", tickprefix="€",
@@ -2265,22 +2312,22 @@ with tab_socioeco:
     fig_jobs.add_trace(go.Bar(
         y=muni_grp["Municipio"],
         x=muni_grp["jobs_total"],
-        name="Empleos Vinculados",
+        name="Empleos vinculados (estimación)",
         orientation="h",
         marker=dict(color="#1565c0", opacity=0.75),
-        hovertemplate="<b>%{y}</b><br>Empleos vinculados: %{x:.1f}<extra></extra>",
+        hovertemplate="<b>%{y}</b><br>Empleos vinculados (estimación): %{x:.1f}<extra></extra>",
     ))
     fig_jobs.add_trace(go.Bar(
         y=muni_grp["Municipio"],
         x=muni_grp["jobs_risk"],
-        name="Empleos en Riesgo",
+        name="Empleos expuestos (escenario)",
         orientation="h",
         marker=dict(color="#e65100", opacity=0.85),
-        hovertemplate="<b>%{y}</b><br>Empleos en riesgo: %{x:.1f}<extra></extra>",
+        hovertemplate="<b>%{y}</b><br>Empleos expuestos (escenario): %{x:.1f}<extra></extra>",
     ))
     fig_jobs.update_layout(
         title=dict(
-            text="Empleos Locales Vinculados al Turismo Natural por Municipio",
+            text="Empleos vinculados al turismo natural por municipio (estimación proxy)",
             font=dict(size=13, color="#0d1b2a"), x=0.0,
         ),
         xaxis=dict(title="Empleos (directos + indirectos)",
@@ -2314,35 +2361,45 @@ with tab_socioeco:
             column_config={
                 "Visitantes/año":        st.column_config.NumberColumn(format="%d"),
                 "Ingresos Hostelería\nen Riesgo (€)":
-                    st.column_config.NumberColumn("Ingresos en Riesgo (€)", format="€%d"),
-                "Empleos\nVinculados":   st.column_config.NumberColumn("Empleos Vinc.", format="%.1f"),
-                "Empleos\nen Riesgo":    st.column_config.NumberColumn("Empleos Riesgo", format="%.2f"),
+                    st.column_config.NumberColumn("Ingresos en riesgo · escenario (€)", format="€%d"),
+                "Empleos\nVinculados":   st.column_config.NumberColumn("Empleos vinc. (est.)", format="%.1f"),
+                "Empleos\nen Riesgo":    st.column_config.NumberColumn("Empleos expuestos (esc.)", format="%.2f"),
                 "Coste Intervención (€)":
                     st.column_config.NumberColumn("Coste Interv. (€)", format="€%d"),
-                "ROI Conservación":      st.column_config.NumberColumn("ROI (x)", format="%.1fx"),
+                "ROI Conservación":      st.column_config.NumberColumn("Ratio coste-beneficio (esc.)", format="%.1fx"),
             },
         )
 
     # ── Nota metodológica ─────────────────────────────────────────────────────
-    with st.expander("ℹ️ Metodología económica", expanded=False):
+    with st.expander("ℹ️ Metodología económica (modelo prospectivo / escenario)", expanded=False):
         st.markdown(
             f"""
-**Modelo de gasto turístico** (calibrado para reservas de biosfera españolas, 2024):
+⚠️ **Naturaleza de las cifras:** este es un **modelo de escenario condicional**, no una
+medición. Parte de `visitor_capacity_annual`, que es un **atributo curado del activo**
+(no un aforo real de visitantes), y de parámetros de literatura. Sus resultados son
+**análisis prospectivo**, no economía observada ni predicción.
 
-| Parámetro | Valor | Fuente |
-|---|---|---|
-| Gasto medio diario por visitante | **€{_SPEND_PER_VISITOR_EUR:.2f}** | MITECO / Informe de turismo de naturaleza 2023 |
-| Visitantes por empleo directo+indirecto | **{_VISITORS_PER_JOB:,}** | Estimación proxy para ecoturismo rural |
-| Factor de riesgo de cierre — Tier 1 (sin fondos) | **100%** | Cierre preventivo por degradación crítica |
-| Factor de riesgo de cierre — Tier 2 (sin fondos) | **40%** | Reducción parcial de afluencia |
-| Factor de riesgo residual — Tier 1 **con fondos** | **15%** | Riesgo durante período de restauración |
+**Parámetros del modelo de gasto turístico:**
 
-**Coste de 'no actuar':** Si un activo Tier 1 se degrada hasta requerir cierre preventivo,
-los ingresos de hostelería local (restauración + comercio) cesan completamente durante
-el período de cierre. La pérdida se estima como `visitantes × €{_SPEND_PER_VISITOR_EUR:.2f}`.
+| Parámetro | Valor | Origen | Tipo |
+|---|---|---|---|
+| Gasto medio diario por visitante | **€{_SPEND_PER_VISITOR_EUR:.2f}** | MITECO / Informe de turismo de naturaleza 2023 | Estimada |
+| Visitantes por empleo directo+indirecto | **{_VISITORS_PER_JOB:,}** | Proxy para ecoturismo rural (sin cita dura) | Estimada |
+| Factor de riesgo de cierre — Tier 1 (sin fondos) | **100%** | Supuesto de política (cierre preventivo) | Estimada |
+| Factor de riesgo de cierre — Tier 2 (sin fondos) | **40%** | Supuesto (reducción parcial de afluencia) | Estimada |
+| Factor de riesgo residual — Tier 1 **con fondos** | **15%** | Supuesto (riesgo durante restauración) | Estimada |
 
-**ROI de conservación:** Ratio entre ingresos anuales protegidos y coste único de la intervención.
-Un ROI > 1× significa que la inversión se recupera en menos de un año en ingresos protegidos.
+**Exposición económica (antes 'coste de no actuar'):** *bajo el supuesto* de que un activo
+Tier 1 se degrade hasta requerir cierre preventivo, el gasto turístico local asociado
+quedaría en riesgo. Se **estima** como `visitantes × €{_SPEND_PER_VISITOR_EUR:.2f} × factor_riesgo`.
+No es una pérdida observada ni una predicción de pérdida.
+
+**Ratio coste-beneficio del escenario (antes 'ROI'):** cociente entre los ingresos
+*potencialmente* protegidos y el coste único de la intervención. Un ratio > 1× indica que,
+*en el escenario*, la inversión equivale a más de un año de ingresos protegidos. Es un
+indicador comparativo de escenario, no un retorno financiero realizado.
+
+> Sensibilidad y trazabilidad completas en la pestaña **8️⃣ Fundamento y Trazabilidad**.
             """
         )
 
@@ -2889,6 +2946,21 @@ with tab_diagnostic:
             "Salida real, sin datos sintéticos. Provenance: "
             f"`data/outputs/{_terr_folder}/pipeline_a_results.geojson`"
         )
+
+
+# ── Tab 8: Fundamento y Trazabilidad ──────────────────────────────────────────
+with tab_method:
+    st.subheader("Fundamento Metodológico, Trazabilidad e Incertidumbre")
+    st.caption(
+        "Capa de defensa académica del observatorio: qué se mide, qué se calcula, qué se "
+        "estima y qué se simula — con su fuente, su fórmula y su nivel de confianza. "
+        "Anexo escrito en `docs/defensibilidad_academica.md`."
+    )
+    method.render_fundamento()
+    st.divider()
+    method.render_traceability_matrix()
+    st.divider()
+    method.render_limitations()
 
 
 # ── Pie de página ─────────────────────────────────────────────────────────────
