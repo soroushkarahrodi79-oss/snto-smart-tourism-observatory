@@ -141,6 +141,30 @@ def calibrate_territory(dashboard_key: str, assets: list) -> dict[str, Calibrati
     }
 
 
+def asset_trail_geometries(dashboard_key: str, assets: list) -> dict[str, list[dict]]:
+    """Geometrías reales (GeoJSON WGS84) de las sendas del Pipeline A asociadas a
+    cada activo curado, vía el mismo ``_ASSET_TRAIL_MAP`` que usa la calibración.
+
+    Permite dibujar el activo curado sobre su **traza cartográfica real** en lugar
+    del centroide municipal aproximado. A diferencia de ``calibrate_asset`` (que
+    exige ``health_summer`` para promediar salud), aquí solo se requiere geometría.
+
+    Returns:
+        dict ``asset_id → [geometry, ...]``. Lista vacía si el activo no tiene
+        senda equivalente o si el Pipeline A no se ha ejecutado.
+    """
+    ds = get_real_trails(dashboard_key)
+    trails = ds.trails if ds.available else []
+    out: dict[str, list[dict]] = {}
+    for a in assets:
+        subs = _ASSET_TRAIL_MAP.get(a.asset_id, [])
+        out[a.asset_id] = [
+            t.geometry for t in trails
+            if t.geometry and any(s.lower() in t.name.lower() for s in subs)
+        ]
+    return out
+
+
 def coverage_summary(results: dict[str, CalibrationResult]) -> dict[str, int]:
     """Recuento por categoría de concordancia, para cabeceras de la UI."""
     out = {"confirma": 0, "mas_sano": 0, "mas_degradado": 0, "sin_dato": 0}

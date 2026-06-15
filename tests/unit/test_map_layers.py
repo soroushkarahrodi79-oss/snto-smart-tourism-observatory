@@ -454,3 +454,39 @@ class TestBuildPydeckDeck:
         deck = build_pydeck_deck([])
         n_feat = len(deck.layers[0].kwargs["data"]["features"])
         assert n_feat == 0
+
+
+# ── Geometría real (traza Pipeline A) vs aproximada (centroide) ───────────────
+
+_REAL_LINE = {"type": "LineString", "coordinates": [[-4.02, 40.84], [-4.01, 40.85], [-4.00, 40.86]]}
+
+
+class TestRealGeometryInjection:
+    def test_trail_uses_real_linestring(self):
+        fc = assets_to_geojson([_trail(asset_id="t1")], {"t1": [_REAL_LINE]})
+        feat = fc["features"][0]
+        assert feat["geometry"]["coordinates"] == _REAL_LINE["coordinates"]
+        assert feat["properties"]["geom_source"] == "real"
+
+    def test_multiple_trails_become_multilinestring(self):
+        line2 = {"type": "LineString", "coordinates": [[-3.9, 40.7], [-3.8, 40.7]]}
+        fc = assets_to_geojson([_trail(asset_id="t1")], {"t1": [_REAL_LINE, line2]})
+        geom = fc["features"][0]["geometry"]
+        assert geom["type"] == "MultiLineString"
+        assert len(geom["coordinates"]) == 2
+
+    def test_point_asset_anchored_on_real_trace(self):
+        # El viewpoint se ancla en un vértice de la traza real (vértice medio).
+        fc = assets_to_geojson([_viewpoint(asset_id="v1")], {"v1": [_REAL_LINE]})
+        feat = fc["features"][0]
+        assert feat["geometry"]["type"] == "Point"
+        assert feat["geometry"]["coordinates"] in _REAL_LINE["coordinates"]
+        assert feat["properties"]["geom_source"] == "real"
+
+    def test_no_real_geometry_falls_back_to_approx(self):
+        fc = assets_to_geojson([_trail(asset_id="t1")], {"t1": []})
+        assert fc["features"][0]["properties"]["geom_source"] == "approx"
+
+    def test_missing_asset_id_falls_back_to_approx(self):
+        fc = assets_to_geojson([_viewpoint(asset_id="v9")], {})
+        assert fc["features"][0]["properties"]["geom_source"] == "approx"

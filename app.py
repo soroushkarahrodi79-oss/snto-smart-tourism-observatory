@@ -24,7 +24,7 @@ from src.platform.charts import build_portfolio_matrix, build_time_series_chart
 from src.platform.real_trails import (
     get_real_trails, build_real_trails_geojson, get_park_boundary,
 )
-from src.platform.calibration import coverage_summary
+from src.platform.calibration import coverage_summary, asset_trail_geometries
 from src.platform.enrichment import enrich_assets_with_satellite, enrichment_summary
 from src.platform.provenance import (
     data_status_badge, load_timeseries_coverage, snapshot_provenance,
@@ -2380,15 +2380,26 @@ with tab_diagnostic:
             "Haz clic en cualquier activo para ver su ficha completa."
         )
 
+    # Geometrías reales (Pipeline A) por activo, para dibujar sobre su traza real
+    _real_geoms = asset_trail_geometries(selected_key, ranked_assets)
+    _n_real = sum(1 for g in _real_geoms.values() if g)
+    if _n_real:
+        st.caption(
+            f"📍 **{_n_real} de {len(ranked_assets)}** activos se dibujan sobre su **traza "
+            f"cartográfica real** (senda del Pipeline A · Sentinel-2). El resto, sin senda "
+            f"OSM/OAPN equivalente, se sitúa en el **centroide municipal aproximado** "
+            f"(≈, indicado en el tooltip)."
+        )
+
     col_map, col_info = st.columns([3, 1])
 
     with col_map:
         try:
             _mc = _terr_cfg["map_center"]
             if spectral_mode:
-                deck = build_pydeck_deck_spectral(ranked_assets, map_lat=_mc[0], map_lon=_mc[1], map_zoom=_mc[2])
+                deck = build_pydeck_deck_spectral(ranked_assets, map_lat=_mc[0], map_lon=_mc[1], map_zoom=_mc[2], real_geoms=_real_geoms)
             else:
-                deck = build_pydeck_deck(ranked_assets, map_lat=_mc[0], map_lon=_mc[1], map_zoom=_mc[2])
+                deck = build_pydeck_deck(ranked_assets, map_lat=_mc[0], map_lon=_mc[1], map_zoom=_mc[2], real_geoms=_real_geoms)
             st.pydeck_chart(deck, use_container_width=True, height=540)
         except ImportError:
             st.error(
@@ -2457,8 +2468,9 @@ with tab_diagnostic:
 
         st.divider()
         st.caption(
-            "⚠️ Las geometrías son **aproximadas** (centroides municipales). "
-            "Para coordenadas reales conectar con PostGIS / hiking_trails.geojson."
+            f"📍 Geometría: {_n_real}/{len(ranked_assets)} activos sobre su **traza real** "
+            "(senda Pipeline A · Sentinel-2); los demás en **centroide municipal aproximado** "
+            "(≈, mapeo activo↔senda en `calibration._ASSET_TRAIL_MAP`)."
         )
 
 

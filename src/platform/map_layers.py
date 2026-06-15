@@ -251,6 +251,50 @@ def _point_radius_m(asset) -> float:
     return _POINT_RADIUS_DEFAULTS.get(asset.asset_type, 70.0)
 
 
+# ── Real-geometry helpers (Pipeline A traces) ─────────────────────────────────
+
+def _flatten_coords(geom: dict) -> list[list[float]]:
+    """Flat list of [lon, lat] vertices from a LineString / MultiLineString / Point."""
+    t = geom.get("type")
+    c = geom.get("coordinates") or []
+    if t == "LineString":
+        return [pt for pt in c]
+    if t == "MultiLineString":
+        return [pt for line in c for pt in line]
+    if t == "Point":
+        return [c]
+    return []
+
+
+def _representative_point(geoms: list[dict]) -> "list[float] | None":
+    """A vertex that lies ON the real trace (its middle vertex), to anchor a point
+    asset over its real senda instead of the municipality centroid."""
+    pts: list[list[float]] = []
+    for g in geoms:
+        pts.extend(_flatten_coords(g))
+    if not pts:
+        return None
+    return pts[len(pts) // 2]
+
+
+def _merge_linestrings(geoms: list[dict]) -> "dict | None":
+    """Combine matched trail geometries into one LineString (single) or
+    MultiLineString (several), ready for a GeoJsonLayer."""
+    lines: list[list[list[float]]] = []
+    for g in geoms:
+        t = g.get("type")
+        c = g.get("coordinates") or []
+        if t == "LineString" and c:
+            lines.append(c)
+        elif t == "MultiLineString":
+            lines.extend([part for part in c if part])
+    if not lines:
+        return None
+    if len(lines) == 1:
+        return {"type": "LineString", "coordinates": lines[0]}
+    return {"type": "MultiLineString", "coordinates": lines}
+
+
 # ── GeoJSON feature builders ──────────────────────────────────────────────────
 
 def _build_properties(asset) -> dict[str, Any]:
@@ -274,23 +318,37 @@ def _build_properties(asset) -> dict[str, Any]:
         "tpi":         round(asset.tpi, 1) if asset.tpi is not None else "—",
         "alert":       (asset.alert_level or "").replace("_", " "),
         "description": desc,
+        # Procedencia geométrica (por defecto aproximada; los builders reales lo sobreescriben)
+        "geom_source": "approx",
+        "geom_note":   "≈ Posición aproximada (centroide municipal)",
         # Deck.gl / GeoJsonLayer colour accessors
         "fill_color":  color,
         "line_color":  lcolor,
     }
 
 
-def _trail_feature(asset) -> dict[str, Any]:
-    """GeoJSON Feature (LineString) for a TRAIL asset."""
+def _trail_feature(asset, real_geoms: "list[dict] | None" = None) -> dict[str, Any]:
+    """GeoJSON Feature (LineString) for a TRAIL asset.
+
+    When ``real_geoms`` carries the real Pipeline A trace(s) for this asset, the
+    feature uses the true cartographic geometry; otherwise it falls back to a
+    synthetic path near the municipality centroid.
+    """
+    props = _build_properties(asset)
+    props["length_km"] = asset.length_km or "—"
+    props["elevation"] = f"{asset.elevation_m:.0f} m" if asset.elevation_m else "—"
+
+    real_geom = _merge_linestrings(real_geoms) if real_geoms else None
+    if real_geom is not None:
+        props["geom_source"] = "real"
+        props["geom_note"]   = "📍 Traza cartográfica real (Sentinel-2 · Pipeline A)"
+        return {"type": "Feature", "geometry": real_geom, "properties": props}
+
     lat, lon = _region_centroid(asset.region)
     lat, lon = _jitter(asset.asset_id, lat, lon, spread=0.006)
     length_km = asset.length_km or 2.0
     heading   = _heading_from_id(asset.asset_id)
     path = _trail_path(lat, lon, length_km, heading, asset.asset_id)
-
-    props = _build_properties(asset)
-    props["length_km"] = asset.length_km or "—"
-    props["elevation"] = f"{asset.elevation_m:.0f} m" if asset.elevation_m else "—"
 
     return {
         "type": "Feature",
@@ -302,15 +360,26 @@ def _trail_feature(asset) -> dict[str, Any]:
     }
 
 
-def _point_feature(asset) -> dict[str, Any]:
-    """GeoJSON Feature (Point) for non-trail assets."""
-    lat, lon = _region_centroid(asset.region)
-    lat, lon = _jitter(asset.asset_id, lat, lon, spread=0.010)
+def _point_feature(asset, real_geoms: "list[dict] | None" = None) -> dict[str, Any]:
+    """GeoJSON Feature (Point) for non-trail assets.
 
+    When ``real_geoms`` carries the asset's real Pipeline A trace(s), the point is
+    anchored on a vertex of that real trace; otherwise it falls back to the
+    municipality centroid plus deterministic jitter.
+    """
     props = _build_properties(asset)
     props["point_radius"] = _point_radius_m(asset)
     props["area_ha"]  = f"{asset.area_ha:.1f} ha" if asset.area_ha else "—"
     props["elevation"] = f"{asset.elevation_m:.0f} m" if asset.elevation_m else "—"
+
+    real_pt = _representative_point(real_geoms) if real_geoms else None
+    if real_pt is not None:
+        lon, lat = real_pt[0], real_pt[1]
+        props["geom_source"] = "real"
+        props["geom_note"]   = "📍 Anclado en la traza real de su senda (Sentinel-2 · Pipeline A)"
+    else:
+        lat, lon = _region_centroid(asset.region)
+        lat, lon = _jitter(asset.asset_id, lat, lon, spread=0.010)
 
     return {
         "type": "Feature",
@@ -324,12 +393,17 @@ def _point_feature(asset) -> dict[str, Any]:
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
-def assets_to_geojson(assets: list) -> dict[str, Any]:
+def assets_to_geojson(assets: list, real_geoms: "dict[str, list[dict]] | None" = None) -> dict[str, Any]:
     """Convert a list of TerritorialAsset objects to a GeoJSON FeatureCollection.
 
     Trail assets become LineString features; all other types become Point
     features. Properties include tier-coded colours ready for Deck.gl
     accessor expressions (``"properties.fill_color"``).
+
+    When ``real_geoms`` (``asset_id → [geometry]`` from
+    ``calibration.asset_trail_geometries``) is supplied, assets with a real
+    Pipeline A trace are drawn on their true cartographic geometry instead of
+    the municipality-centroid approximation.
 
     Args:
         assets: Ranked TerritorialAsset objects (tier and tpi must be set).
@@ -338,12 +412,14 @@ def assets_to_geojson(assets: list) -> dict[str, Any]:
         GeoJSON FeatureCollection dict — pass directly to
         ``pydeck.Layer("GeoJsonLayer", data=...)``.
     """
+    real_geoms = real_geoms or {}
     features = []
     for asset in assets:
+        rg = real_geoms.get(asset.asset_id)
         if asset.asset_type in ("TRAIL", "CYCLING_ROUTE"):
-            features.append(_trail_feature(asset))
+            features.append(_trail_feature(asset, rg))
         else:
-            features.append(_point_feature(asset))
+            features.append(_point_feature(asset, rg))
     return {"type": "FeatureCollection", "features": features}
 
 
@@ -352,6 +428,7 @@ def build_pydeck_deck(
     map_lat: float = _MAP_LATITUDE,
     map_lon: float = _MAP_LONGITUDE,
     map_zoom: int = _MAP_ZOOM,
+    real_geoms: "dict[str, list[dict]] | None" = None,
 ) -> "pdk.Deck":
     """Build a Deck.gl / PyDeck deck for the territorial asset portfolio.
 
@@ -374,7 +451,7 @@ def build_pydeck_deck(
             "Install it with: pip install pydeck"
         )
 
-    geojson = assets_to_geojson(assets)
+    geojson = assets_to_geojson(assets, real_geoms)
 
     tooltip = {
         "html": (
@@ -391,6 +468,7 @@ def build_pydeck_deck(
             "<b>EHS</b> {ehs}/100 &nbsp;·&nbsp; "
             "<b>Tier</b> {tier} — {tier_label}<br/>"
             "<span style='font-size:11px;color:#c8d6e5'>{alert}</span><br/>"
+            "<span style='font-size:10px;color:#7e93a8;margin-top:3px;display:block'>{geom_note}</span>"
             "<span style='font-size:11px;color:#a0b0c0;margin-top:4px;display:block'>"
             "{description}</span>"
             "</div>"
@@ -581,22 +659,24 @@ def _ehs_to_rgba(ehs: float, alpha: int = 220) -> list[int]:
     return [128, 128, 128, alpha]
 
 
-def _assets_to_geojson_spectral(assets: list) -> dict[str, Any]:
+def _assets_to_geojson_spectral(assets: list, real_geoms: "dict[str, list[dict]] | None" = None) -> dict[str, Any]:
     """GeoJSON FeatureCollection with EHS-gradient colours (spectral diagnostic view).
 
     Identical geometry to assets_to_geojson() but replaces tier-coded colours
     with a continuous RdYlGn gradient derived from each asset's EHS score,
     simulating the NDVI/NDMI spectral signature of corridor degradation.
     """
+    real_geoms = real_geoms or {}
     features = []
     for asset in assets:
         color  = _ehs_to_rgba(asset.ehs)
         lcolor = _ehs_to_rgba(asset.ehs, alpha=255)
+        rg = real_geoms.get(asset.asset_id)
 
         if asset.asset_type in ("TRAIL", "CYCLING_ROUTE"):
-            feat = _trail_feature(asset)
+            feat = _trail_feature(asset, rg)
         else:
-            feat = _point_feature(asset)
+            feat = _point_feature(asset, rg)
 
         # Override tier colours with spectral colours
         feat["properties"]["fill_color"] = color
@@ -611,6 +691,7 @@ def build_pydeck_deck_spectral(
     map_lat: float = _MAP_LATITUDE,
     map_lon: float = _MAP_LONGITUDE,
     map_zoom: int = _MAP_ZOOM,
+    real_geoms: "dict[str, list[dict]] | None" = None,
 ) -> "pdk.Deck":
     """Build a Deck.gl deck using the EHS spectral-gradient colour scheme.
 
@@ -633,7 +714,7 @@ def build_pydeck_deck_spectral(
             "Install it with: pip install pydeck"
         )
 
-    geojson = _assets_to_geojson_spectral(assets)
+    geojson = _assets_to_geojson_spectral(assets, real_geoms)
 
     tooltip = {
         "html": (
@@ -652,6 +733,7 @@ def build_pydeck_deck_spectral(
             "Color = gradiente espectral NDVI/NDMI · "
             "🟢 verde = saludable · 🔴 rojo = degradado"
             "</span><br/>"
+            "<span style='font-size:10px;color:#7e93a8;margin-top:3px;display:block'>{geom_note}</span>"
             "<span style='font-size:11px;color:#a0b0c0;margin-top:4px;display:block'>"
             "{description}</span>"
             "</div>"
