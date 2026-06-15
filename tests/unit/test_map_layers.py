@@ -41,20 +41,29 @@ def _make_pydeck_stub() -> types.ModuleType:
     return stub
 
 _pydeck_stub = _make_pydeck_stub()
-sys.modules.setdefault("pydeck", _pydeck_stub)
+# Force the stub regardless of import order. Another test collected earlier (or
+# map_layers' own import chain via real_trails/calibration) may already have
+# pulled the REAL pydeck into sys.modules; a setdefault() here would then be a
+# silent no-op and bind build_pydeck_deck to real (browser/WebGL) pydeck, whose
+# Deck/Layer objects lack the .tooltip/.kwargs the offline tests inspect. We
+# install the stub and reload map_layers so its `import pydeck as pdk` resolves
+# to the stub — keeping these tests offline and order-independent.
+import importlib  # noqa: E402
 
-# ── Import module under test ──────────────────────────────────────────────────
-from src.platform.map_layers import (  # noqa: E402
-    LEGEND_ITEMS,
-    TIER_COLORS,
-    _heading_from_id,
-    _jitter,
-    _point_radius_m,
-    _region_centroid,
-    _trail_endpoints,
-    assets_to_geojson,
-    build_pydeck_deck,
-)
+sys.modules["pydeck"] = _pydeck_stub
+import src.platform.map_layers as _map_layers  # noqa: E402
+
+_map_layers = importlib.reload(_map_layers)
+
+LEGEND_ITEMS = _map_layers.LEGEND_ITEMS
+TIER_COLORS = _map_layers.TIER_COLORS
+_heading_from_id = _map_layers._heading_from_id
+_jitter = _map_layers._jitter
+_point_radius_m = _map_layers._point_radius_m
+_region_centroid = _map_layers._region_centroid
+_trail_endpoints = _map_layers._trail_endpoints
+assets_to_geojson = _map_layers.assets_to_geojson
+build_pydeck_deck = _map_layers.build_pydeck_deck
 
 
 # ── Minimal TerritorialAsset stub ─────────────────────────────────────────────
@@ -134,13 +143,18 @@ class TestTierColors:
             assert len(rgba) == 4
             assert all(0 <= v <= 255 for v in rgba)
 
-    def test_tier1_is_reddish(self):
-        r, g, b, _ = TIER_COLORS[1]
-        assert r > g and r > b, "Tier 1 should be red-dominant"
+    def test_palette_is_neutral_not_semaphore(self):
+        # Fase 3: el TIER es prioridad de inversión (estrategia), NO riesgo. La
+        # paleta es neutra índigo→pizarra: ningún tier debe ser rojo- ni
+        # verde-dominante (eso es el semáforo, reservado a las alertas).
+        for t, (r, g, b, _a) in TIER_COLORS.items():
+            assert not (r > g and r > b), f"Tier {t} no debe ser rojo-dominante"
+            assert not (g > r and g > b), f"Tier {t} no debe ser verde-dominante"
 
-    def test_tier4_is_greenish(self):
-        r, g, b, _ = TIER_COLORS[4]
-        assert g > r and g > b, "Tier 4 should be green-dominant"
+    def test_palette_is_sequential_dark_to_light(self):
+        # Tier I = más oscuro (máxima prioridad de inversión) → Tier IV = más claro.
+        brightness = {t: sum(TIER_COLORS[t][:3]) for t in (1, 2, 3, 4)}
+        assert brightness[1] < brightness[2] < brightness[3] < brightness[4]
 
 
 # ── LEGEND_ITEMS ──────────────────────────────────────────────────────────────
@@ -331,15 +345,17 @@ class TestAssetsToGeojson:
         assert len(color) == 4
         assert all(0 <= v <= 255 for v in color)
 
-    def test_tier1_color_is_red(self):
+    def test_tier1_color_is_neutral_dark(self):
+        # Tier I: índigo profundo neutro (no semáforo rojo).
         fc = assets_to_geojson([_trail(tier=1)])
         r, g, b, _ = fc["features"][0]["properties"]["fill_color"]
-        assert r > g and r > b
+        assert not (r > g and r > b) and not (g > r and g > b)
 
-    def test_tier4_color_is_green(self):
-        fc = assets_to_geojson([_viewpoint(tier=4)])
-        r, g, b, _ = fc["features"][0]["properties"]["fill_color"]
-        assert g > r and g > b
+    def test_tier1_fill_darker_than_tier4(self):
+        # La paleta neutra codifica prioridad por luminosidad: Tier I < Tier IV.
+        t1 = assets_to_geojson([_trail(tier=1)])["features"][0]["properties"]["fill_color"]
+        t4 = assets_to_geojson([_viewpoint(tier=4)])["features"][0]["properties"]["fill_color"]
+        assert sum(t1[:3]) < sum(t4[:3])
 
     def test_coordinates_are_in_sierra_del_rincon(self):
         """All generated coordinates should be in the reserve area (rough bbox)."""

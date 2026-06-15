@@ -73,28 +73,31 @@ _MAP_LONGITUDE = -3.490
 _MAP_ZOOM      = 11
 
 # ── Colour palette by tier (RGBA lists for Deck.gl / PyDeck) ─────────────────
+# Escala NEUTRA índigo→pizarra. El tier es prioridad de inversión (estrategia),
+# NO riesgo táctico: por eso no es semafórica. El semáforo (rojo/ámbar/verde) se
+# reserva para el gradiente espectral de EHS y para las ALERTAS.
 TIER_COLORS: dict[int, list[int]] = {
-    1: [220,  50,  50, 220],   # Red    — Atención Inmediata
-    2: [230, 130,  20, 220],   # Orange — Acción Preventiva
-    3: [ 50, 120, 200, 220],   # Blue   — Monitorización Rutinaria
-    4: [ 40, 170,  80, 220],   # Green  — Promoción Activa
+    1: [ 49,  46,  92, 225],   # índigo profundo — Tier I, prioridad máxima
+    2: [ 86,  84, 138, 220],   # índigo medio    — Tier II
+    3: [131, 136, 176, 215],   # pizarra media   — Tier III
+    4: [179, 184, 212, 210],   # pizarra clara   — Tier IV, mínima inversión
 }
 _TIER_COLOR_FALLBACK = [150, 150, 150, 180]
 
 # Line colour is a slightly darker, fully-opaque variant of the fill
 _TIER_LINE_COLORS: dict[int, list[int]] = {
-    1: [160,  30,  30, 255],
-    2: [180,  90,  10, 255],
-    3: [ 20,  80, 160, 255],
-    4: [ 20, 130,  50, 255],
+    1: [ 32,  30,  64, 255],
+    2: [ 60,  58, 104, 255],
+    3: [ 96, 101, 142, 255],
+    4: [140, 146, 178, 255],
 }
 
-# Human-readable labels for the legend widget
+# Human-readable labels for the legend widget (nomenclatura estructural)
 LEGEND_ITEMS: list[dict[str, Any]] = [
-    {"tier": 1, "label": "Tier 1 — Atención Inmediata", "hex": "#dc3232"},
-    {"tier": 2, "label": "Tier 2 — Acción Preventiva",  "hex": "#e68214"},
-    {"tier": 3, "label": "Tier 3 — Monitorización",     "hex": "#3278c8"},
-    {"tier": 4, "label": "Tier 4 — Promoción Activa",   "hex": "#28aa50"},
+    {"tier": 1, "label": "TIER I — Prioridad máxima de inversión", "hex": "#312e5c"},
+    {"tier": 2, "label": "TIER II — Inversión preventiva",         "hex": "#56548a"},
+    {"tier": 3, "label": "TIER III — Monitorización rutinaria",    "hex": "#8388b0"},
+    {"tier": 4, "label": "TIER IV — Promoción / mínima inversión", "hex": "#b3b8d4"},
 ]
 
 # Asset-type emoji for tooltips

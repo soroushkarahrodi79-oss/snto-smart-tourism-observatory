@@ -24,7 +24,8 @@ from src.platform.charts import build_portfolio_matrix, build_time_series_chart
 from src.platform.real_trails import (
     get_real_trails, build_real_trails_geojson, get_park_boundary,
 )
-from src.platform.calibration import calibrate_territory, coverage_summary
+from src.platform.calibration import coverage_summary
+from src.platform.enrichment import enrich_assets_with_satellite, enrichment_summary
 from src.platform.provenance import (
     data_status_badge, load_timeseries_coverage, snapshot_provenance,
 )
@@ -847,6 +848,21 @@ st.markdown(
     font-size: 0.67rem; font-weight: 600; color: #7a8899;
     text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px;
 }
+
+/* ── FASE 3: TIER (estrategia, neutro) vs ALERTA (táctica, semáforo) ─────── */
+/* Chip de TIER: nomenclatura estructural [TIER N], paleta índigo→pizarra,
+   deliberadamente NO semafórica (no es riesgo, es prioridad de inversión). */
+.snto-tier-chip {
+    display: inline-block; font-size: 0.62rem; font-weight: 700;
+    letter-spacing: 0.07em; padding: 2px 8px; border-radius: 3px;
+    vertical-align: middle; text-transform: uppercase;
+}
+/* Chip de ALERTA: semáforo táctico (🔴🟡🔵🟢), forma de píldora. */
+.snto-status-chip {
+    display: inline-block; font-size: 0.62rem; font-weight: 600;
+    padding: 2px 8px; border-radius: 11px; vertical-align: middle;
+    margin-left: 4px;
+}
 </style>
 """,
     unsafe_allow_html=True,
@@ -857,11 +873,21 @@ _COLOR = {"GREEN": "#2e7d32", "AMBER": "#e65100", "RED": "#c62828", "BLUE": "#15
 _BG    = {"GREEN": "#e8f5e9", "AMBER": "#fff3e0", "RED": "#ffebee", "BLUE": "#e3f2fd"}
 _EMOJI = {"GREEN": "🟢",      "AMBER": "🟡",      "RED": "🔴",      "BLUE": "🔵"}
 
-_TIER_BADGE_COLOR = {
-    1: ("#dc3232", "#ffebee"),
-    2: ("#e68214", "#fff3e0"),
-    3: ("#3278c8", "#e3f2fd"),
-    4: ("#28aa50", "#e8f5e9"),
+# ── TIER = estrategia / prioridad de inversión pública (NO es riesgo táctico) ──
+# Paleta NEUTRA índigo→pizarra (oscuro = Tier I máxima prioridad → claro = Tier IV).
+# Deliberadamente sin rojo/ámbar/verde: el semáforo se reserva para las ALERTAS.
+_TIER_ROMAN = {1: "I", 2: "II", 3: "III", 4: "IV"}
+_TIER_BADGE_COLOR = {              # (texto, fondo)
+    1: ("#ffffff", "#312e5c"),     # índigo profundo
+    2: ("#ffffff", "#56548a"),     # índigo medio
+    3: ("#2d2f4a", "#a9adcb"),     # pizarra media
+    4: ("#3a3d57", "#d6d9e8"),     # pizarra clara
+}
+_TIER_INVEST_LABEL = {
+    1: "Prioridad máxima de inversión",
+    2: "Inversión preventiva",
+    3: "Monitorización rutinaria",
+    4: "Promoción / mínima inversión pública",
 }
 _ASSET_TYPE_EMOJI = {
     "TRAIL":             "🥾",
@@ -876,9 +902,16 @@ _ASSET_TYPE_EMOJI = {
 
 @st.cache_data(show_spinner="Calculando inteligencia territorial…")
 def load_dashboard(territory_key: str):
-    """Return (dashboard, assets, comps, assets_by_id, base_budget, cfg) — cached per territory."""
+    """Return (dashboard, assets, comps, assets_by_id, base_budget, cfg, cal) — cached per territory.
+
+    Fase 2 — inyección satelital: antes de rankear, el EHS satelital real del
+    Pipeline A sobreescribe (conservadoramente) el EHS curado donde el satélite
+    observa MÁS degradación. Como rank_assets recalcula TPI/tier a partir de
+    ehs, el dato real se propaga a TPI, tiers, presupuesto y los 10 KPIs.
+    """
     cfg    = _TERRITORY_CONFIG[territory_key]
     raw    = _BUILD_FN[territory_key]()
+    raw, cal = enrich_assets_with_satellite(territory_key, raw)
     assets = rank_assets(raw)
     by_id  = {a.asset_id: a for a in assets}
     max_v  = max(a.visitor_capacity_annual for a in assets)
@@ -891,7 +924,7 @@ def load_dashboard(territory_key: str):
         budget_result=budget,
         comparisons=comps,
     )
-    return dash, assets, comps, by_id, budget, cfg
+    return dash, assets, comps, by_id, budget, cfg, cal
 
 
 # ── Renderizador de alertas en vivo ──────────────────────────────────────────
@@ -906,6 +939,47 @@ _ALERT_SEVERITY = {
     "URGENT_MONITORING":     1,
     "PREVENTIVE_ACTION":     2,
 }
+
+# ── FASE 3: helpers de chips — TIER (neutro) y ALERTA (semáforo) ──────────────
+def _tier_chip(tier) -> str:
+    """Chip estructural neutro [TIER N] (prioridad de inversión, no riesgo)."""
+    t = int(tier) if tier else 3
+    fg, bg = _TIER_BADGE_COLOR.get(t, ("#2d2f4a", "#a9adcb"))
+    return (
+        f'<span class="snto-tier-chip" style="background:{bg};color:{fg};" '
+        f'title="{_TIER_INVEST_LABEL.get(t, "")}">TIER {_TIER_ROMAN.get(t, "III")}</span>'
+    )
+
+
+def _alert_chip(alert_level: str) -> str:
+    """Chip semafórico táctico para el estado de alerta actual del activo."""
+    meta = _ALERT_META.get(alert_level)
+    if not meta:
+        return (
+            '<span class="snto-status-chip" style="background:#e8f5e9;color:#1b5e20;">'
+            '🟢 Normal</span>'
+        )
+    icon, label, bg, border = meta
+    return (
+        f'<span class="snto-status-chip" style="background:{bg};'
+        f'border:1px solid {border};color:#2b3440;">{icon} {label}</span>'
+    )
+
+
+def _ehs_color(ehs: float) -> str:
+    """Color de salud para el valor de EHS (gradiente continuo, independiente
+    del tier). Verde=sano, ámbar=alerta, rojo=degradado. Es un dato medido, no
+    una categoría de estrategia."""
+    if ehs >= 75:
+        return "#1a9850"
+    if ehs >= 60:
+        return "#66a61e"
+    if ehs >= 45:
+        return "#e6a700"
+    if ehs >= 30:
+        return "#e0701a"
+    return "#c62828"
+
 
 def _render_live_alerts(assets: list, refresh_count: int) -> None:
     active = sorted(
@@ -1121,18 +1195,20 @@ def _render_fichas_rapidas(ranked_assets: list) -> None:
         unsafe_allow_html=True,
     )
     for a in top3:
-        fg, bg = _TIER_BADGE_COLOR.get(a.tier or 1, ("#E24B4A", "#FCEBEB"))
+        _, tier_bg = _TIER_BADGE_COLOR.get(a.tier or 3, ("#2d2f4a", "#a9adcb"))
+        ehs_c = _ehs_color(a.ehs)
         name_short = a.name.split("—")[0].strip()
         ehs_w = max(2, int(a.ehs))
         vis   = f"{a.visitor_capacity_annual:,}"
         st.markdown(
-            f'<div class="snto-ficha" style="border-left-color:{fg};">'
-            f'<span class="snto-ficha-ehs" style="background:{bg};color:{fg};">'
+            f'<div class="snto-ficha" style="border-left-color:{tier_bg};">'
+            f'<span class="snto-ficha-ehs" style="background:{ehs_c}1a;color:{ehs_c};">'
             f'EHS {a.ehs:.0f}</span>'
             f'<div class="snto-ficha-name">{name_short}</div>'
             f'<div class="snto-ficha-meta">{a.region} · {vis} visit./año</div>'
+            f'<div style="margin-top:5px">{_tier_chip(a.tier)}{_alert_chip(a.alert_level)}</div>'
             f'<div class="snto-ehs-bar">'
-            f'<div class="snto-ehs-fill" style="width:{ehs_w}%;background:{fg};"></div>'
+            f'<div class="snto-ehs-fill" style="width:{ehs_w}%;background:{ehs_c};"></div>'
             f'</div>'
             f'</div>',
             unsafe_allow_html=True,
@@ -1302,7 +1378,7 @@ with st.sidebar:
     st.divider()
 
 # ── Cargar datos ──────────────────────────────────────────────────────────────
-dashboard, ranked_assets, base_comps, assets_by_id, base_budget, _terr_cfg = load_dashboard(selected_key)
+dashboard, ranked_assets, base_comps, assets_by_id, base_budget, _terr_cfg, calibration = load_dashboard(selected_key)
 BUDGET_EUR = _terr_cfg["budget"]
 
 n_red = sum(1 for k in dashboard.kpis if k.status == "RED")
@@ -1389,39 +1465,14 @@ if _socio:
     st.caption(
         "ℹ️ *Empleos locales en riesgo* calculado con datos reales **ALMUDENA / INE** "
         "(afiliados a hostelería del municipio × exposición ambiental de sus activos), "
-        "no con el proxy de visitantes. Detalle en la pestaña **Impacto socioecon.**"
+        "no con el proxy de visitantes. Detalle en la pestaña **Impacto Socioeconómico**."
     )
 
 st.divider()
 
-# ── TAREA 3: Split-screen 60 % mapa / 40 % fichas de alerta ──────────────────
-st.markdown(
-    '<div style="font-size:0.70rem;font-weight:600;color:#7a8899;'
-    'text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px">'
-    'Vista territorial en vivo · Control de senderos vulnerables</div>',
-    unsafe_allow_html=True,
-)
-_map_col, _stats_col = st.columns([3, 2], gap="medium")
-
-with _stats_col:
-    _render_fichas_rapidas(ranked_assets)
-
-with _map_col:
-    _mc = _terr_cfg["map_center"]
-    try:
-        _hero_deck = build_pydeck_deck(
-            ranked_assets, map_lat=_mc[0], map_lon=_mc[1], map_zoom=_mc[2]
-        )
-        st.pydeck_chart(_hero_deck, use_container_width=True, height=420)
-    except ImportError:
-        st.error("pydeck no instalado — `pip install pydeck`", icon="⚠️")
-    st.caption(
-        "🗂️ Vista de Gestión · Colores por tier de prioridad · Trazado de sendas "
-        "aproximado (integración PostGIS pendiente) · "
-        "Para diagnóstico espectral NDVI/NDMI → pestaña **Mapa territorial**"
-    )
-
-st.divider()
+# FASE 1: el mapa espacial "above the fold" se ha retirado para liberar espacio
+# cognitivo. El mapa vive ahora en la pestaña «Diagnóstico Satelital y Mapa» y
+# las fichas de activos críticos en «Resumen Ejecutivo (KPIs)».
 
 # ── TAREA 4: Suite de módulos analíticos ──────────────────────────────────────
 st.markdown(
@@ -1430,16 +1481,17 @@ st.markdown(
     'Módulos de análisis estratégico</div>',
     unsafe_allow_html=True,
 )
-(tab_kpis, tab_portfolio, tab_timeseries, tab_simulator, tab_socioeco,
- tab_map, tab_assets, tab_real) = st.tabs([
-    "Indicadores",
-    "Portafolio TPI",
-    "Series espectrales",
-    "Simulador financiero",
-    "Impacto socioecon.",
-    "Mapa territorial",
-    "Catálogo de activos",
-    "🛰 Sendas reales (satélite)",
+# FASE 1: flujo narrativo ejecutivo → científico → táctico → financiero →
+# socioeconómico → temporal → auditoría (7 pestañas).
+(tab_kpis, tab_diagnostic, tab_portfolio, tab_simulator,
+ tab_socioeco, tab_timeseries, tab_assets) = st.tabs([
+    "1️⃣ Resumen Ejecutivo (KPIs)",
+    "2️⃣ Diagnóstico Satelital y Mapa",
+    "3️⃣ Priorización y Alertas (Portafolio TPI)",
+    "4️⃣ Simulador Financiero",
+    "5️⃣ Impacto Socioeconómico",
+    "6️⃣ Evolución Temporal (Series Espectrales)",
+    "7️⃣ Catálogo de Activos y Auditoría",
 ])
 
 
@@ -1466,6 +1518,39 @@ with tab_kpis:
             with cols[i]:
                 render_kpi_card(kpi, ranked_assets, _cost_by_id)
         st.write("")
+
+    st.divider()
+    # ── Fichas de activos críticos (reubicadas desde el antiguo mapa hero) ─────
+    st.markdown(
+        '<div style="font-size:0.70rem;font-weight:600;color:#7a8899;'
+        'text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px">'
+        'Activos turísticos críticos · prioridad de actuación</div>',
+        unsafe_allow_html=True,
+    )
+    _render_fichas_rapidas(ranked_assets)
+    st.caption(
+        "Cada ficha separa **estrategia** (chip neutro `TIER`, prioridad de inversión) "
+        "de **táctica** (chip semafórico de alerta, riesgo actual). La barra colorea el "
+        "EHS por su propia escala de salud. El mapa espacial vive en la pestaña "
+        "**Diagnóstico Satelital y Mapa**."
+    )
+    # ── Procedencia: cuántos KPIs reflejan dato satelital real (override F2) ───
+    _enr = enrichment_summary(calibration)
+    if _enr["overridden"] > 0:
+        _real_badge = data_status_badge(DataStatus.REAL)
+        st.caption(
+            f"{_real_badge.emoji} **{_enr['overridden']} de {_enr['total']}** activos "
+            f"tienen su EHS **sobreescrito por observación satelital real** (Sentinel-2, "
+            f"Pipeline A) donde el satélite detectó más degradación que el juicio experto; "
+            f"estos KPIs, tiers y alertas reflejan el dato real. El resto mantiene el dato "
+            f"curado (validado, no sustituido). Trazabilidad completa en **Catálogo y Auditoría**."
+        )
+    else:
+        st.caption(
+            "ℹ️ Ningún activo requiere override satelital en este territorio (el satélite "
+            "confirma o es más verde que el juicio experto). Los KPIs usan el dato curado, "
+            "contrastado con Sentinel-2 en **Catálogo y Auditoría**."
+        )
 
 
 # ── Tab 2: Portafolio TPI ─────────────────────────────────────────────────────
@@ -1517,6 +1602,35 @@ with tab_portfolio:
             },
         )
 
+    # ── Panel de ALERTAS (táctica) vs TIER (estrategia) ───────────────────────
+    st.divider()
+    st.markdown("#### Alertas activas (riesgo táctico actual)")
+    st.caption(
+        "Las **alertas** (semáforo 🔴🟡🔵🟢) marcan el riesgo *actual* del activo; el "
+        "**TIER** (chip neutro índigo) marca su *prioridad de inversión pública*. Son "
+        "ejes independientes: un activo puede ser `TIER III` (baja prioridad de inversión) "
+        "y a la vez tener una alerta 🟡 por estrés inusual reciente."
+    )
+    _by_alert = sorted(
+        [a for a in ranked_assets if a.alert_level in _ALERT_META],
+        key=lambda a: (_ALERT_SEVERITY.get(a.alert_level, 9), -(a.tpi or 0)),
+    )
+    if not _by_alert:
+        st.success("✅ Sin alertas tácticas activas en este territorio.", icon="🌿")
+    else:
+        for a in _by_alert:
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;'
+                f'border-bottom:1px solid #eef1f5">'
+                f'{_tier_chip(a.tier)}{_alert_chip(a.alert_level)}'
+                f'<span style="font-size:0.82rem;color:#0d1b2a;font-weight:600">'
+                f'{a.name.split("—")[0].strip()}</span>'
+                f'<span style="font-size:0.72rem;color:#7a8899;margin-left:auto">'
+                f'EHS {a.ehs:.0f} · TPI {a.tpi:.0f} · {a.region}</span>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
 
 # ── Tab 3: Series Temporales Espectrales ─────────────────────────────────────
 with tab_timeseries:
@@ -1527,12 +1641,12 @@ with tab_timeseries:
         "donde la sequía coincide con el sobreuso turístico documentado."
     )
 
-    # ── Selector de activo ────────────────────────────────────────────────────
-    _TIER_PREFIX = {1: "🔴 T1", 2: "🟡 T2", 3: "🔵 T3", 4: "🟢 T4"}
+    # ── Selector de activo (prefijo de tier NEUTRO, no semafórico) ────────────
+    _TIER_PREFIX = {1: "TIER I", 2: "TIER II", 3: "TIER III", 4: "TIER IV"}
 
     def _asset_label(a) -> str:
-        prefix = _TIER_PREFIX.get(a.tier, "⚪")
-        return f"{prefix} · {a.name} ({a.region})"
+        prefix = _TIER_PREFIX.get(a.tier, "TIER —")
+        return f"[{prefix}] · {a.name} ({a.region})"
 
     asset_names   = [_asset_label(a) for a in ranked_assets]
     asset_by_label = {_asset_label(a): a for a in ranked_assets}
@@ -1557,31 +1671,37 @@ with tab_timeseries:
 
     # ── KPI rápido del activo seleccionado ────────────────────────────────────
     tier = selected_asset.tier or 0
-    fg, bg = _TIER_BADGE_COLOR.get(tier, ("#555", "#eee"))
+    _, tier_accent = _TIER_BADGE_COLOR.get(tier, ("#2d2f4a", "#a9adcb"))
+    ehs_c = _ehs_color(selected_asset.ehs)
+    st.markdown(
+        f'<div style="margin-bottom:6px">{_tier_chip(selected_asset.tier)}'
+        f'{_alert_chip(selected_asset.alert_level)}</div>',
+        unsafe_allow_html=True,
+    )
     kpi_cols = st.columns(4)
     with kpi_cols[0]:
         st.markdown(
-            f'<div class="kpi-card" style="border-left:4px solid {fg};">'
+            f'<div class="kpi-card" style="border-left:4px solid {ehs_c};">'
             f'<div class="kpi-meta">EHS</div>'
-            f'<div class="kpi-value" style="color:{fg}">{selected_asset.ehs:.0f}<span style="font-size:.9rem;color:#9aa4af">/100</span></div>'
+            f'<div class="kpi-value" style="color:{ehs_c}">{selected_asset.ehs:.0f}<span style="font-size:.9rem;color:#9aa4af">/100</span></div>'
             f'</div>', unsafe_allow_html=True)
     with kpi_cols[1]:
         st.markdown(
-            f'<div class="kpi-card" style="border-left:4px solid {fg};">'
+            f'<div class="kpi-card" style="border-left:4px solid {tier_accent};">'
             f'<div class="kpi-meta">DCS</div>'
             f'<div class="kpi-value">{selected_asset.dcs:.0f}<span style="font-size:.9rem;color:#9aa4af">/100</span></div>'
             f'</div>', unsafe_allow_html=True)
     with kpi_cols[2]:
         tpi_val = f"{selected_asset.tpi:.0f}" if selected_asset.tpi else "—"
         st.markdown(
-            f'<div class="kpi-card" style="border-left:4px solid {fg};">'
+            f'<div class="kpi-card" style="border-left:4px solid {tier_accent};">'
             f'<div class="kpi-meta">TPI</div>'
             f'<div class="kpi-value">{tpi_val}</div>'
             f'</div>', unsafe_allow_html=True)
     with kpi_cols[3]:
         vis = f"{selected_asset.visitor_capacity_annual:,}"
         st.markdown(
-            f'<div class="kpi-card" style="border-left:4px solid {fg};">'
+            f'<div class="kpi-card" style="border-left:4px solid {tier_accent};">'
             f'<div class="kpi-meta">Visitantes/año</div>'
             f'<div class="kpi-value">{vis}</div>'
             f'</div>', unsafe_allow_html=True)
@@ -1617,8 +1737,9 @@ La serie mensual mostrada es una simulación coherente con la ecología real de 
   sobreuso turístico documentada en los informes de campo de la reserva.
 
 - **Activo seleccionado — {selected_asset.name}:** EHS = {selected_asset.ehs:.0f},
-  Tier {selected_asset.tier}. Los datos son sintéticos de validación; la integración
-  con datos reales Sentinel-2 se realiza a través del módulo `src/ingestion/gee_adapter.py`.
+  TIER {_TIER_ROMAN.get(selected_asset.tier or 3, "III")} (prioridad de inversión).
+  La serie mensual es una reconstrucción de validación; el EHS satelital real de su
+  senda (Sentinel-2, Pipeline A) se contrasta en la pestaña *Diagnóstico Satelital*.
             """
         )
 
@@ -2184,9 +2305,50 @@ Un ROI > 1× significa que la inversión se recupera en menos de un año en ingr
         )
 
 
-# ── Tab 6: Mapa PyDeck (WebGL) ────────────────────────────────────────────────
-with tab_map:
-    st.subheader("Mapa Territorial — Visión Espacial del Portfolio")
+# ── Tab 2: Diagnóstico Satelital y Mapa (corazón científico) ──────────────────
+# Fusiona el mapa territorial (gestión/espectral) con las sendas reales del
+# Pipeline A (Sentinel-2). El bloque del mapa se ejecuta primero (arriba) y el
+# de sendas reales después (abajo), ambos dentro de la misma pestaña.
+with tab_diagnostic:
+    st.subheader("Diagnóstico Satelital y Mapa — Visión Espacial del Territorio")
+    st.caption(
+        "Corazón científico del observatorio: el mapa territorial (gestión / "
+        "diagnóstico espectral) y, debajo, las **sendas reales** medidas por "
+        "Sentinel-2 (Pipeline A) con su EHS y ΔEHS observados."
+    )
+
+    with st.expander("📐 Nota metodológica — índices espectrales, EHS y convención de signo", expanded=False):
+        st.markdown(
+            r"""
+**Índices espectrales (Sentinel-2 L2A, tile T30TVL):**
+
+- **NDVI** $= \dfrac{NIR - RED}{NIR + RED}$ (B08, B04) — vigor de la vegetación.
+- **NDMI** $= \dfrac{NIR - SWIR}{NIR + SWIR}$ (B08, B11) — contenido hídrico foliar; detecta
+  estrés que el NDVI no ve cuando el dosel aún es verde.
+- En **dosel denso** (NDVI ≥ 0,80, p. ej. hayedos) el NDVI **satura**: el peso del EHS se
+  desplaza hacia el NDMI (y se usa EVI para la línea base) para no perder sensibilidad.
+
+**EHS por senda (Δ estacional):** se ancla en percentiles de la *propia escena*, no en
+constantes arbitrarias:
+
+$$D_x = \mathrm{clamp}\!\left(\frac{P_{90} - \bar{x}}{P_{90} - P_{10}}\right), \quad
+EHS = 100 \cdot (w_{NDVI} D_{NDVI} + w_{NDMI} D_{NDMI})$$
+
+donde **P90** (`EHS_P_BASE`) es la referencia sana y **P10** (`EHS_P_FLOOR`) el suelo
+degradado, calculados tras excluir píxeles enmascarados por SCL y el propio buffer de 50 m
+de la senda (para no medir el problema dentro de la referencia).
+
+**Convención de signo (clave para auditar):** el Pipeline A calcula *estrés* (0 = sano,
+100 = degradado); el dashboard habla *salud* (0 = crítico, 100 = sano). La conversión es
+**única**, en `src/platform/real_trails.py` (`stress_to_health`), de modo que todo el
+dashboard usa **alto = sano**. El **ΔEHS = salud_primavera − salud_verano**: ΔEHS negativo
+= deterioro estival.
+
+**Override conservador (Fase 2):** cuando el EHS satelital de la senda es *más degradado*
+que el juicio experto, **sobreescribe** al curado y escala tier/alerta; cuando es *más
+verde*, se mantiene el curado (posible geología, no degradación).
+            """
+        )
 
     # ── Control de modo de visualización ─────────────────────────────────────
     map_mode = st.radio(
@@ -2195,7 +2357,8 @@ with tab_map:
         index=0,
         horizontal=True,
         help=(
-            "**Vista de Gestión:** activos coloreados por tier de prioridad (Rojo/Naranja/Azul/Verde). "
+            "**Vista de Gestión:** activos coloreados por tier de prioridad de inversión "
+            "(escala neutra índigo→pizarra, NO semafórica). "
             "**Vista Espectral:** gradiente continuo RdYlGn derivado del EHS real del activo — "
             "simula el contraste espacial de degradación difusa visible en imágenes Sentinel-2."
         ),
@@ -2265,8 +2428,8 @@ with tab_map:
                 f"**{sum(1 for v in ehs_vals if v < 45)}**"
             )
         else:
-            # ── Leyenda de tiers (vista original) ────────────────────────────
-            st.markdown("#### Distribución por tier")
+            # ── Leyenda de tiers (prioridad de inversión, escala neutra) ─────
+            st.markdown("#### Distribución por tier (inversión)")
             tier_counts = {1: 0, 2: 0, 3: 0, 4: 0}
             for a in ranked_assets:
                 if a.tier in tier_counts:
@@ -2275,11 +2438,12 @@ with tab_map:
                 t     = item["tier"]
                 count = tier_counts.get(t, 0)
                 color = item["hex"]
-                label = item["label"].split(" — ")[1]
+                label = item["label"]
                 st.markdown(
                     f'<div style="margin-bottom:8px;">'
-                    f'<span class="legend-chip" style="background:{color}"></span>'
-                    f'<b style="color:{color}">{count}</b>'
+                    f'<span class="legend-chip" style="background:{color};'
+                    f'border:1px solid rgba(0,0,0,.12)"></span>'
+                    f'<b style="color:#0d1b2a">{count}</b>'
                     f'<small style="color:#555;margin-left:6px">{label}</small>'
                     f'</div>',
                     unsafe_allow_html=True,
@@ -2311,27 +2475,33 @@ with tab_assets:
         f'<div style="font-size:0.8rem;color:{_cur_badge.color};margin:-4px 0 8px">'
         f'{_cur_badge.emoji} <b>{_cur_badge.label}</b> · estos activos son una capa '
         f'narrativa de juicio experto, contrastada (no sustituida) por el satélite '
-        f'en la pestaña <i>Sendas Reales</i>. No usar para intervención formal sin '
+        f'en la pestaña <i>Diagnóstico Satelital y Mapa</i>. No usar para intervención formal sin '
         f'el dato satelital de su senda.</div>',
         unsafe_allow_html=True,
     )
 
     # ── Validación cruzada con el satélite (Pipeline A) ───────────────────────
-    _calib = calibrate_territory(selected_key, ranked_assets)
+    # Se reutiliza la calibración calculada en load_dashboard (contra el EHS
+    # curado ORIGINAL, antes del override) para no falsear la concordancia.
+    _calib = calibration
     _cov = coverage_summary(_calib)
     with st.container():
         cc1, cc2, cc3, cc4 = st.columns(4)
         cc1.metric("✓ Satélite confirma", _cov["confirma"])
         cc2.metric("⚠ Satélite más verde", _cov["mas_sano"])
-        cc3.metric("⚠ Satélite más degradado", _cov["mas_degradado"])
+        cc3.metric("⚠ Satélite más degradado (override)", _cov["mas_degradado"])
         cc4.metric("— Sin senda equivalente", _cov["sin_dato"])
     st.caption(
-        "**Validación cruzada (triangulación):** cada activo curado se contrasta con "
-        "el EHS satelital real de su senda concreta (Pipeline A · Sentinel-2). "
+        "**Validación cruzada + override conservador:** cada activo curado se contrasta "
+        "con el EHS satelital real de su senda concreta (Pipeline A · Sentinel-2). "
         "El EHS curado mide *salud bajo presión turística* (juicio experto); el "
-        "satelital mide *verdor de la vegetación* (NDVI/NDMI). Divergen de forma "
-        "esperable en alta montaña (roca/canchal alpino tienen poco NDVI por geología, "
-        "no por turismo): por eso el satélite **valida**, no sustituye, el juicio experto."
+        "satelital mide *verdor de la vegetación* (NDVI/NDMI). Política aplicada: cuando "
+        "el satélite ve **más degradación** que el experto (*más degradado*), el dato "
+        "satelital **sobreescribe** el EHS curado y escala tier/alerta en todo el "
+        "dashboard. Cuando el satélite es **más verde** (*más verde*) se mantiene el "
+        "juicio curado, porque en alta montaña la roca/canchal alpino tiene poco NDVI "
+        "por geología, no por turismo. Así el satélite **escala**, nunca relaja, el "
+        "diagnóstico experto."
     )
     st.divider()
 
@@ -2339,12 +2509,9 @@ with tab_assets:
     f_col1, f_col2, f_col3 = st.columns(3)
     with f_col1:
         tier_filter = st.multiselect(
-            "Filtrar por Tier", options=[1, 2, 3, 4],
+            "Filtrar por Tier (prioridad de inversión)", options=[1, 2, 3, 4],
             default=[1, 2, 3, 4],
-            format_func=lambda t: {1:"Tier 1 — Atención Inmediata",
-                                   2:"Tier 2 — Acción Preventiva",
-                                   3:"Tier 3 — Monitorización",
-                                   4:"Tier 4 — Promoción Activa"}[t],
+            format_func=lambda t: f"TIER {_TIER_ROMAN[t]} — {_TIER_INVEST_LABEL[t]}",
         )
     with f_col2:
         type_options = sorted({a.asset_type for a in ranked_assets})
@@ -2374,7 +2541,8 @@ with tab_assets:
     for asset in filtered:
         tier   = asset.tier or 0
         tpi    = asset.tpi or 0.0
-        fg, bg = _TIER_BADGE_COLOR.get(tier, ("#555", "#eee"))
+        tier_fg, tier_bg = _TIER_BADGE_COLOR.get(tier, ("#2d2f4a", "#a9adcb"))
+        ehs_c  = _ehs_color(asset.ehs)
         emoji  = _ASSET_TYPE_EMOJI.get(asset.asset_type, "📍")
         rank   = asset.priority_rank or "—"
         physical = ""
@@ -2409,7 +2577,7 @@ with tab_assets:
             _val_html = ""
 
         st.markdown(
-            f"""<div class="kpi-card" style="border-left:5px solid {fg};margin-bottom:0.5rem;">
+            f"""<div class="kpi-card" style="border-left:5px solid {tier_bg};margin-bottom:0.5rem;">
   <div style="display:flex;align-items:center;gap:12px;">
     <div style="font-size:1.8rem;line-height:1">{emoji}</div>
     <div style="flex:1">
@@ -2419,12 +2587,10 @@ with tab_assets:
       <div style="font-size:0.75rem;color:#7a8899;margin-top:2px">
         {asset.region}{physical}
       </div>
+      <div style="margin-top:5px">{_tier_chip(tier)}{_alert_chip(asset.alert_level)}</div>
     </div>
     <div style="text-align:right;min-width:120px">
-      <span class="kpi-badge" style="color:{fg};background:{bg};">
-        Tier {tier}
-      </span><br/>
-      <span style="font-size:1.1rem;font-weight:700;color:{fg}">
+      <span style="font-size:1.1rem;font-weight:700;color:{ehs_c}">
         EHS&thinsp;{asset.ehs:.0f}
       </span>
       <span style="font-size:0.75rem;color:#9aa4af">/100</span>
@@ -2444,8 +2610,9 @@ with tab_assets:
         )
 
 
-# ── Tab 8: Sendas reales (salida del Pipeline A sobre Sentinel-2) ────────────
-with tab_real:
+# ── Tab 2 (continúa): Sendas reales del Pipeline A, debajo del mapa ───────────
+with tab_diagnostic:
+    st.divider()
     st.subheader("Sendas Reales — Análisis Satelital del Pipeline A")
     st.caption(
         "Esta capa NO usa datos curados: muestra exactamente lo que la ciencia "

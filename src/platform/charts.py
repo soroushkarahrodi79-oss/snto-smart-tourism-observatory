@@ -20,30 +20,36 @@ import math
 import pandas as pd
 import plotly.graph_objects as go
 
-# ── Palette — mirrors TIER_COLORS / LEGEND_ITEMS from map_layers.py ──────────
+# ── Paleta de TIER — escala NEUTRA índigo→pizarra (mirrors map_layers.py) ─────
+# El TIER es prioridad de inversión (estrategia), NO riesgo táctico: por eso no
+# usa semáforo. El semáforo se reserva para el eje de riesgo y para las alertas.
 _TIER_HEX = {
-    1: "#dc3232",   # Red    — Atención Inmediata
-    2: "#e68214",   # Orange — Acción Preventiva
-    3: "#3278c8",   # Blue   — Monitorización Rutinaria
-    4: "#28aa50",   # Green  — Promoción Activa
+    1: "#312e5c",   # índigo profundo — Tier I, prioridad máxima de inversión
+    2: "#56548a",   # índigo medio    — Tier II
+    3: "#8388b0",   # pizarra media   — Tier III
+    4: "#b3b8d4",   # pizarra clara   — Tier IV, promoción / mínima inversión
 }
 _TIER_LABEL = {
-    1: "Tier 1 — Atención Inmediata",
-    2: "Tier 2 — Acción Preventiva",
-    3: "Tier 3 — Monitorización",
-    4: "Tier 4 — Promoción Activa",
+    1: "TIER I — Prioridad máxima de inversión",
+    2: "TIER II — Inversión preventiva",
+    3: "TIER III — Monitorización rutinaria",
+    4: "TIER IV — Promoción / mínima inversión",
 }
 
-# Quadrant annotations: (x_anchor, y_anchor, text, color)
+# Quadrant annotations describe POSITION in the risk/pressure space (not tiers),
+# so they are labelled neutrally and coloured grey to avoid clashing with the
+# neutral tier markers. The subtle background fills below still tint the risk
+# axis (a continuous risk reading, like the spectral EHS map).
+_QUADRANT_TEXT = "#5a6472"
 _QUADRANT_ANNOTATIONS = [
-    # top-right: high pressure + high risk → critical
-    (0.97, 0.97, "⚠️ Atención Inmediata", "#dc3232", "right", "top"),
-    # top-left: low pressure + high risk → fragile, low visibility
-    (0.03, 0.97, "🌡️ Fragilidad Oculta", "#e68214", "left", "top"),
-    # bottom-right: high pressure + low risk → sustainable pressure
-    (0.97, 0.03, "📈 Presión Sostenible", "#3278c8", "right", "bottom"),
-    # bottom-left: low pressure + low risk → promotion candidate
-    (0.03, 0.03, "🌿 Promoción Activa", "#28aa50", "left", "bottom"),
+    # top-right: high pressure + high risk
+    (0.97, 0.97, "⚠️ Riesgo alto · Presión alta", _QUADRANT_TEXT, "right", "top"),
+    # top-left: low pressure + high risk
+    (0.03, 0.97, "🌡️ Riesgo alto · Presión baja", _QUADRANT_TEXT, "left", "top"),
+    # bottom-right: high pressure + low risk
+    (0.97, 0.03, "📈 Riesgo bajo · Presión alta", _QUADRANT_TEXT, "right", "bottom"),
+    # bottom-left: low pressure + low risk
+    (0.03, 0.03, "🌿 Riesgo bajo · Presión baja", _QUADRANT_TEXT, "left", "bottom"),
 ]
 
 
@@ -200,7 +206,7 @@ def build_portfolio_matrix(assets: list) -> go.Figure:
             zeroline=False,
         ),
         legend=dict(
-            title="Tier de Gestión",
+            title="Tier (prioridad de inversión)",
             orientation="h",
             yanchor="bottom", y=1.02,
             xanchor="left", x=0,
