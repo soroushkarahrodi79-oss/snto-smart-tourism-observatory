@@ -1,6 +1,6 @@
 # Kit de difusión SNTO — textos listos para publicar
 
-Borradores para cada plataforma. Sustituye `[URL_DASHBOARD]`, `[URL_REPO]` y `10.5281/zenodo.20818270` por los
+Borradores para cada plataforma. Sustituye `[URL_DASHBOARD]`, `https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory` y `10.5281/zenodo.20818270` por los
 valores reales antes de publicar. Las cifras son las del Pipeline A real (PNSG, 2 escenas
 Sentinel-2). Mantén la honestidad metodológica: alerta temprana, no intervención formal.
 
@@ -40,7 +40,7 @@ Sentinel-2). Mantén la honestidad metodológica: alerta temprana, no intervenci
 > Y nunca recomienda gastar dinero sin evidencia suficiente: un *gate* de confianza bloquea las
 > recomendaciones cuando los datos no dan.
 >
-> 🔗 Cómo está construido: [URL_REPO]
+> 🔗 Cómo está construido: https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory
 >
 > #RemoteSensing #GIS #NDVI #OpenData
 
@@ -57,7 +57,7 @@ Sentinel-2). Mantén la honestidad metodológica: alerta temprana, no intervenci
 > sistema lo declara.
 >
 > Todo el código es abierto. 474 tests, desplegado en la nube.
-> 🔗 [URL_REPO] · 🔗 [URL_DASHBOARD]
+> 🔗 https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory · 🔗 [URL_DASHBOARD]
 >
 > ¿Trabajas en gestión de espacios protegidos? Me encantaría tu opinión. 👇
 >
@@ -90,7 +90,7 @@ España, MITERD, Copernicus EU.
    larga, y el sistema lo declara. Nada de overclaiming.
 
 7. 474 tests, CI/CD, desplegado en Azure, dashboard con 3 vistas (técnica / gestor / auditoría).
-   Todo abierto. Código: [URL_REPO]
+   Todo abierto. Código: https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory
 
 8. Construido como TFM en la UCM. Feedback de la comunidad #GIS #RemoteSensing muy bienvenido.
    cc @ESA_EO
