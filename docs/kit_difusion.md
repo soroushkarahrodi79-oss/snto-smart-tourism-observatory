@@ -1,6 +1,6 @@
 # Kit de difusión SNTO — textos listos para publicar
 
-Borradores para cada plataforma. Sustituye `[URL_DASHBOARD]`, `[URL_REPO]` y `[DOI]` por los
+Borradores para cada plataforma. Sustituye `[URL_DASHBOARD]`, `[URL_REPO]` y `10.5281/zenodo.20818270` por los
 valores reales antes de publicar. Las cifras son las del Pipeline A real (PNSG, 2 escenas
 Sentinel-2). Mantén la honestidad metodológica: alerta temprana, no intervención formal.
 

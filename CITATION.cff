@@ -15,6 +15,7 @@ authors:
     email: soroush.karahrodi79@gmail.com
     affiliation: "Universidad Complutense de Madrid (UCM)"
     # orcid: "https://orcid.org/0000-0000-0000-0000"  # añadir si dispones de ORCID
+doi: "10.5281/zenodo.20818270"
 repository-code: "https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory"
 url: "https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory"
 license: "LicenseRef-SNTO-Academic"
@@ -34,8 +35,7 @@ keywords:
   - OAPN
   - streamlit
   - geospatial
-# Si registras una versión en Zenodo, descomenta y sustituye el DOI:
-# identifiers:
-#   - type: doi
-#     value: "10.5281/zenodo.XXXXXXX"
-#     description: "DOI del release archivado en Zenodo"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.20818270"
+    description: "DOI del release archivado en Zenodo"

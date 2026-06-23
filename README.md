@@ -13,6 +13,7 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 [![Deploy target](https://img.shields.io/badge/deploy-Azure%20Container%20Apps-0078D4?logo=microsoftazure&logoColor=white)](#7-despliegue)
 [![Status](https://img.shields.io/badge/estado-investigaci%C3%B3n%20activa-blue)](#1-estado-del-proyecto)
 [![License](https://img.shields.io/badge/uso-acad%C3%A9mico-lightgrey)](LICENSE)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20818270.svg)](https://doi.org/10.5281/zenodo.20818270)
 
 **🔴 [Dashboard en vivo](https://snto-observatory.happyground-be027676.swedencentral.azurecontainerapps.io/)** · 📄 [Whitepaper](WHITEPAPER_SNTO_Architecture_Blueprint.md) · 🏗 [Arquitectura](ARCHITECTURE.md)
 
@@ -359,8 +360,9 @@ Supervisión académica: Carmen Mínguez · Susana Ramírez García (REGENERA) �
 ### Cómo citar
 
 Si utilizas este software o sus resultados, cítalo mediante el fichero [`CITATION.cff`](CITATION.cff)
-(GitHub lo expone como **"Cite this repository"** en la barra lateral). Al publicar el release
-`v1.0.0` en Zenodo se añadirá un **DOI** permanente y citeable.
+(GitHub lo expone como **"Cite this repository"** en la barra lateral).
+
+**DOI permanente (Zenodo):** [10.5281/zenodo.20818270](https://doi.org/10.5281/zenodo.20818270)
 
 Documentación de difusión e institucional:
 - [Dossier institucional (OAPN / EUROPARC)](docs/dossier_institucional_OAPN.md)
