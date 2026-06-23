@@ -33,7 +33,7 @@ La mayoría de los espacios naturales protegidos gestionan el impacto del turism
 
 <div align="center">
 
-![Dashboard ejecutivo SNTO](docs/screenshot-dashboard.jpg)
+![Dashboard ejecutivo SNTO](docs/screenshot-dashboard.png)
 
 _Dashboard ejecutivo con 10 KPIs territoriales, mapa folium de activos y modelo de madurez de destino de 5 niveles. Desplegado en Azure Container Apps (Sweden Central)._
 

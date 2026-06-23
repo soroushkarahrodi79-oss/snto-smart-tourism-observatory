@@ -138,7 +138,7 @@ attribution, territorial intelligence, Spain, Sierra de Guadarrama, OAPN.
 
 ## 5. Checklist de orden de publicación
 
-- [x] Screenshot real del dashboard → `docs/screenshot-dashboard.jpg`
+- [x] Screenshot real del dashboard → `docs/screenshot-dashboard.png`
 - [ ] Verificar URL Azure y reemplazar placeholders en README §7
 - [ ] `CITATION.cff` (hecho) + release `v1.0.0` en GitHub
 - [ ] Conectar repo a Zenodo → obtener DOI → badge en README
