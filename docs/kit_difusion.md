@@ -1,0 +1,150 @@
+# Kit de difusión SNTO — textos listos para publicar
+
+Borradores para cada plataforma. Sustituye `[URL_DASHBOARD]`, `[URL_REPO]` y `[DOI]` por los
+valores reales antes de publicar. Las cifras son las del Pipeline A real (PNSG, 2 escenas
+Sentinel-2). Mantén la honestidad metodológica: alerta temprana, no intervención formal.
+
+---
+
+## 1. LinkedIn — secuencia de 3 posts (espaciar 5-7 días)
+
+### Post 1 — El problema (gancho)
+
+> Los parques nacionales españoles gestionan el impacto del turismo casi siempre **tarde**: se actúa
+> cuando la erosión de un sendero ya se ve a simple vista. Para entonces, restaurar es caro y a veces
+> imposible.
+>
+> Durante mi TFM en la @Universidad Complutense de Madrid construí el **SNTO**, un observatorio que le
+> da la vuelta a esa lógica: detecta el estrés ecológico de un sendero **desde el satélite, antes de
+> que sea visible**.
+>
+> Lo apliqué al **Parque Nacional Sierra de Guadarrama** con cartografía oficial OAPN.
+> En los próximos días cuento cómo funciona y qué encontró. 🧵
+>
+> 🔗 Dashboard en vivo: [URL_DASHBOARD]
+>
+> #TurismoSostenible #Teledetección #ParquesNacionales #Sentinel2 #UCM
+
+### Post 2 — La tecnología (cómo)
+
+> ¿Cómo se "ve" el cansancio de un sendero desde el espacio? 🛰️
+>
+> El SNTO usa imágenes **Sentinel-2** (Copernicus, abiertas) y dos índices:
+> · **NDVI** → vigor de la vegetación
+> · **NDMI** → humedad
+>
+> La clave no es solo medir la degradación, sino **atribuir su causa**: el sistema analiza el gradiente
+> espacial alrededor de cada traza y separa el daño **localizado** (pisoteo, uso turístico) del daño
+> **a escala de paisaje** (sequía, clima). Porque la respuesta de gestión es completamente distinta.
+>
+> Y nunca recomienda gastar dinero sin evidencia suficiente: un *gate* de confianza bloquea las
+> recomendaciones cuando los datos no dan.
+>
+> 🔗 Cómo está construido: [URL_REPO]
+>
+> #RemoteSensing #GIS #NDVI #OpenData
+
+### Post 3 — Los resultados (impacto, el que más engagement genera)
+
+> Resultados del SNTO sobre el **Parque Nacional Sierra de Guadarrama** (2 escenas Sentinel-2 reales,
+> 73 senderos con cartografía oficial OAPN):
+>
+> 📉 **17 de 73 senderos** con deterioro estacional activo.
+> 🎯 De los degradados: **27 con señal de uso turístico**, 37 con señal climática a escala de paisaje.
+> 💶 Presupuesto de intervención estimado: **~205.000 €**, priorizado por causa y confianza.
+>
+> Importante y honesto: con 2 escenas esto es **alerta temprana**, no diagnóstico plurianual. El propio
+> sistema lo declara.
+>
+> Todo el código es abierto. 474 tests, desplegado en la nube.
+> 🔗 [URL_REPO] · 🔗 [URL_DASHBOARD]
+>
+> ¿Trabajas en gestión de espacios protegidos? Me encantaría tu opinión. 👇
+>
+> #TurismoRegenerativo #ParquesNacionales #DataScience #Sostenibilidad #EUROPARC
+
+**Etiquetar cuando sea posible:** UCM, OAPN (Organismo Autónomo de Parques Nacionales), EUROPARC
+España, MITERD, Copernicus EU.
+**Añadir a la sección "Proyectos" del perfil** con enlaces a repo y dashboard.
+
+---
+
+## 2. X / Twitter — hilo para la comunidad GIS (6-8 tweets)
+
+1. 🛰️ Detectar el desgaste de un sendero **antes** de que se vea a simple vista. Eso hace el SNTO,
+   el observatorio open-source que construí sobre el Parque Nacional Sierra de Guadarrama. Hilo 🧵👇
+
+2. El problema: la gestión del impacto turístico en espacios protegidos suele ser reactiva. Cuando la
+   erosión es visible, restaurar es caro o imposible.
+
+3. La materia prima: imágenes #Sentinel2 (@CopernicusEU, abiertas). Dos índices, NDVI (vigor vegetal)
+   y NDMI (humedad), calibrados por percentiles reales de cada escena. [imagen mapa PNSG por EHS]
+
+4. La parte que más me importa: **atribución causal**. Analizando el gradiente espacial 0–50 / 50–200 /
+   200–1000 m, separo daño localizado (uso) de daño a escala de paisaje (clima). [imagen SCM]
+
+5. Resultado sobre 73 senderos: 17 con deterioro activo, 27 con señal de uso, 37 climática.
+   Presupuesto de intervención priorizado ~205k €.
+
+6. Honestidad: con 2 escenas es señal estacional (ΔEHS), NO tendencia. Mann-Kendall necesita serie
+   larga, y el sistema lo declara. Nada de overclaiming.
+
+7. 474 tests, CI/CD, desplegado en Azure, dashboard con 3 vistas (técnica / gestor / auditoría).
+   Todo abierto. Código: [URL_REPO]
+
+8. Construido como TFM en la UCM. Feedback de la comunidad #GIS #RemoteSensing muy bienvenido.
+   cc @ESA_EO
+
+**Hashtags:** #GIS #RemoteSensing #Sentinel2 #OpenData #Spain #EcoTurismo
+
+---
+
+## 3. ResearchGate / Zenodo — abstract para el Whitepaper (preprint / technical report)
+
+**Título:** SNTO — Smart Nature Tourism Observatory: a satellite-based territorial intelligence
+framework for proactive, regenerative governance of protected-area tourism.
+
+**Abstract (EN):**
+Protected natural areas largely manage tourism impact reactively, intervening only once trail
+degradation is visually evident. This work presents the SNTO, an open-source territorial intelligence
+observatory that converts Sentinel-2 remote sensing (NDVI/NDMI) into actionable management
+intelligence for national parks. The framework (i) computes a scene-percentile-calibrated Ecological
+Health Score per trail, (ii) performs spatial causal attribution to distinguish use-driven from
+climate-driven degradation via a 0–50/50–200/200–1000 m impact gradient, (iii) gates spending
+recommendations behind a Decision Confidence Score, and (iv) prioritizes restoration budget while
+quantifying the cost of inaction. Applied to the Sierra de Guadarrama National Park (Spain) using
+official OAPN cartography and two real Sentinel-2 scenes, it flags 17 of 73 trails with active
+seasonal degradation and an indicative ~€205k intervention budget. The system explicitly bounds its
+claims (seasonal early-warning, not multi-year trend) and aligns with European protected-area
+reporting frameworks (Natura 2000 / EUROPARC / CETS). All code, tests (474) and documentation are
+open.
+
+**Keywords:** remote sensing, Sentinel-2, NDVI, NDMI, protected areas, sustainable tourism, causal
+attribution, territorial intelligence, Spain, Sierra de Guadarrama, OAPN.
+
+---
+
+## 4. Metadatos Zenodo (al crear el release v1.0.0)
+
+- **Upload type:** Software (y un segundo registro tipo *Publication → Report* para el Whitepaper).
+- **Title:** SNTO — Smart Nature Tourism Observatory
+- **Authors:** Karahrodi, Soroush (Universidad Complutense de Madrid)
+- **License:** ver `LICENSE` (uso académico). En Zenodo: "Other (Open)".
+- **Keywords:** las de `CITATION.cff`.
+- **Related identifiers:** repositorio GitHub (isSupplementTo).
+- Tras obtener el DOI, añadir el badge al README y descomentar el bloque `identifiers` en `CITATION.cff`.
+
+---
+
+## 5. Checklist de orden de publicación
+
+- [x] Screenshot real del dashboard → `docs/screenshot-dashboard.jpg`
+- [ ] Verificar URL Azure y reemplazar placeholders en README §7
+- [ ] `CITATION.cff` (hecho) + release `v1.0.0` en GitHub
+- [ ] Conectar repo a Zenodo → obtener DOI → badge en README
+- [ ] Topics y Social Preview en GitHub (Settings)
+- [ ] Whitepaper PDF → ResearchGate + Zenodo (Report)
+- [ ] Hugging Face Space (ver `deploy/HUGGINGFACE_SPACE.md`)
+- [ ] LinkedIn post 1 → (5-7 días) post 2 → post 3
+- [ ] Hilo en X/Twitter con imágenes del mapa
+- [ ] Dossier institucional → OAPN / EUROPARC (vía UCM)
