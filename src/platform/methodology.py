@@ -478,7 +478,7 @@ def render_traceability_matrix() -> None:
         "Ubicación en código": r.location,
         "Nota": r.note,
     } for r in rows])
-    st.dataframe(df, width="stretch", hide_index=True)
+    st.dataframe(df, use_container_width=True, hide_index=True)
     st.caption(
         "**Observada** = medición directa · **Calculada** = determinista desde observadas · "
         "**Estimada** = proxy/parámetro o atributo curado · **Simulada** = escenario/contrafactual. "
@@ -506,7 +506,7 @@ def render_multiplier_table() -> None:
         "Sensibilidad": m.sensitivity,
         "Ubicación": m.location,
     } for m in MULTIPLIERS])
-    st.dataframe(df, width="stretch", hide_index=True)
+    st.dataframe(df, use_container_width=True, hide_index=True)
 
 
 @dataclass(frozen=True)
@@ -568,7 +568,7 @@ def render_data_sources() -> None:
         "Atribución requerida": s.attribution,
         "Uso en SNTO": s.use_in_snto,
     } for s in DATA_SOURCES])
-    st.dataframe(df, width="stretch", hide_index=True)
+    st.dataframe(df, use_container_width=True, hide_index=True)
     st.caption(
         "El código se distribuye para **uso académico y de investigación** (UCM). "
         "Los datos pertenecen a sus respectivos proveedores y conservan sus licencias."
