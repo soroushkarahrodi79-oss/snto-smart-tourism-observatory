@@ -143,7 +143,8 @@ attribution, territorial intelligence, Spain, Sierra de Guadarrama, OAPN.
 - [x] DOI Zenodo 10.5281/zenodo.20818270 cableado (badge README, CITATION.cff, kit)
 - [x] Hugging Face Space desplegado → huggingface.co/spaces/soroushkararodi/snto-observatory
 - [x] Whitepaper HTML generado → `docs/SNTO_Whitepaper_2026_Karahrodi.html`
-- [ ] **SIGUIENTE:** Abrir HTML en Chrome → Ctrl+P → Guardar como PDF → subir a ResearchGate + Zenodo (como "Report")
+- [x] Preprint académico generado → `docs/SNTO_Preprint_2026_Karahrodi.html`
+- [ ] **SIGUIENTE:** Abrir `SNTO_Preprint_2026_Karahrodi.html` en Chrome → Ctrl+P → Guardar como PDF → subir a ResearchGate (tipo "Preprint") + Zenodo (tipo "Publication → Preprint")
 - [ ] Topics y Social Preview en GitHub (Settings → Topics: `remote-sensing` `sentinel-2` `tourism` `spain` `streamlit`)
 - [ ] Verificar URL Azure en README §7 (si hay placeholder)
 - [ ] LinkedIn post 1 → (5-7 días) post 2 → post 3 (textos en §1 de este doc)

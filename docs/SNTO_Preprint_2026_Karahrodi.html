@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="author" content="Soroush Karahrodi">
+<meta name="keywords" content="remote sensing, Sentinel-2, NDVI, NDMI, protected areas, sustainable tourism, ecotourism, causal attribution, territorial intelligence, Sierra de Guadarrama, OAPN, Spain">
+<title>SNTO Preprint 2026 · Karahrodi</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..600&family=Source+Code+Pro:wght@400&display=swap');
+
+:root {
+  --blue:  #1a4f9c;
+  --mid:   #2d6ab4;
+  --light: #e8f0fc;
+  --text:  #1a2332;
+  --meta:  #6b7c93;
+  --rule:  #c8d6e8;
+  --code:  #f3f6fb;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 10.5pt; }
+body {
+  font-family: 'Source Serif 4', Georgia, serif;
+  color: var(--text);
+  background: #fff;
+  line-height: 1.7;
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 48px 40px 80px;
+}
+
+/* ── Print hint ─────────────────────────────────────────── */
+.print-hint {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: var(--blue); color: #fff;
+  text-align: center; padding: 9px; font-size: 11.5px;
+  font-family: system-ui, sans-serif; z-index: 999;
+}
+.print-hint kbd {
+  background: rgba(255,255,255,0.25); padding: 1px 7px;
+  border-radius: 3px; font-family: inherit;
+}
+
+/* ── Header / title block ───────────────────────────────── */
+.paper-header {
+  border-bottom: 2px solid var(--blue);
+  padding-bottom: 20px;
+  margin-bottom: 28px;
+  margin-top: 20px;
+}
+.preprint-badge {
+  display: inline-block;
+  background: #fff3cd; color: #7d5a00;
+  border: 1px solid #ffc107;
+  font-size: 8.5pt; font-weight: 700;
+  padding: 2px 10px; border-radius: 3px;
+  margin-bottom: 10px;
+  font-family: system-ui, sans-serif;
+  letter-spacing: 0.5px;
+}
+h1.paper-title {
+  font-size: 19pt; font-weight: 700; color: #0d1b2a;
+  line-height: 1.25; margin-bottom: 10px;
+}
+.authors { font-size: 10.5pt; color: var(--text); margin-bottom: 4px; }
+.affiliations { font-size: 9pt; color: var(--meta); margin-bottom: 8px; line-height: 1.6; }
+.paper-meta {
+  font-size: 8.5pt; color: var(--meta);
+  font-family: system-ui, sans-serif;
+  line-height: 1.8;
+}
+.paper-meta a { color: var(--blue); text-decoration: none; }
+.doi-box {
+  display: inline-block; background: var(--light);
+  border: 1px solid var(--rule); border-radius: 4px;
+  padding: 4px 12px; font-size: 9pt;
+  font-family: 'Source Code Pro', monospace;
+  color: var(--blue); margin-top: 6px;
+}
+
+/* ── Sections ───────────────────────────────────────────── */
+h2 {
+  font-size: 13pt; font-weight: 700;
+  color: var(--blue); margin-top: 2em; margin-bottom: 0.5em;
+  border-bottom: 1px solid var(--rule); padding-bottom: 4px;
+  page-break-after: avoid;
+}
+h3 {
+  font-size: 11pt; font-weight: 700; color: #2a5298;
+  margin-top: 1.4em; margin-bottom: 0.35em;
+  page-break-after: avoid;
+}
+p { margin: 0.65em 0; text-align: justify; hyphens: auto; }
+
+/* ── Abstract box ───────────────────────────────────────── */
+.abstract-box {
+  background: var(--light); border-left: 4px solid var(--blue);
+  padding: 14px 18px; margin: 0 0 2em;
+  border-radius: 0 4px 4px 0;
+}
+.abstract-box h2 {
+  border: none; margin-top: 0; font-size: 10.5pt;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--blue); margin-bottom: 8px;
+}
+.abstract-box p { font-size: 9.5pt; margin: 0.4em 0; }
+.keywords {
+  font-size: 9pt; color: var(--meta); margin-top: 8px;
+  font-style: italic;
+}
+
+/* ── Tables ─────────────────────────────────────────────── */
+table {
+  border-collapse: collapse; width: 100%;
+  font-size: 9pt; margin: 1.2em 0;
+  page-break-inside: avoid;
+}
+th {
+  background: var(--blue); color: #fff;
+  padding: 6px 10px; text-align: left; font-weight: 600;
+}
+td { padding: 5px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tr:nth-child(even) td { background: #f7f9fd; }
+caption { font-size: 8.5pt; color: var(--meta); text-align: left; margin-bottom: 4px; font-style: italic; }
+
+/* ── Code / equations ───────────────────────────────────── */
+code {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.88em; background: var(--code);
+  padding: 1px 5px; border-radius: 2px;
+}
+.equation {
+  background: var(--code); border-left: 3px solid var(--mid);
+  padding: 10px 16px; margin: 1em 0; font-size: 9.5pt;
+  font-family: 'Source Code Pro', monospace;
+  border-radius: 0 3px 3px 0; page-break-inside: avoid;
+}
+
+/* ── Figures ────────────────────────────────────────────── */
+.figure {
+  background: var(--code); border: 1px solid var(--rule);
+  padding: 16px; margin: 1.2em 0; border-radius: 4px;
+  page-break-inside: avoid; text-align: center;
+}
+.figure .fig-placeholder {
+  font-size: 9pt; color: var(--meta); font-style: italic;
+  padding: 10px 0;
+}
+.figure figcaption {
+  font-size: 8.5pt; color: var(--meta);
+  margin-top: 8px; text-align: left; line-height: 1.5;
+}
+
+/* ── Lists ──────────────────────────────────────────────── */
+ul, ol { padding-left: 1.8em; margin: 0.5em 0; }
+li { margin: 0.2em 0; }
+
+/* ── Results highlight ──────────────────────────────────── */
+.result-box {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 10px; margin: 1.2em 0;
+}
+.result-card {
+  background: var(--light); border-radius: 6px;
+  padding: 12px 14px; text-align: center;
+  border-top: 3px solid var(--blue);
+}
+.result-card .num { font-size: 19pt; font-weight: 700; color: var(--blue); }
+.result-card .lbl { font-size: 8pt; color: var(--meta); margin-top: 2px; line-height: 1.4; }
+
+/* ── Honesty box ────────────────────────────────────────── */
+.honesty-box {
+  border: 1.5px solid #e0901a; background: #fffbf0;
+  border-radius: 4px; padding: 12px 16px; margin: 1em 0;
+  font-size: 9.5pt;
+}
+.honesty-box strong { color: #7d4e00; }
+
+/* ── References ─────────────────────────────────────────── */
+ol.refs { font-size: 9pt; padding-left: 2em; }
+ol.refs li { margin: 0.4em 0; line-height: 1.5; }
+
+/* ── Footer ─────────────────────────────────────────────── */
+.doc-footer {
+  margin-top: 50px; padding-top: 10px;
+  border-top: 1px solid var(--rule);
+  font-size: 8pt; color: var(--meta); text-align: center; line-height: 1.9;
+}
+
+/* ══════════════════════════════════════════════════════════
+   PRINT
+   ══════════════════════════════════════════════════════════ */
+@media print {
+  html { font-size: 10pt; }
+  body { max-width: 100%; padding: 0; }
+  .print-hint { display: none; }
+  @page {
+    size: A4;
+    margin: 20mm 20mm 18mm 20mm;
+    @bottom-center {
+      content: "Pág. " counter(page) "  ·  Karahrodi (2026)  ·  DOI: 10.5281/zenodo.20818270";
+      font-size: 7.5pt; color: #8a9bb0;
+    }
+  }
+  h2, h3 { page-break-after: avoid; }
+  table, .result-box, .equation, .figure { page-break-inside: avoid; }
+  a { color: inherit; text-decoration: none; }
+  .result-box { display: table; width: 100%; }
+  .doc-footer { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="print-hint">
+  Para PDF: <kbd>Ctrl+P</kbd> → Guardar como PDF → Márgenes: <strong>Ninguno</strong> → Activar <strong>Gráficos de fondo</strong>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     HEADER
+     ══════════════════════════════════════════════════════ -->
+<div class="paper-header">
+  <div class="preprint-badge">PREPRINT — Not peer reviewed</div>
+  <h1 class="paper-title">
+    SNTO: A Satellite-Based Territorial Intelligence Framework for Proactive,
+    Regenerative Governance of Protected-Area Tourism
+  </h1>
+  <p class="authors">
+    <strong>Soroush Karahrodi</strong><sup>1</sup>,
+    Carmen Mínguez<sup>1</sup>,
+    Susana Ramírez García<sup>1,2</sup>
+  </p>
+  <p class="affiliations">
+    <sup>1</sup> Universidad Complutense de Madrid (UCM), Facultad de Geografía e Historia<br>
+    <sup>2</sup> REGENERA — Regeneración de Ecosistemas, Madrid<br>
+    Correspondence: <a href="mailto:soroush.karahrodi79@gmail.com">soroush.karahrodi79@gmail.com</a>
+  </p>
+  <div class="paper-meta">
+    Submitted: June 2026 &nbsp;·&nbsp;
+    Version: 1.0.0 &nbsp;·&nbsp;
+    License: Academic use (see <a href="https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/blob/main/LICENSE">LICENSE</a>)<br>
+    Repository: <a href="https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory">github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory</a><br>
+    <div class="doi-box">DOI: 10.5281/zenodo.20818270</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     ABSTRACT
+     ══════════════════════════════════════════════════════ -->
+<div class="abstract-box">
+  <h2>Abstract</h2>
+  <p>
+    Protected natural areas in Spain and across Europe largely manage tourism impact reactively,
+    intervening only once trail degradation is visually evident on the ground. This paper presents
+    the <strong>Smart Nature Tourism Observatory (SNTO)</strong>, an open-source territorial
+    intelligence framework that converts freely available <strong>Sentinel-2 remote sensing</strong>
+    data (NDVI + NDMI, Copernicus programme) into proactive, actionable management intelligence
+    for national parks and protected areas.
+  </p>
+  <p>
+    The framework introduces three core contributions. First, a <strong>scene-percentile-calibrated
+    Ecological Health Score (EHS)</strong> that anchors each trail's health to the empirical pixel
+    distribution of the actual Sentinel-2 scene rather than to fixed spectral thresholds, making
+    the index robust to inter-seasonal and inter-territory variability. Second, a <strong>Spatial
+    Causal Model (SCM)</strong> that partitions observed degradation into use-driven (trail-proximal,
+    0–50 m buffer) and climate-driven (landscape-scale, 200–1000 m) components through a spatial
+    impact gradient, directly informing whether restoration budget should be locally assigned.
+    Third, a <strong>Decision Confidence Score (DCS)</strong> that prevents issuing spending
+    recommendations when data quality or temporal robustness fall below minimum thresholds.
+  </p>
+  <p>
+    Applied to the <strong>Parque Nacional Sierra de Guadarrama (PNSG)</strong>, Spain — using
+    official OAPN cartography and two real Sentinel-2 scenes (summer 2025-08-10 and spring
+    2026-04-10, tile T30TVL) — the system analysed <strong>73 trails (149.4 km)</strong> and
+    identified 17 (23%) with active seasonal deterioration (ΔEHS &gt; 0). Causal attribution
+    classified 27 trails as localised-impact (use-driven), 9 as mixed, and 37 as
+    landscape-driven (climate-forcing dominant). The indicative restoration budget under
+    the causal-weighted model amounts to approximately <strong>€205,000</strong>.
+  </p>
+  <p>
+    The system is explicitly bounded: with two scenes it provides seasonal early-warning
+    signals, not multi-year trends. All code (493 automated tests), data provenance labels,
+    and limitations are openly documented. The framework aligns with European protected-area
+    reporting standards (Natura 2000 / EUROPARC / CETS).
+  </p>
+  <p class="keywords">
+    <strong>Keywords:</strong> remote sensing; Sentinel-2; NDVI; NDMI; protected areas;
+    sustainable tourism; causal attribution; territorial intelligence; Sierra de Guadarrama;
+    Spain; OAPN; open science
+  </p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     1. INTRODUCTION
+     ══════════════════════════════════════════════════════ -->
+<h2>1. Introduction</h2>
+
+<p>
+  Tourism is both a primary economic driver and a leading source of ecological stress for
+  protected natural areas worldwide. In Spain, the national park network (Red de Parques
+  Nacionales, OAPN) receives over 15 million visits per year, with the Sierra de Guadarrama
+  National Park (PNSG) — the closest national park to Madrid — among the most visited
+  mountain ecosystems in Southern Europe. Trail degradation, vegetation loss and soil
+  compaction are well-documented consequences of sustained visitor pressure, yet management
+  agencies consistently report acting reactively: interventions occur only after damage
+  becomes visible on the ground, when restoration is more costly and sometimes impossible
+  <sup>[1,2]</sup>.
+</p>
+<p>
+  Earth Observation (EO) data from the Copernicus Sentinel-2 programme offers a
+  cost-effective pathway to proactive monitoring: 10-m multispectral imagery with a 5-day
+  revisit cycle is freely available globally. Spectral vegetation indices — chiefly NDVI
+  (Normalized Difference Vegetation Index) and NDMI (Normalized Difference Moisture Index) —
+  have been validated as proxies for trail-level vegetation health and soil moisture at
+  mountain and Mediterranean sites <sup>[3,4,5]</sup>. However, translating raw spectral
+  signals into decision-relevant indicators for park managers requires addressing three
+  outstanding gaps:
+</p>
+<ol>
+  <li><strong>Cross-scene comparability.</strong> Fixed spectral thresholds are not transferable across seasons,
+    territories or phenological regimes without recalibration.</li>
+  <li><strong>Causal attribution.</strong> Vegetation stress observed at trail scale may originate from
+    visitor pressure or from regional climate forcing (drought, heat stress); the management
+    response — and whether local restoration budgets are warranted — differs fundamentally.</li>
+  <li><strong>Decision confidence.</strong> Satellite-derived recommendations must communicate
+    uncertainty honestly and withhold actionable advice when data quality is insufficient.</li>
+</ol>
+<p>
+  This paper presents the <strong>Smart Nature Tourism Observatory (SNTO)</strong>, an
+  open-source framework that addresses all three gaps through a two-pipeline architecture
+  applied to the PNSG as the primary test territory.
+</p>
+
+<!-- ══════════════════════════════════════════════════════
+     2. STUDY AREA
+     ══════════════════════════════════════════════════════ -->
+<h2>2. Study Area</h2>
+
+<p>
+  The <strong>Parque Nacional Sierra de Guadarrama (PNSG)</strong> covers approximately
+  33,960 ha along the central Iberian mountain range between the provinces of Madrid and
+  Segovia (Spain). Designated as a national park in 2013, it spans altitudes from ~900 m
+  to 2,428 m (Peñalara peak) and supports diverse ecosystems including Scots pine forests,
+  montane scrublands, subalpine grasslands and glacial lakes. The park is governed by the
+  Organismo Autónomo de Parques Nacionales (OAPN, Ministry for Ecological Transition) under
+  a Plan Rector de Uso y Gestión (PRUG) that zones activities into core, restricted and
+  service areas.
+</p>
+<p>
+  We analysed <strong>73 named trails</strong> reconstructed from the official OAPN
+  cartography supplemented with OpenStreetMap (OSM Overpass, named ways dissolved by
+  name), representing 149.4 km of formal visitor infrastructure. The study covers
+  <strong>34 municipalities</strong> in the park's zone of influence, for which
+  socioeconomic data were obtained from the INE national census and the ALMUDENA
+  municipal data bank of the Comunidad de Madrid.
+</p>
+<p>
+  As a calibration pilot, the <strong>Reserva de la Biosfera Sierra del Rincón</strong>
+  (Madrid province, ~16,000 ha, UNESCO Biosphere Reserve 1992) was also processed with
+  independent Sentinel-2 scenes to validate the EHS methodology under different ecological
+  and phenological conditions.
+</p>
+
+<!-- ══════════════════════════════════════════════════════
+     3. DATA
+     ══════════════════════════════════════════════════════ -->
+<h2>3. Data</h2>
+
+<table>
+  <caption>Table 1. Input data sources used in this study.</caption>
+  <tr><th>Dataset</th><th>Provider</th><th>Spatial/temporal resolution</th><th>Use in SNTO</th></tr>
+  <tr><td>Sentinel-2 L2A (NDVI/NDMI)</td><td>ESA / Copernicus</td><td>10 m · 5-day revisit · 2 scenes: 2025-08-10 (S2A) and 2026-04-10 (S2B), tile T30TVL</td><td>Primary spectral input for EHS, ΔEHS, SCM</td></tr>
+  <tr><td>Trail cartography + PRUG zoning</td><td>OAPN (Red de Parques Nacionales)</td><td>1:5,000 vector · 73 named trails</td><td>Trail geometries and management-zone classification</td></tr>
+  <tr><td>Supplementary trail network</td><td>OpenStreetMap (ODbL)</td><td>Vector · named ways</td><td>Gaps in OAPN coverage</td></tr>
+  <tr><td>Municipal census (Padrón) + EOATR</td><td>INE (Spain)</td><td>Municipal · annual</td><td>Population, ageing index, tourism occupation</td></tr>
+  <tr><td>Municipal economy (hostelería, income)</td><td>ALMUDENA — Comunidad de Madrid</td><td>Municipal · annual</td><td>Hospitality employment, income proxies</td></tr>
+</table>
+
+<p>
+  Sentinel-2 scenes were downloaded as .SAFE product archives. Band extraction (B04 RED,
+  B08 NIR, B11 SWIR), CRS reprojection to EPSG:25830 (ETRS89 / UTM 30N) and raster clipping
+  to the PNSG bounding box were performed with <code>rasterio</code>. NDMI was computed from
+  B08 and B11, with B11 (20 m native) upsampled to 10 m via bilinear interpolation to match
+  B04/B08. Scene Classification Layer (SCL) masks were applied to exclude cloud, shadow and
+  non-vegetated pixels from percentile calculations.
+</p>
+
+<!-- ══════════════════════════════════════════════════════
+     4. METHODOLOGY
+     ══════════════════════════════════════════════════════ -->
+<h2>4. Methodology</h2>
+
+<h3>4.1 Ecological Health Score (EHS)</h3>
+<p>
+  For each trail, a 50-m buffer was generated and raster statistics (mean NDVI, mean NDMI)
+  were extracted using <code>rasterstats</code>. Rather than applying global spectral
+  thresholds, we anchor each score to the empirical pixel distribution of the specific scene,
+  using the 90th percentile as the healthy reference (<em>P</em><sub>90</sub>) and the 10th
+  percentile as the degraded floor (<em>P</em><sub>10</sub>). This makes EHS comparable
+  across seasons without requiring external calibration data.
+</p>
+<div class="equation">
+  D<sub>x</sub> = clamp((P<sub>90</sub> − x̄) / (P<sub>90</sub> − P<sub>10</sub>), 0, 1)
+  <br><br>
+  EHS = 100 · (1 − (w<sub>NDVI</sub> · D<sub>NDVI</sub> + w<sub>NDMI</sub> · D<sub>NDMI</sub>))
+  <br><br>
+  where w<sub>NDVI</sub> = w<sub>NDMI</sub> = 0.5 (standard mode);
+  in dense-canopy (NDVI &gt; 0.80): w<sub>NDVI</sub> = 0.20, w<sub>NDMI</sub> = 0.80
+</div>
+<p>
+  EHS ranges from 0 (worst) to 100 (healthiest). Seasonal change is quantified as
+  ΔEHS = EHS<sub>summer</sub> − EHS<sub>spring</sub>; a positive ΔEHS (summer healthier
+  than spring) indicates improvement; a negative ΔEHS indicates seasonal deterioration.
+  The dense-canopy NDVI saturation guard shifts weight toward NDMI for trails running
+  through beech forests (<em>Hayedos</em>), where closed-canopy conditions render NDVI
+  insensitive to sub-canopy stress.
+</p>
+
+<h3>4.2 Spatial Causal Model (SCM)</h3>
+<p>
+  To partition degradation by cause, we compute a Spatial Impact Gradient (SIG) that
+  contrasts spectral health at three radial zones around each trail centreline:
+  <em>core</em> (0–50 m, direct trail influence),
+  <em>near</em> (50–200 m, transition zone), and
+  <em>landscape</em> (200–1000 m, background climatic signal).
+</p>
+<div class="equation">
+  SIG = (NDVI<sub>landscape</sub> − NDVI<sub>core</sub>) / max(NDVI<sub>landscape</sub>, 0.01)
+  <br><br>
+  SIG ≥ 0.15 → LOCALIZED_IMPACT (use-driven; causal factor = 1.0)<br>
+  0.07 ≤ SIG &lt; 0.15 → MIXED (causal factor = 0.5)<br>
+  SIG &lt; 0.07 → LANDSCAPE_DRIVEN (climate; causal factor = 0.0)
+</div>
+<p>
+  The causal factor modulates the restoration budget following a polluter-pays principle:
+  only the fraction of degradation attributable to visitor pressure justifies local
+  investment. Climate-driven degradation requires a different policy response
+  (climate adaptation, habitat management) and is excluded from the local budget.
+</p>
+
+<h3>4.3 Decision Confidence Score (DCS)</h3>
+<p>
+  DCS aggregates five dimensions on a 0–100 scale:
+  Data Quality (DQ, max 25), Temporal Robustness (TR, max 25),
+  Spatial Consistency (SC, max 20), Model Stability (MS, max 15),
+  Signal Strength (SS, max 15). Two hard gates prevent issuing
+  actionable recommendations: DQ &lt; 10 or TR &lt; 12 sets
+  <code>can_act = False</code> regardless of the total score.
+  With only two scenes, TR is limited by design and
+  DCS is transparently reported as an early-warning system.
+</p>
+
+<h3>4.4 Budget Prioritisation (TPI / TIS)</h3>
+<p>
+  The Territorial Priority Index (TPI) combines ecological risk (0.40),
+  human pressure (0.30) and socioeconomic vulnerability (0.30) to rank trails
+  into four investment tiers (I Immediate → IV Promotion).
+  The Territorial Impact Score (TIS) integrates environmental, economic and
+  evidence dimensions (weights 0.55 / 0.30 / 0.15) to estimate restoration cost,
+  expected impact and the counterfactual cost of inaction.
+  Unit restoration cost is parameterised at 15.50 €/m (TRAGSA 2023 indicative tariff;
+  subject to official verification), modulated by the SCM causal factor.
+</p>
+
+<h3>4.5 Socioeconomic Vulnerability Layer</h3>
+<p>
+  For each of the 34 municipalities in the PNSG zone of influence, we compute a
+  Socioeconomic Vulnerability Index (SVI):
+</p>
+<div class="equation">
+  SVI = 0.40 · DEP + 0.30 · DEM + 0.30 · ENV
+</div>
+<p>
+  where DEP = tourism dependency (EOATR occupancy proxy),
+  DEM = demographic fragility (ageing index + depopulation trend),
+  ENV = environmental exposure (trail-level EHS risk aggregated to municipality).
+  Jobs at risk are estimated as hospitality employment (ALMUDENA affiliation data)
+  × ENV exposure weight. All socioeconomic outputs are flagged as
+  <em>prospective scenarios</em>, not measured quantities.
+</p>
+
+<!-- ══════════════════════════════════════════════════════
+     5. RESULTS
+     ══════════════════════════════════════════════════════ -->
+<h2>5. Results</h2>
+
+<div class="result-box">
+  <div class="result-card"><div class="num">73</div><div class="lbl">Trails analysed<br>(149.4 km total)</div></div>
+  <div class="result-card"><div class="num">17</div><div class="lbl">Trails with active deterioration<br>(ΔEHS &gt; 0, 23%)</div></div>
+  <div class="result-card"><div class="num">27</div><div class="lbl">Localised-impact trails<br>(use-driven SCM)</div></div>
+  <div class="result-card"><div class="num">~€205K</div><div class="lbl">Indicative restoration budget<br>(causal-weighted)</div></div>
+</div>
+
+<h3>5.1 Ecological Health Score</h3>
+<p>
+  Mean EHS across the 73 PNSG trails was <strong>27.6/100</strong> in the summer scene
+  (maximum 71.3; minimum 3.2). Seventeen trails (23%) showed active seasonal deterioration
+  (ΔEHS &gt; 0, mean ΔEHS among deteriorating trails = −17.8), indicating that summer
+  vegetation health was lower than spring, consistent with heat/drought stress compounded
+  by visitor pressure during the peak season (July–August). The remaining 56 trails showed
+  stable or improving EHS across the two scenes.
+</p>
+<p>
+  Six trails in the Tier I (Immediate Intervention) category — including Laguna de Peñalara,
+  Cumbre de los Siete Picos and Cuerda Larga — combined EHS values below 40 with
+  LOCALIZED_IMPACT classification, representing the highest-confidence candidates for
+  restoration intervention. Three of these triggered the <em>Intervención Crítica</em>
+  alert threshold (EHS &lt; 40 and ΔEHS &gt; 15).
+</p>
+
+<h3>5.2 Causal Attribution</h3>
+<p>
+  SCM classification of the 73 trails: <strong>27 LOCALIZED_IMPACT</strong> (37%),
+  <strong>9 MIXED</strong> (12%), <strong>37 LANDSCAPE_DRIVEN</strong> (51%).
+  The majority of trails (51%) showed a landscape-scale spectral gradient consistent with
+  climate forcing rather than trail-proximal use pressure. This result is consistent with the
+  documented 2025 drought anomaly in the Iberian Peninsula <sup>[6]</sup> and underscores
+  the importance of causal attribution before allocating local restoration budgets.
+</p>
+
+<table>
+  <caption>Table 2. SCM classification and causal budget distribution.</caption>
+  <tr><th>SCM Class</th><th>N trails</th><th>%</th><th>Causal factor</th><th>Budget share</th></tr>
+  <tr><td>LOCALIZED_IMPACT</td><td>27</td><td>37%</td><td>1.0</td><td>~€150,000</td></tr>
+  <tr><td>MIXED</td><td>9</td><td>12%</td><td>0.5</td><td>~€27,500</td></tr>
+  <tr><td>LANDSCAPE_DRIVEN</td><td>51%</td><td>51%</td><td>0.0</td><td>€0 (policy response)</td></tr>
+  <tr><td><strong>Total</strong></td><td><strong>73</strong></td><td>100%</td><td>—</td><td><strong>~€205,000</strong></td></tr>
+</table>
+
+<h3>5.3 Socioeconomic Layer</h3>
+<p>
+  Across 34 municipalities, mean SVI was 0.52 (range 0.28–0.81). The highest vulnerability
+  municipalities — Rascafría, Lozoya and Navacerrada — combine high tourism dependency
+  (EOATR data), accelerating demographic decline and direct proximity to trails in the
+  Tier I / II categories. Estimated hospitality jobs at risk (environmental exposure ×
+  affiliation base) total approximately <strong>769</strong>, with the caveat that this
+  figure represents a scenario output, not a measured count.
+</p>
+
+<!-- ══════════════════════════════════════════════════════
+     6. DISCUSSION
+     ══════════════════════════════════════════════════════ -->
+<h2>6. Discussion</h2>
+
+<h3>6.1 Strengths</h3>
+<p>
+  The primary methodological contribution of SNTO is the decoupling of <em>health
+  quantification</em> (EHS) from <em>cause attribution</em> (SCM). Most existing remote
+  sensing studies of trail degradation focus on spectral change detection without addressing
+  whether that change is driven by use or by climate variability <sup>[7,8]</sup>. By making
+  causal attribution an explicit, auditable step that controls budget allocation, SNTO
+  prevents misallocation of restoration funds to landscape-scale climate signals that
+  cannot be addressed locally.
+</p>
+<p>
+  The scene-percentile calibration of EHS (using P<sub>90</sub>/P<sub>10</sub> of the
+  actual scene) avoids the need for external reference datasets, making the framework
+  applicable to territories without long vegetation-monitoring records — a common
+  constraint in Spanish national parks.
+</p>
+
+<h3>6.2 Limitations and Honest Bounds</h3>
+
+<div class="honesty-box">
+  <strong>Temporal scope:</strong> With two Sentinel-2 scenes (one summer, one spring),
+  SNTO provides a <em>seasonal early-warning signal</em> (ΔEHS), not a multi-year trend.
+  Mann-Kendall trend detection — implemented in Pipeline B — requires a minimum of
+  4 observations and is statistically robust only beyond 10 data points <sup>[9]</sup>.
+  Results from this study should not be cited as evidence of long-term degradation trends.
+</div>
+
+<div class="honesty-box">
+  <strong>Validation:</strong> No field validation campaign (penetrometer readings, ground
+  cover surveys, erosion measurements) has yet been conducted. The SCM causal thresholds
+  (SIG ≥ 0.15 for LOCALIZED, ≤ 0.07 for LANDSCAPE) are calibrated from the spectral
+  data alone and require corroboration against in-situ measurements of visitor-impact
+  indicators <sup>[10]</sup>.
+</div>
+
+<div class="honesty-box">
+  <strong>Budget figures:</strong> The restoration cost estimate (€205,000) is an
+  indicative order-of-magnitude figure based on a unit rate of 15.50 €/m (TRAGSA 2023).
+  It should not be used for procurement or official budget planning without verification
+  against current official tariffs and site-specific engineering assessments.
+</div>
+
+<div class="honesty-box">
+  <strong>Socioeconomic outputs:</strong> All employment and income figures are
+  scenario projections derived from proxy relationships (hospitality affiliation ×
+  environmental exposure). They are not measured economic impacts.
+</div>
+
+<h3>6.3 Alignment with Policy Frameworks</h3>
+<p>
+  SNTO aligns with European reporting requirements for protected areas, specifically
+  Natura 2000 conservation status monitoring, the EUROPARC European Charter for Sustainable
+  Tourism (CETS) — particularly Principles 3 (natural heritage protection) and 10 (visitor
+  flow management) — and the SISMOTUR sustainable tourism indicators framework. The
+  framework's open code and provenance documentation are designed to facilitate institutional
+  adoption and independent audit.
+</p>
+
+<!-- ══════════════════════════════════════════════════════
+     7. CONCLUSION
+     ══════════════════════════════════════════════════════ -->
+<h2>7. Conclusion</h2>
+<p>
+  We have presented SNTO, an open-source territorial intelligence framework that converts
+  freely available Sentinel-2 imagery into actionable health assessments, causal attribution
+  and budget prioritisation for protected-area trail management. Applied to the Sierra de
+  Guadarrama National Park with official OAPN cartography, the system identified 17 of 73
+  trails (23%) with active seasonal deterioration and allocated a causal-weighted indicative
+  restoration budget of ~€205,000, of which only 37% of trails were classified as
+  use-driven — a finding that would have been invisible without explicit causal attribution.
+</p>
+<p>
+  The framework is reproducible (493 automated tests, open repository), scalable to other
+  territories in the Spanish national park network (OAPN), and designed for honest
+  communication of uncertainty to multiple stakeholder audiences (technical, management,
+  institutional). The next development stage requires a multi-year Sentinel-2 time series
+  (via Google Earth Engine) to activate trend detection, and a ground-truth campaign to
+  validate the SCM causal thresholds and close the pseudo-validation loop.
+</p>
+
+<!-- ══════════════════════════════════════════════════════
+     ACKNOWLEDGEMENTS
+     ══════════════════════════════════════════════════════ -->
+<h2>Acknowledgements</h2>
+<p>
+  The authors thank the Organismo Autónomo de Parques Nacionales (OAPN, MITERD) for the
+  official trail cartography of the PNSG; the European Space Agency / Copernicus programme
+  for free access to Sentinel-2 L2A data; the Instituto Nacional de Estadística (INE) and
+  the Instituto de Estadística de la Comunidad de Madrid (ALMUDENA) for the socioeconomic
+  datasets. This work was conducted as part of a Master's dissertation at the Universidad
+  Complutense de Madrid.
+</p>
+
+<!-- ══════════════════════════════════════════════════════
+     REFERENCES
+     ══════════════════════════════════════════════════════ -->
+<h2>References</h2>
+<ol class="refs">
+  <li>Cole, D.N. (1995). Disturbance of natural vegetation by camping: experimental applications of low-level stress. <em>Environmental Management</em>, 19(3), 405–416.</li>
+  <li>Farías-Torbidoni, E.I., et al. (2021). Trail impacts and use level in protected natural areas: a systematic review. <em>Journal of Environmental Management</em>, 296, 113222.</li>
+  <li>Gao, B.C. (1996). NDWI — A normalized difference water index for remote sensing of vegetation liquid water from space. <em>Remote Sensing of Environment</em>, 58(3), 257–266.</li>
+  <li>Pettorelli, N., et al. (2005). Using the satellite-derived NDVI to assess ecological responses to environmental change. <em>Trends in Ecology &amp; Evolution</em>, 20(9), 503–510.</li>
+  <li>Escuin, S., Navarro, R., &amp; Fernández, P. (2008). Fire severity assessment by using NBR (Normalized Burn Ratio) and NDVI (Normalized Difference Vegetation Index) derived from LANDSAT TM/ETM images. <em>International Journal of Remote Sensing</em>, 29(4), 1053–1073.</li>
+  <li>Copernicus Climate Change Service (2025). European State of the Climate 2025. ECMWF. <a href="https://climate.copernicus.eu">climate.copernicus.eu</a></li>
+  <li>Ballantyne, M., &amp; Pickering, C.M. (2015). Recreational trail impacts on alpine vegetation and soils. <em>Journal of Environmental Management</em>, 158, 20–29.</li>
+  <li>Speight, M.R. (1973). Outdoor recreation and its ecological effects: a bibliography and review. <em>Discussion Papers in Conservation</em>, 4. UCL.</li>
+  <li>Mann, H.B. (1945). Nonparametric tests against trend. <em>Econometrica</em>, 13(3), 245–259.</li>
+  <li>Marion, J.L., &amp; Leung, Y.F. (2001). Trail resource impacts and an examination of alternative assessment techniques. <em>Journal of Park and Recreation Administration</em>, 19(3), 17–37.</li>
+</ol>
+
+<!-- ══════════════════════════════════════════════════════
+     FOOTER
+     ══════════════════════════════════════════════════════ -->
+<div class="doc-footer">
+  SNTO — Smart Nature Tourism Observatory &nbsp;·&nbsp; Karahrodi et al. (2026)<br>
+  DOI: <a href="https://doi.org/10.5281/zenodo.20818270">10.5281/zenodo.20818270</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory">GitHub</a>
+  &nbsp;·&nbsp; Academic use licence — Universidad Complutense de Madrid
+</div>
+
+</body>
+</html>
