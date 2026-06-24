@@ -139,12 +139,13 @@ attribution, territorial intelligence, Spain, Sierra de Guadarrama, OAPN.
 ## 5. Checklist de orden de publicación
 
 - [x] Screenshot real del dashboard → `docs/screenshot-dashboard.png`
-- [ ] Verificar URL Azure y reemplazar placeholders en README §7
-- [ ] `CITATION.cff` (hecho) + release `v1.0.0` en GitHub
-- [ ] Conectar repo a Zenodo → obtener DOI → badge en README
-- [ ] Topics y Social Preview en GitHub (Settings)
-- [ ] Whitepaper PDF → ResearchGate + Zenodo (Report)
-- [ ] Hugging Face Space (ver `deploy/HUGGINGFACE_SPACE.md`)
-- [ ] LinkedIn post 1 → (5-7 días) post 2 → post 3
-- [ ] Hilo en X/Twitter con imágenes del mapa
-- [ ] Dossier institucional → OAPN / EUROPARC (vía UCM)
+- [x] `CITATION.cff` con DOI Zenodo
+- [x] DOI Zenodo 10.5281/zenodo.20818270 cableado (badge README, CITATION.cff, kit)
+- [x] Hugging Face Space desplegado → huggingface.co/spaces/soroushkararodi/snto-observatory
+- [x] Whitepaper HTML generado → `docs/SNTO_Whitepaper_2026_Karahrodi.html`
+- [ ] **SIGUIENTE:** Abrir HTML en Chrome → Ctrl+P → Guardar como PDF → subir a ResearchGate + Zenodo (como "Report")
+- [ ] Topics y Social Preview en GitHub (Settings → Topics: `remote-sensing` `sentinel-2` `tourism` `spain` `streamlit`)
+- [ ] Verificar URL Azure en README §7 (si hay placeholder)
+- [ ] LinkedIn post 1 → (5-7 días) post 2 → post 3 (textos en §1 de este doc)
+- [ ] Hilo en X/Twitter con imagen del mapa (textos en §2)
+- [ ] Dossier institucional → OAPN / EUROPARC (vía UCM) → `docs/dossier_institucional_OAPN.md`

@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="author" content="Soroush Karahrodi">
+<meta name="description" content="SNTO — Smart Nature Tourism Observatory: Architecture Blueprint and Technical Whitepaper">
+<title>SNTO Whitepaper 2026 · Karahrodi</title>
+<style>
+/* ── Fuentes ──────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..600&family=Source+Code+Pro:wght@400;600&display=swap');
+
+:root {
+  --blue:   #1a4f9c;
+  --mid:    #2d6ab4;
+  --light:  #e8f0fc;
+  --text:   #1a2332;
+  --meta:   #6b7c93;
+  --rule:   #c8d6e8;
+  --code-bg:#f3f6fb;
+  --accent: #0f4c8a;
+}
+
+/* ── Base ────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 10.5pt; }
+
+body {
+  font-family: 'Source Serif 4', Georgia, serif;
+  color: var(--text);
+  background: #fff;
+  line-height: 1.65;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 40px 80px;
+}
+
+/* ── Cover (printed as first page) ──────────────────────── */
+.cover {
+  text-align: center;
+  padding: 60px 0 40px;
+  border-bottom: 2.5px solid var(--blue);
+  margin-bottom: 48px;
+  page-break-after: always;
+}
+.cover h1 {
+  font-size: 26pt;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+.cover .subtitle {
+  font-size: 13pt;
+  color: var(--mid);
+  font-weight: 300;
+  margin-bottom: 24px;
+}
+.cover .meta {
+  font-size: 10pt;
+  color: var(--meta);
+  line-height: 1.8;
+}
+.cover .doi {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 5px 14px;
+  background: var(--light);
+  border-radius: 4px;
+  font-size: 9pt;
+  color: var(--blue);
+  font-family: 'Source Code Pro', monospace;
+}
+
+/* ── Headings ────────────────────────────────────────────── */
+h1, h2, h3, h4, h5 {
+  font-family: 'Source Serif 4', Georgia, serif;
+  color: var(--accent);
+  margin-top: 1.8em;
+  margin-bottom: 0.4em;
+  line-height: 1.2;
+  page-break-after: avoid;
+}
+h1 { font-size: 18pt; border-bottom: 1.5px solid var(--rule); padding-bottom: 6px; }
+h2 { font-size: 14pt; color: var(--blue); }
+h3 { font-size: 12pt; color: #2a5298; }
+h4 { font-size: 10.5pt; font-style: italic; color: #3a6abf; }
+
+/* ── Body text ───────────────────────────────────────────── */
+p { margin: 0.7em 0; text-align: justify; hyphens: auto; }
+
+/* ── Tables ──────────────────────────────────────────────── */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 9pt;
+  margin: 1.2em 0;
+  page-break-inside: avoid;
+}
+th {
+  background: var(--blue);
+  color: #fff;
+  padding: 6px 10px;
+  text-align: left;
+  font-weight: 600;
+}
+td { padding: 5px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tr:nth-child(even) td { background: var(--light); }
+
+/* ── Code ────────────────────────────────────────────────── */
+pre {
+  background: var(--code-bg);
+  border-left: 3px solid var(--mid);
+  border-radius: 3px;
+  padding: 12px 16px;
+  font-size: 8.5pt;
+  font-family: 'Source Code Pro', 'Courier New', monospace;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  margin: 1em 0;
+  page-break-inside: avoid;
+}
+code {
+  font-family: 'Source Code Pro', 'Courier New', monospace;
+  font-size: 0.88em;
+  background: var(--code-bg);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+pre code { background: none; padding: 0; font-size: inherit; }
+
+/* ── Blockquote ──────────────────────────────────────────── */
+blockquote {
+  border-left: 3px solid var(--mid);
+  margin: 1em 0;
+  padding: 8px 16px;
+  background: var(--light);
+  border-radius: 0 4px 4px 0;
+  font-style: italic;
+  color: #2a4a7a;
+}
+
+/* ── Lists ───────────────────────────────────────────────── */
+ul, ol { padding-left: 1.8em; margin: 0.6em 0; }
+li { margin: 0.25em 0; }
+
+/* ── Links ───────────────────────────────────────────────── */
+a { color: var(--blue); text-decoration: none; }
+
+/* ── Footer strip ────────────────────────────────────────── */
+.doc-footer {
+  margin-top: 60px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-size: 8pt;
+  color: var(--meta);
+  text-align: center;
+  line-height: 1.8;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PRINT STYLES — lo que realmente sale en el PDF
+   ═══════════════════════════════════════════════════════════ */
+@media print {
+  html { font-size: 10pt; }
+  body { max-width: 100%; padding: 0; margin: 0; }
+
+  @page {
+    size: A4;
+    margin: 18mm 20mm 18mm 20mm;
+    @bottom-center {
+      content: "Pág. " counter(page) "  ·  DOI: 10.5281/zenodo.20818270";
+      font-size: 7.5pt;
+      color: #8a9bb0;
+    }
+  }
+
+  .cover { padding: 40px 0 30px; }
+  h1, h2, h3 { page-break-after: avoid; }
+  pre, table, blockquote { page-break-inside: avoid; }
+  a { color: inherit; text-decoration: none; }
+  .doc-footer { display: none; }
+
+  /* Print hint bar */
+  .print-hint { display: none; }
+}
+
+/* ── Print hint (screen only) ────────────────────────────── */
+.print-hint {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: #1a4f9c;
+  color: #fff;
+  text-align: center;
+  padding: 10px;
+  font-size: 12px;
+  z-index: 999;
+  font-family: system-ui, sans-serif;
+}
+.print-hint kbd {
+  background: rgba(255,255,255,0.25);
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-family: inherit;
+}
+</style>
+</head>
+<body>
+
+<div class="print-hint">
+  Para guardar como PDF: <kbd>Ctrl+P</kbd> → Destino: <strong>Guardar como PDF</strong>
+  → Márgenes: Ninguno → Activar "Gráficos de fondo" → Guardar
+</div>
+
+<div class="cover">
+  <h1>SNTO — Smart Nature Tourism Observatory</h1>
+  <div class="subtitle">Architecture Blueprint &amp; Technical Whitepaper</div>
+  <div class="meta">
+    Soroush Karahrodi<br>
+    Universidad Complutense de Madrid (UCM)<br>
+    Supervisión: Carmen Mínguez · Susana Ramírez García (REGENERA)<br>
+    Junio 2026
+  </div>
+  <div class="doi">DOI: 10.5281/zenodo.20818270</div>
+</div>
+
+<h1 id="system-architecture-methodological-blueprint">System Architecture &amp; Methodological Blueprint</h1>
+<h2 id="smart-natural-tourism-observatory-snto">Smart Natural Tourism Observatory (SNTO)</h2>
+<h3 id="whitepaper-source-of-truth-document"><em>Whitepaper — Source of Truth Document</em></h3>
+<p><strong>Project:</strong> Gobernanza Inteligente y Transición Regenerativa en Espacios Naturales Protegidos. Territorio principal: <strong>Parque Nacional Sierra de Guadarrama</strong> (Red de Parques Nacionales — OAPN). Marco de gobernanza de referencia: Carta Europea de Turismo Sostenible (CETS / EUROPARC), empleada como metodología. Piloto de calibración: Reserva de la Biosfera Sierra del Rincón.</p>
+<p><strong>Version:</strong> 1.0 | <strong>Date:</strong> June 2026 | <strong>Author:</strong> Smart Natural Tourism Observatory Research Team</p>
+<hr />
+<h1 id="1-executive-summary">1. Executive Summary</h1>
+<p>The <strong>Smart Natural Tourism Observatory (SNTO)</strong> is an open, spatially explicit, data-driven platform designed to transition natural tourism destination management from a reactive maintenance paradigm to a proactive, scientifically grounded <strong>Regenerative Tourism</strong> model. Developed primarily for the <strong>Sierra de Guadarrama National Park (PNSG)</strong> — the first site of the Spanish National Parks Network (OAPN) integrated into the observatory — and methodologically grounded in the <strong>European Charter for Sustainable Tourism (CETS / EUROPARC)</strong> governance framework, the SNTO operationalises the core regenerative principle that tourism infrastructure must actively restore the ecological carrying capacity it consumes. The method was initially calibrated on the Sierra del Rincón Biosphere Reserve, retained as a methodological calibration pilot.</p>
+<p>The platform ingests multitemporal <strong>ESA Sentinel-2 Level-2A</strong> satellite imagery to derive spatially explicit <strong>vegetation stress and canopy moisture indices</strong> along hiking trail corridors. These raw spectral signals are transformed through a validated algorithmic pipeline into an <strong>Environmental Health Score (EHS)</strong> — a normalised degradation index (0–100) that quantifies the cumulative biophysical impact of recreational trampling, soil compaction, and associated water stress on trail-adjacent ecosystems. The EHS feeds directly into a <strong>financial model calibrated against TRAGSA official restoration rates</strong>, generating dynamic, trail-specific restoration budgets that are surfaced to decision-makers through an interactive <strong>Streamlit geospatial dashboard</strong>.</p>
+<p>Beyond immediate operational utility, the SNTO embeds a family of advanced analytical modules — the <strong>Spatial Causality Module (SCM)</strong>, the <strong>Territorial Priority Index (TPI)</strong>, the <strong>Decision Confidence Score (DCS)</strong>, and the <strong>Tourism Impact Score (TIS)</strong> — that collectively elevate destination management from reactive indicator monitoring to anticipatory, evidence-based governance aligned with CETS Phase I accountability requirements and the broader <strong>Sustainable Development Goals (SDGs)</strong>, particularly SDGs 11, 13, and 15.</p>
+<hr />
+<h1 id="2-theoretical-framework-cets-phase-i-the-regenerative-transition">2. Theoretical Framework: CETS Phase I &amp; the Regenerative Transition</h1>
+<h2 id="21-the-european-charter-for-sustainable-tourism">2.1 The European Charter for Sustainable Tourism</h2>
+<p>The <strong>European Charter for Sustainable Tourism in Protected Areas (CETS)</strong>, administered by the European Charter Foundation under the Europarc Federation, provides a voluntary accreditation framework structured around participatory governance, continuous monitoring, and measurable sustainability commitments. <strong>Phase I</strong> of the accreditation process requires candidate territories to demonstrate:</p>
+<ol>
+<li>A <strong>shared five-year action plan</strong> developed through a multi-stakeholder forum.</li>
+<li>A <strong>monitoring system</strong> capable of objectively tracking environmental and socio-economic performance indicators over time.</li>
+<li>Evidence of <strong>commitment to minimising the ecological footprint</strong> of tourism activities within protected area boundaries.</li>
+</ol>
+<p>The SNTO directly addresses requirements 2 and 3 by providing the quantitative monitoring infrastructure that transforms qualitative commitments into auditable, satellite-validated evidence.</p>
+<h2 id="22-from-sustainable-to-regenerative-tourism">2.2 From Sustainable to Regenerative Tourism</h2>
+<p>The conventional <strong>Sustainable Tourism</strong> framework operates on the principle of <em>minimising harm</em> — a defensive, steady-state logic that seeks to preserve existing conditions. The <strong>Regenerative Tourism</strong> paradigm, increasingly prominent in post-pandemic tourism governance literature (Duxbury et al., 2021; Sheldon, 2020), advances a more ambitious ontological claim: that tourism, when properly governed, can function as a <em>positive ecological driver</em> — actively restoring degraded habitats, recharging soil hydrology, and rebuilding ecosystem service provision.</p>
+<p>The SNTO implements regenerative logic through three operational mechanisms:</p>
+<ul>
+<li><strong>Degradation Detection:</strong> Satellite-derived indices identify statistically significant vegetation stress in trail corridors before irreversible threshold effects occur.</li>
+<li><strong>Ecological Accounting:</strong> Restoration budgets are dynamically computed and directly indexed to observed stress levels, making the financial cost of regeneration explicit and proportional to ecological debt.</li>
+<li><strong>Proactive Intervention:</strong> The TIS Engine routes restoration investment to the trails where the ecological dividend per euro is maximised, rather than applying uniform maintenance schedules.</li>
+</ul>
+<h2 id="23-scientific-grounding-trampling-ecology">2.3 Scientific Grounding: Trampling Ecology</h2>
+<p>The methodological link between hiking trail use and vegetation degradation is well-established in the ecological literature. Studies in Mediterranean montane ecosystems demonstrate that <strong>soil compaction</strong> from recreational trampling reduces macro-porosity by 15–40%, directly suppressing root-zone moisture availability and inducing physiological drought stress in surface vegetation independently of climatological conditions (Roovers et al., 2004; Pickering &amp; Mount, 2010). This process creates a measurable spectral signature:</p>
+<ul>
+<li><strong>Reduced NDVI</strong> (Normalised Difference Vegetation Index): As photosynthetic tissue collapses under combined mechanical and water stress, the red-edge reflectance contrast diminishes, reducing NDVI.</li>
+<li><strong>Reduced NDMI</strong> (Normalised Difference Moisture Index): Soil compaction limits capillary water transport, producing characteristic SWIR reflectance increases that depress NDMI values in affected canopy zones.</li>
+</ul>
+<p>The SNTO exploits precisely these spectral responses to non-invasively quantify trail-induced ecosystem degradation at landscape scale.</p>
+<hr />
+<h1 id="3-methodological-architecture-remote-sensing-spectral-indices">3. Methodological Architecture: Remote Sensing &amp; Spectral Indices</h1>
+<h2 id="31-data-source-esa-sentinel-2-level-2a">3.1 Data Source: ESA Sentinel-2 Level-2A</h2>
+<p>The SNTO ingests imagery from the <strong>ESA Copernicus Sentinel-2</strong> constellation (satellites A and B), processed to <strong>Level-2A (L2A)</strong> — bottom-of-atmosphere surface reflectance. Key mission parameters relevant to this application are:</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Revisit frequency</strong></td>
+<td>5 days (A+B combined)</td>
+</tr>
+<tr>
+<td><strong>Spatial resolution</strong></td>
+<td>10 m (Bands B4, B8); 20 m (Band B11)</td>
+</tr>
+<tr>
+<td><strong>Radiometric resolution</strong></td>
+<td>12-bit (0–4095 DN)</td>
+</tr>
+<tr>
+<td><strong>Surface reflectance scaling</strong></td>
+<td>Raw DN ÷ 10,000 → unitless [0, 1]</td>
+</tr>
+<tr>
+<td><strong>Processing level</strong></td>
+<td>L2A (Bottom-of-Atmosphere, atmospherically corrected)</td>
+</tr>
+<tr>
+<td><strong>UTM tile</strong></td>
+<td>T30TVL (covers both PN Sierra de Guadarrama and Sierra del Rincón)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Band selection rationale:</strong></p>
+<ul>
+<li><strong>Band 4 (B4 — Red, 665 nm, 10 m):</strong> Chlorophyll absorption maximum. Sensitive to photosynthetically active biomass density and vegetation health.</li>
+<li><strong>Band 8 (B8 — NIR, 842 nm, 10 m):</strong> Near-infrared plateau. Highly sensitive to leaf mesophyll structure and canopy biomass; the primary signal channel for vegetation vitality.</li>
+<li><strong>Band 11 (B11 — SWIR1, 1610 nm, 20 m):</strong> Shortwave infrared. Sensitive to liquid water content in both vegetation canopy and surface soil layers; resampled to 10 m resolution via bilinear interpolation to maintain pixel grid alignment with B4/B8.</li>
+</ul>
+<p><strong>Cloud masking:</strong> The Scene Classification Layer (SCL) is used to exclude pixels classified as cloud shadow (class 3), medium-probability cloud (class 8), high-probability cloud (class 9), thin cirrus (class 10), and snow/ice (class 11). Monthly median compositing across 5–10 valid A+B scenes provides robust cloud-free time steps (minimum 30% valid pixel coverage required for composite acceptance).</p>
+<h2 id="32-spatial-domain-trail-buffer-geometry">3.2 Spatial Domain: Trail Buffer Geometry</h2>
+<p>Spectral signals are spatially aggregated within <strong>50-metre geometric buffers</strong> generated around digitised hiking trail centrelines. This buffer radius is operationally justified on three grounds:</p>
+<ol>
+<li><strong>Ecological:</strong> Soil compaction effects from repeated trail use propagate laterally 10–30 m from the trail centreline, with measurable vegetation stress extending to 40–50 m in heavily-used corridors (Cole &amp; Monz, 2002).</li>
+<li><strong>Radiometric:</strong> The 50 m buffer ensures a minimum pixel count sufficient for statistically stable zonal statistics at 10 m resolution (≥ 250 pixels per 1 km trail segment).</li>
+<li><strong>Cadastral:</strong> 50 m corresponds to standard Spanish natural park management zone widths for linear infrastructure corridors (PORN buffer classes under Spanish Law 42/2007).</li>
+</ol>
+<p><strong>Coordinate Reference System:</strong> All spatial operations are performed in <strong>EPSG:25830 (ETRS89 / UTM Zone 30N)</strong> — the official reference system for Peninsular Spain, ensuring metric accuracy in length and area calculations.</p>
+<p>Trail vector geometries are sourced from OpenStreetMap, cleaned through the <code>etl_vector_cleaner.py</code> pipeline, validated for topological integrity, and stored with PostGIS spatial indexing (GIST index on <code>geometry</code> column).</p>
+<p><strong>Observación vs. acción — escala de intervención:</strong> El buffer de 50 m es la unidad de observación satelital: captura la señal NDVI/NDMI del entorno del sendero para detectar estrés vegetal difuso. La unidad de acción de restauración es la traza del sendero (1–2 m de ancho), sobre la que se aplican las intervenciones físicas (descompactación, fajinas transversales, revegetación). El coste unitario de 15,50 €/m lineal corresponde a esta escala de actuación.</p>
+<h2 id="33-spectral-index-formulation">3.3 Spectral Index Formulation</h2>
+<h3 id="331-ndvi-normalised-difference-vegetation-index">3.3.1 NDVI — Normalised Difference Vegetation Index</h3>
+<p>$$\text{NDVI} = \frac{\rho_{NIR} - \rho_{Red}}{\rho_{NIR} + \rho_{Red}}$$</p>
+<p>Where $\rho_{NIR}$ and $\rho_{Red}$ are surface reflectance values in Bands B8 and B4 respectively. NDVI ranges theoretically from −1 to +1, with healthy Mediterranean scrubland exhibiting typical peak-growing-season values of <strong>0.45–0.65</strong>. Bare soil returns values of approximately 0.10–0.20. A zero-guard term ($\varepsilon = 10^{-8}$) prevents division-by-zero artefacts in dark pixels or no-data regions.</p>
+<p><strong>Ecological interpretation in the SNTO context:</strong> NDVI is the primary proxy for <strong>photosynthetic capacity and aerial biomass density</strong>. Sustained NDVI depression below the established regional healthy baseline (<strong>NDVI_baseline = 0.55</strong> for Mediterranean scrubland, derived from a 5-year climatological reference dataset) constitutes evidence of trampling-induced phytomass loss.</p>
+<h3 id="332-ndmi-normalised-difference-moisture-index">3.3.2 NDMI — Normalised Difference Moisture Index</h3>
+<p>$$\text{NDMI} = \frac{\rho_{NIR} - \rho_{SWIR1}}{\rho_{NIR} + \rho_{SWIR1}}$$</p>
+<p>Where $\rho_{SWIR1}$ is surface reflectance in Band B11 (resampled to 10 m). NDMI ranges from −1 to +1, with values above 0.20 indicating well-hydrated canopy conditions in the study region. The index is particularly sensitive to <strong>canopy water content and soil moisture availability in the root zone</strong>.</p>
+<p><strong>Ecological interpretation in the SNTO context:</strong> NDMI provides a complementary and partially independent stress signal to NDVI. While NDVI tracks above-ground biomass degradation, NDMI captures the <strong>hydrological pathway of soil compaction stress</strong> — mechanically compacted soils reduce macropore connectivity, restrict capillary water rise, and induce sub-canopy moisture deficits that manifest as SWIR reflectance increases even before visible biomass loss occurs. The combined use of NDVI and NDMI therefore captures stress at two complementary points in the ecological degradation cascade.</p>
+<hr />
+<h1 id="4-the-environmental-health-score-ehs-operational-formula">4. The Environmental Health Score (EHS): Operational Formula</h1>
+<h2 id="41-conceptual-design">4.1 Conceptual Design</h2>
+<blockquote>
+<p><strong>Normative note — two canonical score directions.</strong> SNTO works with two
+0–100 score directions that must never be conflated. The canonical conversion
+<code>health = 100 − stress</code> is centralised in <code>src/metrics/semantics.py</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>0 means</th>
+<th>100 means</th>
+<th>Where it lives</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Stress / Degradation Score</strong></td>
+<td>no stress</td>
+<td>maximal degradation</td>
+<td><code>calculate_delta_ehs.py</code> (Pipeline A) and the legacy DB columns <code>ehs_spring</code>, <code>ehs_summer</code>, <code>delta_ehs</code></td>
+</tr>
+<tr>
+<td><strong>Health Score</strong></td>
+<td>critical</td>
+<td>healthy</td>
+<td>dashboard, TPI, tiers, <code>src/risk_engine/ehs.py</code> (§4.3), executive communication</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Delta convention:</strong> <code>DeltaStress &gt; 0</code> ⇒ condition worsens; the equivalent
+<code>DeltaHealth = −DeltaStress &lt; 0</code> ⇒ health falls. The live dashboard ingests
+the Pipeline A stress output and converts it to health on load
+(<code>src/platform/real_trails.py</code>), so every figure the user sees is health.</p>
+</blockquote>
+<p>The <strong>Environmental Health Score (EHS)</strong> is the SNTO's principal operational indicator. The operational Pipeline A formula below (§4.2) computes the <strong>stress direction</strong> — a <strong>degradation index scaled from 0 to 100</strong>, where:</p>
+<ul>
+<li><strong>0</strong> = no deviation from healthy baseline (optimal state)</li>
+<li><strong>100</strong> = maximal stress / complete degradation</li>
+</ul>
+<p>This stress direction is deliberately adopted <em>inside Pipeline A</em> to align with financial logic: a <strong>higher stress score directly implies a higher restoration budget requirement</strong>, making the ecological-financial relationship intuitively transparent. It is converted to the health direction (high = good) before reaching the dashboard, so the "EHS" the user reads is always a Health Score. The research-grade engine (§4.3) emits the health direction natively.</p>
+<h2 id="42-core-ehs-formula-operational-dashboard-implementation">4.2 Core EHS Formula (Operational Dashboard Implementation)</h2>
+<p>The operational EHS formula implemented in the <code>calculate_delta_ehs.py</code> pipeline uses a <strong>scene-specific percentile-anchored deficit formulation</strong> that normalises each observation against the actual healthy and degraded pixel distributions of the same scene:</p>
+<p>$$D = \text{clamp}!\left(\frac{B_{percentile} - X}{B_{percentile} - Floor_{percentile}},\ 0,\ 1\right)$$</p>
+<p>$$\boxed{\text{EHS} = 100 \times \left(W_{NDVI} \cdot D_{NDVI} + W_{NDMI} \cdot D_{NDMI}\right)}$$</p>
+<p>Where:
+- $X$ is the mean NDVI (or NDMI) value extracted via zonal statistics within the 50 m trail buffer.
+- $B_{percentile}$ is the healthy reference level — the P90 percentile of valid vegetation pixels (SCL class 4) in the scene, excluding trail buffers.
+- $Floor_{percentile}$ is the degraded floor — the P10 percentile of the same pixel distribution.
+- $D_{NDVI}$, $D_{NDMI}$ are per-index deficit fractions, each clamped to [0, 1].
+- $W_{NDVI} = W_{NDMI} = 0.5$ (equal weighting, configurable in <code>src/config/constants.py</code>).</p>
+<p><strong>Operational parameters</strong> (<code>src/config/constants.py</code>): <code>EHS_P_BASE = 90</code>, <code>EHS_P_FLOOR = 10</code>, <code>EHS_W_NDVI = 0.5</code>, <code>EHS_W_NDMI = 0.5</code>.</p>
+<p><strong>Algebraic interpretation:</strong> The formula computes a scene-specific deficit of each index relative to the observed healthy range in the same image. A trail at the P90 reference level yields $D = 0$ (no deficit, EHS contribution = 0). A trail at or below the P10 floor yields $D = 1$ (maximum deficit, full EHS contribution). This approach normalises against the actual ecological conditions of each acquisition, making EHS robust to inter-seasonal and inter-annual radiometric variability.</p>
+<h2 id="43-research-grade-ehs-engine-full-statistical-implementation">4.3 Research-Grade EHS Engine (Full Statistical Implementation)</h2>
+<p>The research-grade EHS engine (<code>src/risk_engine/ehs.py</code>) extends the operational formula with a multi-component, statistically grounded composite risk model for longitudinal analysis:</p>
+<p>$$\text{EHS}<em composite="composite">{research} = 100 \times \left(1 - r</em>\right)$$</p>
+<p>$$r_{composite} = 0.30 \cdot r_{baseline} + 0.25 \cdot r_{trend} + 0.25 \cdot r_{anomaly} + 0.10 \cdot r_{recovery} + 0.10 \cdot r_{stability}$$</p>
+<table>
+<thead>
+<tr>
+<th>Risk Component</th>
+<th>Weight</th>
+<th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Baseline risk</strong></td>
+<td>30%</td>
+<td>NDVI distance below healthy regional baseline (0.55)</td>
+</tr>
+<tr>
+<td><strong>Trend risk</strong></td>
+<td>25%</td>
+<td>Magnitude of statistically significant declining Mann-Kendall slope (p &lt; 0.05)</td>
+</tr>
+<tr>
+<td><strong>Anomaly risk</strong></td>
+<td>25%</td>
+<td>Fraction of months with severe NDVI anomaly (</td>
+</tr>
+<tr>
+<td><strong>Recovery risk</strong></td>
+<td>10%</td>
+<td>Post-drought NDVI recovery ratio (failure to recover to pre-drought levels)</td>
+</tr>
+<tr>
+<td><strong>Stability risk</strong></td>
+<td>10%</td>
+<td>Inter-annual residual variability relative to mean NDVI</td>
+</tr>
+</tbody>
+</table>
+<p>This formulation captures both <strong>chronic degradation</strong> (baseline and trend) and <strong>episodic stress events</strong> (anomaly and recovery) while penalising high temporal instability — all key dimensions of the Sierra del Rincón's fire-drought-tourism stress complex.</p>
+<h2 id="44-ehs-classification-scale">4.4 EHS Classification Scale</h2>
+<table>
+<thead>
+<tr>
+<th>EHS Range</th>
+<th>Class</th>
+<th>Management Implication</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0–39</td>
+<td><strong>Excellent</strong></td>
+<td>Vegetation above regional baseline; active promotion eligible</td>
+</tr>
+<tr>
+<td>40–59</td>
+<td><strong>Good</strong></td>
+<td>Moderate seasonal stress; stable long-term; routine monitoring</td>
+</tr>
+<tr>
+<td>60–74</td>
+<td><strong>Moderate</strong></td>
+<td>Noticeable chronic stress; annual monitoring recommended</td>
+</tr>
+<tr>
+<td>75–89</td>
+<td><strong>Poor</strong></td>
+<td>Persistent degradation; preventive intervention triggered</td>
+</tr>
+<tr>
+<td>90–100</td>
+<td><strong>Critical</strong></td>
+<td>Severe degradation; immediate restoration mandated</td>
+</tr>
+</tbody>
+</table>
+<h2 id="45-temporal-dynamics-delta-ehs-as-early-warning-signal">4.5 Temporal Dynamics: Delta EHS as Early Warning Signal</h2>
+<p>A critical analytical dimension of the SNTO is the <strong>seasonal Delta EHS</strong> ($\Delta\text{EHS}$):</p>
+<p>$$\Delta\text{EHS} = \text{EHS}<em Spring="Spring">{Summer} - \text{EHS}</em>$$</p>
+<p>This metric computes the EHS differential between the late-growing season (Spring, May–June) and the peak-stress season (Summer, July–August). Under natural Mediterranean phenology, summer drought produces moderate EHS increases; however, trail corridors subject to high recreational pressure exhibit <strong>accelerated EHS escalation</strong> beyond the climatological baseline — a pattern distinguishable from background climate variability.</p>
+<p><strong>Interpretation:</strong>
+- <strong>ΔEHS positive (and above seasonal baseline):</strong> Anthropogenic stress is compounding seasonal drought stress — an <strong>early warning signal</strong> requiring increased monitoring intensity.
+- <strong>ΔEHS near zero or negative:</strong> Trail ecosystem recovering seasonally, consistent with climatological norms.</p>
+<p>The Delta EHS is computed by <code>calculate_delta_ehs.py</code>, which reads multitemporal raster stacks and outputs per-trail seasonal stress differentials stored in the PostGIS <code>production_hiking_trails</code> table.</p>
+<hr />
+<h1 id="5-technical-data-pipeline-from-satellite-to-dashboard">5. Technical Data Pipeline: From Satellite to Dashboard</h1>
+<h2 id="51-architecture-overview">5.1 Architecture Overview</h2>
+<p>The SNTO data pipeline is structured as a four-stage <strong>Extract-Transform-Load-Serve (ETLS)</strong> workflow:</p>
+<pre><code>[STAGE 1: INGEST]         Raw Sentinel-2 L2A (.SAFE / ZIP) Archive
+         ↓
+[STAGE 2: PROCESS]        Band Extraction → Spectral Index Computation → GeoTIFF
+         ↓
+[STAGE 3: INTEGRATE]      Zonal Statistics → PostGIS → TIS Engine → Budget Scores
+         ↓
+[STAGE 4: SERVE]          Streamlit Dashboard → Interactive Map + KPI Cards
+</code></pre>
+<h2 id="52-stage-1-raster-ingestion-etl_raster_processorpy">5.2 Stage 1 — Raster Ingestion (<code>etl_raster_processor.py</code>)</h2>
+<p>The ingestion pipeline processes raw Sentinel-2 L2A products in <strong>SAFE format</strong> (distributed as ZIP archives of ~250 MB per scene). The <code>etl_raster_processor.py</code> script:</p>
+<ol>
+<li><strong>Locates</strong> the target SAFE ZIP in <code>data/raw_assets/raster_data/</code> using <code>glob</code> pattern matching.</li>
+<li><strong>Selectively extracts</strong> only the three required JP2 band files (B04, B08, B11) from the ZIP archive, avoiding full decompression of the ~1 GB SAFE bundle.</li>
+<li><strong>Clips</strong> each extracted band to the Sierra del Rincón study area bounding box (WGS84: −3.65°E to −3.30°E, 41.05°N to 41.20°N) using <code>rasterio.mask</code>.</li>
+<li><strong>Reprojects</strong> all bands to <strong>EPSG:25830</strong> (metric coordinate system) using <code>rasterio.warp.reproject</code>.</li>
+<li><strong>Resamples</strong> Band B11 from its native 20 m resolution to the 10 m reference grid (defined by B4) using <strong>bilinear interpolation</strong> (<code>Resampling.bilinear</code>), ensuring pixel-perfect spatial alignment across all index bands.</li>
+<li><strong>Computes</strong> NDVI and NDMI index rasters as <code>float32</code> arrays with epsilon zero-guard.</li>
+<li><strong>Writes</strong> five production GeoTIFFs to <code>data/clean_assets/</code> with LZW lossless compression and NoData value = −9999.0:</li>
+<li><code>clean_S2_B04_red.tif</code></li>
+<li><code>clean_S2_B08_nir.tif</code></li>
+<li><code>clean_S2_B11_swir.tif</code></li>
+<li><code>clean_S2_NDVI.tif</code></li>
+<li><code>clean_S2_NDMI.tif</code></li>
+</ol>
+<p><strong>Key Python libraries:</strong> <code>rasterio</code>, <code>rasterio.mask</code>, <code>rasterio.warp</code>, <code>numpy</code>, <code>os</code>, <code>glob</code>.</p>
+<h2 id="53-stage-2-zonal-statistics-etl_raster_intersectionpy">5.3 Stage 2 — Zonal Statistics (<code>etl_raster_intersection.py</code>)</h2>
+<p>Trail-level index values are extracted by intersecting the NDVI and NDMI GeoTIFFs with buffered trail geometries:</p>
+<ol>
+<li>Trail geometries are loaded from PostGIS (<code>production_hiking_trails</code> table) using <code>geopandas.read_postgis()</code>.</li>
+<li>Geometries are reprojected to EPSG:25830 to match the raster CRS.</li>
+<li><strong>50 m buffers</strong> are generated around each trail centreline using <code>geopandas.GeoDataFrame.buffer(50)</code> in metric coordinates.</li>
+<li><strong>Zonal statistics</strong> (mean pixel value within each buffer polygon) are computed using <code>rasterstats.zonal_stats()</code> for both NDVI and NDMI rasters.</li>
+<li>Extracted mean values are written back to the <code>production_hiking_trails</code> table as <code>avg_ndvi</code> and <code>avg_ndmi</code> columns.</li>
+</ol>
+<h2 id="54-stage-3-scoring-budget-allocation-tis_enginepy">5.4 Stage 3 — Scoring &amp; Budget Allocation (<code>tis_engine.py</code>)</h2>
+<p>The TIS Engine orchestrates the transformation from raw spectral values to actionable intervention budgets:</p>
+<ol>
+<li><strong>EHS computation:</strong> <code>avg_ndvi</code> and <code>avg_ndmi</code> are passed to <code>_compute_ehs()</code>, which normalises NDMI to [0, 1] and returns the stress-weighted EHS score per trail.</li>
+<li><strong>Traffic normalisation:</strong> Annual visitor counts are min-max normalised across all trails to yield a <code>traffic_index</code> ∈ [0, 100].</li>
+<li><strong>Priority score:</strong> <code>priority_score = (EHS × 0.60) + (traffic_index × 0.40)</code> — weighting ecological urgency (60%) above visitor pressure (40%).</li>
+<li><strong>Budget allocation:</strong> Trails with <code>priority_score &gt; 60</code> are flagged as requiring intervention. Their restoration budget is computed as:</li>
+</ol>
+<p>$$\text{TIS Budget (EUR)} = L_m \times 15.50 \times \frac{\text{priority_score}}{100}$$</p>
+<p>Where $L_m$ is trail length in metres, computed from PostGIS via <code>ST_Length(geometry::geography)</code>.</p>
+<ol>
+<li>Results are written to four dynamic columns added to <code>production_hiking_trails</code>: <code>ehs_index</code>, <code>needs_intervention</code>, <code>tis_budget_eur</code>, <code>priority_score</code>.</li>
+</ol>
+<h2 id="55-stage-4-dashboard-apppy">5.5 Stage 4 — Dashboard (<code>app.py</code>)</h2>
+<p>The Streamlit dashboard (<code>app.py</code>) provides an interactive geospatial decision-support interface for park managers and CETS evaluators:</p>
+<ul>
+<li><strong>KPI Summary Cards:</strong> Total trails analysed; critical trails requiring intervention; total restoration budget; maximum recorded tourist volume.</li>
+<li><strong>Interactive Folium Map:</strong> Trails colour-coded by health status (green: EHS ≤ 60; red: EHS &gt; 60), centred on Sierra del Rincón (41.14°N, −3.52°E), with pop-up tooltips displaying all diagnostic attributes per trail.</li>
+<li><strong>Priority Intervention Table:</strong> Top 10 trails sorted by descending priority score, with gradient-coloured EHS column (RdYlGn_r colormap) for rapid visual triage.</li>
+<li><strong>Temporal Analysis Panel:</strong> Delta EHS visualisation (Summer vs. Spring), identifying trails with accelerated seasonal degradation trajectories.</li>
+</ul>
+<p>Data is loaded via <code>geopandas.read_postgis()</code> with a 5-minute TTL cache (<code>@st.cache_data(ttl=300)</code>) to balance freshness against query latency.</p>
+<h2 id="56-advanced-analytical-modules">5.6 Advanced Analytical Modules</h2>
+<p>Beyond the core EHS-to-budget pipeline, the SNTO includes three research-grade analytical modules that underpin the platform's scientific credibility:</p>
+<h3 id="decision-confidence-score-dcs-srcdecision_confidenceassessorpy">Decision Confidence Score (DCS) — <code>src/decision_confidence/assessor.py</code></h3>
+<p>The DCS (0–100) assesses <strong>recommendation reliability</strong> before any management action is triggered. It penalises decisions based on sparse time series, high cloud contamination, or weak spectral signals. The DCS gates the budget allocation: assets with DCS &lt; 55 are routed to evidence collection protocols rather than full restoration commitment.</p>
+<table>
+<thead>
+<tr>
+<th>DCS Band</th>
+<th>Classification</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>80–100</td>
+<td>Very High Confidence</td>
+<td>Full restoration budget allocated</td>
+</tr>
+<tr>
+<td>60–79</td>
+<td>High Confidence</td>
+<td>Intervention approved</td>
+</tr>
+<tr>
+<td>40–59</td>
+<td>Moderate Confidence</td>
+<td>Additional monitoring required</td>
+</tr>
+<tr>
+<td>0–39</td>
+<td>Low Confidence</td>
+<td>Evidence collection only</td>
+</tr>
+</tbody>
+</table>
+<h3 id="spatial-causality-module-scm-srcspatial_causalityanalyzerpy">Spatial Causality Module (SCM) — <code>src/spatial_causality/analyzer.py</code></h3>
+<p>The SCM distinguishes <strong>anthropogenic (localised) degradation</strong> from <strong>climate-driven (landscape) stress</strong> by comparing NDVI dynamics across concentric zones:</p>
+<ul>
+<li><strong>Core zone</strong> (0–50 m): Direct trail footprint</li>
+<li><strong>Near zone</strong> (50–200 m): Immediate surroundings</li>
+<li><strong>Landscape zone</strong> (200–1000 m): Regional background</li>
+</ul>
+<p>The <strong>Spatial Impact Gradient (SIG)</strong> = (NDVI_landscape − NDVI_core) / NDVI_landscape:
+- SIG &gt; 0.15 → <strong>LOCALIZED_IMPACT</strong> (tourism pressure dominant)
+- SIG &lt; 0.07 → <strong>LANDSCAPE_DRIVEN</strong> (climate forcing dominant)
+- 0.07–0.15 → <strong>MIXED</strong> signal</p>
+<p>This distinction is critical for CETS accountability: only locally-attributable degradation should generate management obligations for the protected area authority.</p>
+<h3 id="territorial-priority-index-tpi-srcterritorialtpipy">Territorial Priority Index (TPI) — <code>src/territorial/tpi.py</code></h3>
+<p>The TPI (0–100) ranks assets within a territorial portfolio for investment prioritisation:</p>
+<p>$$\text{TPI} = U_{condition}\ [0\text{–}40] + S_{evidence}\ [0\text{–}25] + V_{strategic}\ [0\text{–}20] + C_{causality}\ [0\text{–}15]$$</p>
+<p>TPI output drives a <strong>four-tier asset classification</strong> — from <em>Immediate Attention</em> (Tier 1) through <em>Routine Monitoring</em> (Tier 3) to <em>Promotion Opportunity</em> (Tier 4) — directly informing the annual CETS management plan priorities.</p>
+<hr />
+<h1 id="6-the-financial-ecological-model-budget-calibration">6. The Financial-Ecological Model: Budget Calibration</h1>
+<h2 id="61-restoration-cost-basis">6.1 Restoration Cost Basis</h2>
+<p>The SNTO restoration budget model is anchored to a <strong>unit restoration cost of €15.50 per linear metre of degraded trail</strong>, established through cross-referencing three official Spanish cost frameworks:</p>
+<table>
+<thead>
+<tr>
+<th>Cost Component</th>
+<th>Standard Source</th>
+<th>Unit Cost Contribution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Soil decompaction</strong> (mechanical scarification)</td>
+<td>TRAGSA Price List 2023 (Chapter 15: Forest Work)</td>
+<td>€4.20 / linear metre [pendiente de verificar: Tarifas TRAGSA, Resolución oficial, Cap. 15, año 2023]</td>
+</tr>
+<tr>
+<td><strong>Erosion control</strong> (fajinas — brushwood check dams; albarradas — stone barriers)</td>
+<td>TRAGSA Price List 2023 (Chapter 8: Hydraulic Works)</td>
+<td>€6.80 / linear metre [pendiente de verificar: Tarifas TRAGSA, Resolución oficial, Cap. 8, año 2023]</td>
+</tr>
+<tr>
+<td><strong>Native revegetation</strong> (autochthonous shrub planting, seed mix for <em>Quercus</em>, <em>Cistus</em>, <em>Rosmarinus</em> assemblage)</td>
+<td>Spanish National Plan for Ecological Transition 2021–2025, Unit Price Schedule</td>
+<td>€4.50 / linear metre [pendiente de verificar: PNMT 2021–2025, Resolución oficial, año 2021]</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td><strong>€15.50 / linear metre</strong></td>
+</tr>
+</tbody>
+</table>
+<p>This unit rate is consistent with published restoration costs for trail rehabilitation in Mediterranean mountain environments (Barros et al., 2013; Spanish MITERD ecological restoration tender baselines, 2022–2024).</p>
+<h2 id="62-dynamic-budget-formula">6.2 Dynamic Budget Formula</h2>
+<p>The full restoration budget for any trail segment is modulated by the environmental urgency expressed in the priority score:</p>
+<p>$$\boxed{B_{restoration} = L_m \times 15.50\ \frac{\text{EUR}}{m} \times \frac{P_{score}}{100}}$$</p>
+<p>Where:
+- $L_m$ = trail length in metres (computed from PostGIS <code>ST_Length(geometry::geography)</code>)
+- <strong>15.50</strong> = calibrated unit restoration cost (EUR/m)
+- $P_{score}$ = priority score (composite of EHS × 0.60 + traffic_index × 0.40), capped at 100</p>
+<p><strong>Economic rationale:</strong> This proportional scaling embeds <strong>ecological proportionality</strong> into the financial model — a trail at 80% priority receives 80% of its full theoretical restoration budget. This prevents over-allocation to mildly stressed assets while ensuring critical trails receive funding commensurate with their degradation severity. Trails scoring below the intervention threshold (priority_score ≤ 60) receive a €0 allocation; their ecological status is maintained through routine monitoring.</p>
+<h2 id="63-financial-interpretation-at-scale">6.3 Financial Interpretation at Scale</h2>
+<p>For a representative Sierra del Rincón network of 20 km of monitored trail:</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Mean Priority Score</th>
+<th>Total Budget</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Moderate stress year</td>
+<td>65</td>
+<td>€201,500</td>
+</tr>
+<tr>
+<td>High stress year (post-drought + peak visitation)</td>
+<td>82</td>
+<td>€254,200</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Nota:</strong> Senderos con priority ≤ 60 no generan presupuesto de intervención; pasan a monitorización anual.</p>
+</blockquote>
+<p>These budget envelopes are fully reproducible from satellite data with no field survey requirement, enabling <strong>annual budget forecasting calibrated to real ecological conditions</strong> — a key CETS Phase I deliverable.</p>
+<h2 id="64-tragsa-rate-justification-and-regulatory-compliance">6.4 TRAGSA Rate Justification and Regulatory Compliance</h2>
+<p>The cost basis aligns with the Spanish regulatory framework for publicly contracted ecological restoration:</p>
+<ul>
+<li><strong>Royal Decree 9/2005</strong> (Contaminated Soils): establishes soil decompaction as eligible restoration action in legally protected natural spaces.</li>
+<li><strong>Law 26/2007</strong> (Environmental Liability): mandates financial provisioning for restoration of legally protected habitats, providing the legal basis for budget obligation.</li>
+<li><strong>Law 42/2007</strong> (Natural Heritage and Biodiversity): defines 'favourable conservation status' targets for Natura 2000 habitat types present in Sierra del Rincón (9230, 4030, 5110), against which restoration effectiveness is measured.</li>
+<li><strong>TRAGSA</strong> (Empresa de Transformación Agraria S.A.): Spain's publicly owned transformation company serving as benchmark price authority for all public ecological restoration tender bids under Spanish procurement law.</li>
+</ul>
+<hr />
+<h1 id="7-conclusion-strategic-impact">7. Conclusion &amp; Strategic Impact</h1>
+<h2 id="71-system-contribution-to-cets-phase-i">7.1 System Contribution to CETS Phase I</h2>
+<p>The SNTO directly satisfies the three core evidential requirements of CETS Phase I certification:</p>
+<ol>
+<li>
+<p><strong>Operational monitoring system:</strong> The satellite-derived EHS provides continuous, auditable, spatially explicit environmental performance indicators updated on monthly timescales — exceeding the minimum frequency required by CETS baseline protocols.</p>
+</li>
+<li>
+<p><strong>Minimising ecological footprint:</strong> The financial-ecological model creates a direct, legally defensible accountability link between tourist visitation, measurable ecological degradation, and mandatory restoration investment — operationalising the CETS commitment to <em>net-zero ecological impact</em> within the Biosphere Reserve.</p>
+</li>
+<li>
+<p><strong>Stakeholder-facing dashboard:</strong> The Streamlit interface translates complex satellite data into accessible KPIs and visual maps intelligible to park managers, municipal stakeholders, and CETS evaluators without specialist remote sensing knowledge.</p>
+</li>
+</ol>
+<h2 id="72-contribution-to-regenerative-tourism-theory">7.2 Contribution to Regenerative Tourism Theory</h2>
+<p>At a theoretical level, the SNTO makes three contributions to the emerging Regenerative Tourism literature:</p>
+<ul>
+<li><strong>Operationalisation of ecological debt:</strong> The EHS-to-budget pipeline translates an abstract concept (the ecological cost of recreation) into a concrete, monetised liability — enabling the application of environmental accounting frameworks (e.g., Natural Capital Accounting, ISO 14008) to trail management.</li>
+<li><strong>Satellite-scale accountability:</strong> By grounding management obligations in satellite data rather than field survey estimates, the SNTO reduces political subjectivity in conservation budget allocation and creates an independent, time-stamped audit trail.</li>
+<li><strong>Early Warning Architecture:</strong> The Delta EHS metric implements a genuine <em>leading indicator</em> — detecting degradation trajectories before they cross irreversible ecological thresholds — consistent with the precautionary principle embedded in EU Biodiversity Strategy 2030 targets.</li>
+</ul>
+<h2 id="73-scalability-and-replicability">7.3 Scalability and Replicability</h2>
+<p>The SNTO architecture is designed for geographic scalability. The methodological framework is directly transferable to any:
+- European Biosphere Reserve with Sentinel-2 coverage (all of Europe)
+- CETS-certified or candidate territory
+- Protected natural area with digitised trail infrastructure in OpenStreetMap</p>
+<p>The full open-source stack (Python, PostGIS, Streamlit) requires no proprietary licensing, and the Sentinel-2 data source is publicly accessible through the Copernicus Open Access Hub. This positions the SNTO as a replicable <strong>open public good</strong> for the European conservation management community.</p>
+<h2 id="74-limitations-and-future-research-directions">7.4 Limitations and Future Research Directions</h2>
+<p>The SNTO acknowledges the following methodological constraints:</p>
+<ul>
+<li><strong>Spectral confoundedness:</strong> Drought-induced and trampling-induced NDVI depression produce similar spectral signatures; the SCM module mitigates but cannot fully eliminate this confounding in extreme drought years.</li>
+<li><strong>Trail width assumption:</strong> The 50 m buffer standardisation may underrepresent impact zones in heavily-used trails or overestimate them in lightly-used corridors; field-calibrated buffer widths would improve precision.</li>
+<li><strong>Visitor count data quality:</strong> The traffic_index component currently relies on permit or estimation data; integration with automated counting infrastructure (LiDAR or infrared counters) would substantially improve model precision.</li>
+<li><strong>Temporal depth:</strong> Full statistical validity of the Mann-Kendall trend component requires a multi-year monthly series. The current real PNSG data is a two-scene seasonal snapshot, so only the seasonal ΔEHS is asserted there; the 2021–2026 series is scaffolded (§7.5) but not yet ingested, and the validity gate (<code>src/temporal/trend_gate.py</code>) enforces this distinction.</li>
+</ul>
+<p>Future development priorities include: (1) machine learning classification of degradation typology (trampling vs. drought vs. wildfire); (2) integration of hyperspectral UAV data for validation sub-sampling; (3) extension of the platform to monitor CETS socio-economic indicators alongside ecological ones.</p>
+<h2 id="75-methodological-extensions-implemented-f0f7">7.5 Methodological extensions implemented (F0–F7)</h2>
+<p>Following an external technical audit, the observatory was repositioned around
+the <strong>Sierra de Guadarrama National Park</strong> and extended with the following
+layers, each documented and unit-tested. Several are <em>frameworks</em> whose full
+activation depends on declared data inputs, not on further method design:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Module</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Score semantics (health vs stress)</td>
+<td><code>src/metrics/semantics.py</code></td>
+<td>✅ unified across pipeline &amp; dashboard</td>
+</tr>
+<tr>
+<td>Temporal series scaffolding (2021–2026)</td>
+<td><code>src/temporal/</code></td>
+<td>✅ spec + Mann-Kendall validity gate + provenance manifest; ingestion pending (GEE)</td>
+</tr>
+<tr>
+<td>Data provenance &amp; confidence surfacing</td>
+<td><code>src/platform/provenance.py</code></td>
+<td>✅ real/calibrated/synthetic labels in dashboard</td>
+</tr>
+<tr>
+<td>Stratified baselines</td>
+<td><code>src/risk_engine/baselines.py</code></td>
+<td>✅ framework; per-habitat/altitude needs a DEM</td>
+</tr>
+<tr>
+<td>Ranking uncertainty &amp; sensitivity</td>
+<td><code>src/analysis/sensitivity.py</code></td>
+<td>✅ weight band, robust-top-N, Monte-Carlo</td>
+</tr>
+<tr>
+<td>Field validation &amp; pseudo-validation</td>
+<td><code>src/validation/</code></td>
+<td>✅ schema + agreement metrics; field campaign pending</td>
+</tr>
+<tr>
+<td>Engineering: CI≠deploy, logging, run context</td>
+<td><code>.github/workflows/ci.yml</code>, <code>src/config/</code></td>
+<td>✅ CI gates deploy; reproducible run provenance</td>
+</tr>
+<tr>
+<td>Three-audience dashboard views</td>
+<td><code>src/platform/views.py</code></td>
+<td>✅ técnica / gestor / tribunal with confidence verbosity</td>
+</tr>
+</tbody>
+</table>
+<p>Design notes: <a href="docs/temporal_series_design.md"><code>docs/temporal_series_design.md</code></a>,
+<a href="docs/baselines_uncertainty_design.md"><code>docs/baselines_uncertainty_design.md</code></a>,
+<a href="docs/field_validation_protocol.md"><code>docs/field_validation_protocol.md</code></a> and the
+consolidated assumptions/limits register in
+<a href="docs/informe_tecnico_limites.md"><code>docs/informe_tecnico_limites.md</code></a>.</p>
+<hr />
+<h2 id="appendix-a-key-formulas-reference">Appendix A — Key Formulas Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Formula</th>
+<th>Symbol</th>
+<th>Expression</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NDVI</td>
+<td>—</td>
+<td>(B8 − B4) / (B8 + B4)</td>
+</tr>
+<tr>
+<td>NDMI</td>
+<td>—</td>
+<td>(B8 − B11) / (B8 + B11)</td>
+</tr>
+<tr>
+<td>EHS (Operational)</td>
+<td>EHS</td>
+<td>100 × (W_NDVI × D_NDVI + W_NDMI × D_NDMI); D = clamp((B_p90 − X) / (B_p90 − B_p10), 0, 1)</td>
+</tr>
+<tr>
+<td>Delta EHS (Seasonal)</td>
+<td>ΔEHS</td>
+<td>EHS_Summer − EHS_Spring</td>
+</tr>
+<tr>
+<td>Priority Score</td>
+<td>P</td>
+<td>EHS × 0.60 + traffic_index × 0.40</td>
+</tr>
+<tr>
+<td>TIS Budget</td>
+<td>B</td>
+<td>L_m × 15.50 × (P / 100)</td>
+</tr>
+<tr>
+<td>SIG (Causality)</td>
+<td>SIG</td>
+<td>(NDVI_landscape − NDVI_core) / NDVI_landscape</td>
+</tr>
+</tbody>
+</table>
+<h2 id="appendix-b-technology-stack">Appendix B — Technology Stack</h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>Version</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Raster I/O</td>
+<td><code>rasterio</code></td>
+<td>≥ 1.3</td>
+<td>Band extraction, reprojection, GeoTIFF I/O</td>
+</tr>
+<tr>
+<td>Zonal Statistics</td>
+<td><code>rasterstats</code></td>
+<td>≥ 0.19</td>
+<td>Pixel aggregation within trail buffers</td>
+</tr>
+<tr>
+<td>Geospatial DataFrames</td>
+<td><code>geopandas</code></td>
+<td>≥ 1.0</td>
+<td>Vector operations, CRS management</td>
+</tr>
+<tr>
+<td>Spatial Geometry</td>
+<td><code>shapely</code></td>
+<td>≥ 2.0</td>
+<td>Buffer generation, geometry validation</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>PostgreSQL + PostGIS</td>
+<td>16 + 3.4</td>
+<td>Spatial queries, trail geometry storage</td>
+</tr>
+<tr>
+<td>Database Driver</td>
+<td><code>psycopg2-binary</code></td>
+<td>≥ 2.9</td>
+<td>Python–PostgreSQL interface</td>
+</tr>
+<tr>
+<td>Dashboard</td>
+<td><code>streamlit</code></td>
+<td>≥ 1.35</td>
+<td>Interactive decision-support interface</td>
+</tr>
+<tr>
+<td>Web Map</td>
+<td><code>folium</code></td>
+<td>≥ 0.16</td>
+<td>Geospatial visualisation layer</td>
+</tr>
+<tr>
+<td>REST API</td>
+<td><code>fastapi</code> + <code>uvicorn</code></td>
+<td>≥ 0.111</td>
+<td>Programmatic data access endpoints</td>
+</tr>
+<tr>
+<td>Numerical Computing</td>
+<td><code>numpy</code></td>
+<td>≥ 1.26</td>
+<td>Array operations, index computation</td>
+</tr>
+<tr>
+<td>Statistical Testing</td>
+<td>custom (<code>src/time_series/</code>)</td>
+<td>—</td>
+<td>Mann-Kendall, z-score anomaly, Sen's slope</td>
+</tr>
+<tr>
+<td>Satellite Data</td>
+<td>ESA Copernicus / GEE</td>
+<td>L2A</td>
+<td>Sentinel-2 surface reflectance</td>
+</tr>
+<tr>
+<td>CRS (Processing)</td>
+<td>EPSG:25830</td>
+<td>—</td>
+<td>ETRS89 / UTM Zone 30N (Peninsular Spain)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="appendix-c-spatial-reference-systems">Appendix C — Spatial Reference Systems</h2>
+<table>
+<thead>
+<tr>
+<th>EPSG Code</th>
+<th>Name</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4326</td>
+<td>WGS 84 (Geographic)</td>
+<td>Data storage in PostGIS; source CRS for OSM/GEE data</td>
+</tr>
+<tr>
+<td>32630</td>
+<td>WGS84 / UTM Zone 30N</td>
+<td>Native Sentinel-2 tile CRS (T30TVL)</td>
+</tr>
+<tr>
+<td>25830</td>
+<td>ETRS89 / UTM Zone 30N</td>
+<td>All metric operations: buffering, length, area</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>This document constitutes the authoritative methodological reference for the SNTO platform as implemented in the Sierra del Rincón Biosphere Reserve pilot. All formulas, thresholds, and cost parameters are derived from implemented code (<code>tis_engine.py</code>, <code>src/risk_engine/ehs.py</code>, <code>src/spatial_causality/analyzer.py</code>, <code>src/decision_confidence/assessor.py</code>) and validated against the references cited. Any modifications to operational parameters must be reflected in both this document and the codebase to maintain source-of-truth integrity.</em></p>
+<hr />
+<p><strong>Codebase Repository:</strong> <code>snto-smart-tourism-observatory</code>
+<strong>Primary Contact:</strong> soroush.karahrodi79@gmail.com
+<strong>Platform Version:</strong> 0.1.0 | <strong>Python:</strong> ≥ 3.12 | <strong>License:</strong> Research Use</p>
+
+<div class="doc-footer">
+  SNTO — Smart Nature Tourism Observatory &nbsp;·&nbsp;
+  DOI: <a href="https://doi.org/10.5281/zenodo.20818270">10.5281/zenodo.20818270</a> &nbsp;·&nbsp;
+  <a href="https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory">GitHub</a> &nbsp;·&nbsp;
+  Licencia de uso académico — Universidad Complutense de Madrid, 2026
+</div>
+
+</body>
+</html>
