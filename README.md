@@ -300,7 +300,6 @@ pytest --tb=short
 ```
 
 - **493 passing, 0 regresiones, suite verde.**
-- El antiguo fallo legacy `test_poor_data_scores_low` está resuelto: el data quality gate en `src/decision_confidence/assessor.py` (`can_act = False` si DQ < 10 o TR < 12) hace que el test pase.
 - **CI (`ci.yml`)** ejecuta además `ruff` bloqueante sobre los módulos mantenidos (F0–F7), `ruff` informativo sobre el resto (deuda de lint en reducción), import smoke y `py_compile` de los entry points.
 
 ---
@@ -351,24 +350,15 @@ El **código** se distribuye para **uso académico y de investigación**. Los **
 
 ## 12. Licencia / uso académico
 
-Proyecto de investigación académica independiente desarrollado en la **Universidad Complutense de Madrid (UCM)**. Territorio real principal: **Parque Nacional Sierra de Guadarrama** (Red de Parques Nacionales — OAPN). Territorio de calibración metodológica: **Reserva de la Biosfera Sierra del Rincón** (Madrid). Territorio de demostración de la inteligencia territorial: **Villuercas-Ibores-Jara Geopark** (Extremadura). Uso académico y de investigación.
+Proyecto de investigación académica desarrollado en la **Universidad Complutense de Madrid (UCM)**. Supervisión académica: Carmen Mínguez · Susana Ramírez García (REGENERA).
 
-Términos de uso del código y exención de responsabilidad: ver el fichero [`LICENSE`](LICENSE). El código es de uso académico/investigación con atribución; los datos pertenecen a sus proveedores y conservan sus licencias (sección 11).
-
-Supervisión académica: Carmen Mínguez · Susana Ramírez García (REGENERA) — Universidad Complutense de Madrid.
+El código se distribuye para uso académico y de investigación con atribución. Ver [`LICENSE`](LICENSE). Los datos pertenecen a sus respectivos proveedores y conservan sus licencias (ver §11).
 
 ### Cómo citar
 
-Si utilizas este software o sus resultados, cítalo mediante el fichero [`CITATION.cff`](CITATION.cff)
-(GitHub lo expone como **"Cite this repository"** en la barra lateral).
-
 **DOI permanente (Zenodo):** [10.5281/zenodo.20818270](https://doi.org/10.5281/zenodo.20818270)
 
-Documentación de difusión e institucional:
-- [Dossier institucional (OAPN / EUROPARC)](docs/dossier_institucional_OAPN.md)
-- [Kit de difusión (LinkedIn / X / ResearchGate / Zenodo)](docs/kit_difusion.md)
-- [Guía de publicación en Hugging Face Spaces](deploy/HUGGINGFACE_SPACE.md)
-- [Cómo contribuir](CONTRIBUTING.md)
+Fichero de cita: [`CITATION.cff`](CITATION.cff) · Contribuciones: [`CONTRIBUTING.md`](CONTRIBUTING.md)
 
 ---
 
