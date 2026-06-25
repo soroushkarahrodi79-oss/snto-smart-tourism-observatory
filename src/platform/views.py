@@ -43,10 +43,11 @@ class ViewProfile:
     # Controlan qué muestra cada vista, para que las tres difieran de verdad y no
     # solo en el banner. Principio aditivo: todas ven el núcleo; cada perfil suma
     # o quita capas.
-    technical: bool = False    # NDVI/NDMI crudo, p-valores, componentes DCS, percentiles
-    simplified: bool = False   # lenguaje llano, oculta jerga, decisión primero
-    audit: bool = False        # procedencia, fechas de escena, override, validación cruzada, límites
-    shows: str = ""            # resumen de una línea de "qué cambia" (para el sidebar)
+    technical: bool = False  # NDVI/NDMI crudo, p-valores, componentes DCS, percentiles
+    simplified: bool = False  # lenguaje llano, oculta jerga, decisión primero
+    # procedencia, fechas de escena, override, validación cruzada, límites
+    audit: bool = False
+    shows: str = ""  # resumen de una línea de "qué cambia" (para el sidebar)
 
 
 _PROFILES: dict[ViewMode, ViewProfile] = {
@@ -60,7 +61,8 @@ _PROFILES: dict[ViewMode, ViewProfile] = {
         banner="Vista técnica: índices espectrales, baselines y métricas de "
                "incertidumbre sin simplificar.",
         technical=True,
-        shows="Añade p-valores Mann-Kendall, componentes DCS y notas espectrales abiertas.",
+        shows="Añade p-valores Mann-Kendall, componentes DCS"
+              " y notas espectrales abiertas.",
     ),
     ViewMode.GESTOR: ViewProfile(
         mode=ViewMode.GESTOR,
@@ -72,7 +74,8 @@ _PROFILES: dict[ViewMode, ViewProfile] = {
         banner="Vista gestor: prioridad, presupuesto y acción — con el nivel de "
                "confianza resumido en una línea.",
         simplified=True,
-        shows="Oculta la jerga estadística y añade la acción prioritaria del territorio.",
+        shows="Oculta la jerga estadística y añade"
+              " la acción prioritaria del territorio.",
     ),
     ViewMode.TRIBUNAL: ViewProfile(
         mode=ViewMode.TRIBUNAL,
@@ -80,19 +83,25 @@ _PROFILES: dict[ViewMode, ViewProfile] = {
         icon="⚖️",
         audience="Revisión metodológica / auditoría científica",
         emphasis="Procedencia del dato (satélite vs. curado vs. socioeconómico), "
-                 "política de override conservador, fórmulas EHS/TPI/DCS y límites declarados.",
+                 "política de override conservador,"
+                 " fórmulas EHS/TPI/DCS y límites declarados.",
         confidence_detail=ConfidenceDetail.FULL,
         banner="Vista de auditoría: el EHS satelital procede de Sentinel-2 L2A (tile "
-               "T30TVL, Pipeline A). Override conservador — el satélite solo sobreescribe "
+               "T30TVL, Pipeline A). Override conservador —"
+               " el satélite solo sobreescribe "
                "el juicio experto cuando observa MÁS degradación; al alza no sustituye "
                "(la roca/canchal de alta montaña tiene poco NDVI por geología, no por "
-               "turismo). La capa socioeconómica ALMUDENA/INE es completa en Madrid y solo "
-               "demográfica en Segovia. Límites: resolución ~10-30 m, profundidad temporal "
-               "del snapshot y sendas sin equivalente OSM (SIN_DATO). Cada cifra lleva su "
+               "turismo). La capa socioeconómica ALMUDENA/INE"
+               " es completa en Madrid y solo "
+               "demográfica en Segovia. Límites: resolución ~10-30 m,"
+               " profundidad temporal "
+               "del snapshot y sendas sin equivalente OSM"
+               " (SIN_DATO). Cada cifra lleva su "
                "procedencia y nivel de confianza (DCS).",
         technical=True,
         audit=True,
-        shows="Suma a la vista técnica la procedencia del dato, la validación cruzada y los límites declarados.",
+        shows="Suma a la vista técnica la procedencia del dato,"
+              " la validación cruzada y los límites declarados.",
     ),
 }
 
