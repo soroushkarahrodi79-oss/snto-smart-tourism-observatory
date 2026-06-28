@@ -1,8 +1,8 @@
 <div align="center">
 
-# 🏔 SNTO — Smart Natural Tourism Observatory
+# 🏔 SNTO — Smart Nature Tourism Observatory
 
-**Inteligencia territorial de código abierto para la gobernanza regenerativa de destinos de turismo natural.**
+**Inteligencia territorial de código abierto para uso académico, para la gobernanza regenerativa de destinos de turismo natural.**
 
 De la teledetección Sentinel-2 a la decisión de inversión pública: indicadores ambientales calibrados, atribución causal de la degradación y priorización presupuestaria sobre el **Parque Nacional Sierra de Guadarrama (PNSG)**, primer territorio de la Red de Parques Nacionales (OAPN) integrado en el observatorio.
 

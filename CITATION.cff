@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "Si utilizas este software o sus resultados, por favor cítalo como se indica a continuación."
 title: "SNTO — Smart Nature Tourism Observatory"
 abstract: >-
-  Observatorio de inteligencia territorial de código abierto para la gobernanza
-  regenerativa de destinos de turismo natural. Transforma teledetección
+  Observatorio de inteligencia territorial de código abierto para uso académico,
+  para la gobernanza regenerativa de destinos de turismo natural. Transforma teledetección
   Sentinel-2 (NDVI/NDMI) en indicadores ambientales calibrados, atribución
   causal de la degradación (uso turístico vs. clima) y priorización
   presupuestaria con nivel de confianza, aplicado al Parque Nacional Sierra de
@@ -18,7 +18,7 @@ authors:
 doi: "10.5281/zenodo.20818270"
 repository-code: "https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory"
 url: "https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory"
-license: "LicenseRef-SNTO-Academic"
+# Licencia de uso académico/no-comercial: ver fichero LICENSE (no es un identificador SPDX estándar).
 version: "1.0.0"
 date-released: "2026-06-23"
 keywords:
