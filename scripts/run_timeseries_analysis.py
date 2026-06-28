@@ -28,8 +28,13 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-DEFAULT_INPUT = Path("clean_assets/timeseries/pnsg_gee_timeseries_2021_2025.csv")
+DEFAULT_INPUT = Path("clean_assets/timeseries/pnsg_gee_timeseries.csv")
 OUTPUT_DIR = Path("clean_assets/timeseries/analysis")
+
+# Un año se considera PARCIAL si globalmente le faltan meses (p. ej. el año en
+# curso sin verano). Esos años se excluyen del ranking peor/mejor año porque su
+# media no es comparable con años completos. Umbral: < 10 meses distintos.
+_MIN_MONTHS_FULL_YEAR = 10
 
 
 # ── Mann-Kendall simplificado ─────────────────────────────────────────────────
@@ -90,7 +95,25 @@ def load_csv(path: Path) -> list[dict]:
 
 # ── Análisis ──────────────────────────────────────────────────────────────────
 
+def _detect_partial_years(rows: list[dict]) -> set[str]:
+    """Años con < _MIN_MONTHS_FULL_YEAR meses distintos a nivel global.
+
+    Detecta el año en curso (sin verano) para excluirlo del ranking anual.
+    """
+    months_by_year: dict[str, set[int]] = defaultdict(set)
+    for r in rows:
+        if r.get("month"):
+            months_by_year[r["year"]].add(int(r["month"]))
+    return {yr for yr, months in months_by_year.items()
+            if len(months) < _MIN_MONTHS_FULL_YEAR}
+
+
 def analyse(rows: list[dict]) -> dict:
+    partial_years = _detect_partial_years(rows)
+    if partial_years:
+        log.info("Años parciales detectados (excluidos del peor/mejor año): %s",
+                 ", ".join(sorted(partial_years)))
+
     # Agrupar por asset_id
     by_asset: dict[str, list[dict]] = defaultdict(list)
     for r in rows:
@@ -103,6 +126,8 @@ def analyse(rows: list[dict]) -> dict:
         ndvi_series = [float(r["ndvi"]) for r in obs_sorted if r["ndvi"]]
         ndmi_series = [float(r["ndmi"]) for r in obs_sorted if r["ndmi"]]
 
+        # Mann-Kendall mensual: usa TODOS los meses (los parciales son válidos
+        # como puntos adicionales de la serie; solo el ranking anual los excluye).
         mk_ndvi = mann_kendall(ndvi_series)
         mk_ndmi = mann_kendall(ndmi_series)
 
@@ -113,10 +138,11 @@ def analyse(rows: list[dict]) -> dict:
                 ndvi_by_year[r["year"]].append(float(r["ndvi"]))
         annual_ndvi = {yr: round(sum(v) / len(v), 4) for yr, v in ndvi_by_year.items()}
 
-        # Detectar año con menor/mayor NDVI
-        if annual_ndvi:
-            worst_year  = min(annual_ndvi, key=annual_ndvi.get)
-            best_year   = max(annual_ndvi, key=annual_ndvi.get)
+        # Peor/mejor año SOLO sobre años completos (comparación justa)
+        full_year_ndvi = {yr: v for yr, v in annual_ndvi.items() if yr not in partial_years}
+        if full_year_ndvi:
+            worst_year = min(full_year_ndvi, key=full_year_ndvi.get)
+            best_year  = max(full_year_ndvi, key=full_year_ndvi.get)
         else:
             worst_year = best_year = None
 
@@ -125,6 +151,7 @@ def analyse(rows: list[dict]) -> dict:
             "mann_kendall_ndvi": mk_ndvi,
             "mann_kendall_ndmi": mk_ndmi,
             "annual_mean_ndvi": annual_ndvi,
+            "partial_years": sorted(partial_years),
             "worst_ndvi_year": worst_year,
             "best_ndvi_year":  best_year,
             "ndvi_range": {
@@ -168,7 +195,7 @@ def main() -> None:
     rows = load_csv(args.input)
     log.info("%d observaciones cargadas.", len(rows))
 
-    log.info("\n=== Análisis Mann-Kendall NDVI/NDMI (2021-2025) ===")
+    log.info("\n=== Análisis Mann-Kendall NDVI/NDMI (serie multianual) ===")
     results = analyse(rows)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

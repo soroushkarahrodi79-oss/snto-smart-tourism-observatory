@@ -50,6 +50,7 @@ class AssetTrend:
     p_value: float
     trend: str                       # 'increasing' | 'decreasing' | 'no trend'
     annual_mean_ndvi: dict[str, float]
+    partial_years: list[str]         # años sin temporada completa (excluidos del ranking)
     worst_year: str | None
     best_year: str | None
     ndvi_min: float | None
@@ -79,6 +80,7 @@ class TrendSummary:
     n_improving: int = 0
     n_stable: int = 0
     worst_year_global: str | None = None   # most frequent 'worst year' across assets
+    partial_years: list[str] = field(default_factory=list)  # años parciales (p. ej. año en curso)
 
     @property
     def alerts(self) -> list[AssetTrend]:
@@ -110,6 +112,7 @@ def load_asset_trends(path: Path | None = None) -> list[AssetTrend]:
             p_value=float(mk.get("p_approx", 1.0)),
             trend=str(mk.get("trend", "no trend")),
             annual_mean_ndvi={str(k): float(v) for k, v in rec.get("annual_mean_ndvi", {}).items()},
+            partial_years=[str(y) for y in rec.get("partial_years", [])],
             worst_year=rec.get("worst_ndvi_year"),
             best_year=rec.get("best_ndvi_year"),
             ndvi_min=rng.get("min"),
@@ -138,6 +141,9 @@ def summarize_trends(path: Path | None = None) -> TrendSummary:
     # Most urgent first: degradation alerts, then by ascending p-value.
     assets_sorted = sorted(assets, key=lambda a: (not a.is_alert, a.p_value))
 
+    # partial_years es global (idéntico en todos los assets); tomar del primero
+    partial = assets[0].partial_years if assets else []
+
     return TrendSummary(
         available=True,
         assets=assets_sorted,
@@ -145,6 +151,7 @@ def summarize_trends(path: Path | None = None) -> TrendSummary:
         n_improving=n_imp,
         n_stable=n_sta,
         worst_year_global=worst_global,
+        partial_years=partial,
     )
 
 

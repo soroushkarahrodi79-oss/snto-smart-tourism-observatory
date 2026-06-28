@@ -1684,13 +1684,16 @@ with tab_timeseries:
         "donde la sequía coincide con el sobreuso turístico documentado."
     )
 
-    # ── Panel: Tendencias satelitales REALES 2021-2025 (Mann-Kendall) ──────────
+    # ── Panel: Tendencias satelitales REALES (Mann-Kendall multianual) ─────────
     _real_trends = summarize_trends()
     if _real_trends.available:
-        st.markdown("#### 🛰️ Tendencias satelitales reales · Sentinel-2 2021–2025")
+        # Rango temporal real derivado de los datos (no hardcodeado)
+        _all_years = sorted({y for a in _real_trends.assets for y in a.annual_mean_ndvi})
+        _yr_lo, _yr_hi = (_all_years[0], _all_years[-1]) if _all_years else ("", "")
+        st.markdown(f"#### 🛰️ Tendencias satelitales reales · Sentinel-2 {_yr_lo}–{_yr_hi}")
         st.caption(
             "Análisis **Mann-Kendall** sobre activos reales del PNSG con imágenes "
-            "Sentinel-2 (Pipeline GEE, 5 años). A diferencia del gráfico mensual de más "
+            "Sentinel-2 (Pipeline GEE). A diferencia del gráfico mensual de más "
             "abajo (reconstrucción de validación), **estos resultados son empíricos**."
         )
         m1, m2, m3, m4 = st.columns(4)
@@ -1704,6 +1707,13 @@ with tab_timeseries:
                 f"📉 **Señal climática:** {_real_trends.worst_year_global} es el peor año NDVI "
                 f"en la mayoría de activos — coincide con la sequía excepcional documentada "
                 f"(la peor en España desde 1945). Validación cruzada del pipeline."
+            )
+
+        if _real_trends.partial_years:
+            st.caption(
+                f"⏳ **Año parcial:** {', '.join(_real_trends.partial_years)} aún no tiene la "
+                f"temporada completa (faltan meses de verano), por lo que se incluye en la serie "
+                f"mensual pero **se excluye del ranking peor/mejor año** para una comparación justa."
             )
 
         for _alert in _real_trends.alerts:

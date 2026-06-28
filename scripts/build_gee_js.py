@@ -54,17 +54,18 @@ def build() -> str:
     features_block = "\n".join(feature_lines)
 
     return f"""// ============================================================================
-// SNTO — Extracción NDVI/NDMI/EVI mensual 2021-2025 para assets del PNSG
+// SNTO — Extracción NDVI/NDMI/EVI mensual 2021–2026 para assets del PNSG
 // GENERADO por scripts/build_gee_js.py — pegar en code.earthengine.google.com
 // ----------------------------------------------------------------------------
 // 21 assets reales (vuelo libre, escalada, ciclismo, zonas de reserva).
+// Ventana: ene-2021 .. jun-2026 (2026 es parcial; el análisis lo trata aparte).
 // Exporta un CSV a Google Drive → carpeta "SNTO_exports".
 // ============================================================================
 
 // ── Configuración ───────────────────────────────────────────────────────────
 var MGRS_TILE = '30TVL';            // OJO: sin la 'T' inicial en GEE
 var START = ee.Date.fromYMD(2021, 1, 1);
-var N_MONTHS = 60;                   // 2021-01 .. 2025-12
+var N_MONTHS = 66;                   // 2021-01 .. 2026-06 (2026 parcial: ene-jun)
 var POINT_BUFFER_M = 50;
 var LINE_BUFFER_M  = 30;
 var SCALE_M = 10;
@@ -156,9 +157,9 @@ print('Muestra (primeras 5 filas):', flat.limit(5));
 // ── Export a Google Drive ────────────────────────────────────────────────────
 Export.table.toDrive({{
   collection: flat,
-  description: 'PNSG_indices_2021_2025',
+  description: 'PNSG_indices_multiyear',
   folder: 'SNTO_exports',
-  fileNamePrefix: 'pnsg_gee_timeseries_2021_2025',
+  fileNamePrefix: 'pnsg_gee_timeseries',
   fileFormat: 'CSV',
   selectors: [
     'asset_id', 'year', 'month', 'date',

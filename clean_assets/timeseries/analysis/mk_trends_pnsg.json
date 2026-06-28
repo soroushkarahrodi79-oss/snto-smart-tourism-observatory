@@ -22,6 +22,7 @@
       "2024": 0.4189,
       "2025": 0.4186
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2024",
     "ndvi_range": {
@@ -52,6 +53,7 @@
       "2024": 0.4708,
       "2025": 0.4363
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2024",
     "ndvi_range": {
@@ -82,6 +84,7 @@
       "2024": 0.4171,
       "2025": 0.4004
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2023",
     "ndvi_range": {
@@ -112,6 +115,7 @@
       "2024": 0.4141,
       "2025": 0.4097
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2024",
     "ndvi_range": {
@@ -142,6 +146,7 @@
       "2024": 0.3639,
       "2025": 0.3635
     },
+    "partial_years": [],
     "worst_ndvi_year": "2021",
     "best_ndvi_year": "2024",
     "ndvi_range": {
@@ -172,6 +177,7 @@
       "2024": 0.5147,
       "2025": 0.5169
     },
+    "partial_years": [],
     "worst_ndvi_year": "2021",
     "best_ndvi_year": "2023",
     "ndvi_range": {
@@ -202,6 +208,7 @@
       "2024": 0.2326,
       "2025": 0.2159
     },
+    "partial_years": [],
     "worst_ndvi_year": "2025",
     "best_ndvi_year": "2022",
     "ndvi_range": {
@@ -232,6 +239,7 @@
       "2024": 0.2506,
       "2025": 0.2409
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2024",
     "ndvi_range": {
@@ -262,6 +270,7 @@
       "2024": 0.6529,
       "2025": 0.6641
     },
+    "partial_years": [],
     "worst_ndvi_year": "2021",
     "best_ndvi_year": "2025",
     "ndvi_range": {
@@ -292,6 +301,7 @@
       "2024": 0.7634,
       "2025": 0.771
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2025",
     "ndvi_range": {
@@ -322,6 +332,7 @@
       "2024": 0.665,
       "2025": 0.6704
     },
+    "partial_years": [],
     "worst_ndvi_year": "2021",
     "best_ndvi_year": "2025",
     "ndvi_range": {
@@ -352,6 +363,7 @@
       "2024": 0.6586,
       "2025": 0.669
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2023",
     "ndvi_range": {
@@ -382,6 +394,7 @@
       "2024": 0.6805,
       "2025": 0.6991
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2025",
     "ndvi_range": {
@@ -412,6 +425,7 @@
       "2024": 0.7229,
       "2025": 0.7273
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2025",
     "ndvi_range": {
@@ -442,6 +456,7 @@
       "2024": 0.6491,
       "2025": 0.6577
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2025",
     "ndvi_range": {
@@ -472,6 +487,7 @@
       "2024": 0.7468,
       "2025": 0.7606
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2023",
     "ndvi_range": {
@@ -502,6 +518,7 @@
       "2024": 0.6593,
       "2025": 0.646
     },
+    "partial_years": [],
     "worst_ndvi_year": "2021",
     "best_ndvi_year": "2023",
     "ndvi_range": {
@@ -532,6 +549,7 @@
       "2024": 0.5925,
       "2025": 0.5924
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2023",
     "ndvi_range": {
@@ -562,6 +580,7 @@
       "2024": 0.6915,
       "2025": 0.6893
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2023",
     "ndvi_range": {
@@ -592,6 +611,7 @@
       "2024": 0.5386,
       "2025": 0.5074
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2024",
     "ndvi_range": {
@@ -622,6 +642,7 @@
       "2024": 0.3379,
       "2025": 0.3039
     },
+    "partial_years": [],
     "worst_ndvi_year": "2022",
     "best_ndvi_year": "2024",
     "ndvi_range": {
