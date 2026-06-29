@@ -20,7 +20,11 @@ from src.platform.map_layers import (
     build_pydeck_deck, build_pydeck_deck_spectral, build_real_trails_deck,
     assets_to_geojson, LEGEND_ITEMS, TIER_COLORS,
 )
-from src.platform.charts import build_portfolio_matrix, build_time_series_chart
+from src.platform.charts import (
+    build_portfolio_matrix,
+    build_real_trend_chart,
+    build_time_series_chart,
+)
 from src.platform.real_trails import (
     get_real_trails, build_real_trails_geojson, get_park_boundary,
 )
@@ -929,6 +933,18 @@ def load_dashboard(territory_key: str):
     return dash, assets, comps, by_id, budget, cfg, cal
 
 
+@st.cache_data(show_spinner=False)
+def _cached_trends():
+    """Tendencias satelitales reales (Mann-Kendall) cacheadas por sesión.
+
+    ``summarize_trends`` parsea el JSON de ``clean_assets/timeseries/analysis``
+    en cada llamada. Sin cache se relee del disco en cada rerun de Streamlit
+    (cada cambio de widget en la Pestaña 6). El payload es pequeño (~15 KB / 21
+    activos) pero el cache elimina la E/S repetida y mantiene la latencia plana.
+    """
+    return summarize_trends()
+
+
 # ── Renderizador de alertas en vivo ──────────────────────────────────────────
 _ALERT_META: dict[str, tuple[str, str, str, str]] = {
     # level: (icon, label, bg, border)
@@ -1685,7 +1701,7 @@ with tab_timeseries:
     )
 
     # ── Panel: Tendencias satelitales REALES (Mann-Kendall multianual) ─────────
-    _real_trends = summarize_trends()
+    _real_trends = _cached_trends()
     if _real_trends.available:
         # Rango temporal real derivado de los datos (no hardcodeado)
         _all_years = sorted({y for a in _real_trends.assets for y in a.annual_mean_ndvi})
@@ -1744,6 +1760,33 @@ with tab_timeseries:
                 for a in _real_trends.assets
             ])
             st.dataframe(_df, use_container_width=True, hide_index=True)
+
+        # ── Gráfico multianual REAL (NDVI medio anual 2021→2026) ───────────────
+        # Se elige directamente sobre los 21 activos reales del Pipeline GEE
+        # (no depende del emparejamiento difuso con los activos curados, que para
+        # el PNSG no siempre resuelve). Esta es la serie EMPÍRICA, no simulada.
+        st.markdown("##### 📈 Serie anual real por activo (Sentinel-2)")
+        _real_labels = {
+            f"{a.asset_id}  ·  {a.trend_es}": a for a in _real_trends.assets
+        }
+        _sel_real = st.selectbox(
+            "Activo real (GEE) a graficar",
+            options=list(_real_labels.keys()),
+            index=0,
+            help="Activos reales analizados con Mann-Kendall sobre NDVI 2021–2026.",
+            key="real_trend_asset",
+        )
+        _ra = _real_labels[_sel_real]
+        try:
+            st.plotly_chart(build_real_trend_chart(_ra), use_container_width=True)
+            if _ra.partial_years:
+                st.caption(
+                    f"○ El año {', '.join(_ra.partial_years)} es **parcial** (sin "
+                    f"temporada completa): marcador hueco y excluido del ranking "
+                    f"peor/mejor año."
+                )
+        except Exception as _e:
+            st.warning(f"No se pudo renderizar la serie anual real: {_e}", icon="⚠️")
 
         st.divider()
 

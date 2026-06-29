@@ -17,6 +17,19 @@ Pipeline producing the input JSON::
     run_timeseries_analysis.py  → analysis/mk_trends_pnsg.json       (this input)
 
 Pure logic (no Streamlit) so it stays unit-testable and reusable.
+
+Runtime memory profile (v1.1.0)
+-------------------------------
+The dashboard's Tab 6 ("Evolución Temporal") runtime footprint is small: this
+module parses a ~15 KB JSON (21 assets) into frozen dataclasses — on the order of
+hundreds of KB resident, bounded by ``tests/unit/test_satellite_trends.py``
+(``test_loader_memory_bounded``, <25 MB peak). It does **not** read rasters or the
+265 KB monthly CSV at request time. The genuinely heavy paths are OFFLINE and out
+of the serving process:
+  * ``scripts/run_timeseries_analysis.py`` (consumes the GEE CSV → this JSON),
+  * Tab 2's 900 MB ``spring/summer_raster.tif`` map layers.
+In ``app.py`` the loader is wrapped by ``_cached_trends`` (``@st.cache_data``) so
+the JSON parse happens once per session, not on every widget rerun.
 """
 from __future__ import annotations
 
@@ -25,7 +38,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[2]
-_TRENDS_JSON = _ROOT / "clean_assets" / "timeseries" / "analysis" / "mk_trends_pnsg.json"
+_TRENDS_JSON = (
+    _ROOT / "clean_assets" / "timeseries" / "analysis" / "mk_trends_pnsg.json"
+)
 
 # Significance threshold (matches run_timeseries_analysis.py)
 _P_SIGNIFICANT = 0.05
@@ -50,7 +65,7 @@ class AssetTrend:
     p_value: float
     trend: str                       # 'increasing' | 'decreasing' | 'no trend'
     annual_mean_ndvi: dict[str, float]
-    partial_years: list[str]         # años sin temporada completa (excluidos del ranking)
+    partial_years: list[str]         # años sin temporada completa (fuera del ranking)
     worst_year: str | None
     best_year: str | None
     ndvi_min: float | None
@@ -80,7 +95,8 @@ class TrendSummary:
     n_improving: int = 0
     n_stable: int = 0
     worst_year_global: str | None = None   # most frequent 'worst year' across assets
-    partial_years: list[str] = field(default_factory=list)  # años parciales (p. ej. año en curso)
+    # años parciales (p. ej. el año en curso, sin temporada completa)
+    partial_years: list[str] = field(default_factory=list)
 
     @property
     def alerts(self) -> list[AssetTrend]:
@@ -111,7 +127,10 @@ def load_asset_trends(path: Path | None = None) -> list[AssetTrend]:
             tau=float(mk.get("tau", 0.0)),
             p_value=float(mk.get("p_approx", 1.0)),
             trend=str(mk.get("trend", "no trend")),
-            annual_mean_ndvi={str(k): float(v) for k, v in rec.get("annual_mean_ndvi", {}).items()},
+            annual_mean_ndvi={
+                str(k): float(v)
+                for k, v in rec.get("annual_mean_ndvi", {}).items()
+            },
             partial_years=[str(y) for y in rec.get("partial_years", [])],
             worst_year=rec.get("worst_ndvi_year"),
             best_year=rec.get("best_ndvi_year"),
