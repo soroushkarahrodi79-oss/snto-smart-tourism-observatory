@@ -166,10 +166,11 @@ enfocado — el mismo patrón que F1/F7/F8/F9 en el historial del repo.
 Cerrada en esta rama (`claude/tourism-observatory-views-audit-jyl38k`).
 Sin cambios de código; solo diagnóstico y decisión.
 
-**Decisión pendiente del responsable de producto antes de la Fase 2:**
-¿*Fundamento y Trazabilidad* debe modular por vista, o es correcto que
-muestre siempre el detalle completo (es ya, por naturaleza, la pestaña de
-trazabilidad)? Esto determina el alcance de la Fase 4.
+**Decisión de producto (resuelta).** *Fundamento y Trazabilidad* **sí debe
+modular por vista**. Implementado en esta rama como primer entregable de la
+Fase 4 (ver más abajo): Gestor recibe un resumen de fiabilidad de una pantalla;
+Técnica, el detalle metodológico completo con licencias plegadas; Auditoría,
+todo visible incluidas fuentes y licencias.
 
 ### Fase 2 — Consolidar el mecanismo de modulación
 - Extraer un helper único (p. ej. `views.section(view, *, technical=False,
@@ -187,16 +188,25 @@ trazabilidad)? Esto determina el alcance de la Fase 4.
   dejando el toggle como override manual?).
 
 ### Fase 4 — Extender cobertura real
-- Aplicar al menos una modulación significativa a las 3 pestañas hoy
-  estáticas, según lo decidido en la Fase 1:
-  - *Fundamento y Trazabilidad*: si se decide que debe variar, Auditoría ve
-    fórmulas completas + trazabilidad; Gestor ve un resumen ejecutivo de una
-    pantalla.
-  - *Portafolio TPI* / *Simulador Financiero*: evaluar si Gestor se beneficia
-    de una vista "acción recomendada primero" sin tocar las cifras (que deben
-    seguir siendo objetivas e iguales para todas las audiencias).
-- Sustituir el banner largo embebido de `TRIBUNAL` por referencias a los docs
-  de diseño existentes.
+- **✅ *Fundamento y Trazabilidad* (pestaña 8) — hecho en esta rama.**
+  Modulación por audiencia:
+  - **Gestor**: `render_executive_summary()` — resumen de fiabilidad de una
+    pantalla (cuántas variables se miden vs. se modelan, en lenguaje llano) +
+    los 4 caveats que cambian una decisión; el detalle denso queda plegado en
+    un expander.
+  - **Técnica**: fundamento + matriz de trazabilidad + multiplicadores
+    inline; fuentes y licencias plegadas (asunto de publicación, secundario
+    para el perfil técnico).
+  - **Auditoría**: todo visible, con fuentes y licencias desplegadas
+    (requisito de defensa/publicación).
+  - Verificado con `AppTest`: el contenido renderizado difiere entre las tres
+    vistas. Test de contrato `test_plain_summary_covers_every_data_type`
+    blinda que cada `DataType` tenga su versión llana.
+- Pendiente: *Portafolio TPI* / *Simulador Financiero* — evaluar si Gestor se
+  beneficia de una vista "acción recomendada primero" sin tocar las cifras
+  (que deben seguir siendo objetivas e iguales para todas las audiencias).
+- Pendiente: sustituir el banner largo embebido de `TRIBUNAL` por referencias
+  a los docs de diseño existentes.
 
 ### Fase 5 — Cierre y medición
 - Si el observatorio tiene usuarios reales, instrumentar qué vista se usa más

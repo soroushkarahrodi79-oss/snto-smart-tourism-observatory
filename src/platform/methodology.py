@@ -386,6 +386,16 @@ _TYPE_COLOR = {
     "Simulada":  "#A32D2D",   # rojo  — escenario/contrafactual
 }
 
+# Traducción de cada tipo de dato a lenguaje de dirección (vista Gestor). Las
+# claves DEBEN coincidir con las etiquetas de ``DataType`` (lo verifica un test):
+# si se añade un quinto tipo, este mapa obliga a darle su versión llana.
+_PLAIN_TYPE_SUMMARY: dict[str, tuple[str, str]] = {
+    "Observada": ("Medido directamente", "Satélite, padrón, cartografía oficial"),
+    "Calculada": ("Calculado", "Determinista a partir de lo medido"),
+    "Estimada":  ("Estimado", "Proxy o parámetro de literatura"),
+    "Simulada":  ("Escenario", "Simulación condicional, no observación"),
+}
+
 
 def scenario_badge(label: str = "ESCENARIO", detail: str = "") -> str:
     """HTML de un chip ámbar reutilizable para marcar cifras de modelo/escenario."""
@@ -404,6 +414,53 @@ def type_badge(dtype_label: str) -> str:
         f'<span style="display:inline-block;padding:1px 8px;border-radius:9px;'
         f'background:{color};color:white;font-size:0.68rem;font-weight:600">'
         f'{dtype_label}</span>'
+    )
+
+
+def render_executive_summary() -> None:
+    """Resumen de fiabilidad para dirección (vista Gestor).
+
+    Una sola pantalla, sin la matriz densa: cuánta evidencia es medición directa
+    y cuánta es modelo, más los cuatro caveats que de verdad cambian una decisión.
+    El detalle completo (fórmulas, código, licencias) vive en la vista Auditoría.
+    """
+    import streamlit as st
+
+    counts = counts_by_type()
+    st.markdown("#### Resumen de fiabilidad para dirección")
+    st.caption(
+        "Cuánta de la evidencia del observatorio es medición directa y cuánta es "
+        "modelo. El detalle completo —fórmulas, código fuente y licencias— está en "
+        "la vista ⚖️ Auditoría científica."
+    )
+    cols = st.columns(4)
+    for col, key in zip(cols, ["Observada", "Calculada", "Estimada", "Simulada"]):
+        title, sub = _PLAIN_TYPE_SUMMARY[key]
+        with col:
+            st.markdown(
+                f'<div class="kpi-card" style="border-left:4px solid '
+                f'{_TYPE_COLOR[key]};">'
+                f'<div class="kpi-meta">{title}</div>'
+                f'<div class="kpi-value" style="color:{_TYPE_COLOR[key]};'
+                f'font-size:1.5rem">{counts.get(key, 0)}</div>'
+                f'<div style="font-size:0.66rem;color:#7a8899;margin-top:2px">'
+                f'{sub}</div></div>',
+                unsafe_allow_html=True,
+            )
+    st.write("")
+    st.info(
+        "**Lo esencial para decidir:**\n\n"
+        "- La señal principal es **satélite real** (Sentinel-2): mide el verdor de "
+        "la vegetación en las sendas reales del parque.\n"
+        "- El satélite **solo agrava, nunca relaja** el diagnóstico experto "
+        "(override conservador): si ve más degradación, manda; si ve menos, se "
+        "mantiene el criterio experto.\n"
+        "- Las cifras económicas (ingresos/empleos en riesgo) son **escenarios** "
+        "del tipo *«qué se expondría si un activo crítico se cierra»*, no pérdidas "
+        "observadas.\n"
+        "- Para el PNSG hay **2 escenas** (primavera/verano): vale para el cambio "
+        "estacional, **no** para una tendencia de varios años.",
+        icon="🧭",
     )
 
 
@@ -552,12 +609,17 @@ DATA_SOURCES: list[DataSource] = [
 ]
 
 
-def render_data_sources() -> None:
-    """Sección de fuentes de datos y licencias (requisito de publicación)."""
+def render_data_sources(show_heading: bool = True) -> None:
+    """Sección de fuentes de datos y licencias (requisito de publicación).
+
+    ``show_heading=False`` omite el título propio para anidar la tabla dentro de
+    un ``st.expander`` (vista Técnica, donde las licencias son secundarias).
+    """
     import pandas as pd
     import streamlit as st
 
-    st.markdown("#### D · Fuentes de datos y licencias")
+    if show_heading:
+        st.markdown("#### D · Fuentes de datos y licencias")
     st.caption(
         "Atribución obligatoria de cada fuente para la publicación oficial del observatorio."
     )

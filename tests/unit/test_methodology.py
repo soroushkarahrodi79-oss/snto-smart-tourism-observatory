@@ -8,6 +8,7 @@ suite lo detecta antes de que llegue a una defensa de TFM.
 from __future__ import annotations
 
 from src.platform.methodology import (
+    _PLAIN_TYPE_SUMMARY,
     MULTIPLIERS,
     TRACEABILITY,
     Confidence,
@@ -33,6 +34,14 @@ def test_all_four_data_types_present() -> None:
     # La narrativa de defensa exige las cuatro categorías observada/calculada/estimada/simulada.
     present = {r.dtype for r in TRACEABILITY}
     assert present == set(DataType), f"Faltan tipos: {set(DataType) - present}"
+
+
+def test_plain_summary_covers_every_data_type() -> None:
+    # F10 — el resumen Gestor de la pestaña 8 traduce cada DataType a lenguaje
+    # llano. Si se añade un tipo nuevo sin su versión llana, este test lo frena.
+    assert set(_PLAIN_TYPE_SUMMARY) == {d.label for d in DataType}
+    for title, sub in _PLAIN_TYPE_SUMMARY.values():
+        assert title and sub
 
 
 def test_satellite_indices_are_observed_and_high_confidence() -> None:

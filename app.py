@@ -2994,13 +2994,34 @@ with tab_method:
         "estima y qué se simula — con su fuente, su fórmula y su nivel de confianza. "
         "Anexo escrito en `docs/defensibilidad_academica.md`."
     )
-    method.render_fundamento()
-    st.divider()
-    method.render_traceability_matrix()
-    st.divider()
-    method.render_limitations()
-    st.divider()
-    method.render_data_sources()
+    # ── Modulación por vista/audiencia (F10) ──────────────────────────────────
+    # GESTOR: resumen de fiabilidad de una pantalla; el detalle denso queda
+    # plegado. TÉCNICA: fundamento + matriz + multiplicadores; licencias plegadas.
+    # AUDITORÍA: todo visible, incluidas fuentes y licencias (defensa/publicación).
+    if _view.simplified:
+        method.render_executive_summary()
+        with st.expander(
+            "📚 Ver fundamento, matriz de trazabilidad, multiplicadores y licencias"
+        ):
+            method.render_fundamento()
+            st.divider()
+            method.render_traceability_matrix()
+            st.divider()
+            method.render_limitations()
+            st.divider()
+            method.render_data_sources()
+    else:
+        method.render_fundamento()
+        st.divider()
+        method.render_traceability_matrix()
+        st.divider()
+        method.render_limitations()
+        st.divider()
+        if _view.audit:
+            method.render_data_sources()
+        else:
+            with st.expander("D · Fuentes de datos y licencias"):
+                method.render_data_sources(show_heading=False)
 
 
 # ── Pie de página ─────────────────────────────────────────────────────────────
