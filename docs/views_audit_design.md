@@ -172,15 +172,27 @@ Fase 4 (ver más abajo): Gestor recibe un resumen de fiabilidad de una pantalla;
 Técnica, el detalle metodológico completo con licencias plegadas; Auditoría,
 todo visible incluidas fuentes y licencias.
 
-### Fase 2 — Consolidar el mecanismo de modulación
-- Extraer un helper único (p. ej. `views.section(view, *, technical=False,
-  simplified=False, audit=False) -> bool`) para sustituir los `if _view.x`
-  dispersos, sin cambiar comportamiento visible.
-- Documentar en `views.py` cuándo usar `confidence_detail` vs. los
-  booleanos, para que la próxima sección añadida use el sistema correcto.
-- Añadir tests de contrato (`AppTest` de Streamlit, ya que el proyecto corre
-  sobre `streamlit`) que verifiquen que el texto renderizado difiere entre
-  vistas en las pestañas marcadas como "modula".
+### Fase 2 — Consolidar el mecanismo de modulación ✅
+Cerrada en esta rama.
+- **Helper único**: `ViewProfile.section(*, technical=False, simplified=False,
+  audit=False) -> bool` en `views.py`. Sustituye los ~10 `if _view.simplified /
+  .technical / .audit` dispersos en `app.py` por una sola API documentada y
+  testeable; sin args devuelve `True` (núcleo común). Sin cambio de
+  comportamiento visible. (El nombre es `section()` y no `shows()` porque el
+  dataclass ya tiene un campo `shows: str`.)
+- **`confidence_detail` documentado**: su docstring en `views.py` deja explícita
+  la regla — `section()` decide SI aparece una sección; `confidence_detail`
+  (RAW/CONCISE/FULL) decide CUÁNTO caveat lleva un dato de confianza que las tres
+  vistas muestran en alguna forma. Son ejes distintos.
+- **Tests de contrato**:
+  - Unitarios (`tests/unit/test_views.py`): 6 tests de `section()` (núcleo
+    común, cada eje, OR inclusivo).
+  - Integración (`tests/integration/test_view_modulation.py`): `AppTest` levanta
+    la app real y verifica que (a) las tres vistas renderizan sin excepción,
+    (b) el resumen ejecutivo y los planes "acción primero" aparecen solo en
+    Gestor, (c) cada vista muestra su propio banner y no el de las otras, y
+    (d) **las cifras financieras son idénticas entre audiencias**. Robusto
+    frente a la contaminación global del stub de `pydeck` de `test_map_layers`.
 
 ### Fase 3 — Unificar el segundo eje (mapa espectral)
 - Decidir y documentar la relación entre `ViewMode` y `map_mode`

@@ -1571,7 +1571,7 @@ with tab_kpis:
     }
 
     # ── Vista GESTOR: acción prioritaria en lenguaje de dirección ─────────────
-    if _view.simplified:
+    if _view.section(simplified=True):
         _priority = next((a for a in ranked_assets if (a.tier or 5) <= 2), None)
         if _priority is not None:
             _act = _priority.recommended_action_label or "intervención de conservación"
@@ -1657,7 +1657,7 @@ with tab_portfolio:
     )
 
     # ── GESTOR: acción primero — el plan prioritario lidera; la matriz va debajo.
-    if _view.simplified:
+    if _view.section(simplified=True):
         _render_action_first(ranked_assets, base_comps)
         st.divider()
 
@@ -1816,14 +1816,14 @@ with tab_timeseries:
     # ── Detalle modulado por vista/audiencia ──────────────────────────────────
     _trend_es = {"decreasing": "↘ deterioro", "increasing": "↗ mejora",
                  "no_trend": "→ estable"}.get(selected_asset.trend_direction, "→ estable")
-    if _view.simplified:
+    if _view.section(simplified=True):
         # GESTOR: una sola línea, sin jerga estadística.
         st.info(
             f"**Tendencia:** {_trend_es} · **Salud (EHS)** {selected_asset.ehs:.0f}/100. "
             f"{'Requiere actuación.' if (selected_asset.tier or 5) <= 2 else 'Bajo control.'}",
             icon="🧭",
         )
-    if _view.technical:
+    if _view.section(technical=True):
         # TÉCNICA / AUDITORÍA: estadística cruda del activo.
         _sig = "significativa (p<0,05)" if selected_asset.mk_p_value < 0.05 else "no significativa"
         st.caption(
@@ -1914,7 +1914,7 @@ with tab_simulator:
     # ── GESTOR: acción primero — qué financia el presupuesto, en lenguaje llano.
     # Mismas cifras que los KPIs de abajo (idénticas entre vistas); solo lidera
     # con la decisión: qué entra, qué se queda fuera.
-    if _view.simplified:
+    if _view.section(simplified=True):
         _entra = [
             a.name.split("—")[0].strip()
             for a in ranked_assets if a.asset_id in newly_funded_ids
@@ -2537,7 +2537,7 @@ with tab_diagnostic:
     )
 
     with st.expander("📐 Nota metodológica — índices espectrales, EHS y convención de signo",
-                     expanded=_view.technical):
+                     expanded=_view.section(technical=True)):
         st.markdown("**Índices espectrales (Sentinel-2 L2A, tile T30TVL):**")
         st.latex(r"NDVI = \frac{NIR - RED}{NIR + RED}\ \ (B08, B04) \qquad "
                  r"NDMI = \frac{NIR - SWIR}{NIR + SWIR}\ \ (B08, B11)")
@@ -2717,7 +2717,7 @@ with tab_assets:
     # Modulada por vista: GESTOR ve solo el titular; TÉCNICA/AUDITORÍA, el detalle.
     _calib = calibration
     _cov = coverage_summary(_calib)
-    if _view.simplified:
+    if _view.section(simplified=True):
         st.caption(
             f"🛰️ Validación satelital: **{_cov['mas_degradado']}** activo(s) con override "
             f"(satélite más degradado), **{_cov['confirma']}** confirmados, "
@@ -2743,7 +2743,7 @@ with tab_assets:
             "por geología, no por turismo. Así el satélite **escala**, nunca relaja, el "
             "diagnóstico experto."
         )
-        if _view.audit:
+        if _view.section(audit=True):
             with st.expander("⚖️ Procedencia y límites declarados (vista auditoría)", expanded=False):
                 _real_badge = data_status_badge(DataStatus.REAL)
                 _syn_badge = data_status_badge(DataStatus.SYNTHETIC)
@@ -3080,7 +3080,7 @@ with tab_method:
     # GESTOR: resumen de fiabilidad de una pantalla; el detalle denso queda
     # plegado. TÉCNICA: fundamento + matriz + multiplicadores; licencias plegadas.
     # AUDITORÍA: todo visible, incluidas fuentes y licencias (defensa/publicación).
-    if _view.simplified:
+    if _view.section(simplified=True):
         method.render_executive_summary()
         with st.expander(
             "📚 Ver fundamento, matriz de trazabilidad, multiplicadores y licencias"
@@ -3099,7 +3099,7 @@ with tab_method:
         st.divider()
         method.render_limitations()
         st.divider()
-        if _view.audit:
+        if _view.section(audit=True):
             method.render_data_sources()
         else:
             with st.expander("D · Fuentes de datos y licencias"):
