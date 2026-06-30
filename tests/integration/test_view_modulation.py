@@ -34,6 +34,9 @@ def _render(view_value: str) -> dict:
         f"app.py lanzó excepción en vista {view_value}: "
         f"{[e.value for e in at.exception]}"
     )
+    map_mode = next(
+        (r.value for r in at.radio if r.label == "Modo de visualización"), None
+    )
     return {
         "md": " ".join(m.value for m in at.markdown),
         "info": " ".join(i.value for i in at.info),
@@ -41,6 +44,7 @@ def _render(view_value: str) -> dict:
             f"{m.label}={m.value}" for m in at.metric
             if m.label in _FINANCIAL_LABELS
         },
+        "map_mode": map_mode,
     }
 
 
@@ -100,6 +104,14 @@ def test_each_view_shows_its_own_banner(rendered: dict):
                 assert other not in rendered[view]["md"], (
                     f"vista {view} muestra el banner de {other_view}"
                 )
+
+
+def test_map_default_mode_follows_view(rendered: dict):
+    # F10 Fase 3: Técnica/Auditoría abren el mapa en Espectral (dato crudo);
+    # Gestor, en Gestión (tiers). El toggle sigue siendo override manual.
+    assert "Gestión" in rendered["gestor"]["map_mode"]
+    assert "Espectral" in rendered["tecnica"]["map_mode"]
+    assert "Espectral" in rendered["tribunal"]["map_mode"]
 
 
 def test_financial_figures_are_identical_across_views(rendered: dict):

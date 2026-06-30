@@ -194,10 +194,19 @@ Cerrada en esta rama.
     (d) **las cifras financieras son idénticas entre audiencias**. Robusto
     frente a la contaminación global del stub de `pydeck` de `test_map_layers`.
 
-### Fase 3 — Unificar el segundo eje (mapa espectral)
-- Decidir y documentar la relación entre `ViewMode` y `map_mode`
-  (¿la vista Técnica/Auditoría preselecciona la capa espectral por defecto,
-  dejando el toggle como override manual?).
+### Fase 3 — Unificar el segundo eje (mapa espectral) ✅
+Cerrada en esta rama. **Decisión: el modo por defecto del mapa sigue a la vista**,
+sobre el mismo eje "dato crudo vs. decisión" que el resto de la app:
+- **Técnica / Auditoría** (`section(technical=True)`) abren el mapa en
+  **Diagnóstico Espectral (NDVI/NDMI)** — el dato crudo.
+- **Gestor** abre en **Vista de Gestión (Tiers)** — encuadre de decisión.
+- El toggle **sigue siendo un override manual**: la `key` del `st.radio` se
+  parametriza por vista (`map_mode_<modo>`), de modo que el default se aplica al
+  cambiar de vista y, a la vez, cada audiencia recuerda su propia elección dentro
+  de su vista. Una `st.caption` explica al usuario que el modo inicial sigue a la
+  vista activa.
+- Test de contrato `test_map_default_mode_follows_view` (`AppTest`) blinda el
+  default por vista.
 
 ### Fase 4 — Extender cobertura real
 - **✅ *Fundamento y Trazabilidad* (pestaña 8) — hecho en esta rama.**

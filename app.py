@@ -2570,17 +2570,30 @@ with tab_diagnostic:
         )
 
     # ── Control de modo de visualización ─────────────────────────────────────
+    # F10 Fase 3: el modo por defecto del mapa SIGUE A LA VISTA/AUDIENCIA, el mismo
+    # eje "dato crudo vs. decisión" que el resto de la app. Técnica/Auditoría
+    # (detalle técnico) abren en ESPECTRAL (NDVI/NDMI crudo); Gestor abre en
+    # GESTIÓN (tiers de inversión). El toggle sigue siendo un override manual: la
+    # `key` por vista hace que el default se aplique al cambiar de vista y que cada
+    # audiencia recuerde su propia elección.
+    _default_map_idx = 1 if _view.section(technical=True) else 0
     map_mode = st.radio(
         "Modo de visualización",
         options=["🗂️ Vista de Gestión (Tiers)", "🛰️ Vista de Diagnóstico Espectral (NDVI/NDMI)"],
-        index=0,
+        index=_default_map_idx,
         horizontal=True,
+        key=f"map_mode_{_view.mode.value}",
         help=(
             "**Vista de Gestión:** activos coloreados por tier de prioridad de inversión "
             "(escala neutra índigo→pizarra, NO semafórica). "
             "**Vista Espectral:** gradiente continuo RdYlGn derivado del EHS real del activo — "
             "simula el contraste espacial de degradación difusa visible en imágenes Sentinel-2."
         ),
+    )
+    st.caption(
+        "🔁 El modo inicial sigue a la vista activa "
+        f"(**{_view.label}** → {'Espectral' if _default_map_idx else 'Gestión'}); "
+        "puedes cambiarlo libremente aquí."
     )
 
     spectral_mode = "Espectral" in map_mode
