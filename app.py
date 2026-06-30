@@ -1019,6 +1019,57 @@ def _render_live_alerts(assets: list, refresh_count: int) -> None:
     )
 
 
+# ── F10: vista "acción primero" para Gestor ──────────────────────────────────
+# Reordena la LECTURA hacia la decisión (qué intervenir primero), sin alterar
+# ninguna cifra: el coste por activo es el mismo del mejor escenario TIS que ven
+# las demás vistas y la pestaña de KPIs. Solo cambia el orden y el lenguaje.
+def _priority_actions(assets: list, comps: list, limit: int = 5) -> list[tuple]:
+    """Activos Tier 1-2 por TPI descendente, con su acción recomendada y el coste
+    del mejor escenario. Devuelve (asset, etiqueta_acción, coste_eur)."""
+    cost_by_id = {
+        c.asset_id: c.scenarios[c.best_scenario_code].cost_eur for c in comps
+    }
+    prio = sorted(
+        [a for a in assets if (a.tier or 5) <= 2],
+        key=lambda a: -(a.tpi or 0),
+    )[:limit]
+    return [
+        (a, a.recommended_action_label or "Intervención de conservación",
+         cost_by_id.get(a.asset_id))
+        for a in prio
+    ]
+
+
+def _render_action_first(assets: list, comps: list) -> None:
+    """Plan de acción prioritario (vista Gestor) para la pestaña de Portafolio."""
+    rows = _priority_actions(assets, comps)
+    st.markdown("#### 🧭 Plan de acción prioritario")
+    if not rows:
+        st.success(
+            "✅ Sin activos en prioridad de intervención (Tier 1-2) en este territorio.",
+            icon="🧭",
+        )
+        return
+    st.caption(
+        "Qué intervenir primero, en orden de urgencia (TPI). Los costes son los "
+        "mismos del mejor escenario TIS que ve el resto de vistas; aquí se leen "
+        "como acciones, no como tabla."
+    )
+    for a, action, cost in rows:
+        cost_txt = f"€{cost:,.0f}" if cost else "coste por confirmar"
+        st.markdown(
+            f'<div class="snto-ficha" style="border-left-color:#EF9F27;">'
+            f'<span class="snto-ficha-ehs" style="background:#fff3e0;color:#854F0B">'
+            f'{cost_txt}</span>'
+            f'<div class="snto-ficha-name">{_tier_chip(a.tier)} '
+            f'{a.name.split("—")[0].strip()}</div>'
+            f'<div class="snto-ficha-meta">{a.region} · {action} · '
+            f'EHS {a.ehs:.0f} · TPI {a.tpi:.0f}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+
 # ── TAREA 1: Configuración de banners dinámicos ──────────────────────────────
 _BANNER_CFG: dict[str, dict] = {
     "snr": {
@@ -1605,6 +1656,11 @@ with tab_portfolio:
         "la matriz fundamenta de forma objetiva qué sendas requieren intervención financiera inmediata."
     )
 
+    # ── GESTOR: acción primero — el plan prioritario lidera; la matriz va debajo.
+    if _view.simplified:
+        _render_action_first(ranked_assets, base_comps)
+        st.divider()
+
     try:
         portfolio_fig = build_portfolio_matrix(ranked_assets)
         st.plotly_chart(portfolio_fig, use_container_width=True)
@@ -1854,6 +1910,32 @@ with tab_simulator:
         a.visitor_capacity_annual for a in ranked_assets
         if a.asset_id in defunded_ids
     )
+
+    # ── GESTOR: acción primero — qué financia el presupuesto, en lenguaje llano.
+    # Mismas cifras que los KPIs de abajo (idénticas entre vistas); solo lidera
+    # con la decisión: qué entra, qué se queda fuera.
+    if _view.simplified:
+        _entra = [
+            a.name.split("—")[0].strip()
+            for a in ranked_assets if a.asset_id in newly_funded_ids
+        ]
+        _fuera = [
+            a.name.split("—")[0].strip()
+            for a in ranked_assets if a.asset_id in defunded_ids
+        ]
+        _msg = (
+            f"**Plan con €{sim_budget:,}:** financia "
+            f"**{len(live_funded_ids)} de {len(ranked_assets)}** sendas prioritarias "
+            f"(€{live_budget.total_allocated_eur:,} asignados, "
+            f"€{live_budget.remaining_eur:,} sin asignar)."
+        )
+        if _entra:
+            _msg += f"\n\n➕ **Entran** frente a la base de €100K: {', '.join(_entra)}."
+        if _fuera:
+            _msg += f"\n\n➖ **Se quedan fuera** frente a la base: {', '.join(_fuera)}."
+        if not _entra and not _fuera:
+            _msg += "\n\nMismo conjunto financiado que la base de €100K."
+        st.info(_msg, icon="🧭")
 
     # ── KPI gigante — Visitantes Protegidos ───────────────────────────────────
     delta_sign  = "+" if visitors_gained >= visitors_lost else ""

@@ -202,9 +202,21 @@ todo visible incluidas fuentes y licencias.
   - Verificado con `AppTest`: el contenido renderizado difiere entre las tres
     vistas. Test de contrato `test_plain_summary_covers_every_data_type`
     blinda que cada `DataType` tenga su versión llana.
-- Pendiente: *Portafolio TPI* / *Simulador Financiero* — evaluar si Gestor se
-  beneficia de una vista "acción recomendada primero" sin tocar las cifras
-  (que deben seguir siendo objetivas e iguales para todas las audiencias).
+- **✅ *Portafolio TPI* (pestaña 3) y *Simulador Financiero* (pestaña 4) —
+  hecho en esta rama.** Vista "acción primero" para Gestor, con la condición
+  firme de que **las cifras financieras son idénticas entre audiencias**:
+  - *Portafolio TPI*: para Gestor, un **Plan de acción prioritario**
+    (`_render_action_first`) lidera la pestaña — activos Tier 1-2 por TPI con su
+    acción recomendada y el coste del mejor escenario TIS (mismas cifras que el
+    resto de vistas); la matriz analítica queda debajo. Técnica/Auditoría
+    conservan el orden actual (matriz primero).
+  - *Simulador Financiero*: para Gestor, un resumen en lenguaje llano tras el
+    slider (qué financia el presupuesto, qué entra/sale frente a la base de
+    €100K) **antes** de los KPIs; los KPIs y la asignación —que no están
+    condicionados por vista— se muestran idénticos a todas las audiencias.
+  - Verificado con `AppTest`: los paneles de acción solo aparecen en Gestor y el
+    conjunto de cifras financieras (`st.metric` + tarjetas de presupuesto) es
+    idéntico en las tres vistas.
 - Pendiente: sustituir el banner largo embebido de `TRIBUNAL` por referencias
   a los docs de diseño existentes.
 
