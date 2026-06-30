@@ -90,54 +90,54 @@ La conversión oficial vive en `src.metrics.semantics`:
 `health = 100 - stress`. Esta separación evita que una métrica alta signifique
 "excelente" en una parte del sistema y "crítico" en otra.
 
-### Pipeline A — Geoespacial de producción (datos reales)
+### Infografía del Flujo de Datos Arquitectónico
 
+```mermaid
+graph TD
+%% Estilos de los nodos principales
+classDef ingesta fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
+classDef bd fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
+classDef dcs fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
+classDef dash fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+
+%% --- CAPA DE INGESTA Y PROCESAMIENTO (Pipeline A y B) ---
+subgraph Ingesta["1. Capa de Ingesta (Parallel Processing)"]
+    A1[Pipeline A: Imág. Satelitales] -->|API STAC / COG| A2[Sentinel-2 L2A]
+    A2 -->|Cálculo Vectorizado| A3(Índices NDVI / NDMI)
+    
+    B1[Pipeline B: Socio-Económico] -->|MultiYearAdapter| B2(Datos Estadísticos: INE)
+    B2 -->|Normalización| B3(Variables ALMUDENA)
+end
+
+%% --- CAPA DE ALMACENAMIENTO Y GOBERNANZA (PostGIS & DCS) ---
+subgraph Almacenamiento["2. Capa de Datos y Gobernanza"]
+    A3 & B3 -->|src/platform/enrichment.py| C[Enrichment Pipeline]
+    C -->|Override Conservador| D[(PostGIS DB: TerritorialAsset)]
+    
+    %% Sistema de Control Dinámico (DCS)
+    D -->|Lectura de Estado| E{DCS Gate: can_act?}
+    E -->|False: Datos Insuficientes| E1[Modo Bloqueo / Logs]
+end
+
+%% --- CAPA DE NEGOCIO Y VISUALIZACIÓN (Dashboard) ---
+subgraph Presentacion["3. Capa de Negocio y Presentación"]
+    E -->|True: Validación Exitosa| F[Streamlit Dashboard]
+    
+    %% Vistas del Dashboard
+    F --> G[1. Vista Científica: PyDeck Diagnostic Map]
+    F --> H[2. Vista de Negocio: Executive Summary]
+    
+    %% Entregables finales
+    G --> I[Análisis de Riesgo y Degradación]
+    H --> J[Plan de Acción y Presupuestos TRAGSA]
+end
+
+%% Aplicación de clases visuales
+class A1,A2,A3,B1,B2,B3,C ingesta;
+class D bd;
+class E,E1 dcs;
+class F,G,H,I,J dash;
 ```
-Sentinel-2 L2A (ZIP, primavera + verano)
-        │
-        ▼
-etl_raster_processor.py      → extrae B04/B08/B11, recorta, calcula NDVI/NDMI
-        │
-        ▼
-etl_vector_cleaner.py        → reproyecta y filtra 7 capas vectoriales a la AOI
-        │
-        ▼
-etl_raster_intersection.py   → buffer 50 m por sendero, zonal stats (rasterstats)
-        │
-        ▼
-calculate_delta_ehs.py       → EHS estacional anclado a percentiles de escena
-        │                       (P90/P10), Delta EHS primavera→verano
-        ▼
-run_scm_operational.py       → SIG calculado desde rásteres reales →
-        │                       clasificación LOCALIZED / LANDSCAPE / MIXED
-        ▼
-tis_engine.py                → priority_score + presupuesto con factor causal
-        │
-        ▼
-        PostGIS (production_hiking_trails)
-```
-
-**Produce:** EHS operacional calibrado por percentiles reales de escena (P90/P10 sobre la distribución de píxeles de cada imagen), Delta EHS estacional, clasificación SCM espacial calculada desde SIG real, y presupuesto de restauración modulado por factor causal.
-
-### Pipeline B — Inteligencia territorial (7 fases, demostración)
-
-```
-MultiYearAdapter (series temporales calibradas con anomalías
-inter-anuales documentadas de AEMET / Copernicus)
-        │
-        ▼
-run_phase3_report.py   → validación y calibración (caso Masatrigo)
-        ▼
-run_phase4_report.py   → reconstrucción histórica multi-anual
-        ▼
-run_phase5_report.py   → inteligencia territorial (TPI, portfolio, 20 activos)
-        ▼
-run_phase6_report.py   → escenarios de intervención (TIS) + contrafactual
-        ▼
-run_phase7_report.py   → plataforma estratégica (dashboard 10 KPIs, 5 perfiles)
-```
-
-**Produce:** EHS histórico, detección de tendencias (Mann-Kendall), descomposición armónica, DCS con data quality gate, TPI territorial, escenarios de intervención (TIS), análisis contrafactual y un informe ejecutivo de 10 secciones para 5 perfiles de stakeholders.
 
 > **Nota honesta:** `USE_MOCK_DATA` en `.env.example` controla únicamente el Pipeline A. El Pipeline B consume el `MultiYearAdapter` directamente; sus 20 activos son sintéticos, calibrados con anomalías climáticas documentadas, no datos satelitales reales.
 
