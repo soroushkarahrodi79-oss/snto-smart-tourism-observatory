@@ -217,8 +217,21 @@ todo visible incluidas fuentes y licencias.
   - Verificado con `AppTest`: los paneles de acción solo aparecen en Gestor y el
     conjunto de cifras financieras (`st.metric` + tarjetas de presupuesto) es
     idéntico en las tres vistas.
-- Pendiente: sustituir el banner largo embebido de `TRIBUNAL` por referencias
-  a los docs de diseño existentes.
+- **✅ Banner de Auditoría (`TRIBUNAL`) — hecho en esta rama.** El párrafo
+  metodológico largo embebido en `views.py` (tile T30TVL, cobertura
+  ALMUDENA/INE, resolución, override, SIN_DATO) se ha sustituido por un banner
+  conciso que enuncia el contrato (cada cifra con procedencia + confianza DCS,
+  override conservador) y **remite** a la pestaña «Fundamento y Trazabilidad»
+  (`methodology.py`) y a `docs/informe_tecnico_limites.md`,
+  `docs/baselines_uncertainty_design.md` y
+  `docs/socioeconomic_integration_design.md` como fuente canónica. Así el detalle
+  vive en un único lugar y no diverge. Verificado con `AppTest`.
+
+**Estado de la Fase 4: completa.** Las tres pestañas que no modulaban
+(*Fundamento y Trazabilidad*, *Portafolio TPI*, *Simulador Financiero*) ya lo
+hacen, y el banner de Auditoría dejó de duplicar la metodología. Quedan las
+Fases 2 (consolidar el mecanismo en un helper único + tests de contrato), 3
+(unificar el eje del mapa espectral con `ViewMode`) y 5 (medición).
 
 ### Fase 5 — Cierre y medición
 - Si el observatorio tiene usuarios reales, instrumentar qué vista se usa más

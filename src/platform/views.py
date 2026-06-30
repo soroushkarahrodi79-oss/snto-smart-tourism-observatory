@@ -86,18 +86,18 @@ _PROFILES: dict[ViewMode, ViewProfile] = {
                  "política de override conservador,"
                  " fórmulas EHS/TPI/DCS y límites declarados.",
         confidence_detail=ConfidenceDetail.FULL,
-        banner="Vista de auditoría: el EHS satelital procede de Sentinel-2 L2A (tile "
-               "T30TVL, Pipeline A). Override conservador —"
-               " el satélite solo sobreescribe "
-               "el juicio experto cuando observa MÁS degradación; al alza no sustituye "
-               "(la roca/canchal de alta montaña tiene poco NDVI por geología, no por "
-               "turismo). La capa socioeconómica ALMUDENA/INE"
-               " es completa en Madrid y solo "
-               "demográfica en Segovia. Límites: resolución ~10-30 m,"
-               " profundidad temporal "
-               "del snapshot y sendas sin equivalente OSM"
-               " (SIN_DATO). Cada cifra lleva su "
-               "procedencia y nivel de confianza (DCS).",
+        # Banner deliberadamente conciso: la metodología detallada (procedencia,
+        # fórmulas, cobertura ALMUDENA/INE, resolución, override) vive en la pestaña
+        # «Fundamento y Trazabilidad» (src/platform/methodology.py) y en los docs de
+        # diseño. El banner solo enuncia el contrato y remite, para no duplicar —y que
+        # diverja— el texto canónico.
+        banner="Vista de auditoría: cada cifra lleva su procedencia (satélite "
+               "Sentinel-2 / dato curado / socioeconómico) y su confianza (DCS), con "
+               "override conservador (el satélite solo agrava, nunca relaja el juicio "
+               "experto). Fundamento, fórmulas y límites declarados en la pestaña "
+               "«Fundamento y Trazabilidad» y en docs/informe_tecnico_limites.md, "
+               "docs/baselines_uncertainty_design.md y "
+               "docs/socioeconomic_integration_design.md.",
         technical=True,
         audit=True,
         shows="Suma a la vista técnica la procedencia del dato,"
