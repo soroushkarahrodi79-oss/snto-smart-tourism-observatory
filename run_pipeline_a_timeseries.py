@@ -66,9 +66,8 @@ from src.temporal import (
     spec_for_territory,
 )
 from src.time_series.confidence import block_bootstrap_ci
-from src.time_series.mann_kendall import (
-    MannKendallResult, classify_trend_severity, mann_kendall_test,
-)
+from src.time_series.mann_kendall import MannKendallResult, classify_trend_severity
+from src.time_series.trend_detection import deseasonalized_mann_kendall
 
 configure_logging()
 logger = logging.getLogger("pipeline_a_ts")
@@ -184,7 +183,9 @@ def _ehs_from_observations(observations: list[AssetObservation]) -> _EHSBundle:
     """
     ndvi_series = [o.ndvi for o in observations]
     features = extract_spectral_features(observations)
-    mk_ndvi = mann_kendall_test(ndvi_series)
+    # Tendencia sobre la serie DESESTACIONALIZADA (misma cadena que el pipeline
+    # offline): la fenología no debe contaminar el trend_risk del EHS.
+    mk_ndvi = deseasonalized_mann_kendall(ndvi_series).mk
     n_anomalous = _count_severe_anomalies(ndvi_series)
     residual_std = (
         float(statistics.stdev(ndvi_series)) if len(ndvi_series) > 1 else 0.0
@@ -228,7 +229,7 @@ def analyse_trail(
             "error": "insufficient_observations",
         }
 
-    mk_ndmi = mann_kendall_test([o.ndmi for o in observations])
+    mk_ndmi = deseasonalized_mann_kendall([o.ndmi for o in observations]).mk
 
     bundle = _ehs_from_observations(observations)
     mk_ndvi = bundle.mk_ndvi
