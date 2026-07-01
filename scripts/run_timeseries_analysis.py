@@ -33,9 +33,7 @@ if str(_ROOT) not in sys.path:
 
 from src.time_series.changepoint import pettitt_test
 from src.time_series.confidence import sens_slope_ci
-from src.time_series.decomposition import harmonic_decompose
-from src.time_series.mann_kendall import mann_kendall_test
-from src.time_series.prewhitening import trend_free_prewhiten
+from src.time_series.trend_detection import deseasonalized_mann_kendall
 
 logging.basicConfig(
     level=logging.INFO,
@@ -95,34 +93,20 @@ def _mk_series(series: list[float], prewhiten: bool = False) -> dict:
             "lag1_autocorr": None, "seasonality_strength": None, "method": "none",
         }
 
-    if n >= _SEASONAL_PERIOD:
-        decomp = harmonic_decompose(series, period=_SEASONAL_PERIOD)
-        test_series = decomp.deseasonalized          # observed − componente estacional
-        deseasonalised = True
-        seasonality_strength = decomp.seasonality_strength
-    else:
-        test_series = list(series)                    # sin ciclo completo: crudo
-        deseasonalised = False
-        seasonality_strength = None
+    # Cadena compartida con el pipeline en vivo (src/time_series/trend_detection).
+    tr = deseasonalized_mann_kendall(
+        series, period=_SEASONAL_PERIOD, prewhiten=prewhiten
+    )
+    mk = tr.mk
 
     # Punto de cambio abrupto (Pettitt) sobre la serie desestacionalizada, ANTES
     # del pre-whitening: detecta el régimen de la sequía sin que el blanqueado
     # de tendencia altere la localización de la ruptura.
-    cp = pettitt_test(test_series)
+    cp = pettitt_test(tr.deseasonalized_series)
+    ci = sens_slope_ci(tr.tested_series)
 
-    prewhitened_applied = False
-    lag1 = None
-    if prewhiten:
-        pw = trend_free_prewhiten(test_series)
-        test_series = pw.series
-        prewhitened_applied = pw.applied
-        lag1 = pw.lag1_autocorr
-
-    mk = mann_kendall_test(test_series)
-    ci = sens_slope_ci(test_series)
-
-    method = "harmonic_deseasonalised" if deseasonalised else "raw"
-    if prewhitened_applied:
+    method = "harmonic_deseasonalised" if tr.deseasonalised else "raw"
+    if tr.prewhitened:
         method += "+yue_pilon_prewhiten"
     method += "+mann_kendall"
 
@@ -135,10 +119,10 @@ def _mk_series(series: list[float], prewhiten: bool = False) -> dict:
         "sens_slope_ci": [round(ci.lower, 6), round(ci.upper, 6)],
         "is_significant": mk.is_significant,
         "n": mk.n,
-        "deseasonalised": deseasonalised,
-        "prewhitened": prewhitened_applied,
-        "lag1_autocorr": lag1,
-        "seasonality_strength": seasonality_strength,
+        "deseasonalised": tr.deseasonalised,
+        "prewhitened": tr.prewhitened,
+        "lag1_autocorr": tr.lag1_autocorr,
+        "seasonality_strength": tr.seasonality_strength,
         "method": method,
         # Punto de cambio abrupto (índice 0-based en la propia serie).
         "change_point_index": cp.change_index,
@@ -322,7 +306,8 @@ def main() -> None:
     log.info("  Assets estables       (sin tendencia clara) : %d", n_stable)
     log.info("  Assets con punto de cambio abrupto (Pettitt p<0.05): %d", n_changepoint)
     if cp_top:
-        log.info("  Mes de ruptura más frecuente: %s (%d activos)", cp_top, cp_dates[cp_top])
+        log.info("  Mes de ruptura más frecuente: %s (%d activos)",
+                 cp_top, cp_dates[cp_top])
     log.info("\nSiguiente paso → conectar %s al dashboard app.py", out_json)
 
 
