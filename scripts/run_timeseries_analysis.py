@@ -18,8 +18,18 @@ import argparse
 import csv
 import json
 import logging
+import sys
 from collections import defaultdict
 from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parents[1]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from src.time_series.confidence import sens_slope_ci
+from src.time_series.decomposition import harmonic_decompose
+from src.time_series.mann_kendall import mann_kendall_test
+from src.time_series.prewhitening import trend_free_prewhiten
 
 logging.basicConfig(
     level=logging.INFO,
@@ -37,53 +47,89 @@ OUTPUT_DIR = Path("clean_assets/timeseries/analysis")
 _MIN_MONTHS_FULL_YEAR = 10
 
 
-# ── Mann-Kendall simplificado ─────────────────────────────────────────────────
+# ── Mann-Kendall (implementación validada + desestacionalización) ─────────────
+# El test de Mann-Kendall asume observaciones intercambiables bajo H0. En una
+# serie NDVI MENSUAL la fenología (pico primaveral + valle estival) es una señal
+# periódica fuerte que viola ese supuesto e infla artificialmente la
+# significancia. Por eso este pipeline ya NO usa una MK propia sobre la serie
+# cruda: desestacionaliza con la descomposición armónica validada
+# (src/time_series/decomposition.py) y ejecuta el test validado
+# (src/time_series/mann_kendall.py, con corrección de empates y Sen's slope)
+# sobre la serie sin componente estacional. Ver docs/nota_metodologica_temporalidad.md.
 
-def mann_kendall(series: list[float]) -> dict:
-    """
-    Test de Mann-Kendall para tendencia monotónica.
-    Retorna: tau, p_approx, trend ('increasing'|'decreasing'|'no trend')
+# Mapea la etiqueta del módulo validado ('no_trend') a la histórica del
+# dashboard ('no trend') para no romper src/platform/satellite_trends.py.
+_TREND_LABEL_COMPAT = {
+    "increasing": "increasing",
+    "decreasing": "decreasing",
+    "no_trend": "no trend",
+}
+_SEASONAL_PERIOD = 12  # serie mensual → ciclo anual
+
+
+def _mk_series(series: list[float], prewhiten: bool = False) -> dict:
+    """Mann-Kendall sobre una serie VI mensual, desestacionalizada cuando se puede.
+
+    Devuelve un superconjunto del esquema histórico (tau/z/p_approx/trend/n) para
+    que el cargador del dashboard siga funcionando, más:
+      * ``sens_slope`` (que EHS necesita) y su intervalo de confianza 95 %
+        no-paramétrico (Gilbert 1987) en ``sens_slope_ci``,
+      * banderas de procedencia (``deseasonalised``, ``prewhitened``, ``method``).
+
+    Con ``prewhiten=True`` aplica pre-whitening libre de tendencia (Yue-Pilon
+    2002) sobre la serie desestacionalizada para descontar la autocorrelación
+    serial de lag-1 antes del test.
     """
     n = len(series)
     if n < 4:
-        return {"tau": 0.0, "p_approx": 1.0, "trend": "insufficient data", "n": n}
+        return {
+            "tau": 0.0, "z": 0.0, "p_approx": 1.0, "trend": "insufficient data",
+            "sens_slope": 0.0, "sens_slope_ci": None, "is_significant": False, "n": n,
+            "deseasonalised": False, "prewhitened": False,
+            "lag1_autocorr": None, "seasonality_strength": None, "method": "none",
+        }
 
-    s = 0
-    for i in range(n - 1):
-        for j in range(i + 1, n):
-            diff = series[j] - series[i]
-            if diff > 0:
-                s += 1
-            elif diff < 0:
-                s -= 1
-
-    # Varianza (sin grupos repetidos para simplicidad)
-    var_s = n * (n - 1) * (2 * n + 5) / 18.0
-
-    if s > 0:
-        z = (s - 1) / var_s ** 0.5
-    elif s < 0:
-        z = (s + 1) / var_s ** 0.5
+    if n >= _SEASONAL_PERIOD:
+        decomp = harmonic_decompose(series, period=_SEASONAL_PERIOD)
+        test_series = decomp.deseasonalized          # observed − componente estacional
+        deseasonalised = True
+        seasonality_strength = decomp.seasonality_strength
     else:
-        z = 0.0
+        test_series = list(series)                    # sin ciclo completo: crudo
+        deseasonalised = False
+        seasonality_strength = None
 
-    # p aproximada con distribución normal estándar (aproximación)
-    import math
-    p = 2 * (1 - _norm_cdf(abs(z)))
+    prewhitened_applied = False
+    lag1 = None
+    if prewhiten:
+        pw = trend_free_prewhiten(test_series)
+        test_series = pw.series
+        prewhitened_applied = pw.applied
+        lag1 = pw.lag1_autocorr
 
-    tau = s / (n * (n - 1) / 2.0)
+    mk = mann_kendall_test(test_series)
+    ci = sens_slope_ci(test_series)
 
-    if p < 0.05:
-        trend = "increasing" if s > 0 else "decreasing"
-    else:
-        trend = "no trend"
+    method = "harmonic_deseasonalised" if deseasonalised else "raw"
+    if prewhitened_applied:
+        method += "+yue_pilon_prewhiten"
+    method += "+mann_kendall"
 
-    return {"tau": round(tau, 3), "z": round(z, 3), "p_approx": round(p, 4), "trend": trend, "n": n}
-
-
-def _norm_cdf(x: float) -> float:
-    import math
-    return (1.0 + math.erf(x / math.sqrt(2))) / 2.0
+    return {
+        "tau": round(mk.kendalls_tau, 3),
+        "z": round(mk.z_score, 3),
+        "p_approx": round(mk.p_value, 4),
+        "trend": _TREND_LABEL_COMPAT.get(mk.trend_direction, "no trend"),
+        "sens_slope": mk.sens_slope,
+        "sens_slope_ci": [round(ci.lower, 6), round(ci.upper, 6)],
+        "is_significant": mk.is_significant,
+        "n": mk.n,
+        "deseasonalised": deseasonalised,
+        "prewhitened": prewhitened_applied,
+        "lag1_autocorr": lag1,
+        "seasonality_strength": seasonality_strength,
+        "method": method,
+    }
 
 
 # ── Carga de datos ─────────────────────────────────────────────────────────────
@@ -108,7 +154,7 @@ def _detect_partial_years(rows: list[dict]) -> set[str]:
             if len(months) < _MIN_MONTHS_FULL_YEAR}
 
 
-def analyse(rows: list[dict]) -> dict:
+def analyse(rows: list[dict], prewhiten: bool = False) -> dict:
     partial_years = _detect_partial_years(rows)
     if partial_years:
         log.info("Años parciales detectados (excluidos del peor/mejor año): %s",
@@ -122,14 +168,17 @@ def analyse(rows: list[dict]) -> dict:
     results = {}
 
     for asset_id, obs in by_asset.items():
-        obs_sorted = sorted(obs, key=lambda r: (r["year"], r["month"]))
+        # Orden cronológico REAL: year/month vienen como str del CSV, así que
+        # ordenar por el texto colocaría "10","11","12" antes que "2". Convertir
+        # a int antes de ordenar es imprescindible para que la serie temporal
+        # (y por tanto Mann-Kendall y la desestacionalización) sean correctas.
+        obs_sorted = sorted(obs, key=lambda r: (int(r["year"]), int(r["month"])))
         ndvi_series = [float(r["ndvi"]) for r in obs_sorted if r["ndvi"]]
         ndmi_series = [float(r["ndmi"]) for r in obs_sorted if r["ndmi"]]
 
-        # Mann-Kendall mensual: usa TODOS los meses (los parciales son válidos
-        # como puntos adicionales de la serie; solo el ranking anual los excluye).
-        mk_ndvi = mann_kendall(ndvi_series)
-        mk_ndmi = mann_kendall(ndmi_series)
+        # Mann-Kendall sobre la serie desestacionalizada (ver _mk_series).
+        mk_ndvi = _mk_series(ndvi_series, prewhiten=prewhiten)
+        mk_ndmi = _mk_series(ndmi_series, prewhiten=prewhiten)
 
         # Promedio NDVI por año
         ndvi_by_year: dict[str, list[float]] = defaultdict(list)
@@ -181,6 +230,11 @@ def analyse(rows: list[dict]) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
+    parser.add_argument(
+        "--prewhiten", action="store_true",
+        help="Aplicar pre-whitening libre de tendencia (Yue-Pilon 2002) para "
+             "descontar la autocorrelación de lag-1 antes de Mann-Kendall.",
+    )
     args = parser.parse_args()
 
     if not args.input.exists():
@@ -196,7 +250,9 @@ def main() -> None:
     log.info("%d observaciones cargadas.", len(rows))
 
     log.info("\n=== Análisis Mann-Kendall NDVI/NDMI (serie multianual) ===")
-    results = analyse(rows)
+    if args.prewhiten:
+        log.info("Pre-whitening Yue-Pilon ACTIVADO (descuenta autocorrelación lag-1).")
+    results = analyse(rows, prewhiten=args.prewhiten)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     out_json = OUTPUT_DIR / "mk_trends_pnsg.json"

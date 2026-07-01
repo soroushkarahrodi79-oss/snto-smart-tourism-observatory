@@ -27,7 +27,6 @@ References
 
 import math
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -95,13 +94,8 @@ def mann_kendall_test(
         for j in range(i + 1, n):
             s += _sign(series[j] - series[i])
 
-    # Variance with tie correction
-    # Find all tied groups
-    from collections import Counter
-    counts = Counter(series)
-    tie_sum = sum(t * (t - 1) * (2 * t + 5) for t in counts.values() if t > 1)
-    var_s = (n * (n - 1) * (2 * n + 5) - tie_sum) / 18.0
-    var_s = max(var_s, 0.0)  # guard against degenerate series
+    # Variance with tie correction (Hipel & McLeod 1994)
+    var_s = variance_s(series)
 
     # Continuity-corrected Z statistic
     if s > 0:
@@ -141,6 +135,35 @@ def mann_kendall_test(
     )
 
 
+def pairwise_slopes(series: list[float]) -> list[float]:
+    """All pairwise slopes (x_j - x_i)/(j - i) for i < j (unsorted).
+
+    Public helper shared by Sen's slope and its non-parametric confidence
+    interval (see ``src/time_series/confidence.py``) so both derive from a single
+    definition of the slope population.
+    """
+    n = len(series)
+    slopes: list[float] = []
+    for i in range(n):
+        for j in range(i + 1, n):
+            slopes.append((series[j] - series[i]) / (j - i))
+    return slopes
+
+
+def variance_s(series: list[float]) -> float:
+    """Variance of the Mann-Kendall S statistic with tie correction.
+
+    Var(S) = [n(n-1)(2n+5) - Σ_g t_g(t_g-1)(2t_g+5)] / 18   (Hipel & McLeod 1994)
+    where t_g is the size of tied group g. Guarded to be non-negative.
+    """
+    from collections import Counter
+    n = len(series)
+    counts = Counter(series)
+    tie_sum = sum(t * (t - 1) * (2 * t + 5) for t in counts.values() if t > 1)
+    var_s = (n * (n - 1) * (2 * n + 5) - tie_sum) / 18.0
+    return max(var_s, 0.0)
+
+
 def _sens_slope(series: list[float]) -> float:
     """
     Sen's slope estimator: median of all pairwise slopes (x_j - x_i)/(j - i).
@@ -148,11 +171,7 @@ def _sens_slope(series: list[float]) -> float:
     Robust to outliers because it uses the median rather than mean of slopes.
     For NDVI time series, units are NDVI units per month.
     """
-    n = len(series)
-    slopes: list[float] = []
-    for i in range(n):
-        for j in range(i + 1, n):
-            slopes.append((series[j] - series[i]) / (j - i))
+    slopes = pairwise_slopes(series)
     if not slopes:
         return 0.0
     slopes.sort()
