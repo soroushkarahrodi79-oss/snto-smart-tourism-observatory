@@ -85,3 +85,26 @@ def test_bootstrap_default_block_len():
     series = [float(t) for t in range(27)]   # n^(1/3) = 3
     ci = block_bootstrap_ci(series, _mean, n_boot=50, seed=0)
     assert ci.block_len == 3
+
+
+# ── block_bootstrap_ci sobre registros (caso EHS: canales pareados) ──────────────
+
+def test_bootstrap_accepts_record_sequence():
+    # Series de tuplas (ndvi, evi): estadístico que reduce el primer canal.
+    records = [(0.4 + 0.01 * t, 0.2 + 0.01 * t) for t in range(40)]
+    ci = block_bootstrap_ci(records, lambda rs: sum(r[0] for r in rs) / len(rs),
+                            n_boot=200, seed=7)
+    assert ci.lower <= ci.point <= ci.upper
+
+
+def test_bootstrap_preserves_record_pairing():
+    # Cada registro cumple evi == 2*ndvi. Si el remuestreo mantiene los canales
+    # alineados, el estadístico "todas las parejas intactas" vale siempre 1.0
+    # → IC degenerado [1, 1]. Es la propiedad de la que depende el bootstrap EHS.
+    records = [(0.3 + 0.02 * t, 2 * (0.3 + 0.02 * t)) for t in range(36)]
+
+    def all_pairs_intact(rs):
+        return 1.0 if all(abs(r[1] - 2 * r[0]) < 1e-9 for r in rs) else 0.0
+
+    ci = block_bootstrap_ci(records, all_pairs_intact, n_boot=150, seed=3)
+    assert ci.lower == ci.upper == 1.0

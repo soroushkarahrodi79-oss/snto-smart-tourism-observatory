@@ -40,7 +40,10 @@ import io
 import json
 import logging
 import os
+import statistics
 import sys
+import zlib
+from dataclasses import dataclass
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parent
@@ -57,12 +60,15 @@ from src.config import territories
 from src.config.logging_setup import configure_logging
 from src.config.run_context import capture as capture_run_context
 from src.features.spectral import extract_spectral_features
-from src.risk_engine.ehs import compute_ehs, interpret_ehs
+from src.risk_engine.ehs import EHSComponents, compute_ehs, interpret_ehs
 from src.temporal import (
     PNSG_5Y, assess_trend_readiness, build_manifest_from_observations,
     spec_for_territory,
 )
-from src.time_series.mann_kendall import classify_trend_severity, mann_kendall_test
+from src.time_series.confidence import block_bootstrap_ci
+from src.time_series.mann_kendall import (
+    MannKendallResult, classify_trend_severity, mann_kendall_test,
+)
 
 configure_logging()
 logger = logging.getLogger("pipeline_a_ts")
@@ -144,11 +150,73 @@ def _mock_observations(asset_id: str, years: list[int]) -> list[AssetObservation
 
 # ── Per-trail analysis ─────────────────────────────────────────────────────────
 
+@dataclass(frozen=True)
+class _EHSBundle:
+    """EHS plus the intermediate inputs the caller reports alongside it."""
+
+    components: EHSComponents
+    mk_ndvi: MannKendallResult
+    mean_ndvi: float
+    mean_ndmi: float
+    mean_evi: float | None
+    n_anomalous: int
+
+
+def _count_severe_anomalies(ndvi_series: list[float]) -> int:
+    """Months with |z-score| >= 1.5 relative to the series mean/std."""
+    try:
+        mean = statistics.mean(ndvi_series)
+        std = statistics.stdev(ndvi_series)
+    except statistics.StatisticsError:
+        return 0
+    if std <= 0:
+        return 0
+    return sum(1 for v in ndvi_series if abs(v - mean) / std >= 1.5)
+
+
+def _ehs_from_observations(observations: list[AssetObservation]) -> _EHSBundle:
+    """Compute the EHS (and the inputs feeding it) from an observation list.
+
+    Single source of truth shared by the point estimate and the bootstrap, so
+    the confidence interval is centred on the very computation it quantifies.
+    Bootstrapping over whole observations (not bare NDVI values) keeps the
+    NDVI / NDMI / EVI channels of each month aligned in every resample.
+    """
+    ndvi_series = [o.ndvi for o in observations]
+    features = extract_spectral_features(observations)
+    mk_ndvi = mann_kendall_test(ndvi_series)
+    n_anomalous = _count_severe_anomalies(ndvi_series)
+    residual_std = (
+        float(statistics.stdev(ndvi_series)) if len(ndvi_series) > 1 else 0.0
+    )
+    components = compute_ehs(
+        mean_ndvi=features.mean_ndvi,
+        mk_result=mk_ndvi,
+        n_anomalous_months=n_anomalous,
+        n_total_months=len(observations),
+        residual_std=residual_std,
+        mean_evi=features.mean_evi,
+    )
+    return _EHSBundle(
+        components=components,
+        mk_ndvi=mk_ndvi,
+        mean_ndvi=features.mean_ndvi,
+        mean_ndmi=features.mean_ndmi,
+        mean_evi=features.mean_evi,
+        n_anomalous=n_anomalous,
+    )
+
+
 def analyse_trail(
     asset: TourismAsset,
     observations: list[AssetObservation],
+    ehs_bootstrap: int = 0,
 ) -> dict:
-    """Run MK test + EHS for one trail given its full observation list."""
+    """Run MK test + EHS for one trail given its full observation list.
+
+    When ``ehs_bootstrap`` > 0, attach a 95 % moving-block bootstrap confidence
+    interval for the EHS (reproducible: the RNG is seeded from the asset id).
+    """
     gate = assess_trend_readiness(len(observations))
     if not gate.mann_kendall_justified:
         return {
@@ -160,47 +228,35 @@ def analyse_trail(
             "error": "insufficient_observations",
         }
 
-    ndvi_series = [o.ndvi for o in observations]
-    ndmi_series = [o.ndmi for o in observations]
+    mk_ndmi = mann_kendall_test([o.ndmi for o in observations])
 
-    mk_ndvi = mann_kendall_test(ndvi_series)
-    mk_ndmi = mann_kendall_test(ndmi_series)
-
-    features = extract_spectral_features(observations)
-    mean_ndvi = features.mean_ndvi
-    mean_evi  = features.mean_evi
-
-    # Anomaly count: months with |z-score| >= 1.5 relative to the series mean/std
-    import statistics
-    try:
-        ndvi_mean = statistics.mean(ndvi_series)
-        ndvi_std  = statistics.stdev(ndvi_series)
-        n_anomalous = sum(
-            1 for v in ndvi_series
-            if ndvi_std > 0 and abs(v - ndvi_mean) / ndvi_std >= 1.5
-        )
-    except statistics.StatisticsError:
-        n_anomalous = 0
-
-    ehs_components = compute_ehs(
-        mean_ndvi=mean_ndvi,
-        mk_result=mk_ndvi,
-        n_anomalous_months=n_anomalous,
-        n_total_months=len(observations),
-        residual_std=float(statistics.stdev(ndvi_series)) if len(ndvi_series) > 1 else 0.0,
-        mean_evi=mean_evi,
-    )
-
+    bundle = _ehs_from_observations(observations)
+    mk_ndvi = bundle.mk_ndvi
+    ehs_components = bundle.components
     trend_label = classify_trend_severity(mk_ndvi)
+
+    # EHS uncertainty band (optional; the heavy MK re-computation runs n_boot×).
+    ehs_ci_low = ehs_ci_high = ehs_ci_width = None
+    if ehs_bootstrap > 0 and len(observations) >= 4:
+        ci = block_bootstrap_ci(
+            observations,
+            lambda obs: _ehs_from_observations(obs).components.ehs,
+            n_boot=ehs_bootstrap,
+            alpha=0.05,
+            seed=zlib.crc32(asset.asset_id.encode("utf-8")),
+        )
+        ehs_ci_low = round(ci.lower, 1)
+        ehs_ci_high = round(ci.upper, 1)
+        ehs_ci_width = round(ci.upper - ci.lower, 1)
 
     return {
         "asset_id": asset.asset_id,
         "name": asset.name,
         "n_obs": len(observations),
         "years_covered": f"{observations[0].year}–{observations[-1].year}",
-        "mean_ndvi": round(mean_ndvi, 4),
-        "mean_ndmi": round(features.mean_ndmi, 4),
-        "mean_evi": round(mean_evi, 4) if mean_evi is not None else None,
+        "mean_ndvi": round(bundle.mean_ndvi, 4),
+        "mean_ndmi": round(bundle.mean_ndmi, 4),
+        "mean_evi": round(bundle.mean_evi, 4) if bundle.mean_evi is not None else None,
         # Mann-Kendall NDVI
         "mk_ndvi_direction": mk_ndvi.trend_direction,
         "mk_ndvi_slope": mk_ndvi.sens_slope,
@@ -215,6 +271,9 @@ def analyse_trail(
         # EHS
         "ehs": ehs_components.ehs,
         "ehs_label": interpret_ehs(ehs_components.ehs),
+        "ehs_ci_low": ehs_ci_low,
+        "ehs_ci_high": ehs_ci_high,
+        "ehs_ci_width": ehs_ci_width,
         "ehs_baseline_risk": ehs_components.baseline_risk,
         "ehs_trend_risk": ehs_components.trend_risk,
         "ehs_anomaly_risk": ehs_components.anomaly_risk,
@@ -222,7 +281,7 @@ def analyse_trail(
         "trend_severity": trend_label,
         "trend_readiness": gate.readiness.value,
         "mann_kendall_justified": gate.mann_kendall_justified,
-        "n_anomalous_months": n_anomalous,
+        "n_anomalous_months": bundle.n_anomalous,
         "data_source": observations[0].data_source,
         "error": None,
     }
@@ -254,6 +313,11 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--dry-run", action="store_true",
         help="Use synthetic mock data instead of GEE (for offline testing)",
+    )
+    parser.add_argument(
+        "--ehs-bootstrap", type=int, default=300, metavar="N",
+        help="Nº de réplicas bootstrap de bloques para el IC 95%% del EHS "
+             "(0 para desactivar; por defecto 300).",
     )
     parser.add_argument(
         "--key-file", default="",
@@ -343,11 +407,14 @@ def main(argv: list[str] | None = None) -> None:
             continue
 
         all_observations.extend(observations)
-        result = analyse_trail(asset, observations)
+        result = analyse_trail(asset, observations, ehs_bootstrap=args.ehs_bootstrap)
         results.append(result)
+        ci_low, ci_high = result.get("ehs_ci_low"), result.get("ehs_ci_high")
+        ci_str = f" [IC95 {ci_low}–{ci_high}]" if ci_low is not None else ""
         logger.info(
-            "  EHS=%.1f (%s)  NDVI trend=%s (p=%.3f)  dense_canopy=%s",
+            "  EHS=%.1f%s (%s)  NDVI trend=%s (p=%.3f)  dense_canopy=%s",
             result.get("ehs", float("nan")),
+            ci_str,
             result.get("ehs_label", "?"),
             result.get("mk_ndvi_direction", "?"),
             result.get("mk_ndvi_p", 1.0),
@@ -386,6 +453,10 @@ def main(argv: list[str] | None = None) -> None:
         "ehs_mean": _mean(ehs_vals),
         "ehs_min": round(min(ehs_vals), 1) if ehs_vals else None,
         "ehs_max": round(max(ehs_vals), 1) if ehs_vals else None,
+        "ehs_ci_width_mean": _mean(
+            [r["ehs_ci_width"] for r in valid if r.get("ehs_ci_width") is not None]
+        ),
+        "ehs_bootstrap_n": args.ehs_bootstrap,
         "n_significant_decline": len(degrading),
         "n_dense_canopy": len(dense_canopy),
         "pct_degrading": round(100 * len(degrading) / max(len(valid), 1), 1),

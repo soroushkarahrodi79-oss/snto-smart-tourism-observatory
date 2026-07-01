@@ -27,9 +27,11 @@ import math
 import random
 from dataclasses import dataclass
 from statistics import NormalDist
-from typing import Callable
+from typing import Callable, Sequence, TypeVar
 
 from src.time_series.mann_kendall import pairwise_slopes, variance_s
+
+_T = TypeVar("_T")
 
 
 @dataclass(frozen=True)
@@ -110,8 +112,8 @@ def sens_slope_ci(series: list[float], alpha: float = 0.05) -> SlopeCI:
 
 
 def block_bootstrap_ci(
-    series: list[float],
-    statistic: Callable[[list[float]], float],
+    series: Sequence[_T],
+    statistic: Callable[[Sequence[_T]], float],
     *,
     n_boot: int = 1000,
     block_len: int | None = None,
@@ -124,6 +126,12 @@ def block_bootstrap_ci(
     replacement and concatenated to a resample of the original length,
     preserving short-range dependence. ``seed`` makes the interval reproducible
     — important for a pipeline whose outputs feed institutional reports.
+
+    ``series`` may hold any element type (floats, or richer records such as
+    monthly observations): the blocks are resampled by position and ``statistic``
+    reduces a resample to a scalar. Resampling whole records keeps the correlated
+    channels (e.g. NDVI/NDMI/EVI of the same month) aligned, so a composite like
+    the EHS can be bootstrapped end-to-end without breaking cross-index pairing.
     """
     n = len(series)
     if n < 4:
@@ -140,7 +148,7 @@ def block_bootstrap_ci(
 
     stats: list[float] = []
     for _ in range(n_boot):
-        resample: list[float] = []
+        resample: list[_T] = []
         for _ in range(n_blocks):
             start = rng.randint(0, max_start)
             resample.extend(series[start:start + block_len])
