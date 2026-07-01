@@ -26,6 +26,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
+from src.time_series.changepoint import pettitt_test
 from src.time_series.confidence import sens_slope_ci
 from src.time_series.decomposition import harmonic_decompose
 from src.time_series.mann_kendall import mann_kendall_test
@@ -99,6 +100,11 @@ def _mk_series(series: list[float], prewhiten: bool = False) -> dict:
         deseasonalised = False
         seasonality_strength = None
 
+    # Punto de cambio abrupto (Pettitt) sobre la serie desestacionalizada, ANTES
+    # del pre-whitening: detecta el régimen de la sequía sin que el blanqueado
+    # de tendencia altere la localización de la ruptura.
+    cp = pettitt_test(test_series)
+
     prewhitened_applied = False
     lag1 = None
     if prewhiten:
@@ -129,6 +135,10 @@ def _mk_series(series: list[float], prewhiten: bool = False) -> dict:
         "lag1_autocorr": lag1,
         "seasonality_strength": seasonality_strength,
         "method": method,
+        # Punto de cambio abrupto (índice 0-based en la propia serie).
+        "change_point_index": cp.change_index,
+        "change_point_p": cp.p_value,
+        "change_point_significant": cp.is_significant,
     }
 
 
@@ -173,12 +183,21 @@ def analyse(rows: list[dict], prewhiten: bool = False) -> dict:
         # a int antes de ordenar es imprescindible para que la serie temporal
         # (y por tanto Mann-Kendall y la desestacionalización) sean correctas.
         obs_sorted = sorted(obs, key=lambda r: (int(r["year"]), int(r["month"])))
-        ndvi_series = [float(r["ndvi"]) for r in obs_sorted if r["ndvi"]]
+        ndvi_rows = [r for r in obs_sorted if r["ndvi"]]
+        ndvi_series = [float(r["ndvi"]) for r in ndvi_rows]
         ndmi_series = [float(r["ndmi"]) for r in obs_sorted if r["ndmi"]]
 
         # Mann-Kendall sobre la serie desestacionalizada (ver _mk_series).
         mk_ndvi = _mk_series(ndvi_series, prewhiten=prewhiten)
         mk_ndmi = _mk_series(ndmi_series, prewhiten=prewhiten)
+
+        # Fecha del punto de cambio NDVI: el índice mapea 1:1 a ndvi_rows porque
+        # la desestacionalización conserva orden y longitud de la serie.
+        cp_idx = mk_ndvi.get("change_point_index")
+        change_point_date = (
+            ndvi_rows[cp_idx].get("date")
+            if cp_idx is not None and cp_idx < len(ndvi_rows) else None
+        )
 
         # Promedio NDVI por año
         ndvi_by_year: dict[str, list[float]] = defaultdict(list)
@@ -199,6 +218,11 @@ def analyse(rows: list[dict], prewhiten: bool = False) -> dict:
             "n_observations": len(obs_sorted),
             "mann_kendall_ndvi": mk_ndvi,
             "mann_kendall_ndmi": mk_ndmi,
+            "change_point": {
+                "date": change_point_date,
+                "p_approx": mk_ndvi.get("change_point_p"),
+                "significant": mk_ndvi.get("change_point_significant"),
+            },
             "annual_mean_ndvi": annual_ndvi,
             "partial_years": sorted(partial_years),
             "worst_ndvi_year": worst_year,
@@ -265,10 +289,23 @@ def main() -> None:
     n_improving  = sum(1 for r in results.values() if r["mann_kendall_ndvi"]["trend"] == "increasing")
     n_stable     = sum(1 for r in results.values() if r["mann_kendall_ndvi"]["trend"] == "no trend")
 
+    n_changepoint = sum(
+        1 for r in results.values() if r["change_point"]["significant"]
+    )
+    # Fecha de ruptura más frecuente (señal de evento común, p. ej. sequía 2022).
+    cp_dates: dict[str, int] = defaultdict(int)
+    for r in results.values():
+        if r["change_point"]["significant"] and r["change_point"]["date"]:
+            cp_dates[r["change_point"]["date"][:7]] += 1
+    cp_top = max(cp_dates, key=cp_dates.get) if cp_dates else None
+
     log.info("\n=== RESUMEN EJECUTIVO ===")
     log.info("  Assets en degradación (↓ NDVI significativo): %d", n_degrading)
     log.info("  Assets en mejora      (↑ NDVI significativo): %d", n_improving)
     log.info("  Assets estables       (sin tendencia clara) : %d", n_stable)
+    log.info("  Assets con punto de cambio abrupto (Pettitt p<0.05): %d", n_changepoint)
+    if cp_top:
+        log.info("  Mes de ruptura más frecuente: %s (%d activos)", cp_top, cp_dates[cp_top])
     log.info("\nSiguiente paso → conectar %s al dashboard app.py", out_json)
 
 
