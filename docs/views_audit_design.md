@@ -250,15 +250,25 @@ sobre el mismo eje "dato crudo vs. decisión" que el resto de la app:
 
 **Estado de la Fase 4: completa.** Las tres pestañas que no modulaban
 (*Fundamento y Trazabilidad*, *Portafolio TPI*, *Simulador Financiero*) ya lo
-hacen, y el banner de Auditoría dejó de duplicar la metodología. Quedan las
-Fases 2 (consolidar el mecanismo en un helper único + tests de contrato), 3
-(unificar el eje del mapa espectral con `ViewMode`) y 5 (medición).
+hacen, y el banner de Auditoría dejó de duplicar la metodología.
 
-### Fase 5 — Cierre y medición
-- Si el observatorio tiene usuarios reales, instrumentar qué vista se usa más
-  (telemetría simple) para priorizar dónde profundizar el detalle.
-- Actualizar `README.md`/whitepaper si cambia el contrato público de las
-  vistas.
+### Fase 5 — Cierre y medición ✅
+Cerrada en esta rama. Telemetría de uso de vistas **local, opt-in y sin PII**:
+- **Módulo puro** `src/platform/telemetry.py` (`record_view` / `load_events` /
+  `usage_summary` / `telemetry_enabled`). Escribe un JSONL append-only bajo
+  `data/` (git-ignored); **nunca** hace red ni registra usuario/IP/sesión —
+  solo `(timestamp UTC, modo de vista)`.
+- **Opt-in**: desactivada por defecto; se activa con `SNTO_TELEMETRY=1`
+  (documentada en `.env.example`).
+- **Integración en `app.py`**: registra una vez por *cambio* de vista en la
+  sesión (no en cada autorefresh); un panel de mantenimiento en la vista
+  Auditoría muestra el reparto de uso solo si la telemetría está activada.
+- **Tests**: 9 unitarios (`tests/unit/test_telemetry.py`: roundtrip, append,
+  resiliencia a líneas corruptas, recuento, gate opt-in, no-lanza-en-fallo) y 2
+  de integración `AppTest` (registra con `=1`; no escribe nada por defecto).
+- **Contrato público de las vistas**: sin cambios (siguen siendo tres). Por eso
+  no fue necesario tocar `README.md` ni el whitepaper; la telemetría es una
+  capacidad interna opcional, no parte del contrato de audiencias.
 
 ---
 

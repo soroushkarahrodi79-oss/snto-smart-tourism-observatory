@@ -30,6 +30,7 @@ from src.platform.provenance import (
     data_status_badge, load_timeseries_coverage, snapshot_provenance,
 )
 from src.platform.views import ConfidenceDetail, ViewMode, get_view, view_modes
+from src.platform.telemetry import record_view, telemetry_enabled, usage_summary
 from src.platform import methodology as method
 from src.temporal import DataStatus
 from src.socioeconomic.loader import load_municipalities, snapshot_exists
@@ -1434,6 +1435,12 @@ with st.sidebar:
     st.caption(_view.audience)
     if _view.shows:
         st.caption(f"🔁 {_view.shows}")
+    # F10 Fase 5: telemetría de uso de vistas — local y opt-in (SNTO_TELEMETRY=1).
+    # Se registra una vez por CAMBIO de vista en la sesión, no en cada autorefresh,
+    # para medir selecciones reales sin inflar el conteo.
+    if telemetry_enabled() and st.session_state.get("_telemetry_last") != _view.mode.value:
+        record_view(_view.mode.value)
+        st.session_state["_telemetry_last"] = _view.mode.value
     st.divider()
 
 # ── Cargar datos ──────────────────────────────────────────────────────────────
@@ -3117,6 +3124,28 @@ with tab_method:
         else:
             with st.expander("D · Fuentes de datos y licencias"):
                 method.render_data_sources(show_heading=False)
+
+    # ── F10 Fase 5: panel de uso de vistas (telemetría local, solo Auditoría) ──
+    # Meta-panel de mantenimiento: mide empíricamente qué audiencia se usa más,
+    # para priorizar dónde profundizar el detalle. Solo aparece si la telemetría
+    # está activada (opt-in) y hay eventos; el dato es 100% local y sin PII.
+    if _view.section(audit=True) and telemetry_enabled():
+        _usage = usage_summary()
+        if _usage:
+            st.divider()
+            with st.expander("📊 Uso de vistas (telemetría local · opt-in)"):
+                _total = sum(_usage.values())
+                st.caption(
+                    "Selecciones de vista registradas localmente en esta instancia "
+                    f"(sin PII, sin red). Total: **{_total}**."
+                )
+                for _m in view_modes():
+                    _p = get_view(_m)
+                    _n = _usage.get(_m.value, 0)
+                    _pct = (_n / _total * 100) if _total else 0.0
+                    st.markdown(
+                        f"- {_p.icon} **{_p.label}** — {_n} ({_pct:.0f}%)"
+                    )
 
 
 # ── Pie de página ─────────────────────────────────────────────────────────────

@@ -25,11 +25,26 @@ _APP = str(Path(__file__).resolve().parents[2] / "app.py")
 _FINANCIAL_LABELS = {"Total asignado", "Delta EHS portafolio", "Delta visitantes"}
 
 
+def _run_app(view_value: str) -> AppTest:
+    """Levanta la app y selecciona una vista. Neutraliza ``st.pydeck_chart`` (el
+    mapa es ortogonal a estos tests y ``test_map_layers`` instala un stub global
+    de ``pydeck`` que, sin esto, rompería la serialización del deck)."""
+    import streamlit as st
+
+    _orig = st.pydeck_chart
+    st.pydeck_chart = lambda *a, **k: None
+    try:
+        at = AppTest.from_file(_APP, default_timeout=120)
+        at.run()
+        at.session_state["view_mode"] = ViewMode(view_value)
+        at.run()
+    finally:
+        st.pydeck_chart = _orig
+    return at
+
+
 def _render(view_value: str) -> dict:
-    at = AppTest.from_file(_APP, default_timeout=120)
-    at.run()
-    at.session_state["view_mode"] = ViewMode(view_value)
-    at.run()
+    at = _run_app(view_value)
     assert not at.exception, (
         f"app.py lanzó excepción en vista {view_value}: "
         f"{[e.value for e in at.exception]}"
@@ -50,21 +65,7 @@ def _render(view_value: str) -> dict:
 
 @pytest.fixture(scope="module")
 def rendered() -> dict:
-    # El mapa (pydeck) es ortogonal a este test de modulación de TEXTO y lo cubre
-    # test_map_layers, que además instala un stub global de ``pydeck`` en
-    # sys.modules durante la colección; en la suite completa ese stub haría que
-    # ``st.pydeck_chart`` fallara al serializar un deck falso. Neutralizamos solo
-    # ``st.pydeck_chart`` mientras renderizamos, y lo restauramos después: el
-    # texto que sí verificamos (resúmenes, planes, banners, KPIs) no depende del
-    # mapa, y no tocamos el estado de ningún otro test.
-    import streamlit as st
-
-    _orig = st.pydeck_chart
-    st.pydeck_chart = lambda *a, **k: None
-    try:
-        return {m.value: _render(m.value) for m in view_modes()}
-    finally:
-        st.pydeck_chart = _orig
+    return {m.value: _render(m.value) for m in view_modes()}
 
 
 def test_all_views_render_without_exception(rendered: dict):
@@ -119,3 +120,29 @@ def test_financial_figures_are_identical_across_views(rendered: dict):
     fin = [rendered[v]["fin"] for v in ("tecnica", "gestor", "tribunal")]
     assert fin[0], "no se capturó ninguna métrica financiera"
     assert fin[0] == fin[1] == fin[2], f"cifras financieras divergen: {fin}"
+
+
+def test_telemetry_records_view_when_enabled(tmp_path, monkeypatch):
+    # F10 Fase 5: con SNTO_TELEMETRY=1 la app registra la vista en el log local.
+    # Redirigimos DEFAULT_LOG a tmp para no tocar data/outputs del repo.
+    from src.platform import telemetry
+
+    log = tmp_path / "view_usage.jsonl"
+    monkeypatch.setattr(telemetry, "DEFAULT_LOG", log)
+    monkeypatch.setenv("SNTO_TELEMETRY", "1")
+
+    at = _run_app("tribunal")
+    assert not at.exception, [e.value for e in at.exception]
+    assert any(e.get("view") == "tribunal" for e in telemetry.load_events(log))
+
+
+def test_telemetry_writes_nothing_when_disabled(tmp_path, monkeypatch):
+    from src.platform import telemetry
+
+    log = tmp_path / "view_usage.jsonl"
+    monkeypatch.setattr(telemetry, "DEFAULT_LOG", log)
+    monkeypatch.delenv("SNTO_TELEMETRY", raising=False)
+
+    at = _run_app("gestor")
+    assert not at.exception, [e.value for e in at.exception]
+    assert not log.exists()
