@@ -2,6 +2,8 @@
 
 > **Propósito.** Texto de referencia para el capítulo de Metodología del TFM. Delimita con precisión qué afirma cada pipeline en función de su profundidad temporal, blinda la decisión de diseño frente a la crítica estadística más previsible (aplicación de Mann-Kendall sobre series cortas) y declara explícitamente las líneas de trabajo abiertas. La transparencia sobre el alcance es parte del valor metodológico del trabajo, no una concesión.
 
+> **Nota de versión.** Esta nota fija el *alcance* (qué territorio sostiene qué afirmación). El *detalle cuantitativo* del método de tendencia e incertidumbre —desestacionalización, corrección de autocorrelación e intervalos de confianza— se documenta en la [nota de rigor estadístico](nota_metodologica_rigor_estadistico.md). Con la integración de la serie Sentinel-2 real multi-anual del PNSG (v1.1.0), la «línea de trabajo abierta» descrita en §5 pasa a estar parcialmente cubierta: consúltese la nota de rigor para el estado vigente de la detección de tendencia sobre datos reales.
+
 ---
 
 ## 1. El problema y la decisión de diseño
