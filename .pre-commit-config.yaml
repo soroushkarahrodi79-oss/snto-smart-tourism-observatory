@@ -17,6 +17,14 @@ repos:
 
   - repo: local
     hooks:
+      # Verify README version matches pyproject.toml before each commit.
+      - id: sync-readme-version
+        name: README version sync check
+        entry: python scripts/sync_readme.py --check-version
+        language: system
+        files: ^(pyproject\.toml|README\.md)$
+        pass_filenames: false
+
       # Run the temporal + override test suite before allowing the commit.
       - id: pytest-temporal
         name: pytest (temporal + override regression)
