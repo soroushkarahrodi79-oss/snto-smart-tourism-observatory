@@ -250,7 +250,7 @@ The TIS Engine orchestrates the transformation from raw spectral values to actio
 3. **Priority score:** `priority_score = (EHS × 0.60) + (traffic_index × 0.40)` — weighting ecological urgency (60%) above visitor pressure (40%).
 4. **Budget allocation:** Trails with `priority_score > 60` are flagged as requiring intervention. Their restoration budget is computed as:
 
-$$\text{TIS Budget (EUR)} = L_m \times 15.50 \times \frac{\text{priority\_score}}{100}$$
+$$\text{TIS Budget (EUR)} = L_m \times 15.50 \times \frac{\text{priority score}}{100}$$
 
 Where $L_m$ is trail length in metres, computed from PostGIS via `ST_Length(geometry::geography)`.
 
