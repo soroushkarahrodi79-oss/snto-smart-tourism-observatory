@@ -6,14 +6,14 @@
 
 De la teledetección Sentinel-2 a la decisión de inversión pública: indicadores ambientales calibrados, atribución causal de la degradación y priorización presupuestaria sobre el **Parque Nacional Sierra de Guadarrama (PNSG)**, primer territorio de la Red de Parques Nacionales (OAPN) integrado en el observatorio.
 
-[![Tests](https://img.shields.io/badge/tests-493%20passing-brightgreen)](#8-tests)
+[![Tests](https://img.shields.io/badge/tests-531%20passing-brightgreen)](#8-tests)
 [![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue)](https://www.python.org/)
 [![CI](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml)
 [![Deploy](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml)
 [![Deploy target](https://img.shields.io/badge/deploy-Azure%20Container%20Apps-0078D4?logo=microsoftazure&logoColor=white)](#7-despliegue)
 [![Status](https://img.shields.io/badge/estado-investigaci%C3%B3n%20activa-blue)](#1-estado-del-proyecto)
 [![License](https://img.shields.io/badge/uso-acad%C3%A9mico-lightgrey)](LICENSE)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20818270.svg)](https://doi.org/10.5281/zenodo.20818270)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20818270-blue)](https://doi.org/10.5281/zenodo.20818270)
 
 **🔴 [Dashboard en vivo](https://snto-observatory.happyground-be027676.swedencentral.azurecontainerapps.io/)** · 📄 [Whitepaper](WHITEPAPER_SNTO_Architecture_Blueprint.md) · 🏗 [Arquitectura](ARCHITECTURE.md)
 
@@ -25,7 +25,7 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 
 La mayoría de los espacios naturales protegidos gestionan el impacto del turismo de forma **reactiva**: actúan cuando la degradación ya es visible. El SNTO transforma ese paradigma en **gobernanza regenerativa proactiva** — detecta el estrés ecológico desde el satélite antes de que sea irreversible, distingue si la causa es el uso turístico o el clima, y traduce cada hallazgo en una **prioridad de inversión con presupuesto y nivel de confianza**.
 
-> **Para evaluadores y revisores:** este repositorio es un proyecto de investigación académica de la **Universidad Complutense de Madrid (UCM)**: un observatorio que evalúa el estado de senderos y enclaves de turismo natural por teledetección satelital, detecta zonas de riesgo de degradación y prioriza la intervención con fórmulas financieras. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (73 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases, con capas de **andamiaje temporal (serie 2021–2026), trazabilidad/confianza del dato, baselines estratificados, incertidumbre del ranking y validación de campo**. **493 tests, CI separado del deploy, dos pipelines arquitectónicamente desacoplados.** La gobernanza se alinea con los marcos europeos de reporte de espacios protegidos (Natura 2000 / EUROPARC / SISMOTUR), validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
+> **Para evaluadores y revisores:** este repositorio es un proyecto de investigación académica de la **Universidad Complutense de Madrid (UCM)**: un observatorio que evalúa el estado de senderos y enclaves de turismo natural por teledetección satelital, detecta zonas de riesgo de degradación y prioriza la intervención con fórmulas financieras. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (218 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases, con capas de **andamiaje temporal (serie 2021–2026), trazabilidad/confianza del dato, baselines estratificados, incertidumbre del ranking y validación de campo**. **531 tests, CI separado del deploy, dos pipelines arquitectónicamente desacoplados.** La gobernanza se alinea con los marcos europeos de reporte de espacios protegidos (Natura 2000 / EUROPARC / SISMOTUR), validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
 
 ---
 
@@ -62,7 +62,7 @@ _Dashboard ejecutivo con 10 KPIs territoriales, mapa folium de activos y modelo 
 
 | Componente | Territorio | Estado |
 |---|---|---|
-| **Pipeline A — Geoespacial** | **Parque Nacional Sierra de Guadarrama (PNSG)** — territorio principal | ✅ Operacional con datos Sentinel-2 reales (2 escenas: primavera 2026 + verano 2025); **73 senderos** con cartografía oficial OAPN |
+| **Pipeline A — Geoespacial** | **Parque Nacional Sierra de Guadarrama (PNSG)** — territorio principal | ✅ Operacional con datos Sentinel-2 reales (2 escenas: primavera 2026 + verano 2025); **218 senderos** con cartografía oficial OAPN |
 | **Pipeline A — Calibración metodológica** | Reserva de la Biosfera Sierra del Rincón (Madrid) | ✅ Piloto de validación del método (escenas reales propias) |
 | **Pipeline B — Inteligencia territorial (7 fases)** | Villuercas-Ibores-Jara Geopark (Extremadura) | ✅ Demostración funcional completa sobre 20 activos sintéticos calibrados |
 | **Capa socioeconómica (ALMUDENA / INE)** | PNSG — 34 municipios | ✅ SVI + impacto en comunidad + empleos en riesgo, integrado en el dashboard |
@@ -90,54 +90,54 @@ La conversión oficial vive en `src.metrics.semantics`:
 `health = 100 - stress`. Esta separación evita que una métrica alta signifique
 "excelente" en una parte del sistema y "crítico" en otra.
 
-### Pipeline A — Geoespacial de producción (datos reales)
+### Infografía del Flujo de Datos Arquitectónico
 
+```mermaid
+graph TD
+%% Estilos de los nodos principales
+classDef ingesta fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
+classDef bd fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
+classDef dcs fill:#fff3e0,stroke:#f57c00,stroke-width:2px;
+classDef dash fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+
+%% --- CAPA DE INGESTA Y PROCESAMIENTO (Pipeline A y B) ---
+subgraph Ingesta["1. Capa de Ingesta (Parallel Processing)"]
+    A1[Pipeline A: Imág. Satelitales] -->|API STAC / COG| A2[Sentinel-2 L2A]
+    A2 -->|Cálculo Vectorizado| A3(Índices NDVI / NDMI)
+    
+    B1[Pipeline B: Socio-Económico] -->|MultiYearAdapter| B2(Datos Estadísticos: INE)
+    B2 -->|Normalización| B3(Variables ALMUDENA)
+end
+
+%% --- CAPA DE ALMACENAMIENTO Y GOBERNANZA (PostGIS & DCS) ---
+subgraph Almacenamiento["2. Capa de Datos y Gobernanza"]
+    A3 & B3 -->|src/platform/enrichment.py| C[Enrichment Pipeline]
+    C -->|Override Conservador| D[(PostGIS DB: TerritorialAsset)]
+    
+    %% Sistema de Control Dinámico (DCS)
+    D -->|Lectura de Estado| E{DCS Gate: can_act?}
+    E -->|False: Datos Insuficientes| E1[Modo Bloqueo / Logs]
+end
+
+%% --- CAPA DE NEGOCIO Y VISUALIZACIÓN (Dashboard) ---
+subgraph Presentacion["3. Capa de Negocio y Presentación"]
+    E -->|True: Validación Exitosa| F[Streamlit Dashboard]
+    
+    %% Vistas del Dashboard
+    F --> G[1. Vista Científica: PyDeck Diagnostic Map]
+    F --> H[2. Vista de Negocio: Executive Summary]
+    
+    %% Entregables finales
+    G --> I[Análisis de Riesgo y Degradación]
+    H --> J[Plan de Acción y Presupuestos TRAGSA]
+end
+
+%% Aplicación de clases visuales
+class A1,A2,A3,B1,B2,B3,C ingesta;
+class D bd;
+class E,E1 dcs;
+class F,G,H,I,J dash;
 ```
-Sentinel-2 L2A (ZIP, primavera + verano)
-        │
-        ▼
-etl_raster_processor.py      → extrae B04/B08/B11, recorta, calcula NDVI/NDMI
-        │
-        ▼
-etl_vector_cleaner.py        → reproyecta y filtra 7 capas vectoriales a la AOI
-        │
-        ▼
-etl_raster_intersection.py   → buffer 50 m por sendero, zonal stats (rasterstats)
-        │
-        ▼
-calculate_delta_ehs.py       → EHS estacional anclado a percentiles de escena
-        │                       (P90/P10), Delta EHS primavera→verano
-        ▼
-run_scm_operational.py       → SIG calculado desde rásteres reales →
-        │                       clasificación LOCALIZED / LANDSCAPE / MIXED
-        ▼
-tis_engine.py                → priority_score + presupuesto con factor causal
-        │
-        ▼
-        PostGIS (production_hiking_trails)
-```
-
-**Produce:** EHS operacional calibrado por percentiles reales de escena (P90/P10 sobre la distribución de píxeles de cada imagen), Delta EHS estacional, clasificación SCM espacial calculada desde SIG real, y presupuesto de restauración modulado por factor causal.
-
-### Pipeline B — Inteligencia territorial (7 fases, demostración)
-
-```
-MultiYearAdapter (series temporales calibradas con anomalías
-inter-anuales documentadas de AEMET / Copernicus)
-        │
-        ▼
-run_phase3_report.py   → validación y calibración (caso Masatrigo)
-        ▼
-run_phase4_report.py   → reconstrucción histórica multi-anual
-        ▼
-run_phase5_report.py   → inteligencia territorial (TPI, portfolio, 20 activos)
-        ▼
-run_phase6_report.py   → escenarios de intervención (TIS) + contrafactual
-        ▼
-run_phase7_report.py   → plataforma estratégica (dashboard 10 KPIs, 5 perfiles)
-```
-
-**Produce:** EHS histórico, detección de tendencias (Mann-Kendall), descomposición armónica, DCS con data quality gate, TPI territorial, escenarios de intervención (TIS), análisis contrafactual y un informe ejecutivo de 10 secciones para 5 perfiles de stakeholders.
 
 > **Nota honesta:** `USE_MOCK_DATA` en `.env.example` controla únicamente el Pipeline A. El Pipeline B consume el `MultiYearAdapter` directamente; sus 20 activos son sintéticos, calibrados con anomalías climáticas documentadas, no datos satelitales reales.
 
@@ -363,5 +363,5 @@ Fichero de cita: [`CITATION.cff`](CITATION.cff) · Contribuciones: [`CONTRIBUTIN
 ---
 
 <div align="center">
-<sub>SNTO v1.0.0 · Python ≥ 3.12 · 493 tests passing · junio 2026</sub>
+<sub>SNTO v0.1.0 · Python ≥ 3.12 · 531 tests passing · junio 2026</sub>
 </div>

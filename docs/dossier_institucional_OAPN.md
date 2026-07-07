@@ -38,7 +38,7 @@ los propios datos del organismo**.
 ## 4. Resultados reales sobre el PNSG
 
 Análisis ejecutado con **dos escenas Sentinel-2 reales** (primavera 2026-04-10 + verano 2025-08-10,
-tile T30TVL) sobre **73 senderos** reconstruidos desde cartografía oficial:
+tile T30TVL) sobre **218 senderos** reconstruidos desde cartografía oficial:
 
 - **17 de 73 senderos** muestran deterioro estacional activo (ΔEHS de degradación).
 - Clasificación causal SCM: **27 localizados** (señal de uso) · **9 mixtos** · **37 a escala de paisaje** (señal climática).
