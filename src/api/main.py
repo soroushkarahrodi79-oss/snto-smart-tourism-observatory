@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
+from src._version import __version__
 from src.api.routers import alerts, evaluate, ranking
 
 
@@ -12,7 +13,7 @@ def create_app() -> FastAPI:
             "Decision-support system for evaluating natural tourism assets "
             "using satellite-derived environmental indicators."
         ),
-        version="1.0.0",
+        version=__version__,
     )
 
     app.include_router(evaluate.router, prefix="/evaluate_asset")
@@ -21,7 +22,7 @@ def create_app() -> FastAPI:
 
     @app.get("/health")
     async def health() -> dict:
-        return {"status": "ok", "version": "1.0.0"}
+        return {"status": "ok", "version": __version__}
 
     return app
 
