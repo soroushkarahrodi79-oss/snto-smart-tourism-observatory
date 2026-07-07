@@ -12,7 +12,7 @@
 
 | Afirmación | ¿Defendible hoy? | Sobre qué dato |
 |---|---|---|
-| Estado de salud ambiental por sendero (EHS) | ✅ Sí | Sentinel-2 L2A real, PNSG (73 sendas OAPN) |
+| Estado de salud ambiental por sendero (EHS) | ✅ Sí | Sentinel-2 L2A real, PNSG (218 sendas OAPN) |
 | Señal de alerta estacional (ΔEHS primavera→verano) | ✅ Sí | 2 escenas reales (2025-08-10 / 2026-04-10) |
 | Atribución causal espacial (SCM/SIG core vs landscape) | ✅ Sí | Rásteres reales |
 | Presupuesto de restauración por sendero | 🟡 Orden de magnitud | Tarifas TRAGSA 2023 (cita por partida pendiente) |

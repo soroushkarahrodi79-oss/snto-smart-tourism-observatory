@@ -95,8 +95,8 @@ TRACEABILITY: list[TraceRow] = [
     TraceRow(
         "Geometría de sendas", "OAPN (cartografía oficial) + OpenStreetMap",
         "trazas vectoriales", Confidence.HIGH, DataType.OBSERVED,
-        "data/raw_assets/vector_data/hiking_trails.geojson",
-        "73 sendas reales del PNSG.",
+        "data/raw_assets/vector_data/pnsg_oapn_trails.geojson",
+        "218 sendas reales del PNSG.",
     ),
     TraceRow(
         "Fechas de escena", "Nombres de producto .SAFE Sentinel-2",
@@ -529,7 +529,7 @@ DATA_SOURCES: list[DataSource] = [
         "Cartografía de sendas / zonificación", "OAPN (Red de Parques Nacionales)",
         "Reutilización institucional con cita de la fuente",
         "Cartografía oficial OAPN — Parque Nacional Sierra de Guadarrama",
-        "Geometría de las 73 sendas y zonificación PRUG.",
+        "Geometría de las 218 sendas y zonificación PRUG.",
     ),
     DataSource(
         "Cartografía complementaria", "OpenStreetMap",

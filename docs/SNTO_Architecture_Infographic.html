@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>SNTO — Infografía Arquitectura</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #06101a;
+    color: #e8f0fb;
+    padding: 0;
+  }
+
+  /* ── Download bar ── */
+  .dl-bar {
+    background: #1a4f9c;
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    font-size: 13px;
+    font-family: system-ui, sans-serif;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+  }
+  .dl-btn {
+    background: #fff;
+    color: #1a4f9c;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-left: 12px;
+  }
+  .dl-btn:hover { background: #e0ecff; }
+
+  /* ── Infographic wrapper ── */
+  #infographic {
+    background: #0d1b2a;
+    padding: 28px 24px 32px;
+    width: 1200px;
+    min-height: 628px;
+  }
+
+  /* ── Header ── */
+  .hdr { text-align: center; margin-bottom: 24px; }
+  .hdr h1 { font-size: 19px; font-weight: 700; color: #fff; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .hdr p { font-size: 10.5px; color: #7a9cc0; letter-spacing: 1.2px; text-transform: uppercase; }
+  .doi-tag {
+    display: inline-block; margin-top: 7px;
+    background: #1a3a5c; border: 1px solid #2d6ab4; border-radius: 20px;
+    padding: 3px 14px; font-size: 10px; color: #4ea8f5; font-family: monospace;
+  }
+
+  /* ── Legend ── */
+  .legend { display: flex; gap: 16px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 9.5px; color: #7a9cc0; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* ── Main 3-col grid ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 185px 1fr 185px;
+    gap: 12px;
+    align-items: start;
+  }
+
+  /* ── Section label ── */
+  .slabel {
+    font-size: 8.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.3px; color: #4ea8f5; margin-bottom: 7px;
+    padding-bottom: 3px; border-bottom: 1px solid #1e3a55;
+  }
+
+  /* ── Source / output box ── */
+  .src-box {
+    background: #0f2840; border: 1px solid #1e4570; border-radius: 7px;
+    padding: 9px 11px; margin-bottom: 7px;
+  }
+  .src-box .icon { font-size: 16px; display: block; margin-bottom: 3px; }
+  .src-box .name { font-size: 11px; font-weight: 600; color: #e0ecff; }
+  .src-box .detail { font-size: 8.5px; color: #6890b0; margin-top: 2px; line-height: 1.4; }
+
+  .out-box {
+    background: #0f1e10; border: 1px solid #2a5a1a; border-radius: 7px;
+    padding: 9px 11px; margin-bottom: 7px;
+  }
+  .out-box .icon { font-size: 16px; display: block; margin-bottom: 3px; }
+  .out-box .name { font-size: 11px; font-weight: 600; color: #b0e070; }
+  .out-box .detail { font-size: 8.5px; color: #5a8040; margin-top: 2px; line-height: 1.4; }
+
+  .out-stat {
+    background: #0a2a0a; border: 1px solid #2a4a1a; border-radius: 7px;
+    padding: 9px 11px; text-align: center; margin-bottom: 7px;
+  }
+  .stat-num { font-size: 21px; font-weight: 700; color: #7dba3f; }
+  .stat-lbl { font-size: 8.5px; color: #4a7030; text-transform: uppercase; letter-spacing: 0.7px; margin-top: 1px; }
+
+  .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 7px; }
+  .res-chip { background: #0a1e0a; border: 1px solid #1e4010; border-radius: 5px; padding: 6px 8px; text-align: center; }
+  .res-num { font-size: 17px; font-weight: 700; color: #7dba3f; }
+  .res-lbl { font-size: 8px; color: #4a7030; line-height: 1.3; margin-top: 1px; }
+
+  /* ── Center column ── */
+  .center-col { display: flex; flex-direction: column; }
+
+  /* ── Pipeline blocks ── */
+  .pipe-block { border-radius: 9px; padding: 13px 14px; margin-bottom: 9px; }
+  .pipe-a { background: #0a2040; border: 1.5px solid #1e5a9c; }
+  .pipe-b { background: #111f08; border: 1.5px solid #3a7a1a; }
+
+  .pipe-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+    margin-bottom: 9px; display: flex; align-items: center; gap: 6px;
+  }
+  .pipe-a .pipe-label { color: #4ea8f5; }
+  .pipe-b .pipe-label { color: #7dba3f; }
+  .pipe-badge { border-radius: 3px; padding: 1px 6px; font-size: 7.5px; font-weight: 700; letter-spacing: 0.5px; }
+  .pipe-a .pipe-badge { background: #1a4f9c; color: #b0d0ff; }
+  .pipe-b .pipe-badge { background: #2d5a10; color: #b0dd80; }
+
+  /* ── ETL chips ── */
+  .etl-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 7px; }
+  .etl-chip {
+    background: rgba(30,90,156,0.22); border: 1px solid #1e5a9c;
+    border-radius: 4px; padding: 4px 6px; text-align: center;
+    font-size: 8.5px; color: #8ab8e0;
+  }
+
+  /* ── Module cards ── */
+  .mods-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 7px; }
+  .mods-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; margin-bottom: 7px; }
+  .mod {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px; padding: 8px 9px;
+  }
+  .mod-name { font-size: 11px; font-weight: 700; color: #e0ecff; margin-bottom: 2px; }
+  .mod-sub { font-size: 8.5px; color: #6890b0; line-height: 1.35; }
+  .formula {
+    background: rgba(0,0,0,0.3); border-left: 2px solid #2d6ab4;
+    border-radius: 0 3px 3px 0; padding: 4px 7px;
+    font-family: monospace; font-size: 8px; color: #80b8e8;
+    margin-top: 5px; line-height: 1.55;
+  }
+  .mod-tag {
+    display: inline-block; margin-top: 4px; background: #0d2a45;
+    border-radius: 3px; padding: 1px 5px; font-size: 7.5px;
+    color: #4ea8f5; font-family: monospace;
+  }
+  .mod-tag-g { background: #0f2808; color: #7dba3f; }
+
+  .arrow { text-align: center; font-size: 15px; color: #2d6ab4; margin: 3px 0; }
+
+  /* ── Dashboard ── */
+  .dash-block {
+    background: #100820; border: 1.5px solid #3d1a7a;
+    border-radius: 9px; padding: 13px 14px;
+  }
+  .dash-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+    color: #a06ef5; margin-bottom: 9px; display: flex; align-items: center; gap: 6px;
+  }
+  .dash-badge { background: #2d1060; color: #c0a0ff; border-radius: 3px; padding: 1px 6px; font-size: 7.5px; font-weight: 700; }
+  .views-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 9px; }
+  .view-chip {
+    background: rgba(100,50,200,0.18); border: 1px solid #4d2a9a;
+    border-radius: 5px; padding: 6px 7px; text-align: center;
+  }
+  .view-chip .vi { font-size: 13px; display: block; margin-bottom: 2px; }
+  .view-chip .vn { font-size: 9px; color: #c0a0ff; font-weight: 600; }
+  .view-chip .vd { font-size: 7.5px; color: #7050a0; margin-top: 1px; }
+
+  .deploy-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .dep-chip {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 5px; padding: 6px 9px; display: flex; align-items: center; gap: 7px;
+  }
+  .dep-chip .di { font-size: 15px; }
+  .dep-chip .dn { font-size: 9px; color: #c0d8f0; font-weight: 600; }
+  .dep-chip .dd { font-size: 8px; color: #5a80a0; margin-top: 1px; }
+
+  .v-conn { width: 2px; background: linear-gradient(to bottom,#1e5a9c,#3d1a7a); height: 12px; margin: 0 auto; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center; margin-top: 18px;
+    font-size: 9px; color: #3a5a7a; letter-spacing: 0.4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Download bar (not captured) -->
+<div class="dl-bar" id="dl-bar">
+  Para LinkedIn: descarga en PNG (1200 px) →
+  <button class="dl-btn" onclick="downloadPNG()">⬇ Descargar PNG</button>
+  &nbsp;|&nbsp; O usa <kbd style="background:rgba(255,255,255,0.2);padding:1px 6px;border-radius:3px">F12</kbd> → Capture node screenshot
+</div>
+
+<!-- Infographic (this is what gets captured) -->
+<div id="infographic">
+
+  <!-- Header -->
+  <div class="hdr">
+    <h1>🏔️ SNTO — Smart Nature Tourism Observatory</h1>
+    <p>Arquitectura del sistema · Sierra de Guadarrama · Sentinel-2</p>
+    <span class="doi-tag">DOI: 10.5281/zenodo.20818270</span>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#1e5a9c"></div> Pipeline A — Datos reales PNSG</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3a7a1a"></div> Pipeline B — Demo Villuercas</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3d1a7a"></div> Dashboard &amp; Despliegue</div>
+  </div>
+
+  <!-- Main grid -->
+  <div class="main-grid">
+
+    <!-- LEFT -->
+    <div>
+      <div class="slabel">📡 Fuentes de datos</div>
+
+      <div class="src-box">
+        <span class="icon">🛰️</span>
+        <div class="name">Sentinel-2 L2A</div>
+        <div class="detail">ESA / Copernicus · Tile T30TVL<br>2 escenas: verano + primavera<br>Bandas B04, B08, B8A, B11, B12</div>
+      </div>
+
+      <div class="src-box">
+        <span class="icon">🗺️</span>
+        <div class="name">Cartografía OAPN</div>
+        <div class="detail">218 senderos oficiales<br>1.035,1 km · PNSG<br>EPSG:25830 · ETRS89/UTM 30N</div>
+      </div>
+
+      <div class="src-box">
+        <span class="icon">👥</span>
+        <div class="name">INE + ALMUDENA</div>
+        <div class="detail">Padrón, EOATR, renta<br>Hostelería, empleo<br>34 municipios PNSG</div>
+      </div>
+
+      <div class="src-box">
+        <span class="icon">🌍</span>
+        <div class="name">OpenStreetMap</div>
+        <div class="detail">Cartografía complementaria<br>Licencia ODbL</div>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="center-col">
+
+      <!-- Pipeline A -->
+      <div class="pipe-block pipe-a">
+        <div class="pipe-label">
+          Pipeline A
+          <span class="pipe-badge">DATOS REALES</span>
+          <span style="font-size:8.5px;color:#6890b0;margin-left:auto;font-weight:400">PN Sierra de Guadarrama</span>
+        </div>
+
+        <div class="slabel" style="color:#2d6ab4;border-color:#1a3a5c">ETL / Preprocesado</div>
+        <div class="etl-row">
+          <div class="etl-chip">🧹 Vector cleaner</div>
+          <div class="etl-chip">📊 Raster processor</div>
+          <div class="etl-chip">✂️ Zonal stats</div>
+        </div>
+
+        <div class="arrow">↓</div>
+
+        <div class="slabel" style="color:#2d6ab4;border-color:#1a3a5c;margin-top:6px">Módulos analíticos</div>
+
+        <div class="mods-2">
+          <div class="mod">
+            <div class="mod-name">EHS</div>
+            <div class="mod-sub">Environmental Health Score<br>Calibrado por percentil (P90/P10)</div>
+            <div class="formula">D = (P90−X)/(P90−P10)<br>EHS = 100·(0.5·D_NDVI + 0.5·D_NDMI)</div>
+            <span class="mod-tag">risk_engine/ehs.py</span>
+          </div>
+          <div class="mod">
+            <div class="mod-name">ΔEHS</div>
+            <div class="mod-sub">Señal de alerta estacional<br>Verano − Primavera</div>
+            <div class="formula">ΔEHS = EHS_verano − EHS_primavera</div>
+            <span class="mod-tag">calculate_delta_ehs.py</span>
+          </div>
+        </div>
+
+        <div class="mods-2">
+          <div class="mod">
+            <div class="mod-name">SCM</div>
+            <div class="mod-sub">Causalidad espacial<br>Gradiente 0–50 / 50–200 / 200–1000 m</div>
+            <div class="formula">SIG = (NDVI_land−NDVI_core)/max(NDVI_land,0.01)<br>&gt;0.15→LOCALIZADO | &lt;0.07→PAISAJE</div>
+            <span class="mod-tag">spatial_causality/analyzer.py</span>
+          </div>
+          <div class="mod">
+            <div class="mod-name">DCS</div>
+            <div class="mod-sub">Confianza de decisión<br>5 dimensiones · gate can_act</div>
+            <div class="formula">DQ+TR+SC+MS+SS → 0–100<br>can_act=False si DQ&lt;10 o TR&lt;12</div>
+            <span class="mod-tag">decision_confidence/assessor.py</span>
+          </div>
+        </div>
+
+        <div class="mods-3">
+          <div class="mod">
+            <div class="mod-name">TPI</div>
+            <div class="mod-sub">Prioridad territorial<br>4 tiers de acción</div>
+            <div class="formula">CU[40]+ES[25]+SV[20]+CC[15]</div>
+            <span class="mod-tag">territorial/tpi.py</span>
+          </div>
+          <div class="mod">
+            <div class="mod-name">TIS</div>
+            <div class="mod-sub">Impacto de intervención<br>5 escenarios + contrafactual</div>
+            <span class="mod-tag">intervention/</span>
+          </div>
+          <div class="mod">
+            <div class="mod-name">SVI</div>
+            <div class="mod-sub">Vulnerabilidad socioeconómica<br>INE + ALMUDENA / municipio</div>
+            <span class="mod-tag">socioeconomic/</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipeline B -->
+      <div class="pipe-block pipe-b">
+        <div class="pipe-label">
+          Pipeline B
+          <span class="pipe-badge">DEMO</span>
+          <span style="font-size:8.5px;color:#5a8040;margin-left:auto;font-weight:400">Villuercas · Extremadura</span>
+        </div>
+        <div class="mods-2">
+          <div class="mod">
+            <div class="mod-name" style="color:#b0e070">MultiYearAdapter</div>
+            <div class="mod-sub">Serie calibrada 2021–2026<br>AEMET / Copernicus</div>
+            <span class="mod-tag mod-tag-g">gee_adapter.py</span>
+          </div>
+          <div class="mod">
+            <div class="mod-name" style="color:#b0e070">Mann-Kendall</div>
+            <div class="mod-sub">Tendencia multi-anual<br>Sen's slope · desestacionalización</div>
+            <span class="mod-tag mod-tag-g">time_series/</span>
+          </div>
+        </div>
+        <div style="font-size:8px;color:#4a7030;text-align:center;margin-top:2px">⚠️ Demostración de capacidad — no aplicado al PNSG real (2 escenas disponibles)</div>
+      </div>
+
+      <div class="v-conn"></div>
+
+      <!-- Dashboard -->
+      <div class="dash-block">
+        <div class="dash-label">
+          🖥️ Dashboard interactivo
+          <span class="dash-badge">STREAMLIT + PYDECK + PLOTLY</span>
+        </div>
+        <div class="views-row">
+          <div class="view-chip">
+            <span class="vi">🔬</span>
+            <span class="vn">Vista Técnica</span>
+            <div class="vd">EHS · SCM · Series</div>
+          </div>
+          <div class="view-chip">
+            <span class="vi">📊</span>
+            <span class="vn">Vista Gestión</span>
+            <div class="vd">TPI · TIS · Presupuesto</div>
+          </div>
+          <div class="view-chip">
+            <span class="vi">⚖️</span>
+            <span class="vn">Auditoría</span>
+            <div class="vd">Trazabilidad · Fórmulas</div>
+          </div>
+        </div>
+        <div class="deploy-row">
+          <div class="dep-chip">
+            <span class="di">☁️</span>
+            <div>
+              <div class="dn">Azure Container Apps</div>
+              <div class="dd">Scale-to-zero · Sweden Central<br>CI/CD OIDC via GitHub Actions</div>
+            </div>
+          </div>
+          <div class="dep-chip">
+            <span class="di">🤗</span>
+            <div>
+              <div class="dn">Hugging Face Spaces</div>
+              <div class="dd">SDK Streamlit · branch hf-deploy<br>USE_MOCK_DATA=true</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+      <div class="slabel">📈 Resultados PNSG</div>
+
+      <div class="res-grid">
+        <div class="res-chip">
+          <div class="res-num">73</div>
+          <div class="res-lbl">senderos analizados</div>
+        </div>
+        <div class="res-chip">
+          <div class="res-num">17</div>
+          <div class="res-lbl">con deterioro activo</div>
+        </div>
+        <div class="res-chip">
+          <div class="res-num">27</div>
+          <div class="res-lbl">señal turística</div>
+        </div>
+        <div class="res-chip">
+          <div class="res-num">37</div>
+          <div class="res-lbl">señal climática</div>
+        </div>
+      </div>
+
+      <div class="out-stat">
+        <div class="stat-num">~205k€</div>
+        <div class="stat-lbl">Presupuesto de intervención<br>priorizado por DCS</div>
+      </div>
+
+      <div style="height:12px"></div>
+      <div class="slabel">🧰 Stack tecnológico</div>
+
+      <div class="src-box">
+        <span class="icon">🐍</span>
+        <div class="name">Python ≥ 3.12</div>
+        <div class="detail">rasterio · rasterstats<br>geopandas · shapely</div>
+      </div>
+
+      <div class="src-box">
+        <span class="icon">🗄️</span>
+        <div class="name">PostGIS</div>
+        <div class="detail">PostgreSQL · EPSG:25830<br>GeoJSON output</div>
+      </div>
+
+      <div class="src-box">
+        <span class="icon">✅</span>
+        <div class="name">493 tests · CI/CD</div>
+        <div class="detail">pytest · ruff · 0 regresiones<br>GitHub Actions · Docker</div>
+      </div>
+
+      <div style="height:12px"></div>
+      <div class="slabel">📄 Publicaciones</div>
+
+      <div class="out-box">
+        <span class="icon">📄</span>
+        <div class="name">Preprint ResearchGate</div>
+        <div class="detail">SNTO_Preprint_2026_Karahrodi<br>Abstract EN · 7 secciones</div>
+      </div>
+
+      <div class="out-box">
+        <span class="icon">📚</span>
+        <div class="name">Whitepaper Zenodo</div>
+        <div class="detail">Architecture Blueprint<br>DOI: 10.5281/zenodo.20818270</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    SNTO v1.0.0 · Investigación académica · Universidad Complutense de Madrid · Supervisión: Carmen Mínguez &amp; Susana Ramírez García (REGENERA) · Junio 2026
+  </div>
+
+</div><!-- /infographic -->
+
+<script>
+function downloadPNG() {
+  const bar = document.getElementById('dl-bar');
+  bar.style.display = 'none';
+  const el = document.getElementById('infographic');
+  html2canvas(el, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#0d1b2a',
+    width: 1200,
+    windowWidth: 1200
+  }).then(canvas => {
+    bar.style.display = '';
+    const link = document.createElement('a');
+    link.download = 'SNTO_Architecture_2026_Karahrodi.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+}
+</script>
+
+</body>
+</html>
