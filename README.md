@@ -363,5 +363,5 @@ Fichero de cita: [`CITATION.cff`](CITATION.cff) · Contribuciones: [`CONTRIBUTIN
 ---
 
 <div align="center">
-<sub>SNTO v0.1.0 · Python ≥ 3.12 · 581 tests passing · julio 2026</sub>
+<sub>SNTO v1.0.0 · Python ≥ 3.12 · 581 tests passing · julio 2026</sub>
 </div>
