@@ -177,6 +177,21 @@ li { margin: 0.2em 0; }
 }
 .honesty-box strong { color: #7d4e00; }
 
+/* ── Correction / erratum box ──────────────────────────────── */
+.correction-box {
+  border: 1.5px solid #b23b3b; background: #fdf2f2;
+  border-radius: 4px; padding: 12px 16px; margin: 0 0 1.6em;
+  font-size: 9.5pt;
+}
+.correction-box .corr-label {
+  display: block; font-family: system-ui, sans-serif;
+  font-size: 8pt; font-weight: 700; letter-spacing: 0.5px;
+  text-transform: uppercase; color: #8a2a2a; margin-bottom: 6px;
+}
+.correction-box strong { color: #7a1f1f; }
+.correction-box p { margin: 0.35em 0; }
+.correction-box p.corr-es { color: #4a4a4a; font-style: italic; }
+
 /* ── References ─────────────────────────────────────────── */
 ol.refs { font-size: 9pt; padding-left: 2em; }
 ol.refs li { margin: 0.4em 0; line-height: 1.5; }
@@ -238,11 +253,38 @@ ol.refs li { margin: 0.4em 0; line-height: 1.5; }
   </p>
   <div class="paper-meta">
     Submitted: June 2026 &nbsp;·&nbsp;
-    Version: 1.0.0 &nbsp;·&nbsp;
+    Version: 1.1.0 (supersedes 1.0.0) &nbsp;·&nbsp;
     License: Academic use (see <a href="https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/blob/main/LICENSE">LICENSE</a>)<br>
     Repository: <a href="https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory">github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory</a><br>
     <div class="doi-box">DOI: 10.5281/zenodo.20818270</div>
   </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     CORRECTION NOTICE (v1.1.0)
+     ══════════════════════════════════════════════════════ -->
+<div class="correction-box">
+  <span class="corr-label">Erratum — correction in v1.1.0</span>
+  <p>
+    Version 1.0.0 of this preprint (DOI: 10.5281/zenodo.20818270) misattributed a trail count of
+    <strong>73 trails (149.4 km)</strong> to the Sierra de Guadarrama National Park (PNSG) analysis
+    presented here. That figure is correct, but belongs to an earlier calibration pilot on the
+    Sierra del Rincón Biosphere Reserve, not to PNSG. The PNSG trail network analysed in this study,
+    reconstructed from official OAPN cartography, comprises <strong>218 named trails (1,035.1 km)</strong>.
+    This version corrects that attribution throughout the manuscript. No raster inputs, formulas,
+    EHS/ΔEHS/SCM results, or conclusions are affected by this correction — only the stated size of
+    the PNSG trail network.
+  </p>
+  <p class="corr-es">
+    <em>Nota en español:</em> la versión 1.0.0 de este preprint atribuyó erróneamente al Parque
+    Nacional Sierra de Guadarrama (PNSG) una cifra de <strong>73 senderos (149,4 km)</strong>. Ese
+    dato es correcto, pero corresponde al piloto de calibración anterior sobre la Reserva de la
+    Biosfera Sierra del Rincón, no al PNSG. La red de senderos del PNSG analizada en este estudio,
+    reconstruida a partir de la cartografía oficial OAPN, comprende <strong>218 senderos (1.035,1
+    km)</strong>. Esta versión corrige dicha atribución en todo el manuscrito; no afecta a los datos
+    ráster, fórmulas, resultados EHS/ΔEHS/SCM ni conclusiones — solo al tamaño declarado de la red
+    de senderos del PNSG.
+  </p>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
@@ -272,7 +314,7 @@ ol.refs li { margin: 0.4em 0; line-height: 1.5; }
   <p>
     Applied to the <strong>Parque Nacional Sierra de Guadarrama (PNSG)</strong>, Spain — using
     official OAPN cartography and two real Sentinel-2 scenes (summer 2025-08-10 and spring
-    2026-04-10, tile T30TVL) — the system analysed <strong>73 trails (149.4 km)</strong> and
+    2026-04-10, tile T30TVL) — the system analysed <strong>218 trails (1,035.1 km)</strong> and
     identified 17 (23%) with active seasonal deterioration (ΔEHS &gt; 0). Causal attribution
     classified 27 trails as localised-impact (use-driven), 9 as mixed, and 37 as
     landscape-driven (climate-forcing dominant). The indicative restoration budget under
@@ -348,9 +390,9 @@ ol.refs li { margin: 0.4em 0; line-height: 1.5; }
   service areas.
 </p>
 <p>
-  We analysed <strong>73 named trails</strong> reconstructed from the official OAPN
+  We analysed <strong>218 named trails</strong> reconstructed from the official OAPN
   cartography supplemented with OpenStreetMap (OSM Overpass, named ways dissolved by
-  name), representing 149.4 km of formal visitor infrastructure. The study covers
+  name), representing 1,035.1 km of formal visitor infrastructure. The study covers
   <strong>34 municipalities</strong> in the park's zone of influence, for which
   socioeconomic data were obtained from the INE national census and the ALMUDENA
   municipal data bank of the Comunidad de Madrid.
@@ -371,7 +413,7 @@ ol.refs li { margin: 0.4em 0; line-height: 1.5; }
   <caption>Table 1. Input data sources used in this study.</caption>
   <tr><th>Dataset</th><th>Provider</th><th>Spatial/temporal resolution</th><th>Use in SNTO</th></tr>
   <tr><td>Sentinel-2 L2A (NDVI/NDMI)</td><td>ESA / Copernicus</td><td>10 m · 5-day revisit · 2 scenes: 2025-08-10 (S2A) and 2026-04-10 (S2B), tile T30TVL</td><td>Primary spectral input for EHS, ΔEHS, SCM</td></tr>
-  <tr><td>Trail cartography + PRUG zoning</td><td>OAPN (Red de Parques Nacionales)</td><td>1:5,000 vector · 73 named trails</td><td>Trail geometries and management-zone classification</td></tr>
+  <tr><td>Trail cartography + PRUG zoning</td><td>OAPN (Red de Parques Nacionales)</td><td>1:5,000 vector · 218 named trails</td><td>Trail geometries and management-zone classification</td></tr>
   <tr><td>Supplementary trail network</td><td>OpenStreetMap (ODbL)</td><td>Vector · named ways</td><td>Gaps in OAPN coverage</td></tr>
   <tr><td>Municipal census (Padrón) + EOATR</td><td>INE (Spain)</td><td>Municipal · annual</td><td>Population, ageing index, tourism occupation</td></tr>
   <tr><td>Municipal economy (hostelería, income)</td><td>ALMUDENA — Comunidad de Madrid</td><td>Municipal · annual</td><td>Hospitality employment, income proxies</td></tr>
@@ -494,7 +536,7 @@ ol.refs li { margin: 0.4em 0; line-height: 1.5; }
 
 <h3>5.1 Ecological Health Score</h3>
 <p>
-  Mean EHS across the 73 PNSG trails was <strong>27.6/100</strong> in the summer scene
+  Mean EHS across the 218 PNSG trails was <strong>27.6/100</strong> in the summer scene
   (maximum 71.3; minimum 3.2). Seventeen trails (23%) showed active seasonal deterioration
   (ΔEHS &gt; 0, mean ΔEHS among deteriorating trails = −17.8), indicating that summer
   vegetation health was lower than spring, consistent with heat/drought stress compounded
@@ -511,7 +553,7 @@ ol.refs li { margin: 0.4em 0; line-height: 1.5; }
 
 <h3>5.2 Causal Attribution</h3>
 <p>
-  SCM classification of the 73 trails: <strong>27 LOCALIZED_IMPACT</strong> (37%),
+  SCM classification of the 218 trails: <strong>27 LOCALIZED_IMPACT</strong> (37%),
   <strong>9 MIXED</strong> (12%), <strong>37 LANDSCAPE_DRIVEN</strong> (51%).
   The majority of trails (51%) showed a landscape-scale spectral gradient consistent with
   climate forcing rather than trail-proximal use pressure. This result is consistent with the

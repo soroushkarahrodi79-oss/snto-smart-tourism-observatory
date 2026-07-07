@@ -17,7 +17,7 @@
 |---|---|---|
 | Profundidad | 2 escenas (primavera 2026 + verano 2025) | 72 composiciones mensuales 2021–2026 |
 | Inferencia válida | ΔEHS estacional (contraste pareado) | Tendencia inter-anual (Mann-Kendall + Sen) |
-| Territorio | PNSG (73 sendas OAPN) | PNSG (ampliable a OAPN) |
+| Territorio | PNSG (218 sendas OAPN) | PNSG (ampliable a OAPN) |
 | Tile Sentinel-2 | T30TVL | T30TVL |
 
 El objetivo **no** es más complejidad, sino convertir una *capacidad demostrada*
