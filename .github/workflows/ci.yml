@@ -57,3 +57,5 @@ jobs:
         run: python -m py_compile app.py run_pipeline_a_timeseries.py calculate_delta_ehs.py
       - name: Run test suite
         run: python -m pytest -q
+      - name: Check README version in sync with pyproject.toml
+        run: python scripts/sync_readme.py --check-version

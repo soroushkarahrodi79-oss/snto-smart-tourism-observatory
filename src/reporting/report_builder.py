@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Any
 
+from src._version import __version__
 from src.alerts.engine import Alert, AlertLevel
 from src.ranking.ranker import RankedAsset
 from src.risk_engine.scorer import RiskScore
@@ -39,7 +40,7 @@ def build_report(
         "metadata": {
             "report_date": report_date,
             "system": "Smart Natural Tourism Observatory (SNTO)",
-            "version": "1.0.0",
+            "version": __version__,
             "total_assets_evaluated": total,
         },
         "executive_summary": {
