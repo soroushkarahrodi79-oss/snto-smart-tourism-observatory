@@ -1891,8 +1891,10 @@ with tab_timeseries:
         _matched = find_trend(selected_asset.name, _real_trends.assets)
         if _matched is not None:
             _sig_es = "significativa (p<0,05)" if _matched.significant else "no significativa"
+            _m_years = sorted(_matched.annual_mean_ndvi)
+            _m_range = f"{_m_years[0]}–{_m_years[-1]}" if _m_years else ""
             st.success(
-                f"🛰️ **Dato satelital real (2021–2025):** este activo corresponde a "
+                f"🛰️ **Dato satelital real ({_m_range}):** este activo corresponde a "
                 f"`{_matched.asset_id}`. Tendencia NDVI empírica **{_matched.trend_es}** "
                 f"(τ={_matched.tau:.3f}, p={_matched.p_value:.3f}, {_sig_es}) sobre "
                 f"{_matched.n_observations} meses. Peor año {_matched.worst_year}, "
