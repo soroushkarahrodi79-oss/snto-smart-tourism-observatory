@@ -20,6 +20,7 @@ See [../reviews/2026/02-national-park-director.md](../reviews/2026/02-national-p
 - [Accessibility](accessibility.md)
 - [Visualization Review](visualization-review.md)
 - [UI Evolution](ui-evolution.md)
+- [UI Evolution — v2.0 Design Specification](ui-evolution-v2-spec.md)
 
 ## Recommendations
 Prioritize decision clarity over methodological completeness in primary screens.
