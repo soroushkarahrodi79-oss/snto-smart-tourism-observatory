@@ -13,7 +13,7 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 [![Deploy target](https://img.shields.io/badge/deploy-Azure%20Container%20Apps-0078D4?logo=microsoftazure&logoColor=white)](#7-despliegue)
 [![Status](https://img.shields.io/badge/estado-investigaci%C3%B3n%20activa-blue)](#1-estado-del-proyecto)
 [![License](https://img.shields.io/badge/uso-acad%C3%A9mico-lightgrey)](LICENSE)
-[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20818270-blue)](https://doi.org/10.5281/zenodo.20818270)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20818270-1682D4?logo=zenodo&logoColor=white)](https://doi.org/10.5281/zenodo.20818270)
 
 **🔴 [Dashboard en vivo](https://snto-observatory.happyground-be027676.swedencentral.azurecontainerapps.io/)** · 📄 [Whitepaper](WHITEPAPER_SNTO_Architecture_Blueprint.md) · 🏗 [Arquitectura](ARCHITECTURE.md)
 
