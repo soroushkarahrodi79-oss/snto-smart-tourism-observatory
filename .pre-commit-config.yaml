@@ -1,0 +1,31 @@
+# Pre-commit guardrails for the v1.1.0 temporal/spectral pipeline.
+#
+# Install once:   pip install pre-commit && pre-commit install
+# Run manually:   pre-commit run --all-files
+#
+# Intent: block a commit if it breaks lint or the temporal/override test math.
+# Scope is deliberately narrow (the v1.1.0 modules) so the hook stays fast and
+# does not fail on the repo's pre-existing lint debt in unrelated modules.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.10
+    hooks:
+      # Lint only the maintained temporal modules (mirrors the CI blocking gate).
+      - id: ruff
+        name: ruff (temporal modules)
+        files: ^(src/platform/(satellite_trends|charts)\.py|tests/unit/test_(satellite_trends|charts)\.py|tests/integration/test_temporal_regression\.py)$
+
+  - repo: local
+    hooks:
+      # Run the temporal + override test suite before allowing the commit.
+      - id: pytest-temporal
+        name: pytest (temporal + override regression)
+        entry: python -m pytest -q
+          tests/unit/test_satellite_trends.py
+          tests/unit/test_charts.py
+          tests/unit/test_enrichment.py
+          tests/integration/test_temporal_regression.py
+        language: system
+        pass_filenames: false
+        # Only trigger when temporal pipeline code or its tests change.
+        files: ^(src/platform/(satellite_trends|charts|enrichment)\.py|tests/.*temporal.*\.py|tests/unit/test_(satellite_trends|charts|enrichment)\.py|app\.py)$

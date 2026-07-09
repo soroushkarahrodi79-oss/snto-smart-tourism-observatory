@@ -20,7 +20,11 @@ from src.platform.map_layers import (
     build_pydeck_deck, build_pydeck_deck_spectral, build_real_trails_deck,
     assets_to_geojson, LEGEND_ITEMS, TIER_COLORS,
 )
-from src.platform.charts import build_portfolio_matrix, build_time_series_chart
+from src.platform.charts import (
+    build_portfolio_matrix,
+    build_real_trend_chart,
+    build_time_series_chart,
+)
 from src.platform.real_trails import (
     get_real_trails, build_real_trails_geojson, get_park_boundary,
 )
@@ -29,6 +33,7 @@ from src.platform.enrichment import enrich_assets_with_satellite, enrichment_sum
 from src.platform.provenance import (
     data_status_badge, load_timeseries_coverage, snapshot_provenance,
 )
+from src.platform.satellite_trends import summarize_trends, find_trend
 from src.platform.views import ConfidenceDetail, ViewMode, get_view, view_modes
 from src.platform import methodology as method
 from src.temporal import DataStatus
@@ -928,6 +933,18 @@ def load_dashboard(territory_key: str):
     return dash, assets, comps, by_id, budget, cfg, cal
 
 
+@st.cache_data(show_spinner=False)
+def _cached_trends():
+    """Tendencias satelitales reales (Mann-Kendall) cacheadas por sesión.
+
+    ``summarize_trends`` parsea el JSON de ``clean_assets/timeseries/analysis``
+    en cada llamada. Sin cache se relee del disco en cada rerun de Streamlit
+    (cada cambio de widget en la Pestaña 6). El payload es pequeño (~15 KB / 21
+    activos) pero el cache elimina la E/S repetida y mantiene la latencia plana.
+    """
+    return summarize_trends()
+
+
 # ── Renderizador de alertas en vivo ──────────────────────────────────────────
 _ALERT_META: dict[str, tuple[str, str, str, str]] = {
     # level: (icon, label, bg, border)
@@ -1683,6 +1700,109 @@ with tab_timeseries:
         "donde la sequía coincide con el sobreuso turístico documentado."
     )
 
+    # ── Panel: Tendencias satelitales REALES (Mann-Kendall multianual) ─────────
+    _real_trends = _cached_trends()
+    if _real_trends.available:
+        # Rango temporal real derivado de los datos (no hardcodeado)
+        _all_years = sorted({y for a in _real_trends.assets for y in a.annual_mean_ndvi})
+        _yr_lo, _yr_hi = (_all_years[0], _all_years[-1]) if _all_years else ("", "")
+        st.markdown(f"#### 🛰️ Tendencias satelitales reales · Sentinel-2 {_yr_lo}–{_yr_hi}")
+        st.caption(
+            "Análisis **Mann-Kendall** sobre activos reales del PNSG con imágenes "
+            "Sentinel-2 (Pipeline GEE). A diferencia del gráfico mensual de más "
+            "abajo (reconstrucción de validación), **los datos son empíricos**. "
+            "La *interpretación estadística*, en cambio, es **preliminar** (ver nota abajo)."
+        )
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Activos analizados", len(_real_trends.assets))
+        m2.metric("Degradación ↘ (prelim.)", _real_trends.n_degrading)
+        m3.metric("Mejora ↗ (prelim.)", _real_trends.n_improving)
+        m4.metric("Estables →", _real_trends.n_stable)
+
+        st.info(
+            "**Nota metodológica (v1.1.0):** el test de Mann-Kendall se calcula sobre "
+            "la serie **NDVI mensual cruda**, *sin desestacionalizar ni corregir la "
+            "autocorrelación serial*. El fuerte ciclo estacional del NDVI infla la "
+            "significancia, por lo que los p-valores y los recuentos ↗/↘ son "
+            "**indicativos, no confirmatorios**. La corrección estadística "
+            "(desestacionalización + Hamed-Rao + corrección de empates) llega en "
+            "**v1.1.1**. τ y p se muestran como referencia, sin corregir.",
+            icon="🔬",
+        )
+
+        if _real_trends.worst_year_global:
+            st.caption(
+                f"📉 **Señal climática:** {_real_trends.worst_year_global} es el peor año NDVI "
+                f"en la mayoría de activos — coincide con la sequía excepcional documentada "
+                f"(la peor en España desde 1945). Validación cruzada del pipeline."
+            )
+
+        if _real_trends.partial_years:
+            st.caption(
+                f"⏳ **Año parcial:** {', '.join(_real_trends.partial_years)} aún no tiene la "
+                f"temporada completa (faltan meses de verano), por lo que se incluye en la serie "
+                f"mensual pero **se excluye del ranking peor/mejor año** para una comparación justa."
+            )
+
+        for _alert in _real_trends.alerts:
+            _last = list(_alert.annual_mean_ndvi.values())
+            _drop = (_last[0] - _last[-1]) if len(_last) >= 2 else 0.0
+            st.warning(
+                f"**Señal a vigilar · {_alert.asset_id}** — NDVI {_alert.trend_es}, "
+                f"tendencia **preliminar** (τ={_alert.tau:.3f}, p={_alert.p_value:.3f}, "
+                f"sin corregir). Peor año {_alert.worst_year}, mejor {_alert.best_year}. "
+                f"Candidato a **inspección de campo** para confirmar (no es un "
+                f"diagnóstico estadístico cerrado).",
+                icon="⚠️",
+            )
+
+        with st.expander("📋 Tabla completa de tendencias reales (21 activos)", expanded=False):
+            import pandas as pd
+            _df = pd.DataFrame([
+                {
+                    "Activo": a.asset_id,
+                    "Categoría": a.category,
+                    "Tendencia": a.trend_es,
+                    "τ (Kendall)": round(a.tau, 3),
+                    "p-valor (sin corr.)": round(a.p_value, 3),
+                    "p<0,05 (prelim.)": "✓" if a.significant else "",
+                    "Peor año": a.worst_year,
+                    "Mejor año": a.best_year,
+                    "Meses": a.n_observations,
+                }
+                for a in _real_trends.assets
+            ])
+            st.dataframe(_df, use_container_width=True, hide_index=True)
+
+        # ── Gráfico multianual REAL (NDVI medio anual 2021→2026) ───────────────
+        # Se elige directamente sobre los 21 activos reales del Pipeline GEE
+        # (no depende del emparejamiento difuso con los activos curados, que para
+        # el PNSG no siempre resuelve). Esta es la serie EMPÍRICA, no simulada.
+        st.markdown("##### 📈 Serie anual real por activo (Sentinel-2)")
+        _real_labels = {
+            f"{a.asset_id}  ·  {a.trend_es}": a for a in _real_trends.assets
+        }
+        _sel_real = st.selectbox(
+            "Activo real (GEE) a graficar",
+            options=list(_real_labels.keys()),
+            index=0,
+            help="Activos reales analizados con Mann-Kendall sobre NDVI 2021–2026.",
+            key="real_trend_asset",
+        )
+        _ra = _real_labels[_sel_real]
+        try:
+            st.plotly_chart(build_real_trend_chart(_ra), use_container_width=True)
+            if _ra.partial_years:
+                st.caption(
+                    f"○ El año {', '.join(_ra.partial_years)} es **parcial** (sin "
+                    f"temporada completa): marcador hueco y excluido del ranking "
+                    f"peor/mejor año."
+                )
+        except Exception as _e:
+            st.warning(f"No se pudo renderizar la serie anual real: {_e}", icon="⚠️")
+
+        st.divider()
+
     # ── Selector de activo (prefijo de tier NEUTRO, no semafórico) ────────────
     _TIER_PREFIX = {1: "TIER I", 2: "TIER II", 3: "TIER III", 4: "TIER IV"}
 
@@ -1778,6 +1898,25 @@ with tab_timeseries:
             f"(confianza {selected_asset.scm_confidence}) · "
             f"riesgo {selected_asset.risk_score:.2f}."
         )
+
+    # ── Contraste con la tendencia satelital REAL del activo (si existe) ───────
+    if _real_trends.available:
+        _matched = find_trend(selected_asset.name, _real_trends.assets)
+        if _matched is not None:
+            _sig_es = (
+                "p<0,05 preliminar (sin corregir)" if _matched.significant
+                else "no significativa"
+            )
+            _m_years = sorted(_matched.annual_mean_ndvi)
+            _m_range = f"{_m_years[0]}–{_m_years[-1]}" if _m_years else ""
+            st.success(
+                f"🛰️ **Dato satelital real ({_m_range}):** este activo corresponde a "
+                f"`{_matched.asset_id}`. Tendencia NDVI empírica **{_matched.trend_es}**, "
+                f"lectura **preliminar** (τ={_matched.tau:.3f}, p={_matched.p_value:.3f}, "
+                f"{_sig_es}) sobre {_matched.n_observations} meses de NDVI crudo. "
+                f"Peor año {_matched.worst_year}, mejor {_matched.best_year}.",
+                icon="✅",
+            )
 
     # ── Nota metodológica ─────────────────────────────────────────────────────
     with st.expander("ℹ️ Nota metodológica sobre la simulación", expanded=False):

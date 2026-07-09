@@ -17,6 +17,7 @@ build_time_series_chart(asset, n_months) → go.Figure
 from __future__ import annotations
 
 import math
+
 import pandas as pd
 import plotly.graph_objects as go
 
@@ -540,7 +541,10 @@ def build_time_series_chart(asset, n_months: int = 24) -> go.Figure:
         fig.add_annotation(
             xref="paper", yref="paper",
             x=1.0, y=1.08,
-            text=f"🔴 <b>{n_anom} período(s)</b> de estrés hídrico crítico detectado(s)",
+            text=(
+                f"🔴 <b>{n_anom} período(s)</b> de estrés hídrico crítico "
+                f"detectado(s)"
+            ),
             showarrow=False,
             font=dict(size=10, color="#c62828"),
             xanchor="right", yanchor="bottom",
@@ -548,4 +552,140 @@ def build_time_series_chart(asset, n_months: int = 24) -> go.Figure:
             bordercolor="#c62828", borderwidth=1, borderpad=4,
         )
 
+    return fig
+
+
+# Dirección Mann-Kendall → color de la línea de tendencia real.
+_REAL_TREND_HEX = {
+    "increasing": "#2e7d32",   # verde — recuperación de verdor
+    "decreasing": "#c62828",   # rojo — degradación significativa
+    "no trend":   "#5a6472",   # gris — sin tendencia monotónica
+}
+
+
+def build_real_trend_chart(asset_trend) -> go.Figure:
+    """
+    Build the *empirical* multi-year NDVI trend chart for one asset.
+
+    Unlike ``build_time_series_chart`` (a monthly reconstruction), this plots the
+    REAL annual mean NDVI exported by the GEE / Mann-Kendall pipeline
+    (``satellite_trends.AssetTrend``). Years flagged ``partial_years`` (e.g. the
+    in-progress 2026 without a full summer) are drawn with a hollow marker and a
+    dashed connector so they read as provisional, and excluded from the worst/best
+    annotation logic upstream.
+
+    Args:
+        asset_trend : an object exposing ``asset_id``, ``annual_mean_ndvi``
+                      (dict[year→ndvi]), ``partial_years`` (list[str]), ``tau``,
+                      ``p_value``, ``trend``, ``trend_es``, ``worst_year`` and
+                      ``best_year`` — i.e. ``satellite_trends.AssetTrend``.
+
+    Returns:
+        plotly.graph_objects.Figure ready for ``st.plotly_chart``. If there are
+        fewer than two annual points the figure carries an explanatory annotation
+        instead of an (uninterpretable) trend line.
+    """
+    annual = asset_trend.annual_mean_ndvi or {}
+    years = sorted(annual.keys())
+    partial = set(asset_trend.partial_years or [])
+
+    fig = go.Figure()
+
+    if len(years) < 2:
+        fig.add_annotation(
+            xref="paper", yref="paper", x=0.5, y=0.5,
+            text="Serie anual insuficiente para una tendencia (≥ 2 años).",
+            showarrow=False, font=dict(size=12, color="#5a6472"),
+        )
+        fig.update_layout(height=320, plot_bgcolor="white", paper_bgcolor="white")
+        return fig
+
+    values = [annual[y] for y in years]
+    line_color = _REAL_TREND_HEX.get(asset_trend.trend, "#5a6472")
+
+    # Separar años completos vs. parciales para estilarlos distinto.
+    full_x = [y for y in years if y not in partial]
+    full_y = [annual[y] for y in full_x]
+    part_x = [y for y in years if y in partial]
+    part_y = [annual[y] for y in part_x]
+
+    # Línea base (conecta todos los años, incluido el parcial, en tono tenue).
+    fig.add_trace(go.Scatter(
+        x=years, y=values,
+        mode="lines",
+        line=dict(color=line_color, width=2.5),
+        name="NDVI medio anual",
+        hoverinfo="skip",
+        showlegend=False,
+    ))
+
+    # Años completos: marcadores sólidos.
+    fig.add_trace(go.Scatter(
+        x=full_x, y=full_y,
+        mode="markers",
+        marker=dict(size=11, color=line_color,
+                    line=dict(width=1.5, color="white")),
+        name="Año completo",
+        hovertemplate="<b>%{x}</b><br>NDVI medio: %{y:.3f}<extra></extra>",
+    ))
+
+    # Años parciales (p. ej. 2026 sin verano): marcador hueco + aviso.
+    if part_x:
+        fig.add_trace(go.Scatter(
+            x=part_x, y=part_y,
+            mode="markers",
+            marker=dict(size=12, color="white", symbol="circle-open",
+                        line=dict(width=2.5, color=line_color)),
+            name="Año parcial (provisional)",
+            hovertemplate=(
+                "<b>%{x}</b> (parcial)<br>NDVI medio: %{y:.3f}<extra></extra>"
+            ),
+        ))
+
+    # Resaltar peor / mejor año si están entre los completos.
+    for yr, label, color in (
+        (asset_trend.worst_year, "peor", "#c62828"),
+        (asset_trend.best_year, "mejor", "#2e7d32"),
+    ):
+        if yr in annual:
+            fig.add_annotation(
+                x=yr, y=annual[yr],
+                text=f"{label} año",
+                showarrow=True, arrowhead=0, arrowwidth=1, arrowcolor=color,
+                ay=-28 if label == "mejor" else 28, ax=0,
+                font=dict(size=10, color=color),
+            )
+
+    _sig = ("significativa (p<0,05)" if asset_trend.p_value < 0.05
+            else "no significativa")
+    fig.update_layout(
+        title=dict(
+            text=(
+                f"<b>NDVI anual real · {asset_trend.asset_id}</b><br>"
+                f"<span style='color:{line_color};font-size:11px'>"
+                f"Mann-Kendall {asset_trend.trend_es} · τ={asset_trend.tau:.3f} · "
+                f"p={asset_trend.p_value:.3f} ({_sig})</span>"
+            ),
+            font=dict(size=13, color="#0d1b2a"),
+            x=0.0, xanchor="left",
+        ),
+        xaxis=dict(
+            title="", type="category",
+            showgrid=True, gridcolor="rgba(180,190,200,0.3)",
+        ),
+        yaxis=dict(
+            title=dict(text="NDVI medio anual", font=dict(color="#2e7d32")),
+            tickfont=dict(color="#2e7d32"),
+            showgrid=True, gridcolor="rgba(46,125,50,0.12)",
+        ),
+        legend=dict(
+            orientation="h", yanchor="bottom", y=1.02,
+            xanchor="left", x=0, font=dict(size=11),
+        ),
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+        margin=dict(l=60, r=30, t=90, b=40),
+        hoverlabel=dict(bgcolor="#1b2d42", font_color="white", font_size=12),
+        height=380,
+    )
     return fig

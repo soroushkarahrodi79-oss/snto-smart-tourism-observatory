@@ -1,0 +1,716 @@
+{
+  "pnsg_vuelo_libre_el_nevero": {
+    "n_observations": 60,
+    "mann_kendall_ndvi": {
+      "tau": 0.191,
+      "z": 2.149,
+      "p_approx": 0.0316,
+      "trend": "increasing",
+      "n": 60
+    },
+    "mann_kendall_ndmi": {
+      "tau": 0.027,
+      "z": 0.3,
+      "p_approx": 0.7644,
+      "trend": "no trend",
+      "n": 60
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.3934,
+      "2022": 0.388,
+      "2023": 0.4171,
+      "2024": 0.4189,
+      "2025": 0.4186,
+      "2026": 0.4392
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2024",
+    "ndvi_range": {
+      "min": 0.3277,
+      "max": 0.4779
+    }
+  },
+  "pnsg_vuelo_libre_la_nevera": {
+    "n_observations": 63,
+    "mann_kendall_ndvi": {
+      "tau": 0.158,
+      "z": 1.827,
+      "p_approx": 0.0677,
+      "trend": "no trend",
+      "n": 63
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.064,
+      "z": -0.735,
+      "p_approx": 0.4621,
+      "trend": "no trend",
+      "n": 63
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.4204,
+      "2022": 0.3948,
+      "2023": 0.4403,
+      "2024": 0.4708,
+      "2025": 0.4363,
+      "2026": 0.4516
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2024",
+    "ndvi_range": {
+      "min": 0.3112,
+      "max": 0.549
+    }
+  },
+  "pnsg_vuelo_libre_el_espartal": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": -0.048,
+      "z": -0.564,
+      "p_approx": 0.5724,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.109,
+      "z": -1.284,
+      "p_approx": 0.1992,
+      "trend": "no trend",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.4145,
+      "2022": 0.3959,
+      "2023": 0.4182,
+      "2024": 0.4171,
+      "2025": 0.4004,
+      "2026": 0.4221
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2023",
+    "ndvi_range": {
+      "min": 0.2212,
+      "max": 0.5814
+    }
+  },
+  "pnsg_escalada_el_chorro": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": -0.045,
+      "z": -0.531,
+      "p_approx": 0.5952,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.2,
+      "z": -2.369,
+      "p_approx": 0.0179,
+      "trend": "decreasing",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.4109,
+      "2022": 0.3794,
+      "2023": 0.3991,
+      "2024": 0.4141,
+      "2025": 0.4097,
+      "2026": 0.3585
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2024",
+    "ndvi_range": {
+      "min": 0.2221,
+      "max": 0.4843
+    }
+  },
+  "pnsg_escalada_la_barranca_y_maliciosa": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": -0.041,
+      "z": -0.476,
+      "p_approx": 0.6341,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.163,
+      "z": -1.926,
+      "p_approx": 0.0541,
+      "trend": "no trend",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.3515,
+      "2022": 0.3521,
+      "2023": 0.3564,
+      "2024": 0.3639,
+      "2025": 0.3635,
+      "2026": 0.2699
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2021",
+    "best_ndvi_year": "2024",
+    "ndvi_range": {
+      "min": -0.0345,
+      "max": 0.4307
+    }
+  },
+  "pnsg_escalada_la_pedriza": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": -0.015,
+      "z": -0.177,
+      "p_approx": 0.8594,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.171,
+      "z": -2.025,
+      "p_approx": 0.0428,
+      "trend": "decreasing",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.5076,
+      "2022": 0.5124,
+      "2023": 0.5207,
+      "2024": 0.5147,
+      "2025": 0.5169,
+      "2026": 0.4777
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2021",
+    "best_ndvi_year": "2023",
+    "ndvi_range": {
+      "min": 0.3477,
+      "max": 0.6081
+    }
+  },
+  "pnsg_escalada_maliciosa_porrones": {
+    "n_observations": 65,
+    "mann_kendall_ndvi": {
+      "tau": -0.341,
+      "z": -4.014,
+      "p_approx": 0.0001,
+      "trend": "decreasing",
+      "n": 65
+    },
+    "mann_kendall_ndmi": {
+      "tau": 0.053,
+      "z": 0.617,
+      "p_approx": 0.5372,
+      "trend": "no trend",
+      "n": 65
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.2335,
+      "2022": 0.2338,
+      "2023": 0.2271,
+      "2024": 0.2326,
+      "2025": 0.2159,
+      "2026": 0.2129
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2025",
+    "best_ndvi_year": "2022",
+    "ndvi_range": {
+      "min": 0.1894,
+      "max": 0.2501
+    }
+  },
+  "pnsg_escalada_penalara": {
+    "n_observations": 65,
+    "mann_kendall_ndvi": {
+      "tau": 0.099,
+      "z": 1.161,
+      "p_approx": 0.2458,
+      "trend": "no trend",
+      "n": 65
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.126,
+      "z": -1.478,
+      "p_approx": 0.1395,
+      "trend": "no trend",
+      "n": 65
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.2264,
+      "2022": 0.2042,
+      "2023": 0.2336,
+      "2024": 0.2506,
+      "2025": 0.2409,
+      "2026": 0.1806
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2024",
+    "ndvi_range": {
+      "min": -0.0447,
+      "max": 0.3116
+    }
+  },
+  "pnsg_escalada_puerto_de_navacerrada": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": 0.011,
+      "z": 0.122,
+      "p_approx": 0.9031,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.094,
+      "z": -1.107,
+      "p_approx": 0.2684,
+      "trend": "no trend",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.6364,
+      "2022": 0.6424,
+      "2023": 0.6553,
+      "2024": 0.6529,
+      "2025": 0.6641,
+      "2026": 0.5614
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2021",
+    "best_ndvi_year": "2025",
+    "ndvi_range": {
+      "min": 0.271,
+      "max": 0.7819
+    }
+  },
+  "pnsg_escalada_valsain": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": 0.092,
+      "z": 1.085,
+      "p_approx": 0.2781,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.117,
+      "z": -1.384,
+      "p_approx": 0.1665,
+      "trend": "no trend",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.7354,
+      "2022": 0.7059,
+      "2023": 0.7548,
+      "2024": 0.7634,
+      "2025": 0.771,
+      "2026": 0.7056
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2025",
+    "ndvi_range": {
+      "min": 0.4758,
+      "max": 0.8514
+    }
+  },
+  "pnsg_ciclismo_las_zetas_de_la_pedriza": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": -0.04,
+      "z": -0.465,
+      "p_approx": 0.642,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.168,
+      "z": -1.992,
+      "p_approx": 0.0463,
+      "trend": "decreasing",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.6626,
+      "2022": 0.6655,
+      "2023": 0.6644,
+      "2024": 0.665,
+      "2025": 0.6704,
+      "2026": 0.6065
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2021",
+    "best_ndvi_year": "2025",
+    "ndvi_range": {
+      "min": 0.4253,
+      "max": 0.7886
+    }
+  },
+  "pnsg_ciclismo_la_morcuera_gr_10_4_pr_m_12": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": 0.029,
+      "z": 0.343,
+      "p_approx": 0.7315,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.096,
+      "z": -1.129,
+      "p_approx": 0.2589,
+      "trend": "no trend",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.6516,
+      "2022": 0.6285,
+      "2023": 0.6731,
+      "2024": 0.6586,
+      "2025": 0.669,
+      "2026": 0.6352
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2023",
+    "ndvi_range": {
+      "min": 0.4986,
+      "max": 0.8204
+    }
+  },
+  "pnsg_ciclismo_calderuelas_carro_del_diablo": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": -0.005,
+      "z": -0.055,
+      "p_approx": 0.9559,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.109,
+      "z": -1.284,
+      "p_approx": 0.1992,
+      "trend": "no trend",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.6911,
+      "2022": 0.6634,
+      "2023": 0.6893,
+      "2024": 0.6805,
+      "2025": 0.6991,
+      "2026": 0.6534
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2025",
+    "ndvi_range": {
+      "min": 0.4844,
+      "max": 0.805
+    }
+  },
+  "pnsg_ciclismo_la_horizontal_san_mames_10_000": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": -0.0,
+      "z": 0.0,
+      "p_approx": 1.0,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.081,
+      "z": -0.952,
+      "p_approx": 0.3412,
+      "trend": "no trend",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.7148,
+      "2022": 0.7023,
+      "2023": 0.7257,
+      "2024": 0.7229,
+      "2025": 0.7273,
+      "2026": 0.6771
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2025",
+    "ndvi_range": {
+      "min": 0.5115,
+      "max": 0.8279
+    }
+  },
+  "pnsg_ciclismo_calderuelas_collado_vihuelas_ramal_circular": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": 0.086,
+      "z": 1.018,
+      "p_approx": 0.3085,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": 0.036,
+      "z": 0.421,
+      "p_approx": 0.6741,
+      "trend": "no trend",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.6269,
+      "2022": 0.6052,
+      "2023": 0.6496,
+      "2024": 0.6491,
+      "2025": 0.6577,
+      "2026": 0.5875
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2025",
+    "ndvi_range": {
+      "min": 0.4142,
+      "max": 0.775
+    }
+  },
+  "pnsg_ciclismo_vivero_prado_redondillo": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": 0.023,
+      "z": 0.266,
+      "p_approx": 0.7905,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.16,
+      "z": -1.893,
+      "p_approx": 0.0584,
+      "trend": "no trend",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.7451,
+      "2022": 0.7065,
+      "2023": 0.7629,
+      "2024": 0.7468,
+      "2025": 0.7606,
+      "2026": 0.7319
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2023",
+    "ndvi_range": {
+      "min": 0.4671,
+      "max": 0.8707
+    }
+  },
+  "pnsg_reserva_umbria_de_siete_picos": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": 0.112,
+      "z": 1.328,
+      "p_approx": 0.1841,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.052,
+      "z": -0.609,
+      "p_approx": 0.5427,
+      "trend": "no trend",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.5605,
+      "2022": 0.5818,
+      "2023": 0.6721,
+      "2024": 0.6593,
+      "2025": 0.646,
+      "2026": 0.4957
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2021",
+    "best_ndvi_year": "2023",
+    "ndvi_range": {
+      "min": 0.094,
+      "max": 0.8925
+    }
+  },
+  "pnsg_reserva_afloramientos_metamorficos_del_collado_de_la_flecha_y_cabecera_del_artinuelo": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": 0.054,
+      "z": 0.631,
+      "p_approx": 0.5281,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.166,
+      "z": -1.97,
+      "p_approx": 0.0488,
+      "trend": "decreasing",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.59,
+      "2022": 0.5526,
+      "2023": 0.6065,
+      "2024": 0.5925,
+      "2025": 0.5924,
+      "2026": 0.5082
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2023",
+    "ndvi_range": {
+      "min": 0.2397,
+      "max": 0.7017
+    }
+  },
+  "pnsg_reserva_umbria_de_cerro_ventoso": {
+    "n_observations": 66,
+    "mann_kendall_ndvi": {
+      "tau": -0.017,
+      "z": -0.199,
+      "p_approx": 0.8421,
+      "trend": "no trend",
+      "n": 66
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.048,
+      "z": -0.564,
+      "p_approx": 0.5724,
+      "trend": "no trend",
+      "n": 66
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.6545,
+      "2022": 0.6527,
+      "2023": 0.7018,
+      "2024": 0.6915,
+      "2025": 0.6893,
+      "2026": 0.5321
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2023",
+    "ndvi_range": {
+      "min": 0.1453,
+      "max": 0.8864
+    }
+  },
+  "pnsg_reserva_turberas_de_el_reventon": {
+    "n_observations": 64,
+    "mann_kendall_ndvi": {
+      "tau": 0.121,
+      "z": 1.408,
+      "p_approx": 0.1592,
+      "trend": "no trend",
+      "n": 64
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.165,
+      "z": -1.918,
+      "p_approx": 0.0552,
+      "trend": "no trend",
+      "n": 64
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.5077,
+      "2022": 0.4728,
+      "2023": 0.5123,
+      "2024": 0.5386,
+      "2025": 0.5074,
+      "2026": 0.4995
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2024",
+    "ndvi_range": {
+      "min": -0.0158,
+      "max": 0.6433
+    }
+  },
+  "pnsg_reserva_charcas_de_los_llanos_de_penalara": {
+    "n_observations": 58,
+    "mann_kendall_ndvi": {
+      "tau": 0.105,
+      "z": 1.154,
+      "p_approx": 0.2486,
+      "trend": "no trend",
+      "n": 58
+    },
+    "mann_kendall_ndmi": {
+      "tau": -0.128,
+      "z": -1.409,
+      "p_approx": 0.1589,
+      "trend": "no trend",
+      "n": 58
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.3124,
+      "2022": 0.2608,
+      "2023": 0.3207,
+      "2024": 0.3379,
+      "2025": 0.3039,
+      "2026": 0.312
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2024",
+    "ndvi_range": {
+      "min": -0.0592,
+      "max": 0.4479
+    }
+  }
+}
