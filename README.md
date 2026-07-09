@@ -6,7 +6,7 @@
 
 De la teledetección Sentinel-2 a la decisión de inversión pública: indicadores ambientales calibrados, atribución causal de la degradación y priorización presupuestaria sobre el **Parque Nacional Sierra de Guadarrama (PNSG)**, primer territorio de la Red de Parques Nacionales (OAPN) integrado en el observatorio.
 
-[![Tests](https://img.shields.io/badge/tests-531%20passing-brightgreen)](#8-tests)
+[![Tests](https://img.shields.io/badge/tests-552%20passing-brightgreen)](#8-tests)
 [![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue)](https://www.python.org/)
 [![CI](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml)
 [![Deploy](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml)
@@ -25,7 +25,7 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 
 La mayoría de los espacios naturales protegidos gestionan el impacto del turismo de forma **reactiva**: actúan cuando la degradación ya es visible. El SNTO transforma ese paradigma en **gobernanza regenerativa proactiva** — detecta el estrés ecológico desde el satélite antes de que sea irreversible, distingue si la causa es el uso turístico o el clima, y traduce cada hallazgo en una **prioridad de inversión con presupuesto y nivel de confianza**.
 
-> **Para evaluadores y revisores:** este repositorio es un proyecto de investigación académica de la **Universidad Complutense de Madrid (UCM)**: un observatorio que evalúa el estado de senderos y enclaves de turismo natural por teledetección satelital, detecta zonas de riesgo de degradación y prioriza la intervención con fórmulas financieras. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (218 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases, con capas de **andamiaje temporal (serie 2021–2026), trazabilidad/confianza del dato, baselines estratificados, incertidumbre del ranking y validación de campo**. **531 tests, CI separado del deploy, dos pipelines arquitectónicamente desacoplados.** La gobernanza se alinea con los marcos europeos de reporte de espacios protegidos (Natura 2000 / EUROPARC / SISMOTUR), validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
+> **Para evaluadores y revisores:** este repositorio es un proyecto de investigación académica de la **Universidad Complutense de Madrid (UCM)**: un observatorio que evalúa el estado de senderos y enclaves de turismo natural por teledetección satelital, detecta zonas de riesgo de degradación y prioriza la intervención con fórmulas financieras. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (218 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases, con capas de **andamiaje temporal (serie 2021–2026), trazabilidad/confianza del dato, baselines estratificados, incertidumbre del ranking y validación de campo**. **552 tests, CI separado del deploy, dos pipelines arquitectónicamente desacoplados.** La gobernanza se alinea con los marcos europeos de reporte de espacios protegidos (Natura 2000 / EUROPARC / SISMOTUR), validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
 
 ---
 
@@ -63,13 +63,13 @@ _Dashboard ejecutivo con 10 KPIs territoriales, mapa folium de activos y modelo 
 | Componente | Territorio | Estado |
 |---|---|---|
 | **Pipeline A — Geoespacial** | **Parque Nacional Sierra de Guadarrama (PNSG)** — territorio principal | ✅ Operacional con datos Sentinel-2 reales (2 escenas: primavera 2026 + verano 2025); **218 senderos** con cartografía oficial OAPN |
-| **Capa temporal Sentinel-2 real (v1.1.0)** | PNSG — 21 activos reales | ✅ Real 2021–2026 (GEE); Mann-Kendall **preliminar** (sin corregir, ver §9) |
+| **Capa temporal Sentinel-2 real (v1.1.1)** | PNSG — 21 activos reales | ✅ Real 2021–2026 (GEE); Mann-Kendall **desestacionalizado y verificado con Yue-Pilon** (ver §9) |
 | **Pipeline A — Calibración metodológica** | Reserva de la Biosfera Sierra del Rincón (Madrid) | ✅ Piloto de validación del método (escenas reales propias) |
 | **Pipeline B — Inteligencia territorial (7 fases)** | Villuercas-Ibores-Jara Geopark (Extremadura) | ✅ Demostración funcional completa sobre 20 activos sintéticos calibrados |
 | **Capa socioeconómica (ALMUDENA / INE)** | PNSG — 34 municipios | ✅ SVI + impacto en comunidad + empleos en riesgo, integrado en el dashboard |
 | **Dashboard ejecutivo** | PNSG | ✅ Desplegado en Azure Container Apps (scale-to-zero) |
 | **CI/CD** | — | ✅ GitHub Actions → ACR build → roll Container App |
-| **Tests** | — | ✅ 531 passing, 0 regresiones (suite verde, ver §8) |
+| **Tests** | — | ✅ 552 passing, 0 regresiones (suite verde, ver §8) |
 
 El Pipeline A produce indicadores ambientales reales: el **PNSG** es el territorio principal del observatorio y la **Reserva de la Biosfera Sierra del Rincón** se conserva como piloto de calibración metodológica (valida el método sobre un segundo territorio con datos reales). El Pipeline B demuestra el sistema de gobernanza de extremo a extremo. Ambos pipelines están diseñados para integrarse cuando el Pipeline A disponga de series temporales multi-anuales reales. El observatorio se expandirá a más espacios de la **Red de Parques Nacionales (OAPN)** en fases posteriores.
 
@@ -153,7 +153,7 @@ class F,G,H,I,J dash;
 - **TPI (Territorial Priority Index)** para ranking de activos y asignación de recursos en 4 tiers (atención inmediata → promoción activa).
 - **TIS — escenarios de intervención** con simulación de impacto, optimizador de presupuesto y análisis contrafactual (coste de no actuar).
 - **Dashboard ejecutivo** de 10 KPIs, modelo de madurez de destino de 5 niveles y 5 perfiles de stakeholders.
-- **Capa temporal Sentinel-2 real (v1.1.0)** — `src/platform/satellite_trends.py` + `clean_assets/timeseries/`: serie mensual NDVI/NDMI real 2021–2026 (GEE) para 21 activos reales del PNSG, con tendencia Mann-Kendall por activo surgida en el panel "Tendencias satelitales reales" (pestaña Series Temporales). Reportada como **preliminar/indicativa** (sin desestacionalizar ni corregir autocorrelación); corrección estadística prevista en v1.1.1.
+- **Capa temporal Sentinel-2 real (v1.1.0, estadística corregida en v1.1.1)** — `src/platform/satellite_trends.py` + `clean_assets/timeseries/`: serie mensual NDVI/NDMI real 2021–2026 (GEE) para 21 activos reales del PNSG, con tendencia Mann-Kendall por activo surgida en el panel "Tendencias satelitales reales" (pestaña Series Temporales). El test corre sobre la serie **desestacionalizada** (descomposición armónica), con **corrección de empates**, **pendiente de Sen + IC 95%** y verificación de robustez frente a autocorrelación (**pre-whitening Yue-Pilon**). Ver [docs/nota_metodologica_temporalidad.md](docs/nota_metodologica_temporalidad.md).
 - **Andamiaje temporal declarativo** — `src/temporal/`: especificación declarativa de la serie (`PNSG_5Y` = 72 meses), **gate de validez Mann-Kendall** (qué inferencia sostiene cada profundidad: ΔEHS estacional vs tendencia) y **manifiesto de procedencia** por periodo — ruta de código separada de la capa anterior, aún sin activar con datos reales. Ver [docs/temporal_series_design.md](docs/temporal_series_design.md).
 - **Trazabilidad y confianza del dato** — `src/platform/provenance.py`: etiquetas visibles **dato real / calibrado / sintético**, fechas de escena reales, cobertura y *caveats* de confianza en el dashboard.
 - **Baselines estratificados + incertidumbre** — `src/risk_engine/baselines.py` (P90/P10 por estrato ecológico con fallback) y `src/analysis/sensitivity.py` (banda de pesos, **ranking robusto** y Monte-Carlo). Ver [docs/baselines_uncertainty_design.md](docs/baselines_uncertainty_design.md).
@@ -301,7 +301,7 @@ Secrets requeridos en GitHub (`Settings ▸ Secrets and variables ▸ Actions`):
 pytest --tb=short
 ```
 
-- **531 passing, 0 regresiones, suite verde.**
+- **552 passing, 0 regresiones, suite verde.**
 - **CI (`ci.yml`)** ejecuta además `ruff` bloqueante sobre los módulos mantenidos (F0–F7), `ruff` informativo sobre el resto (deuda de lint en reducción), import smoke y `py_compile` de los entry points.
 
 ---
@@ -313,7 +313,7 @@ Esta sección es deliberada: la transparencia metodológica es parte del valor a
 - **Pipeline A — profundidad temporal operacional:** el EHS/ΔEHS operacional (percentiles P90/P10 por escena) sigue anclado en 2 imágenes Sentinel-2 reales (primavera 2026 + verano 2025, un único ciclo anual); el **ΔEHS estacional** (señal de alerta temprana) es válido con dos escenas y no cambia con v1.1.0.
 - **Pipeline B — naturaleza de los datos:** opera sobre 20 activos sintéticos calibrados con anomalías documentadas de AEMET / Copernicus. La calibración no sustituye a una validación con datos satelitales reales multi-anuales.
 - **Baselines EHS por hábitat:** el **framework** de baselines estratificados ya existe (`src/risk_engine/baselines.py`, con fallback a percentil de escena), pero la estratificación operativa por altitud/orientación requiere un **DEM aún no integrado** y el EHS operacional usa hoy percentiles de escena. Es una brecha de datos, no de método.
-- **Serie temporal 2021–2026 (v1.1.0):** la ingesta real vía Google Earth Engine **ya está hecha** para 21 activos reales del PNSG (`clean_assets/timeseries/`, panel "Tendencias satelitales reales" en la pestaña Series Temporales). El test **Mann-Kendall se calcula ahora sobre NDVI mensual real del PNSG**, no solo sobre el Pipeline B — pero se reporta explícitamente como **preliminar/indicativo**: el test corre sobre la serie mensual cruda, sin desestacionalizar ni corregir autocorrelación serial, lo que infla la significancia. La corrección estadística (desestacionalización + Hamed-Rao + corrección de empates) es el objetivo de **v1.1.1** (`research/statistical-rigor`). Nota: esta capa es independiente del andamiaje declarativo `src/temporal/` (spec + `trend_gate` + manifiesto), que sigue sin activar con datos reales — son dos rutas de código distintas hoy.
+- **Serie temporal 2021–2026 (v1.1.0, estadística corregida v1.1.1):** la ingesta real vía Google Earth Engine está hecha para 21 activos reales del PNSG (`clean_assets/timeseries/`, panel "Tendencias satelitales reales" en la pestaña Series Temporales). El test **Mann-Kendall corre sobre la serie desestacionalizada** (descomposición armónica de 2 componentes), con **corrección de empates** en la varianza y **pendiente de Sen con intervalo de confianza no paramétrico**. Los 7 veredictos significativos superan además una prueba de robustez de *pre-whitening* libre de tendencia (Yue-Pilon 2002) sin ningún cambio de dirección. v1.1.1 también corrigió un bug de orden cronológico (year/month se ordenaban como texto: "10" antes que "2"), presente en el release público v1.1.0, que corrompía la serie mensual de los 21 activos. Detalle completo y kit de defensa del tribunal en [docs/nota_metodologica_temporalidad.md](docs/nota_metodologica_temporalidad.md). Nota: esta capa sigue siendo independiente del andamiaje declarativo `src/temporal/` (spec + `trend_gate` + manifiesto), que continúa sin activar con datos reales — son dos rutas de código distintas.
 - **Validación de campo:** el esquema y las métricas de concordancia (`src/validation/`) están listos; **falta la campaña de terreno** (penetrómetro, parcelas, control) o, en su defecto, la pseudo-validación con puntos de control satelitales.
 - **Costes unitarios de restauración (15,50 €/m):** calibrados con tarifas TRAGSA 2023; la cita de la resolución oficial por partida está pendiente de cierre y debe tratarse como estimación de orden de magnitud hasta entonces.
 - **Capa económica = análisis prospectivo:** los ingresos, empleos proxy y el ratio coste-beneficio de la pestaña *Impacto Socioeconómico* son **escenarios condicionales** sobre `visitor_capacity_annual` (atributo curado) y parámetros de literatura — no economía observada ni predicción. Su naturaleza se etiqueta en la interfaz.
@@ -365,5 +365,5 @@ Fichero de cita: [`CITATION.cff`](CITATION.cff) · Contribuciones: [`CONTRIBUTIN
 ---
 
 <div align="center">
-<sub>SNTO v1.1.0 · Python ≥ 3.12 · 531 tests passing · julio 2026</sub>
+<sub>SNTO v1.1.1 · Python ≥ 3.12 · 552 tests passing · julio 2026</sub>
 </div>

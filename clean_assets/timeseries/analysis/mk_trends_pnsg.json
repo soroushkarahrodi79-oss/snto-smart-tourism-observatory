@@ -2,18 +2,40 @@
   "pnsg_vuelo_libre_el_nevero": {
     "n_observations": 60,
     "mann_kendall_ndvi": {
-      "tau": 0.191,
-      "z": 2.149,
-      "p_approx": 0.0316,
+      "tau": 0.225,
+      "z": 2.532,
+      "p_approx": 0.0113,
       "trend": "increasing",
-      "n": 60
+      "sens_slope": 0.000775,
+      "sens_slope_ci": [
+        0.000188,
+        0.001322
+      ],
+      "is_significant": true,
+      "n": 60,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.0759,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": 0.027,
-      "z": 0.3,
-      "p_approx": 0.7644,
+      "tau": 0.105,
+      "z": 1.18,
+      "p_approx": 0.238,
       "trend": "no trend",
-      "n": 60
+      "sens_slope": 0.000338,
+      "sens_slope_ci": [
+        -0.000256,
+        0.000858
+      ],
+      "is_significant": false,
+      "n": 60,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.2424,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.3934,
@@ -36,18 +58,40 @@
   "pnsg_vuelo_libre_la_nevera": {
     "n_observations": 63,
     "mann_kendall_ndvi": {
-      "tau": 0.158,
-      "z": 1.827,
-      "p_approx": 0.0677,
-      "trend": "no trend",
-      "n": 63
+      "tau": 0.176,
+      "z": 2.028,
+      "p_approx": 0.0425,
+      "trend": "increasing",
+      "sens_slope": 0.000678,
+      "sens_slope_ci": [
+        5e-06,
+        0.001496
+      ],
+      "is_significant": true,
+      "n": 63,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.1852,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.064,
-      "z": -0.735,
-      "p_approx": 0.4621,
+      "tau": -0.063,
+      "z": -0.724,
+      "p_approx": 0.4693,
       "trend": "no trend",
-      "n": 63
+      "sens_slope": -0.000179,
+      "sens_slope_ci": [
+        -0.000905,
+        0.000514
+      ],
+      "is_significant": false,
+      "n": 63,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.1624,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.4204,
@@ -70,18 +114,40 @@
   "pnsg_vuelo_libre_el_espartal": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": -0.048,
-      "z": -0.564,
-      "p_approx": 0.5724,
+      "tau": 0.001,
+      "z": 0.0,
+      "p_approx": 1.0,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 7e-06,
+      "sens_slope_ci": [
+        -0.000789,
+        0.0007
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.6306,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.109,
-      "z": -1.284,
-      "p_approx": 0.1992,
+      "tau": -0.121,
+      "z": -1.428,
+      "p_approx": 0.1533,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": -0.000441,
+      "sens_slope_ci": [
+        -0.001026,
+        0.00019
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.7295,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.4145,
@@ -104,18 +170,40 @@
   "pnsg_escalada_el_chorro": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": -0.045,
-      "z": -0.531,
-      "p_approx": 0.5952,
+      "tau": -0.021,
+      "z": -0.243,
+      "p_approx": 0.8076,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": -5.9e-05,
+      "sens_slope_ci": [
+        -0.000478,
+        0.000376
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.1564,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.2,
-      "z": -2.369,
-      "p_approx": 0.0179,
-      "trend": "decreasing",
-      "n": 66
+      "tau": -0.142,
+      "z": -1.682,
+      "p_approx": 0.0925,
+      "trend": "no trend",
+      "sens_slope": -0.000453,
+      "sens_slope_ci": [
+        -0.000935,
+        7e-05
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.369,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.4109,
@@ -138,18 +226,40 @@
   "pnsg_escalada_la_barranca_y_maliciosa": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": -0.041,
-      "z": -0.476,
-      "p_approx": 0.6341,
+      "tau": -0.015,
+      "z": -0.177,
+      "p_approx": 0.8594,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": -4.1e-05,
+      "sens_slope_ci": [
+        -0.000453,
+        0.000368
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.0659,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.163,
-      "z": -1.926,
-      "p_approx": 0.0541,
+      "tau": -0.143,
+      "z": -1.693,
+      "p_approx": 0.0904,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": -0.00038,
+      "sens_slope_ci": [
+        -0.000796,
+        8e-05
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.3434,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.3515,
@@ -172,18 +282,40 @@
   "pnsg_escalada_la_pedriza": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": -0.015,
-      "z": -0.177,
-      "p_approx": 0.8594,
+      "tau": 0.036,
+      "z": 0.421,
+      "p_approx": 0.6741,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 7.8e-05,
+      "sens_slope_ci": [
+        -0.000307,
+        0.000431
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.1601,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.171,
-      "z": -2.025,
-      "p_approx": 0.0428,
-      "trend": "decreasing",
-      "n": 66
+      "tau": -0.14,
+      "z": -1.66,
+      "p_approx": 0.0969,
+      "trend": "no trend",
+      "sens_slope": -0.000186,
+      "sens_slope_ci": [
+        -0.000408,
+        3.6e-05
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.6696,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.5076,
@@ -206,18 +338,40 @@
   "pnsg_escalada_maliciosa_porrones": {
     "n_observations": 65,
     "mann_kendall_ndvi": {
-      "tau": -0.341,
-      "z": -4.014,
-      "p_approx": 0.0001,
+      "tau": -0.369,
+      "z": -4.342,
+      "p_approx": 0.0,
       "trend": "decreasing",
-      "n": 65
+      "sens_slope": -0.000371,
+      "sens_slope_ci": [
+        -0.000502,
+        -0.000229
+      ],
+      "is_significant": true,
+      "n": 65,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.4147,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": 0.053,
-      "z": 0.617,
-      "p_approx": 0.5372,
-      "trend": "no trend",
-      "n": 65
+      "tau": 0.215,
+      "z": 2.531,
+      "p_approx": 0.0114,
+      "trend": "increasing",
+      "sens_slope": 0.000257,
+      "sens_slope_ci": [
+        5.3e-05,
+        0.000418
+      ],
+      "is_significant": true,
+      "n": 65,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.5391,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.2335,
@@ -240,18 +394,40 @@
   "pnsg_escalada_penalara": {
     "n_observations": 65,
     "mann_kendall_ndvi": {
-      "tau": 0.099,
-      "z": 1.161,
-      "p_approx": 0.2458,
-      "trend": "no trend",
-      "n": 65
+      "tau": 0.193,
+      "z": 2.27,
+      "p_approx": 0.0232,
+      "trend": "increasing",
+      "sens_slope": 0.000549,
+      "sens_slope_ci": [
+        8.7e-05,
+        0.000958
+      ],
+      "is_significant": true,
+      "n": 65,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.3599,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.126,
-      "z": -1.478,
-      "p_approx": 0.1395,
+      "tau": -0.16,
+      "z": -1.874,
+      "p_approx": 0.0609,
       "trend": "no trend",
-      "n": 65
+      "sens_slope": -0.000478,
+      "sens_slope_ci": [
+        -0.001329,
+        3.7e-05
+      ],
+      "is_significant": false,
+      "n": 65,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.2614,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.2264,
@@ -274,18 +450,40 @@
   "pnsg_escalada_puerto_de_navacerrada": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": 0.011,
-      "z": 0.122,
-      "p_approx": 0.9031,
+      "tau": 0.046,
+      "z": 0.542,
+      "p_approx": 0.5876,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 0.000171,
+      "sens_slope_ci": [
+        -0.000524,
+        0.00087
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.1146,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.094,
-      "z": -1.107,
-      "p_approx": 0.2684,
+      "tau": -0.073,
+      "z": -0.863,
+      "p_approx": 0.388,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": -0.000174,
+      "sens_slope_ci": [
+        -0.000646,
+        0.000232
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.769,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.6364,
@@ -308,18 +506,40 @@
   "pnsg_escalada_valsain": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": 0.092,
-      "z": 1.085,
-      "p_approx": 0.2781,
-      "trend": "no trend",
-      "n": 66
+      "tau": 0.256,
+      "z": 3.033,
+      "p_approx": 0.0024,
+      "trend": "increasing",
+      "sens_slope": 0.0006,
+      "sens_slope_ci": [
+        0.000179,
+        0.001048
+      ],
+      "is_significant": true,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.2362,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.117,
-      "z": -1.384,
-      "p_approx": 0.1665,
+      "tau": 0.028,
+      "z": 0.332,
+      "p_approx": 0.7399,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 4e-05,
+      "sens_slope_ci": [
+        -0.000251,
+        0.000308
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.6758,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.7354,
@@ -342,18 +562,40 @@
   "pnsg_ciclismo_las_zetas_de_la_pedriza": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": -0.04,
-      "z": -0.465,
-      "p_approx": 0.642,
+      "tau": 0.029,
+      "z": 0.343,
+      "p_approx": 0.7315,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 8.1e-05,
+      "sens_slope_ci": [
+        -0.000445,
+        0.000576
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.2549,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.168,
-      "z": -1.992,
-      "p_approx": 0.0463,
+      "tau": -0.18,
+      "z": -2.136,
+      "p_approx": 0.0327,
       "trend": "decreasing",
-      "n": 66
+      "sens_slope": -0.000283,
+      "sens_slope_ci": [
+        -0.000571,
+        -2.2e-05
+      ],
+      "is_significant": true,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.8119,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.6626,
@@ -376,18 +618,40 @@
   "pnsg_ciclismo_la_morcuera_gr_10_4_pr_m_12": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": 0.029,
-      "z": 0.343,
-      "p_approx": 0.7315,
+      "tau": 0.079,
+      "z": 0.93,
+      "p_approx": 0.3525,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 0.000298,
+      "sens_slope_ci": [
+        -0.000285,
+        0.000989
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.2925,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.096,
-      "z": -1.129,
-      "p_approx": 0.2589,
+      "tau": 0.002,
+      "z": 0.022,
+      "p_approx": 0.9823,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 5e-06,
+      "sens_slope_ci": [
+        -0.000416,
+        0.000406
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.821,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.6516,
@@ -410,18 +674,40 @@
   "pnsg_ciclismo_calderuelas_carro_del_diablo": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": -0.005,
-      "z": -0.055,
-      "p_approx": 0.9559,
+      "tau": 0.081,
+      "z": 0.952,
+      "p_approx": 0.3412,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 0.000222,
+      "sens_slope_ci": [
+        -0.000278,
+        0.000716
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.2861,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.109,
-      "z": -1.284,
-      "p_approx": 0.1992,
+      "tau": -0.058,
+      "z": -0.686,
+      "p_approx": 0.4926,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": -0.000167,
+      "sens_slope_ci": [
+        -0.000593,
+        0.000293
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.7091,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.6911,
@@ -444,18 +730,40 @@
   "pnsg_ciclismo_la_horizontal_san_mames_10_000": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": -0.0,
-      "z": 0.0,
-      "p_approx": 1.0,
+      "tau": 0.082,
+      "z": 0.963,
+      "p_approx": 0.3356,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 0.000253,
+      "sens_slope_ci": [
+        -0.000278,
+        0.000838
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.2163,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.081,
-      "z": -0.952,
-      "p_approx": 0.3412,
+      "tau": 0.048,
+      "z": 0.565,
+      "p_approx": 0.5724,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 8.4e-05,
+      "sens_slope_ci": [
+        -0.000293,
+        0.000456
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.7951,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.7148,
@@ -478,18 +786,40 @@
   "pnsg_ciclismo_calderuelas_collado_vihuelas_ramal_circular": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": 0.086,
-      "z": 1.018,
-      "p_approx": 0.3085,
-      "trend": "no trend",
-      "n": 66
+      "tau": 0.191,
+      "z": 2.258,
+      "p_approx": 0.024,
+      "trend": "increasing",
+      "sens_slope": 0.000738,
+      "sens_slope_ci": [
+        9e-05,
+        0.001263
+      ],
+      "is_significant": true,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.1939,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": 0.036,
-      "z": 0.421,
-      "p_approx": 0.6741,
-      "trend": "no trend",
-      "n": 66
+      "tau": 0.212,
+      "z": 2.513,
+      "p_approx": 0.012,
+      "trend": "increasing",
+      "sens_slope": 0.000697,
+      "sens_slope_ci": [
+        0.000176,
+        0.001186
+      ],
+      "is_significant": true,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.739,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.6269,
@@ -512,18 +842,40 @@
   "pnsg_ciclismo_vivero_prado_redondillo": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": 0.023,
-      "z": 0.266,
-      "p_approx": 0.7905,
+      "tau": 0.106,
+      "z": 1.251,
+      "p_approx": 0.211,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 0.000342,
+      "sens_slope_ci": [
+        -0.000272,
+        0.00086
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.1717,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.16,
-      "z": -1.893,
-      "p_approx": 0.0584,
+      "tau": -0.122,
+      "z": -1.439,
+      "p_approx": 0.1502,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": -0.000242,
+      "sens_slope_ci": [
+        -0.000603,
+        8.1e-05
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.7449,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.7451,
@@ -546,18 +898,40 @@
   "pnsg_reserva_umbria_de_siete_picos": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": 0.112,
-      "z": 1.328,
-      "p_approx": 0.1841,
-      "trend": "no trend",
-      "n": 66
+      "tau": 0.207,
+      "z": 2.457,
+      "p_approx": 0.014,
+      "trend": "increasing",
+      "sens_slope": 0.001282,
+      "sens_slope_ci": [
+        0.000263,
+        0.002318
+      ],
+      "is_significant": true,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.2277,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.052,
-      "z": -0.609,
-      "p_approx": 0.5427,
+      "tau": 0.016,
+      "z": 0.188,
+      "p_approx": 0.8508,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 0.000104,
+      "sens_slope_ci": [
+        -0.000725,
+        0.00081
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.7701,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.5605,
@@ -580,18 +954,40 @@
   "pnsg_reserva_afloramientos_metamorficos_del_collado_de_la_flecha_y_cabecera_del_artinuelo": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": 0.054,
-      "z": 0.631,
-      "p_approx": 0.5281,
+      "tau": 0.029,
+      "z": 0.343,
+      "p_approx": 0.7315,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 0.000141,
+      "sens_slope_ci": [
+        -0.000497,
+        0.000869
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.151,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.166,
-      "z": -1.97,
-      "p_approx": 0.0488,
-      "trend": "decreasing",
-      "n": 66
+      "tau": -0.153,
+      "z": -1.815,
+      "p_approx": 0.0695,
+      "trend": "no trend",
+      "sens_slope": -0.000466,
+      "sens_slope_ci": [
+        -0.000893,
+        3.3e-05
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.488,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.59,
@@ -614,18 +1010,40 @@
   "pnsg_reserva_umbria_de_cerro_ventoso": {
     "n_observations": 66,
     "mann_kendall_ndvi": {
-      "tau": -0.017,
-      "z": -0.199,
-      "p_approx": 0.8421,
+      "tau": 0.028,
+      "z": 0.332,
+      "p_approx": 0.7399,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 0.000214,
+      "sens_slope_ci": [
+        -0.000775,
+        0.001305
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.1482,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.048,
-      "z": -0.564,
-      "p_approx": 0.5724,
+      "tau": 0.096,
+      "z": 1.129,
+      "p_approx": 0.2589,
       "trend": "no trend",
-      "n": 66
+      "sens_slope": 0.000323,
+      "sens_slope_ci": [
+        -0.000266,
+        0.000882
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.7906,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.6545,
@@ -648,18 +1066,40 @@
   "pnsg_reserva_turberas_de_el_reventon": {
     "n_observations": 64,
     "mann_kendall_ndvi": {
-      "tau": 0.121,
-      "z": 1.408,
-      "p_approx": 0.1592,
+      "tau": 0.155,
+      "z": 1.802,
+      "p_approx": 0.0716,
       "trend": "no trend",
-      "n": 64
+      "sens_slope": 0.000969,
+      "sens_slope_ci": [
+        -9.6e-05,
+        0.00188
+      ],
+      "is_significant": false,
+      "n": 64,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.2763,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.165,
-      "z": -1.918,
-      "p_approx": 0.0552,
+      "tau": -0.137,
+      "z": -1.593,
+      "p_approx": 0.1111,
       "trend": "no trend",
-      "n": 64
+      "sens_slope": -0.000514,
+      "sens_slope_ci": [
+        -0.001376,
+        0.000177
+      ],
+      "is_significant": false,
+      "n": 64,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.1778,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.5077,
@@ -682,18 +1122,40 @@
   "pnsg_reserva_charcas_de_los_llanos_de_penalara": {
     "n_observations": 58,
     "mann_kendall_ndvi": {
-      "tau": 0.105,
-      "z": 1.154,
-      "p_approx": 0.2486,
+      "tau": 0.154,
+      "z": 1.704,
+      "p_approx": 0.0884,
       "trend": "no trend",
-      "n": 58
+      "sens_slope": 0.001059,
+      "sens_slope_ci": [
+        -0.000174,
+        0.002319
+      ],
+      "is_significant": false,
+      "n": 58,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.3107,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "mann_kendall_ndmi": {
-      "tau": -0.128,
-      "z": -1.409,
-      "p_approx": 0.1589,
-      "trend": "no trend",
-      "n": 58
+      "tau": -0.223,
+      "z": -2.469,
+      "p_approx": 0.0136,
+      "trend": "decreasing",
+      "sens_slope": -0.001429,
+      "sens_slope_ci": [
+        -0.002793,
+        -0.000361
+      ],
+      "is_significant": true,
+      "n": 58,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.1851,
+      "method": "harmonic_deseasonalised+mann_kendall"
     },
     "annual_mean_ndvi": {
       "2021": 0.3124,

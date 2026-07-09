@@ -1,12 +1,15 @@
 """
-SNTO — Real Satellite Trend Loader (v1.1.0)
-===========================================
+SNTO — Real Satellite Trend Loader (v1.1.0, corrected v1.1.1)
+===============================================================
 Loads the Mann-Kendall trend analysis computed from REAL Sentinel-2 imagery
-(2021–2025, GEE export) and turns it into dashboard-ready structures.
+(2021–2026, GEE export) and turns it into dashboard-ready structures.
 
 Unlike the simulated monthly series rendered by ``charts.build_time_series_chart``,
 this module surfaces the *empirical* multi-year trend per asset:
-  * NDVI Mann-Kendall direction + significance (τ, p),
+  * NDVI Mann-Kendall direction + significance (τ, p), computed on the
+    harmonically **deseasonalized**, tie-corrected series (v1.1.1) — not the
+    raw monthly series used in v1.1.0,
+  * Sen's slope with its 95% non-parametric confidence interval (Gilbert 1987),
   * annual mean NDVI (drought signal: 2022 collapse, 2023 recovery),
   * worst / best year and the overall NDVI range.
 
@@ -70,6 +73,10 @@ class AssetTrend:
     best_year: str | None
     ndvi_min: float | None
     ndvi_max: float | None
+    sens_slope: float | None = None          # NDVI units/month (Sen's slope)
+    sens_slope_ci: tuple[float, float] | None = None  # 95% CI (Gilbert 1987)
+    deseasonalised: bool = False             # harmonic decomposition applied (v1.1.1)
+    method: str = "raw+mann_kendall"         # provenance string from the pipeline
 
     @property
     def significant(self) -> bool:
@@ -136,6 +143,12 @@ def load_asset_trends(path: Path | None = None) -> list[AssetTrend]:
             best_year=rec.get("best_ndvi_year"),
             ndvi_min=rng.get("min"),
             ndvi_max=rng.get("max"),
+            sens_slope=mk.get("sens_slope"),
+            sens_slope_ci=(
+                tuple(mk["sens_slope_ci"]) if mk.get("sens_slope_ci") else None
+            ),
+            deseasonalised=bool(mk.get("deseasonalised", False)),
+            method=str(mk.get("method", "raw+mann_kendall")),
         ))
     return trends
 

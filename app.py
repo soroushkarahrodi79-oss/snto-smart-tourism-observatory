@@ -1710,23 +1710,24 @@ with tab_timeseries:
         st.caption(
             "Análisis **Mann-Kendall** sobre activos reales del PNSG con imágenes "
             "Sentinel-2 (Pipeline GEE). A diferencia del gráfico mensual de más "
-            "abajo (reconstrucción de validación), **los datos son empíricos**. "
-            "La *interpretación estadística*, en cambio, es **preliminar** (ver nota abajo)."
+            "abajo (reconstrucción de validación), **estos resultados son empíricos**, "
+            "calculados sobre la serie **desestacionalizada** (ver nota abajo)."
         )
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("Activos analizados", len(_real_trends.assets))
-        m2.metric("Degradación ↘ (prelim.)", _real_trends.n_degrading)
-        m3.metric("Mejora ↗ (prelim.)", _real_trends.n_improving)
+        m2.metric("Degradación ↘ (p<0,05)", _real_trends.n_degrading)
+        m3.metric("Mejora ↗ (p<0,05)", _real_trends.n_improving)
         m4.metric("Estables →", _real_trends.n_stable)
 
         st.info(
-            "**Nota metodológica (v1.1.0):** el test de Mann-Kendall se calcula sobre "
-            "la serie **NDVI mensual cruda**, *sin desestacionalizar ni corregir la "
-            "autocorrelación serial*. El fuerte ciclo estacional del NDVI infla la "
-            "significancia, por lo que los p-valores y los recuentos ↗/↘ son "
-            "**indicativos, no confirmatorios**. La corrección estadística "
-            "(desestacionalización + Hamed-Rao + corrección de empates) llega en "
-            "**v1.1.1**. τ y p se muestran como referencia, sin corregir.",
+            "**Nota metodológica (v1.1.1):** el test de Mann-Kendall se calcula sobre "
+            "la serie **desestacionalizada** (descomposición armónica de 2 componentes, "
+            "Julien & Sobrino 2009) con **corrección de empates** en la varianza "
+            "(Hipel & McLeod 1994) y **pendiente de Sen con intervalo de confianza "
+            "no paramétrico** (Gilbert 1987). Los 7 veredictos significativos superan, "
+            "además, una prueba de robustez de *pre-whitening* libre de tendencia "
+            "(Yue-Pilon 2002) sin ningún cambio de dirección — la autocorrelación serial "
+            "no explica las tendencias detectadas. Ver `docs/nota_metodologica_temporalidad.md`.",
             icon="🔬",
         )
 
@@ -1747,12 +1748,16 @@ with tab_timeseries:
         for _alert in _real_trends.alerts:
             _last = list(_alert.annual_mean_ndvi.values())
             _drop = (_last[0] - _last[-1]) if len(_last) >= 2 else 0.0
+            _slope_txt = (
+                f", pendiente {_alert.sens_slope:.5f} NDVI/mes "
+                f"[{_alert.sens_slope_ci[0]:.5f}, {_alert.sens_slope_ci[1]:.5f}] IC95%"
+                if _alert.sens_slope is not None and _alert.sens_slope_ci else ""
+            )
             st.warning(
-                f"**Señal a vigilar · {_alert.asset_id}** — NDVI {_alert.trend_es}, "
-                f"tendencia **preliminar** (τ={_alert.tau:.3f}, p={_alert.p_value:.3f}, "
-                f"sin corregir). Peor año {_alert.worst_year}, mejor {_alert.best_year}. "
-                f"Candidato a **inspección de campo** para confirmar (no es un "
-                f"diagnóstico estadístico cerrado).",
+                f"**Alerta de degradación · {_alert.asset_id}** — NDVI {_alert.trend_es} "
+                f"significativo (τ={_alert.tau:.3f}, p={_alert.p_value:.3f}{_slope_txt}). "
+                f"Peor año {_alert.worst_year}, mejor {_alert.best_year}. "
+                f"Candidato a inspección de campo.",
                 icon="⚠️",
             )
 
@@ -1764,8 +1769,9 @@ with tab_timeseries:
                     "Categoría": a.category,
                     "Tendencia": a.trend_es,
                     "τ (Kendall)": round(a.tau, 3),
-                    "p-valor (sin corr.)": round(a.p_value, 3),
-                    "p<0,05 (prelim.)": "✓" if a.significant else "",
+                    "p-valor": round(a.p_value, 3),
+                    "Signif.": "✓" if a.significant else "",
+                    "Pendiente Sen (NDVI/mes)": round(a.sens_slope, 5) if a.sens_slope is not None else None,
                     "Peor año": a.worst_year,
                     "Mejor año": a.best_year,
                     "Meses": a.n_observations,
@@ -1903,17 +1909,19 @@ with tab_timeseries:
     if _real_trends.available:
         _matched = find_trend(selected_asset.name, _real_trends.assets)
         if _matched is not None:
-            _sig_es = (
-                "p<0,05 preliminar (sin corregir)" if _matched.significant
-                else "no significativa"
-            )
+            _sig_es = "significativa (p<0,05)" if _matched.significant else "no significativa"
             _m_years = sorted(_matched.annual_mean_ndvi)
             _m_range = f"{_m_years[0]}–{_m_years[-1]}" if _m_years else ""
+            _slope_es = (
+                f", pendiente Sen {_matched.sens_slope:.5f} NDVI/mes "
+                f"[{_matched.sens_slope_ci[0]:.5f}, {_matched.sens_slope_ci[1]:.5f}] IC95%"
+                if _matched.sens_slope is not None and _matched.sens_slope_ci else ""
+            )
             st.success(
                 f"🛰️ **Dato satelital real ({_m_range}):** este activo corresponde a "
-                f"`{_matched.asset_id}`. Tendencia NDVI empírica **{_matched.trend_es}**, "
-                f"lectura **preliminar** (τ={_matched.tau:.3f}, p={_matched.p_value:.3f}, "
-                f"{_sig_es}) sobre {_matched.n_observations} meses de NDVI crudo. "
+                f"`{_matched.asset_id}`. Tendencia NDVI empírica **{_matched.trend_es}** "
+                f"(τ={_matched.tau:.3f}, p={_matched.p_value:.3f}, {_sig_es}{_slope_es}) "
+                f"sobre {_matched.n_observations} meses, serie desestacionalizada. "
                 f"Peor año {_matched.worst_year}, mejor {_matched.best_year}.",
                 icon="✅",
             )

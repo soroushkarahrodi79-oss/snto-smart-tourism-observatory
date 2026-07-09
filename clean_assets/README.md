@@ -27,19 +27,30 @@ secretos; son la evidencia reproducible que sostiene la capa temporal de v1.1.0.
 | `timeseries/pnsg_gee_timeseries.csv` | Serie NDVI/NDMI/EVI mensual Sentinel-2 (2021–jun 2026) | GEE Code Editor (export) |
 | `timeseries/analysis/mk_trends_pnsg.json` | Tendencias Mann-Kendall por activo | `scripts/run_timeseries_analysis.py` |
 
-## ⚠️ Alcance estadístico del Mann-Kendall (v1.1.0)
+## ✅ Alcance estadístico del Mann-Kendall (corregido en v1.1.1)
 
-El Mann-Kendall de `mk_trends_pnsg.json` se calcula sobre la **serie NDVI mensual
-cruda**, *sin desestacionalizar ni corregir la autocorrelación serial*, y con una
-varianza simplificada (sin corrección de empates). El fuerte ciclo estacional del
-NDVI (mínimo invernal, pico estival) **infla la significancia**: los p-valores son
-optimistas y los recuentos ↗/↘ deben leerse como **indicativos, no confirmatorios**.
+El Mann-Kendall de `mk_trends_pnsg.json` se calcula sobre la serie NDVI mensual
+**desestacionalizada** (descomposición armónica de 2 componentes, Julien &
+Sobrino 2009), con **corrección de empates** en la varianza (Hipel & McLeod
+1994) y **pendiente de Sen con intervalo de confianza no paramétrico** (Gilbert
+1987). Los 7 veredictos significativos superan además una prueba de robustez de
+*pre-whitening* libre de tendencia (Yue-Pilon 2002) sin ningún cambio de
+dirección: la autocorrelación serial no explica las tendencias detectadas.
+Implementación: `src/time_series/{decomposition,mann_kendall,prewhitening,confidence}.py`,
+orquestada por `scripts/run_timeseries_analysis.py` (flag `--prewhiten` para la
+comprobación de robustez). Detalle completo en
+`docs/nota_metodologica_temporalidad.md`.
 
-Los **datos** son empíricos y reproducibles; la **inferencia de tendencia** es
-preliminar. La corrección estadística —desestacionalización (medias anuales/STL),
-corrección de autocorrelación (Hamed-Rao) y corrección de empates— está planificada
-para **v1.1.1** (rama `research/statistical-rigor`). No sobreinterpretar la
-significancia de esta versión en comunicación pública ni en conclusiones científicas.
+**v1.1.1 también corrigió un bug de orden cronológico** en
+`scripts/run_timeseries_analysis.py`: `year`/`month` llegaban del CSV como
+texto y se ordenaban lexicográficamente ("10","11" antes que "2"), corrompiendo
+la serie mensual de los 21 activos en el análisis de v1.1.0. El bug estaba
+presente en el release público de v1.1.0; el resultado corregido —recalculado
+tras arreglar el orden y desestacionalizar— es el que contiene este JSON.
+
+*(Nota histórica: en v1.1.0 el test corría sobre la serie cruda sin
+desestacionalizar ni corregir autocorrelación, y se etiquetaba como
+preliminar/indicativo. Ese estado ya no aplica.)*
 
 ## Cómo regenerar
 
