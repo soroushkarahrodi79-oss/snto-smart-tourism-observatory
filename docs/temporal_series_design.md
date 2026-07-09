@@ -9,16 +9,18 @@
 > (spec + `trend_gate.py` + manifiesto), que a fecha de este documento **sigue sin
 > conectarse a datos reales**.
 >
-> **Actualización v1.1.0:** una serie real 2021–2026 SÍ ha sido ingerida vía
+> **Actualización v1.1.1:** una serie real 2021–2026 SÍ ha sido ingerida vía
 > Google Earth Engine — pero por una ruta de código distinta y más ligera
 > (`scripts/extract_gee_timeseries_pnsg.py` → `clean_assets/timeseries/` →
 > `src/platform/satellite_trends.py`), no a través del contrato/gate que diseña
 > este documento. Esa serie cubre 21 activos reales del PNSG y ya alimenta el
 > panel "Tendencias satelitales reales" del dashboard, con Mann-Kendall
-> etiquetado **preliminar** (sin desestacionalizar ni corregir autocorrelación;
-> corrección prevista en v1.1.1). El contrato/gate que sigue este documento
-> continúa siendo relevante como diseño para conectar esa u otra serie con
-> garantías de validez más fuertes — ver `docs/nota_metodologica_temporalidad.md`.
+> **desestacionalizado** (descomposición armónica), corrección de empates,
+> pendiente de Sen con IC 95% y verificación de robustez frente a
+> autocorrelación (pre-whitening Yue-Pilon) — el mismo rigor estadístico que
+> el Pipeline B. El contrato/gate que sigue este documento continúa siendo
+> relevante como diseño para conectar esa u otra serie a través del andamiaje
+> declarativo `src/temporal/` — ver `docs/nota_metodologica_temporalidad.md`.
 
 ---
 
@@ -144,11 +146,13 @@ está montado y probado. La ingesta efectiva *sobre este gate* es trabajo
 posterior, no parte de F2.
 
 Nota: esto no debe leerse como "PNSG no tiene tendencia real" en sentido
-absoluto — desde **v1.1.0** sí existe una serie real 2021–2026 y una tendencia
-Mann-Kendall preliminar para 21 activos del PNSG, servida por una ruta de
-código independiente de este gate (ver actualización al inicio del documento).
+absoluto — desde **v1.1.1** existe una serie real 2021–2026 y una tendencia
+Mann-Kendall con rigor estadístico completo (desestacionalizada, corrección de
+empates, IC de Sen, verificada con Yue-Pilon) para 21 activos del PNSG, servida
+por una ruta de código independiente de este gate (ver actualización al inicio
+del documento).
 
 ---
 
-*Documento de diseño · SNTO v1.1.0 · andamiaje temporal F2 (`src/temporal/`) ·
+*Documento de diseño · SNTO v1.1.1 · andamiaje temporal F2 (`src/temporal/`) ·
 territorio principal PNSG · actualizado julio 2026.*
