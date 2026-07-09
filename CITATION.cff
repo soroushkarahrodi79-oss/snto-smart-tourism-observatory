@@ -19,8 +19,8 @@ doi: "10.5281/zenodo.20818270"
 repository-code: "https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory"
 url: "https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory"
 # Licencia de uso académico/no-comercial: ver fichero LICENSE (no es un identificador SPDX estándar).
-version: "1.0.0"
-date-released: "2026-06-23"
+version: "1.1.0"
+date-released: "2026-07-09"
 keywords:
   - remote-sensing
   - sentinel-2
