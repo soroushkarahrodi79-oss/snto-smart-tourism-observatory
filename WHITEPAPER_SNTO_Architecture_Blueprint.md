@@ -4,7 +4,7 @@
 
 **Project:** Gobernanza Inteligente y Transición Regenerativa en Espacios Naturales Protegidos. Territorio principal: **Parque Nacional Sierra de Guadarrama** (Red de Parques Nacionales — OAPN). Marco de gobernanza de referencia: Carta Europea de Turismo Sostenible (CETS / EUROPARC), empleada como metodología. Piloto de calibración: Reserva de la Biosfera Sierra del Rincón.
 
-**Version:** 1.0 | **Date:** June 2026 | **Author:** Smart Natural Tourism Observatory Research Team
+**Version:** 1.1 | **Date:** July 2026 | **Author:** Smart Natural Tourism Observatory Research Team
 
 ---
 
@@ -395,7 +395,7 @@ The SNTO acknowledges the following methodological constraints:
 - **Spectral confoundedness:** Drought-induced and trampling-induced NDVI depression produce similar spectral signatures; the SCM module mitigates but cannot fully eliminate this confounding in extreme drought years.
 - **Trail width assumption:** The 50 m buffer standardisation may underrepresent impact zones in heavily-used trails or overestimate them in lightly-used corridors; field-calibrated buffer widths would improve precision.
 - **Visitor count data quality:** The traffic_index component currently relies on permit or estimation data; integration with automated counting infrastructure (LiDAR or infrared counters) would substantially improve model precision.
-- **Temporal depth:** Full statistical validity of the Mann-Kendall trend component requires a multi-year monthly series. The current real PNSG data is a two-scene seasonal snapshot, so only the seasonal ΔEHS is asserted there; the 2021–2026 series is scaffolded (§7.5) but not yet ingested, and the validity gate (`src/temporal/trend_gate.py`) enforces this distinction.
+- **Temporal depth (updated v1.1.0):** the operational raster-based EHS/ΔEHS pipeline remains a two-scene seasonal snapshot (seasonal ΔEHS only). Separately, as of **v1.1.0** a real 2021–2026 monthly Sentinel-2 series has been ingested via Google Earth Engine for 21 curated PNSG assets (`src/platform/satellite_trends.py`, `clean_assets/timeseries/`), and Mann-Kendall trends are now surfaced in the dashboard for real PNSG data. These trends are reported as **preliminary/indicative**: the test runs on raw monthly NDVI without deseasonalization or serial-autocorrelation correction, which inflates significance. Deseasonalized, autocorrelation-corrected statistics (Hamed-Rao + tie correction) are scheduled for **v1.1.1**. This new layer is architecturally independent of the declarative `src/temporal/` spec and its `trend_gate.py` validity gate (§7.5), which still awaits activation with real data.
 
 Future development priorities include: (1) machine learning classification of degradation typology (trampling vs. drought vs. wildfire); (2) integration of hyperspectral UAV data for validation sub-sampling; (3) extension of the platform to monitor CETS socio-economic indicators alongside ecological ones.
 
@@ -409,7 +409,8 @@ activation depends on declared data inputs, not on further method design:
 | Layer | Module | Status |
 |---|---|---|
 | Score semantics (health vs stress) | `src/metrics/semantics.py` | ✅ unified across pipeline & dashboard |
-| Temporal series scaffolding (2021–2026) | `src/temporal/` | ✅ spec + Mann-Kendall validity gate + provenance manifest; ingestion pending (GEE) |
+| Real Sentinel-2 temporal trends (2021–2026, v1.1.0) | `src/platform/satellite_trends.py`, `clean_assets/timeseries/` | ✅ real GEE data, 21 PNSG assets; Mann-Kendall **preliminary** (uncorrected); deseasonalized/autocorrelation-corrected stats → v1.1.1 |
+| Temporal series scaffolding (declarative, separate) | `src/temporal/` | ✅ spec + Mann-Kendall validity gate + provenance manifest; ingestion into this gate still pending |
 | Data provenance & confidence surfacing | `src/platform/provenance.py` | ✅ real/calibrated/synthetic labels in dashboard |
 | Stratified baselines | `src/risk_engine/baselines.py` | ✅ framework; per-habitat/altitude needs a DEM |
 | Ranking uncertainty & sensitivity | `src/analysis/sensitivity.py` | ✅ weight band, robust-top-N, Monte-Carlo |
@@ -471,4 +472,4 @@ consolidated assumptions/limits register in
 
 **Codebase Repository:** `snto-smart-tourism-observatory`
 **Primary Contact:** soroush.karahrodi79@gmail.com
-**Platform Version:** 0.1.0 | **Python:** ≥ 3.12 | **License:** Research Use
+**Platform Version:** 1.1.0 | **Python:** ≥ 3.12 | **License:** Research Use

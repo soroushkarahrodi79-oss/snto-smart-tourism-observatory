@@ -16,12 +16,17 @@
 | Señal de alerta estacional (ΔEHS primavera→verano) | ✅ Sí | 2 escenas reales (2025-08-10 / 2026-04-10) |
 | Atribución causal espacial (SCM/SIG core vs landscape) | ✅ Sí | Rásteres reales |
 | Presupuesto de restauración por sendero | 🟡 Orden de magnitud | Tarifas TRAGSA 2023 (cita por partida pendiente) |
-| Tendencia inter-anual (Mann-Kendall) sobre PNSG | ❌ No | Requiere serie 2021–2026 (no ingerida) |
+| Tendencia inter-anual (Mann-Kendall) sobre PNSG | 🟡 Preliminar (v1.1.0) | Serie real 2021–2026 (GEE), 21 activos; MK **sin desestacionalizar ni corregir autocorrelación** — indicativo, no confirmatorio hasta v1.1.1 |
 | Correlación EHS satelital ↔ degradación de campo | ❌ No | Requiere campaña de campo (framework listo) |
-| Tendencia como **capacidad del sistema** | ✅ Sí | Demostrada en Pipeline B (datos calibrados) |
+| Tendencia como **capacidad del sistema, con rigor estadístico completo** | ✅ Sí | Demostrada en Pipeline B (datos calibrados, desestacionalizada) |
 
-Regla de lectura: el SNTO **nunca** atribuye al PNSG una conclusión que solo el
-Pipeline B (demo) puede sostener. El `trend_gate` (F2) codifica esta frontera.
+Regla de lectura: el SNTO **nunca** presenta una tendencia sobre el PNSG con más
+confianza estadística de la que su método soporta. Desde v1.1.0, el PNSG SÍ tiene
+una tendencia Mann-Kendall real (no la del Pipeline B), pero se etiqueta
+explícitamente como preliminar; la versión con rigor completo (Pipeline B) sigue
+siendo el estándar de referencia hasta que la corrección estadística llegue a la
+serie real (v1.1.1). El `trend_gate` (F2, `src/temporal/`) es un gate declarativo
+independiente, que sigue sin activar con esta serie.
 
 ## 2. Supuestos y constantes expert-based
 
@@ -40,7 +45,7 @@ analiza en `src/analysis/sensitivity.py` (F4).
 ## 3. Límites por tipo (datos vs método)
 
 **Brechas de datos (no de método):**
-- **Serie temporal real 2021–2026** — andamiaje montado (`src/temporal/`); falta ingesta GEE (credenciales + cómputo).
+- **Serie temporal real 2021–2026** — ingesta GEE **hecha desde v1.1.0** (21 activos reales del PNSG, `clean_assets/timeseries/`). La brecha restante es **estadística, no de datos**: el Mann-Kendall corre sobre NDVI mensual crudo, sin desestacionalizar ni corregir autocorrelación serial — corrección prevista en v1.1.1. El andamiaje declarativo (`src/temporal/`, `trend_gate.py`) sigue sin conectarse a esta serie.
 - **DEM** — necesario para estratificar baselines por altitud/orientación (F4). No presente.
 - **Cartografía de hábitat rasterizada** — KML de vegetación PNSG disponible; falta rasterizar a la rejilla de escena.
 - **Verdad-terreno** — esquema y métricas listas (`src/validation/`); falta campaña (penetrómetro, parcelas, control).
@@ -78,11 +83,12 @@ en `src/metrics/semantics.py`:
 |---|---|
 | Exploración / priorización (dónde mirar) | EHS + SCM reales (disponible) |
 | Alerta temprana estacional | ΔEHS + DCS `can_act=True` (disponible) |
-| Decisión de inversión formal | + validación de campo y/o serie multi-anual (pendiente) |
-| Afirmación de tendencia | Serie 2021–2026 con `trend_gate` ≥ TREND_ROBUST (pendiente) |
+| Decisión de inversión formal | + validación de campo y/o serie multi-anual con estadística corregida (pendiente) |
+| Afirmación de tendencia **confirmatoria** (no preliminar) | Serie 2021–2026 desestacionalizada + autocorrelación corregida (v1.1.1, pendiente); hoy solo hay lectura **preliminar** |
 
 ---
 
-*Informe técnico de apoyo · SNTO · territorio principal PNSG · junio 2026. Ver
-también `docs/temporal_series_design.md`, `docs/baselines_uncertainty_design.md`
+*Informe técnico de apoyo · SNTO v1.1.0 · territorio principal PNSG · actualizado
+julio 2026. Ver también `docs/temporal_series_design.md`,
+`docs/nota_metodologica_temporalidad.md`, `docs/baselines_uncertainty_design.md`
 y `docs/field_validation_protocol.md`.*

@@ -2,7 +2,7 @@
 
 **Proyecto:** Smart Nature Tourism Observatory (SNTO)
 **Caso de estudio:** Parque Nacional de la Sierra de Guadarrama (PNSG)
-**Fecha del anexo:** 2026-06-15
+**Fecha del anexo:** 2026-06-15 · **Actualizado:** 2026-07-09 (v1.1.0 — ver Adenda al final del §4, V6, y hoja de ruta §7)
 **Propósito:** documentar con rigor qué se mide, qué se calcula, qué se estima y qué se
 simula en el observatorio; trazar cada indicador y multiplicador a su fuente; declarar
 las limitaciones; y dotar a la defensa de un guion frente a preguntas de tribunal.
@@ -28,11 +28,15 @@ satélite/calibrado/sintético que ya gestiona `src/platform/provenance.py`):
 | **Observada** | Medición directa de un instrumento o registro oficial. | NDVI/NDMI (Sentinel-2), población (INE), empleo hostelería (ALMUDENA), trazas OAPN/OSM. |
 | **Calculada** | Determinista a partir de variables observadas, con fórmula explícita. | EHS, ΔEHS, SIG/SCM, risk_score, DCS, TPI, SVI, empleos en riesgo (KPI tira). |
 | **Estimada** | Proxy de literatura o atributo curado, sin medición directa. | `visitor_capacity_annual`, €22,50/visitante, 2.500 visitantes/empleo, costes €. |
-| **Simulada** | Escenario, contrafactual o serie de demostración. | Ingresos/empleos proxy en riesgo, ratio coste-beneficio, declive contrafactual, Mann-Kendall sobre Pipeline B. |
+| **Simulada** | Escenario, contrafactual o serie de demostración. | Ingresos/empleos proxy en riesgo, ratio coste-beneficio, declive contrafactual, Mann-Kendall sobre Pipeline B (demo, datos sintéticos). |
 
-**Recuento aproximado:** ~7 Observadas · ~9 Calculadas · ~3 Estimadas · ~6 Simuladas.
+**Recuento aproximado:** ~7 Observadas · ~10 Calculadas · ~3 Estimadas · ~6 Simuladas.
 La capa de mayor riesgo académico es la **Simulada/Estimada** del modelo económico, hoy
-etiquetada explícitamente como tal en la interfaz.
+etiquetada explícitamente como tal en la interfaz. **Nota v1.1.0:** el Mann-Kendall real
+del PNSG (21 activos, GEE, ver fila añadida en §2) NO es Simulada — es Calculada sobre
+datos Observados reales — pero se etiqueta con **confianza Baja / preliminar** porque el
+test aún no está desestacionalizado ni corregido por autocorrelación. No confundir esta
+capa con el Mann-Kendall demo de Pipeline B, que sigue siendo Simulada.
 
 ---
 
@@ -63,6 +67,7 @@ etiquetada explícitamente como tal en la interfaz.
 | Impacto de intervención | modelo | `ΔEHS=18·headroom·causa·conf` | Baja | Simulada | `src/intervention/impact.py` |
 | Declive contrafactual | modelo | `2–5 EHS/año·f(EHS,SCM)` | Baja | Simulada | `src/intervention/scenarios.py` |
 | Mann-Kendall (demo) | serie calibrada 60 m | test no paramétrico | Baja | Simulada | `src/time_series/mann_kendall.py` |
+| Mann-Kendall real PNSG (v1.1.0) | NDVI mensual Sentinel-2 real 2021–2026 (GEE), 21 activos | test no paramétrico, **sin desestacionalizar/autocorrelación** | Baja (preliminar) | Calculada | `scripts/run_timeseries_analysis.py`, `src/platform/satellite_trends.py` |
 | Presupuesto restauración | TRAGSA × longitud × SCM | `m·15,50€·factor` | Media | Estimada | `tis_engine.py` |
 
 ---
@@ -137,12 +142,27 @@ Para cada una: **riesgo → mitigación → respuesta de defensa**.
 - **Defensa:** «Toda la trazabilidad es accesible desde la propia herramienta, no solo en
   la memoria.»
 
-### V6 — Mann-Kendall demo junto a hallazgos reales · **MEDIA**
-- **Mitigación (implementada/existente):** `docs/nota_metodologica_temporalidad.md`; la
-  matriz marca el test como **Simulada (demo Pipeline B)**; el PNSG solo reporta ΔEHS.
-- **Defensa:** «Con 2 escenas, una tendencia inter-anual sería estadísticamente injustificable;
-  por eso no la afirmamos para el PNSG. Mann-Kendall demuestra la *capacidad* del sistema
-  sobre una serie calibrada, nunca como hallazgo del territorio real.»
+### V6 — Mann-Kendall demo junto a hallazgos reales · **MEDIA** (actualizado v1.1.0)
+- **Estado original (pre-v1.1.0):** la matriz marcaba el test como **Simulada (demo
+  Pipeline B)** exclusivamente; el PNSG solo reportaba ΔEHS. Ya no es el estado actual.
+- **Estado actual (v1.1.0):** el PNSG **sí tiene** una tendencia Mann-Kendall real (21
+  activos, serie GEE 2021–2026, 66 observaciones/activo — profundidad suficiente para
+  el test). El riesgo se desplaza: ya no es "¿por qué aplicas MK sobre 2 escenas?" sino
+  "¿tu MK real está desestacionalizado y corregido por autocorrelación?" — y la
+  respuesta honesta es **no, todavía no**.
+- **Mitigación (implementada):** el resultado se etiqueta explícitamente **preliminar /
+  indicativo** en el dashboard (panel "Tendencias satelitales reales"), en
+  `clean_assets/README.md` y en `docs/nota_metodologica_temporalidad.md` (reescrito
+  v1.1.0, incluye nueva pregunta de tribunal sobre estacionalidad/autocorrelación). La
+  corrección estadística completa (desestacionalización + Hamed-Rao + corrección de
+  empates) es el objetivo declarado de **v1.1.1** (`research/statistical-rigor`).
+- **Defensa:** «Con 2 escenas, una tendencia inter-anual sería estadísticamente
+  injustificable — por eso el Pipeline A raster no la aplica. Pero desde v1.1.0 existe una
+  serie separada de 66 meses reales del PNSG, suficientemente profunda para Mann-Kendall.
+  La declaramos preliminar porque aún no está desestacionalizada ni corregida por
+  autocorrelación — el Pipeline B sigue siendo la referencia de rigor completo hasta que
+  esa corrección llegue a la serie real (v1.1.1). Preferimos mostrar un resultado
+  preliminar etiquetado como tal a ocultarlo o sobreclamarlo.»
 
 ### V7 — "Deuda ecológica acumulada (€)" · **BAJA**
 - **Riesgo:** reencuadra la necesidad de conservación como obligación financiera observada.
@@ -169,10 +189,16 @@ Para cada una: **riesgo → mitigación → respuesta de defensa**.
    Es una **heurística calibrada** sobre la muestra de control, no una ley física. Se declara
    como parámetro de gobernanza ajustable tras validación de campo.
 
-4. **«Con solo dos imágenes, ¿cómo justifica una tendencia temporal?»**
-   No la justificamos: el Pipeline A real reporta únicamente **ΔEHS estacional** (contraste
-   pareado válido con 2 escenas). Mann-Kendall se demuestra sobre el Pipeline B como
-   capacidad, no como hallazgo del PNSG.
+4. **«Con solo dos imágenes, ¿cómo justifica una tendencia temporal?»** *(actualizado v1.1.0)*
+   El Pipeline A raster (2 escenas) reporta únicamente **ΔEHS estacional** (contraste
+   pareado válido con 2 escenas) y no aplica Mann-Kendall — eso no ha cambiado. Pero desde
+   v1.1.0 existe una serie separada, real, de 66 observaciones mensuales (21 activos del
+   PNSG, GEE 2021–2026), con profundidad suficiente para Mann-Kendall. Ahí la limitación ya
+   no es de profundidad: el test corre sobre NDVI mensual crudo, sin desestacionalizar ni
+   corregir autocorrelación serial, así que el resultado se etiqueta **preliminar**, no
+   confirmatorio. El Pipeline B sigue siendo la referencia de rigor estadístico completo
+   hasta que esa corrección llegue a la serie real (v1.1.1). Ver
+   `docs/nota_metodologica_temporalidad.md` §3 y §7 para el desarrollo completo.
 
 5. **«¿`visitor_capacity_annual` es un aforo medido?»**
    No, es un **atributo curado** de planificación. Por eso ingresos/empleos derivados se
@@ -199,7 +225,7 @@ Para cada una: **riesgo → mitigación → respuesta de defensa**.
 | Dimensión | Antes | Después | Comentario |
 |---|---|---|---|
 | Rigor del núcleo satelital | 8.5 | 8.5 | Sentinel-2 real, EHS anclado por percentiles, override conservador. |
-| Honestidad temporal | 8.0 | 8.0 | Ya excelente (ΔEHS vs. Mann-Kendall demo). |
+| Honestidad temporal | 8.0 | 8.0 | Mantenida tras v1.1.0: nuevo hallazgo real (MK PNSG) etiquetado preliminar en vez de sobreclamado; ΔEHS vs. MK demo vs. MK real-preliminar, las tres fronteras declaradas. |
 | Trazabilidad en superficie | 4.0 | 8.5 | Matriz + multiplicadores + código citados. |
 | Lenguaje económico | 3.0 | 8.0 | Sustituido a prospectivo + chips de escenario. |
 | Documentación de supuestos | 5.0 | 8.5 | Inventario de multiplicadores con sensibilidad. |
@@ -217,13 +243,20 @@ Para cada una: **riesgo → mitigación → respuesta de defensa**.
 3. **(Hecho)** Inventario auditable de multiplicadores con sensibilidad.
 4. **(P2)** Banda de sensibilidad bajo/medio/alto en el proxy económico (sin cambiar defaults):
    convierte un parámetro fijo en un análisis de incertidumbre explícito.
-5. **(P2)** Ingerir la serie 2021–2026 (adaptador GEE ya implementado) para sustituir el
-   Mann-Kendall demo por tendencia real del PNSG.
-6. **(P2)** Validación de campo (protocolo en `docs/field_validation_protocol.md`) para
+5. **(Hecho — v1.1.0)** Ingerir la serie 2021–2026 vía Google Earth Engine para 21 activos
+   reales del PNSG y surgir Mann-Kendall real en el dashboard, en paralelo al demo de
+   Pipeline B. Etiquetado explícitamente **preliminar** (ver V6).
+6. **(P2 — v1.1.1, `research/statistical-rigor`)** Corregir estadísticamente la serie real
+   del PNSG: desestacionalización (medias anuales o STL) + corrección de autocorrelación
+   (Hamed-Rao) + corrección de empates, para que la tendencia real alcance el mismo rigor
+   que hoy solo demuestra el Pipeline B. Este es ahora el ítem de mayor riesgo académico
+   pendiente en la capa temporal.
+7. **(P2)** Validación de campo (protocolo en `docs/field_validation_protocol.md`) para
    recalibrar umbrales de alerta y costes con evidencia.
-7. **(P3)** Estratificar baselines por elevación/orientación (DEM) para robustecer el EHS.
+8. **(P3)** Estratificar baselines por elevación/orientación (DEM) para robustecer el EHS.
 
 > Estado actual del prototipo: **defendible como TFM** siempre que la defensa use la pestaña
 > *8 · Fundamento y Trazabilidad* (o la vista *Auditoría*) y este anexo como soporte, y que se
-> verbalice la distinción entre el **núcleo observado/calculado** y la **capa simulada** de
-> escenarios económicos.
+> verbalice la distinción entre el **núcleo observado/calculado**, la **tendencia real
+> preliminar del PNSG (v1.1.0)** y la **capa simulada** de escenarios económicos y del
+> Mann-Kendall demo de Pipeline B.
