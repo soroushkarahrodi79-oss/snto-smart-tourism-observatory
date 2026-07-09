@@ -5,9 +5,20 @@
 > años** sobre el Parque Nacional Sierra de Guadarrama. Este documento define el
 > *contrato* (qué serie, con qué cadencia y calidad), la *regla de inferencia*
 > (qué afirmación sostiene cada profundidad temporal) y la *trazabilidad*
-> (manifiesto de procedencia). **No describe una ingesta ya realizada:** la serie
-> aún no se ha descargado; aquí se fija el andamiaje (F2 del roadmap) que la hará
-> reproducible y defendible cuando se ejecute vía Google Earth Engine.
+> (manifiesto de procedencia) para el andamiaje declarativo `src/temporal/`
+> (spec + `trend_gate.py` + manifiesto), que a fecha de este documento **sigue sin
+> conectarse a datos reales**.
+>
+> **Actualización v1.1.0:** una serie real 2021–2026 SÍ ha sido ingerida vía
+> Google Earth Engine — pero por una ruta de código distinta y más ligera
+> (`scripts/extract_gee_timeseries_pnsg.py` → `clean_assets/timeseries/` →
+> `src/platform/satellite_trends.py`), no a través del contrato/gate que diseña
+> este documento. Esa serie cubre 21 activos reales del PNSG y ya alimenta el
+> panel "Tendencias satelitales reales" del dashboard, con Mann-Kendall
+> etiquetado **preliminar** (sin desestacionalizar ni corregir autocorrelación;
+> corrección prevista en v1.1.1). El contrato/gate que sigue este documento
+> continúa siendo relevante como diseño para conectar esa u otra serie con
+> garantías de validez más fuertes — ver `docs/nota_metodologica_temporalidad.md`.
 
 ---
 
@@ -127,10 +138,17 @@ PNSG) y consume `PNSG_5Y` para el rango de años; tras la ingesta emite el
 manifiesto y aplica el gate por sendero. En modo `--dry-run` (datos sintéticos)
 todo el andamiaje es verificable sin conexión a GEE.
 
-**Lo único que falta para tendencia real en PNSG es la ejecución con
-credenciales GEE** — el andamiaje (contrato, gate, manifiesto) ya está montado y
-probado. La ingesta efectiva es trabajo posterior, no parte de F2.
+**Para este gate F2 específicamente**, lo único que falta es conectar la
+ejecución con credenciales GEE — el andamiaje (contrato, gate, manifiesto) ya
+está montado y probado. La ingesta efectiva *sobre este gate* es trabajo
+posterior, no parte de F2.
+
+Nota: esto no debe leerse como "PNSG no tiene tendencia real" en sentido
+absoluto — desde **v1.1.0** sí existe una serie real 2021–2026 y una tendencia
+Mann-Kendall preliminar para 21 activos del PNSG, servida por una ruta de
+código independiente de este gate (ver actualización al inicio del documento).
 
 ---
 
-*Documento de diseño · SNTO · andamiaje temporal F2 · territorio principal PNSG.*
+*Documento de diseño · SNTO v1.1.0 · andamiaje temporal F2 (`src/temporal/`) ·
+territorio principal PNSG · actualizado julio 2026.*

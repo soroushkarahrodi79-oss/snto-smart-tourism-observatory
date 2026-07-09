@@ -228,7 +228,7 @@ a { color: var(--blue); text-decoration: none; }
 <h2 id="smart-natural-tourism-observatory-snto">Smart Natural Tourism Observatory (SNTO)</h2>
 <h3 id="whitepaper-source-of-truth-document"><em>Whitepaper — Source of Truth Document</em></h3>
 <p><strong>Project:</strong> Gobernanza Inteligente y Transición Regenerativa en Espacios Naturales Protegidos. Territorio principal: <strong>Parque Nacional Sierra de Guadarrama</strong> (Red de Parques Nacionales — OAPN). Marco de gobernanza de referencia: Carta Europea de Turismo Sostenible (CETS / EUROPARC), empleada como metodología. Piloto de calibración: Reserva de la Biosfera Sierra del Rincón.</p>
-<p><strong>Version:</strong> 1.0 | <strong>Date:</strong> June 2026 | <strong>Author:</strong> Smart Natural Tourism Observatory Research Team</p>
+<p><strong>Version:</strong> 1.1 | <strong>Date:</strong> July 2026 | <strong>Author:</strong> Smart Natural Tourism Observatory Research Team</p>
 <hr />
 <h1 id="1-executive-summary">1. Executive Summary</h1>
 <p>The <strong>Smart Natural Tourism Observatory (SNTO)</strong> is an open, spatially explicit, data-driven platform designed to transition natural tourism destination management from a reactive maintenance paradigm to a proactive, scientifically grounded <strong>Regenerative Tourism</strong> model. Developed primarily for the <strong>Sierra de Guadarrama National Park (PNSG)</strong> — the first site of the Spanish National Parks Network (OAPN) integrated into the observatory — and methodologically grounded in the <strong>European Charter for Sustainable Tourism (CETS / EUROPARC)</strong> governance framework, the SNTO operationalises the core regenerative principle that tourism infrastructure must actively restore the ecological carrying capacity it consumes. The method was initially calibrated on the Sierra del Rincón Biosphere Reserve, retained as a methodological calibration pilot.</p>
@@ -509,7 +509,7 @@ the Pipeline A stress output and converts it to health on load
 <li><strong>Priority score:</strong> <code>priority_score = (EHS × 0.60) + (traffic_index × 0.40)</code> — weighting ecological urgency (60%) above visitor pressure (40%).</li>
 <li><strong>Budget allocation:</strong> Trails with <code>priority_score &gt; 60</code> are flagged as requiring intervention. Their restoration budget is computed as:</li>
 </ol>
-<p>$$\text{TIS Budget (EUR)} = L_m \times 15.50 \times \frac{\text{priority_score}}{100}$$</p>
+<p>$$\text{TIS Budget (EUR)} = L_m \times 15.50 \times \frac{\text{priority score}}{100}$$</p>
 <p>Where $L_m$ is trail length in metres, computed from PostGIS via <code>ST_Length(geometry::geography)</code>.</p>
 <ol>
 <li>Results are written to four dynamic columns added to <code>production_hiking_trails</code>: <code>ehs_index</code>, <code>needs_intervention</code>, <code>tis_budget_eur</code>, <code>priority_score</code>.</li>
@@ -687,7 +687,7 @@ the Pipeline A stress output and converts it to health on load
 <li><strong>Spectral confoundedness:</strong> Drought-induced and trampling-induced NDVI depression produce similar spectral signatures; the SCM module mitigates but cannot fully eliminate this confounding in extreme drought years.</li>
 <li><strong>Trail width assumption:</strong> The 50 m buffer standardisation may underrepresent impact zones in heavily-used trails or overestimate them in lightly-used corridors; field-calibrated buffer widths would improve precision.</li>
 <li><strong>Visitor count data quality:</strong> The traffic_index component currently relies on permit or estimation data; integration with automated counting infrastructure (LiDAR or infrared counters) would substantially improve model precision.</li>
-<li><strong>Temporal depth:</strong> Full statistical validity of the Mann-Kendall trend component requires a multi-year monthly series. The current real PNSG data is a two-scene seasonal snapshot, so only the seasonal ΔEHS is asserted there; the 2021–2026 series is scaffolded (§7.5) but not yet ingested, and the validity gate (<code>src/temporal/trend_gate.py</code>) enforces this distinction.</li>
+<li><strong>Temporal depth (updated v1.1.0):</strong> the operational raster-based EHS/ΔEHS pipeline remains a two-scene seasonal snapshot (seasonal ΔEHS only). Separately, as of <strong>v1.1.0</strong> a real 2021–2026 monthly Sentinel-2 series has been ingested via Google Earth Engine for 21 curated PNSG assets (<code>src/platform/satellite_trends.py</code>, <code>clean_assets/timeseries/</code>), and Mann-Kendall trends are now surfaced in the dashboard for real PNSG data. These trends are reported as <strong>preliminary/indicative</strong>: the test runs on raw monthly NDVI without deseasonalization or serial-autocorrelation correction, which inflates significance. Deseasonalized, autocorrelation-corrected statistics (Hamed-Rao + tie correction) are scheduled for <strong>v1.1.1</strong>. This new layer is architecturally independent of the declarative <code>src/temporal/</code> spec and its <code>trend_gate.py</code> validity gate (§7.5), which still awaits activation with real data.</li>
 </ul>
 <p>Future development priorities include: (1) machine learning classification of degradation typology (trampling vs. drought vs. wildfire); (2) integration of hyperspectral UAV data for validation sub-sampling; (3) extension of the platform to monitor CETS socio-economic indicators alongside ecological ones.</p>
 <h2 id="75-methodological-extensions-implemented-f0f7">7.5 Methodological extensions implemented (F0–F7)</h2>
@@ -710,9 +710,14 @@ activation depends on declared data inputs, not on further method design:</p>
 <td>✅ unified across pipeline &amp; dashboard</td>
 </tr>
 <tr>
-<td>Temporal series scaffolding (2021–2026)</td>
+<td>Real Sentinel-2 temporal trends (2021–2026, v1.1.0)</td>
+<td><code>src/platform/satellite_trends.py</code>, <code>clean_assets/timeseries/</code></td>
+<td>✅ real GEE data, 21 PNSG assets; Mann-Kendall <strong>preliminary</strong> (uncorrected); deseasonalized/autocorrelation-corrected stats → v1.1.1</td>
+</tr>
+<tr>
+<td>Temporal series scaffolding (declarative, separate)</td>
 <td><code>src/temporal/</code></td>
-<td>✅ spec + Mann-Kendall validity gate + provenance manifest; ingestion pending (GEE)</td>
+<td>✅ spec + Mann-Kendall validity gate + provenance manifest; ingestion into this gate still pending</td>
 </tr>
 <tr>
 <td>Data provenance &amp; confidence surfacing</td>
@@ -922,7 +927,7 @@ consolidated assumptions/limits register in
 <hr />
 <p><strong>Codebase Repository:</strong> <code>snto-smart-tourism-observatory</code>
 <strong>Primary Contact:</strong> soroush.karahrodi79@gmail.com
-<strong>Platform Version:</strong> 0.1.0 | <strong>Python:</strong> ≥ 3.12 | <strong>License:</strong> Research Use</p>
+<strong>Platform Version:</strong> 1.1.0 | <strong>Python:</strong> ≥ 3.12 | <strong>License:</strong> Research Use</p>
 
 <div class="doc-footer">
   SNTO — Smart Nature Tourism Observatory &nbsp;·&nbsp;
