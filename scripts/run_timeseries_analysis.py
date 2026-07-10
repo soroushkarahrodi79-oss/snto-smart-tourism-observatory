@@ -11,6 +11,10 @@ Uso:
     python scripts/run_timeseries_analysis.py
     python scripts/run_timeseries_analysis.py --prewhiten
     python scripts/run_timeseries_analysis.py --input clean_assets/timeseries/pnsg_gee_timeseries.csv
+    # v1.2.0 Red OAPN — un parque distinto de PNSG:
+    python scripts/run_timeseries_analysis.py \
+        --input clean_assets/timeseries/pn_tablas_daimiel_gee_timeseries.csv \
+        --park pn_tablas_daimiel
 """
 
 from __future__ import annotations
@@ -196,8 +200,15 @@ def analyse(rows: list[dict], prewhiten: bool = False) -> dict:
         else:
             worst_year = best_year = None
 
+        # Categoría explícita (senderismo/ciclismo/…) si el CSV la trae (OAPN
+        # v1.2.0). PNSG (v1.1.0) no la exporta → se omite y el cargador del
+        # dashboard la infiere del asset_id. Persistirla aquí evita el parseo
+        # posicional frágil con los ids multi-token de OAPN.
+        category = next((r["category"] for r in obs if r.get("category")), None)
+
         results[asset_id] = {
             "n_observations": len(obs_sorted),
+            **({"category": category} if category else {}),
             "mann_kendall_ndvi": mk_ndvi,
             "mann_kendall_ndmi": mk_ndmi,
             "annual_mean_ndvi": annual_ndvi,
@@ -232,6 +243,11 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     parser.add_argument(
+        "--park", default="pnsg",
+        help="Slug del parque → salida mk_trends_<park>.json (v1.2.0 Red OAPN). "
+             "Por defecto 'pnsg'. Ej: pn_tablas_daimiel, pn_monfrague.",
+    )
+    parser.add_argument(
         "--prewhiten", action="store_true",
         help="Aplicar pre-whitening libre de tendencia (Yue-Pilon 2002) para "
              "descontar la autocorrelación de lag-1 antes de Mann-Kendall.",
@@ -256,7 +272,7 @@ def main() -> None:
     results = analyse(rows, prewhiten=args.prewhiten)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    out_json = OUTPUT_DIR / "mk_trends_pnsg.json"
+    out_json = OUTPUT_DIR / f"mk_trends_{args.park}.json"
     with open(out_json, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
     log.info("\nResultados guardados en %s", out_json)
