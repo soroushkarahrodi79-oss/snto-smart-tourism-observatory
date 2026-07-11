@@ -35,7 +35,7 @@ var rawAssets = ee.FeatureCollection([
 // Buffer según tipo de geometría (puntos y líneas) server-side
 var assets = rawAssets.map(function(f) {
   var gt = ee.String(f.get('geom_type'));
-  var isLine = gt.equals('LINESTRING').or(gt.equals('MULTILINESTRING'));
+  var isLine = ee.Boolean(gt.equals('LINESTRING')).or(ee.Boolean(gt.equals('MULTILINESTRING')));
   var geom = ee.Geometry(ee.Algorithms.If(
     gt.equals('POINT'), f.geometry().buffer(POINT_BUFFER_M),
     ee.Algorithms.If(isLine, f.geometry().buffer(LINE_BUFFER_M), f.geometry())
