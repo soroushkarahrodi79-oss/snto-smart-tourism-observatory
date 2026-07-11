@@ -4,20 +4,21 @@ SNTO means Smart Natural Tourism Observatory. The active case study is Parque Na
 
 ## Current Status
 
-- v1.0.0 is already released/deployed.
-- v1.1.0 exists as PR #1 and focuses on the real Sentinel-2 temporal layer for 2021-2026.
-- v1.2.0 and statistical-rigor work exist as future branches/work.
-- v2.0 should not start before v1.1/v1.2 integration and app modularization.
+- v1.0.0, v1.1.0, and v1.1.1 are released and tagged in `main` (PR #1 merged 2026-07-09; statistical fix via PRs #19/#20).
+- v1.2.0 (OAPN multi-park expansion) is code-complete in open PRs #21 + #22 (stacked). Only the manual GEE data export for the pilot parks (Tablas de Daimiel, Monfragüe) is pending; the code merge does not depend on it (default `park="pnsg"` keeps behavior identical).
+- Statistical-rigor work lives in `research/statistical-rigor` (cut from an old `main`; must be rescued via cherry-pick, not merged directly) → planned as v1.3.0.
+- The operational roadmap is `docs/roadmap/plan_fases_post_v1.2.md` (Fases 0–5), tracked in issues #24–#28.
+- v2.0 should not start before v1.2/v1.3 integration and app modularization.
 
 ## Pull Requests
 
-- PR #1, `feat: v1.1.0 - capa temporal Sentinel-2 real 2021-2026`, is a functional v1.1.0 PR. It is coherent but high risk and is not safe to merge until conflicts, checks, generated assets, dependencies, and implementation details are reviewed.
-- PR #7, `docs: add SNTO strategic knowledge base 2026`, was intended as docs-only but is contaminated with functional changes. Do not merge it as-is.
-- A clean docs-only branch has been recreated from `main`: `docs/strategic-knowledge-base-2026-clean`. It should contain only `docs/**`, `MASTER_STRATEGIC_INDEX.md`, and later AI handoff Markdown if included intentionally.
+- PR #21 (`feature/v1.2.0-oapn-network-expansion-clean` → `main`): GEE templates for 15 OAPN parks + pilot plan. Additive, low risk. Merge first.
+- PR #22 (`feature/v1.2.0-oapn-integration`, stacked on #21): multi-park generalization of the temporal flow. Backward compatible by design. Merge after #21.
+- PR #1 (v1.1.0) and PR #7 (contaminated docs) are resolved history: #1 merged; #7's docs content reached `main` and its functional commits are preserved on `research/statistical-rigor`.
 
 ## Architecture Facts
 
-- `app.py` is currently a monolith of around 2,890 lines.
+- `app.py` is currently a monolith of around 3,170 lines (and growing).
 - The analytical core under `src/` is healthier and better separated.
 - The main architectural risk is concentration of UI, orchestration, state, copy, and product logic in `app.py`.
 - A FastAPI API exists but is secondary and under-integrated.
@@ -46,12 +47,12 @@ SNTO has the intellectual core of a reference product but the body of an advance
 
 ## Next Recommended Actions
 
-1. Open a new PR from `docs/strategic-knowledge-base-2026-clean`.
-2. Verify the clean docs PR contains only documentation/context files.
-3. Close contaminated PR #7 only after the clean PR exists and is verified.
-4. Keep PR #1 open.
-5. Resolve PR #1 conflicts and run CI/checks.
-6. Review `app.py`, requirements, `pyproject.toml`, workflows, and generated assets in PR #1.
-7. Convert v1.1 roadmap items into actionable tickets.
-8. Modularize `app.py` before any major UI redesign.
+Follow `docs/roadmap/plan_fases_post_v1.2.md`:
+
+1. Fase 0 (code): review and merge PR #21, then PR #22 (human approval required).
+2. Fase 0 (data): run the GEE exports for Tablas de Daimiel and Monfragüe, ingest via `run_timeseries_analysis.py --park <key>`, QA per biome, then tag `v1.2.0`.
+3. Fase 1 (remaining): delete the superseded branches listed in the plan (verified against `main`; requires explicit owner confirmation).
+4. Fase 2: rescue `research/statistical-rigor` via clean cherry-pick branch → v1.3.0 (issue #24).
+5. Fase 3: pilot readiness — GIS export (#25), field validation (#26), risk brief (#12), evidence separation (#10), positioning copy (#9) → v1.4.0.
+6. Fase 4: modularize `app.py` (#27) before any major UI redesign, then rescue the audience-views branch (#28).
 
