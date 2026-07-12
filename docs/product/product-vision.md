@@ -15,6 +15,8 @@ The consensus review stated that SNTO can become a reference only by narrowing t
 ## Recommendations
 Product vision: help protected-area managers make defensible decisions about visitor-pressure risk and conservation investment.
 
+SNTO is a **decision-intelligence layer**, not another map, monitor, or dashboard engine. It does **not** replace ArcGIS, Google Earth Engine, Sentinel Hub, Tableau, or Power BI; it sits **above** GIS, Earth-observation, and BI tools and integrates with them, translating their signal into confidence-aware conservation decisions.
+
 ## Next Steps
 Use this vision to filter roadmap and UI decisions.
 

@@ -12,6 +12,7 @@ import datetime
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
+from src._version import __version__
 from src.territorial.models import AssetType, TerritorialAsset
 from src.territorial.tpi import rank_assets
 from src.intervention import compare_scenarios, allocate_tis_budget
@@ -677,15 +678,17 @@ _VISIBLE_TERRITORIES = ["pnsg"]
 
 # ── Configuración de página ───────────────────────────────────────────────────
 st.set_page_config(
-    page_title="SNTO — Inteligencia Territorial",
+    page_title="SNTO — Inteligencia para la decisión en espacios protegidos",
     page_icon="🏔",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
         "About": (
-            "Smart Natural Tourism Observatory (SNTO) v0.1 · "
-            "Plataforma de Inteligencia Estratégica de Destinos · "
-            "Reserva de la Biosfera Sierra del Rincón, Madrid (España)"
+            f"Smart Natural Tourism Observatory (SNTO) v{__version__} · "
+            "Capa de inteligencia para la decisión en espacios naturales "
+            "protegidos — se apoya en GIS y observación de la Tierra, no los "
+            "sustituye · Caso activo: Parque Nacional Sierra de Guadarrama "
+            "(Madrid · Segovia, España)"
         ),
     },
 )
@@ -1371,9 +1374,9 @@ def render_kpi_card(kpi, ranked_assets: list | None = None,
 # ── Selector de territorio (primer bloque de barra lateral) ──────────────────
 with st.sidebar:
     st.markdown("## 🏔 SNTO")
-    st.markdown("**Plataforma de Inteligencia  \nEstratégica de Destinos**")
+    st.markdown("**Inteligencia para la decisión  \nen espacios naturales protegidos**")
     st.divider()
-    st.markdown("**Observatorio activo**")
+    st.markdown("**Espacio protegido activo**")
     if len(_VISIBLE_TERRITORIES) > 1:
         selected_key = st.radio(
             "Territorio activo",
@@ -1447,7 +1450,7 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
     st.divider()
-    st.caption("SNTO v0.1 · Sentinel-2 real + INE/ALMUDENA + calibración")
+    st.caption(f"SNTO v{__version__} · Sentinel-2 real + INE/ALMUDENA + calibración")
     st.caption(f"Territorio principal: {_terr_cfg['short']} (Madrid · Segovia)")
 
 
@@ -1530,7 +1533,7 @@ st.markdown(
 
 # ── Tab 1: KPIs ───────────────────────────────────────────────────────────────
 with tab_kpis:
-    st.subheader("Panel de Indicadores Estratégicos · Gobernanza Inteligente del Territorio")
+    st.subheader("Panel de Indicadores Estratégicos · Soporte a la decisión de gestión")
     st.caption(
         "Cada indicador responde a una pregunta de gestión pública concreta. "
         "Despliega cada tarjeta para ver la interpretación, la acción recomendada "
@@ -3179,8 +3182,8 @@ with tab_method:
 st.divider()
 st.markdown(
     f'<div style="font-size:0.72rem;color:#9aa4af;text-align:center;padding:4px 0 2px;">'
-    f'Smart Natural Tourism Observatory (SNTO) v0.1 · '
-    f'Plataforma de Inteligencia Estratégica de Destinos · '
+    f'Smart Natural Tourism Observatory (SNTO) v{__version__} · '
+    f'Capa de inteligencia para la decisión en espacios naturales protegidos · '
     f'{dashboard.territory_name} · Madrid (España) · '
     f'Sentinel-2 real (PNSG) + capa socioeconómica INE/ALMUDENA + activos de calibración'
     f'</div>',
