@@ -250,7 +250,7 @@ with tab_assets:
 
 # ── Tab 8: Fundamento y Trazabilidad ──────────────────────────────────────────
 with tab_method:
-    render_tab_method()
+    render_tab_method(_view)
 
 
 # ── Pie de página ─────────────────────────────────────────────────────────────
