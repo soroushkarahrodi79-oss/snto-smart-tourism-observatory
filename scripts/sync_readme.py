@@ -75,7 +75,7 @@ def _apply_substitutions(text: str, version: str, count: int | None, today: date
     count_part = str(count) if count is not None else r"\d+"
     mes = _MESES_ES[today.month - 1]
     text = re.sub(
-        r"<sub>SNTO v[\d.]+ · Python ≥ 3\.12 · \d+ tests passing · [^<]+</sub>",
+        r"<sub>SNTO v[\w.]+ · Python ≥ 3\.12 · \d+ tests passing · [^<]+</sub>",
         f"<sub>SNTO v{version} · Python ≥ 3.12 · {count_part} tests passing · {mes} {today.year}</sub>",
         text,
     )
