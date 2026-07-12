@@ -1,0 +1,287 @@
+{
+  "pn_tablas_daimiel_senderismo_la_torre_de_prado_ancho_000": {
+    "n_observations": 66,
+    "category": "senderismo",
+    "mann_kendall_ndvi": {
+      "tau": 0.323,
+      "z": 3.83,
+      "p_approx": 0.0001,
+      "trend": "increasing",
+      "sens_slope": 0.001856,
+      "sens_slope_ci": [
+        0.000934,
+        0.002698
+      ],
+      "is_significant": true,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.2361,
+      "method": "harmonic_deseasonalised+mann_kendall"
+    },
+    "mann_kendall_ndmi": {
+      "tau": 0.432,
+      "z": 5.125,
+      "p_approx": 0.0,
+      "trend": "increasing",
+      "sens_slope": 0.002253,
+      "sens_slope_ci": [
+        0.001329,
+        0.003187
+      ],
+      "is_significant": true,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.4053,
+      "method": "harmonic_deseasonalised+mann_kendall"
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.3347,
+      "2022": 0.3011,
+      "2023": 0.3461,
+      "2024": 0.3781,
+      "2025": 0.3872,
+      "2026": 0.4376
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2025",
+    "ndvi_range": {
+      "min": 0.0752,
+      "max": 0.5826
+    }
+  },
+  "pn_tablas_daimiel_senderismo_la_isla_del_pan_001": {
+    "n_observations": 66,
+    "category": "senderismo",
+    "mann_kendall_ndvi": {
+      "tau": -0.164,
+      "z": -1.937,
+      "p_approx": 0.0528,
+      "trend": "no trend",
+      "sens_slope": -0.001025,
+      "sens_slope_ci": [
+        -0.002105,
+        1.7e-05
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.2524,
+      "method": "harmonic_deseasonalised+mann_kendall"
+    },
+    "mann_kendall_ndmi": {
+      "tau": 0.194,
+      "z": 2.291,
+      "p_approx": 0.022,
+      "trend": "increasing",
+      "sens_slope": 0.000819,
+      "sens_slope_ci": [
+        9.2e-05,
+        0.00154
+      ],
+      "is_significant": true,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.5473,
+      "method": "harmonic_deseasonalised+mann_kendall"
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.4274,
+      "2022": 0.3357,
+      "2023": 0.3369,
+      "2024": 0.4093,
+      "2025": 0.3211,
+      "2026": 0.3812
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2025",
+    "best_ndvi_year": "2021",
+    "ndvi_range": {
+      "min": 0.0414,
+      "max": 0.5467
+    }
+  },
+  "pn_tablas_daimiel_senderismo_la_laguna_de_aclimatacion_002": {
+    "n_observations": 66,
+    "category": "senderismo",
+    "mann_kendall_ndvi": {
+      "tau": 0.221,
+      "z": 2.612,
+      "p_approx": 0.009,
+      "trend": "increasing",
+      "sens_slope": 0.00117,
+      "sens_slope_ci": [
+        0.000401,
+        0.001795
+      ],
+      "is_significant": true,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.2048,
+      "method": "harmonic_deseasonalised+mann_kendall"
+    },
+    "mann_kendall_ndmi": {
+      "tau": 0.377,
+      "z": 4.472,
+      "p_approx": 0.0,
+      "trend": "increasing",
+      "sens_slope": 0.001765,
+      "sens_slope_ci": [
+        0.001151,
+        0.002307
+      ],
+      "is_significant": true,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.4382,
+      "method": "harmonic_deseasonalised+mann_kendall"
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.3939,
+      "2022": 0.3613,
+      "2023": 0.4093,
+      "2024": 0.4574,
+      "2025": 0.4048,
+      "2026": 0.4355
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2024",
+    "ndvi_range": {
+      "min": 0.0886,
+      "max": 0.5955
+    }
+  },
+  "pn_tablas_daimiel_senderismo_la_laguna_permanente_003": {
+    "n_observations": 66,
+    "category": "senderismo",
+    "mann_kendall_ndvi": {
+      "tau": 0.172,
+      "z": 2.037,
+      "p_approx": 0.0417,
+      "trend": "increasing",
+      "sens_slope": 0.000946,
+      "sens_slope_ci": [
+        4.1e-05,
+        0.001696
+      ],
+      "is_significant": true,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.4707,
+      "method": "harmonic_deseasonalised+mann_kendall"
+    },
+    "mann_kendall_ndmi": {
+      "tau": 0.373,
+      "z": 4.427,
+      "p_approx": 0.0,
+      "trend": "increasing",
+      "sens_slope": 0.001583,
+      "sens_slope_ci": [
+        0.000906,
+        0.002219
+      ],
+      "is_significant": true,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.7024,
+      "method": "harmonic_deseasonalised+mann_kendall"
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.4307,
+      "2022": 0.3741,
+      "2023": 0.4207,
+      "2024": 0.4676,
+      "2025": 0.4359,
+      "2026": 0.4443
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2024",
+    "ndvi_range": {
+      "min": 0.0632,
+      "max": 0.5994
+    }
+  },
+  "pn_tablas_daimiel_senderismo_molino_de_molemocho_004": {
+    "n_observations": 66,
+    "category": "senderismo",
+    "mann_kendall_ndvi": {
+      "tau": -0.006,
+      "z": -0.066,
+      "p_approx": 0.9471,
+      "trend": "no trend",
+      "sens_slope": -5.7e-05,
+      "sens_slope_ci": [
+        -0.00093,
+        0.000582
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.45,
+      "method": "harmonic_deseasonalised+mann_kendall"
+    },
+    "mann_kendall_ndmi": {
+      "tau": 0.081,
+      "z": 0.952,
+      "p_approx": 0.3412,
+      "trend": "no trend",
+      "sens_slope": 0.000467,
+      "sens_slope_ci": [
+        -0.000412,
+        0.001411
+      ],
+      "is_significant": false,
+      "n": 66,
+      "deseasonalised": true,
+      "prewhitened": false,
+      "lag1_autocorr": null,
+      "seasonality_strength": 0.4548,
+      "method": "harmonic_deseasonalised+mann_kendall"
+    },
+    "annual_mean_ndvi": {
+      "2021": 0.4131,
+      "2022": 0.3542,
+      "2023": 0.3728,
+      "2024": 0.457,
+      "2025": 0.3825,
+      "2026": 0.4133
+    },
+    "partial_years": [
+      "2026"
+    ],
+    "worst_ndvi_year": "2022",
+    "best_ndvi_year": "2024",
+    "ndvi_range": {
+      "min": 0.078,
+      "max": 0.6515
+    }
+  }
+}

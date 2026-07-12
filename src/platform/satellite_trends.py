@@ -51,8 +51,21 @@ DEFAULT_PARK = "pnsg"
 # Keys are the ``<park>`` slug used in ``mk_trends_<park>.json`` / GEE templates.
 PARK_LABELS: dict[str, str] = {
     "pnsg": "Sierra de Guadarrama (PNSG)",
-    "pn_tablas_daimiel": "Tablas de Daimiel",
+    "pn_aiguestortes": "Aigüestortes i Estany de Sant Maurici",
+    "pn_cabaneros": "Cabañeros",
+    "pn_cabrera": "Archipiélago de Cabrera",
+    "pn_donana": "Doñana",
+    "pn_garajonay": "Garajonay",
+    "pn_islas_atlanticas": "Islas Atlánticas de Galicia",
     "pn_monfrague": "Monfragüe",
+    "pn_ordesa": "Ordesa y Monte Perdido",
+    "pn_picos_europa": "Picos de Europa",
+    "pn_sierra_nevada": "Sierra Nevada",
+    "pn_sierra_nieves": "Sierra de las Nieves",
+    "pn_tablas_daimiel": "Tablas de Daimiel",
+    "pn_taburiente": "Caldera de Taburiente",
+    "pn_teide": "Teide",
+    "pn_timanfaya": "Timanfaya",
 }
 
 # Significance threshold (matches run_timeseries_analysis.py)
