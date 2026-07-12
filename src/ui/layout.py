@@ -11,6 +11,11 @@ from __future__ import annotations
 import streamlit as st
 
 from src._version import __version__
+from src.intervention import allocate_tis_budget, compare_scenarios
+from src.platform import compute_executive_dashboard
+from src.platform.enrichment import enrich_assets_with_satellite
+from src.territorial.fixtures import build_pnsg_territory, build_territory
+from src.territorial.tpi import rank_assets
 
 
 def configure_page() -> None:
@@ -222,3 +227,66 @@ _BASE_CSS = """
 def inject_base_styles() -> None:
     """Inject the institutional stylesheet (verbatim from app.py)."""
     st.markdown(_BASE_CSS, unsafe_allow_html=True)
+
+
+# ── Fecha global de informe ───────────────────────────────────────────────────
+REPORT_DATE = "2026-06-12"
+
+
+# ── Registro de territorios ───────────────────────────────────────────────────
+_TERRITORY_CONFIG: dict[str, dict] = {
+    "snr": {
+        "name":       "Reserva de la Biosfera Sierra del Rincón",
+        "short":      "Sierra del Rincón",
+        "budget":     100_000,
+        "report_date": REPORT_DATE,
+        "map_center": (41.130, -3.490, 11),
+    },
+    "pnsg": {
+        "name":       "Parque Nacional Sierra de Guadarrama",
+        "short":      "PN Sierra de Guadarrama",
+        "budget":     150_000,
+        "report_date": REPORT_DATE,
+        "map_center": (40.820, -3.960, 10),
+    },
+}
+
+_BUILD_FN = {
+    "snr":  build_territory,
+    "pnsg": build_pnsg_territory,
+}
+
+# Territorios VISIBLES en el selector de la UI. El PNSG es el territorio
+# principal del observatorio; Sierra del Rincón se conserva en el código, los
+# datos y los scripts del pipeline (raíz del proyecto), pero ya no se ofrece en
+# la vista. Para volver a mostrarlo, añade "snr" a esta lista.
+_VISIBLE_TERRITORIES = ["pnsg"]
+
+
+# ── Pipeline con caché ────────────────────────────────────────────────────────
+
+@st.cache_data(show_spinner="Calculando inteligencia territorial…")
+def load_dashboard(territory_key: str):
+    """Return (dashboard, assets, comps, assets_by_id, base_budget, cfg, cal) — cached per territory.
+
+    Fase 2 — inyección satelital: antes de rankear, el EHS satelital real del
+    Pipeline A sobreescribe (conservadoramente) el EHS curado donde el satélite
+    observa MÁS degradación. Como rank_assets recalcula TPI/tier a partir de
+    ehs, el dato real se propaga a TPI, tiers, presupuesto y los 10 KPIs.
+    """
+    cfg    = _TERRITORY_CONFIG[territory_key]
+    raw    = _BUILD_FN[territory_key]()
+    raw, cal = enrich_assets_with_satellite(territory_key, raw)
+    assets = rank_assets(raw)
+    by_id  = {a.asset_id: a for a in assets}
+    max_v  = max(a.visitor_capacity_annual for a in assets)
+    comps  = [compare_scenarios(a, max_v) for a in assets]
+    budget = allocate_tis_budget(comps, by_id, cfg["budget"])
+    dash   = compute_executive_dashboard(
+        territory_name=cfg["name"],
+        report_date=cfg["report_date"],
+        assets=assets,
+        budget_result=budget,
+        comparisons=comps,
+    )
+    return dash, assets, comps, by_id, budget, cfg, cal
