@@ -9,6 +9,8 @@ The reviews identified a path from current prototype to reference platform.
 ## Current State
 SNTO should prioritize focus and validation before enterprise expansion.
 
+Releases `v1.3.0` and `v1.4.0` are complete. `main` is now `v1.5.0.dev0`; Phase 4 modularization remains incomplete and continues to gate major UI evolution.
+
 ## Evidence
 The consensus review defined a three-year roadmap: narrowing, operationalization, institutional scaling.
 

@@ -228,7 +228,10 @@ a { color: var(--blue); text-decoration: none; }
 <h2 id="smart-natural-tourism-observatory-snto">Smart Natural Tourism Observatory (SNTO)</h2>
 <h3 id="whitepaper-source-of-truth-document"><em>Whitepaper — Source of Truth Document</em></h3>
 <p><strong>Project:</strong> Gobernanza Inteligente y Transición Regenerativa en Espacios Naturales Protegidos. Territorio principal: <strong>Parque Nacional Sierra de Guadarrama</strong> (Red de Parques Nacionales — OAPN). Marco de gobernanza de referencia: Carta Europea de Turismo Sostenible (CETS / EUROPARC), empleada como metodología. Piloto de calibración: Reserva de la Biosfera Sierra del Rincón.</p>
-<p><strong>Version:</strong> 1.2.0 | <strong>Date:</strong> July 2026 | <strong>Author:</strong> Smart Natural Tourism Observatory Research Team</p>
+<p><strong>Version:</strong> 1.4.0 | <strong>Date:</strong> July 2026 | <strong>Author:</strong> Smart Natural Tourism Observatory Research Team</p>
+<blockquote>
+<p><strong>Document scope:</strong> this whitepaper tracks the latest stable methodological baseline (<code>v1.4.0</code>). The repository <code>main</code> branch may contain later development work (<code>v1.5.0.dev0</code>) that is not yet part of a stable release.</p>
+</blockquote>
 <hr />
 <h1 id="1-executive-summary">1. Executive Summary</h1>
 <p>The <strong>Smart Natural Tourism Observatory (SNTO)</strong> is an open, spatially explicit, data-driven platform designed to transition natural tourism destination management from a reactive maintenance paradigm to a proactive, scientifically grounded <strong>Regenerative Tourism</strong> model. Developed primarily for the <strong>Sierra de Guadarrama National Park (PNSG)</strong> — the first site of the Spanish National Parks Network (OAPN) integrated into the observatory — and methodologically grounded in the <strong>European Charter for Sustainable Tourism (CETS / EUROPARC)</strong> governance framework, the SNTO operationalises the core regenerative principle that tourism infrastructure must actively restore the ecological carrying capacity it consumes. The method was initially calibrated on the Sierra del Rincón Biosphere Reserve, retained as a methodological calibration pilot.</p>
@@ -721,6 +724,16 @@ activation depends on declared data inputs, not on further method design:</p>
 <td>✅ 2/15 parks validated and live (Tablas de Daimiel, Monfragüe); 15 GEE templates ready; 12 further CSVs withheld pending bioma-specific mask QA</td>
 </tr>
 <tr>
+<td>Statistical rigor (v1.3.0)</td>
+<td><code>src/time_series/changepoint.py</code>, <code>src/calibration/ehs_sensitivity.py</code>, <code>src/validation/cross_sensor.py</code></td>
+<td>✅ Pettitt change points, block-bootstrap EHS confidence intervals, Morris sensitivity and Sentinel-2/MODIS cross-sensor checks</td>
+</tr>
+<tr>
+<td>Decision integration and evidence governance (v1.4.0)</td>
+<td><code>src/reporting/risk_brief.py</code>, <code>src/reporting/gis_export.py</code>, <code>src/platform/evidence.py</code>, <code>src/validation/</code></td>
+<td>✅ director-grade risk brief, GIS export, canonical evidence classes and decision gates, and field-campaign tooling; completed ground-truth campaign still pending</td>
+</tr>
+<tr>
 <td>Temporal series scaffolding (declarative, separate)</td>
 <td><code>src/temporal/</code></td>
 <td>✅ spec + Mann-Kendall validity gate + provenance manifest; ingestion into this gate still pending</td>
@@ -929,11 +942,11 @@ consolidated assumptions/limits register in
 </tbody>
 </table>
 <hr />
-<p><em>This document constitutes the authoritative methodological reference for the SNTO platform as implemented in the Sierra del Rincón Biosphere Reserve pilot. All formulas, thresholds, and cost parameters are derived from implemented code (<code>tis_engine.py</code>, <code>src/risk_engine/ehs.py</code>, <code>src/spatial_causality/analyzer.py</code>, <code>src/decision_confidence/assessor.py</code>) and validated against the references cited. Any modifications to operational parameters must be reflected in both this document and the codebase to maintain source-of-truth integrity.</em></p>
+<p><em>This document constitutes the authoritative methodological reference for the SNTO platform as implemented primarily for Sierra de Guadarrama National Park, with the Sierra del Rincón Biosphere Reserve retained as a methodological calibration pilot. All formulas, thresholds, and cost parameters are derived from implemented code (<code>tis_engine.py</code>, <code>src/risk_engine/ehs.py</code>, <code>src/spatial_causality/analyzer.py</code>, <code>src/decision_confidence/assessor.py</code>) and validated against the references cited. Any modifications to operational parameters must be reflected in both this document and the codebase to maintain source-of-truth integrity.</em></p>
 <hr />
 <p><strong>Codebase Repository:</strong> <code>snto-smart-tourism-observatory</code>
 <strong>Primary Contact:</strong> soroush.karahrodi79@gmail.com
-<strong>Platform Version:</strong> 1.2.0 | <strong>Python:</strong> ≥ 3.12 | <strong>License:</strong> Research Use</p>
+<strong>Platform Version:</strong> 1.4.0 (latest stable) | <strong>Python:</strong> ≥ 3.12 | <strong>License:</strong> Research Use</p>
 
 <div class="doc-footer">
   SNTO — Smart Nature Tourism Observatory &nbsp;·&nbsp;
