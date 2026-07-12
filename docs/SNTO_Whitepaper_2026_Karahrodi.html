@@ -228,7 +228,7 @@ a { color: var(--blue); text-decoration: none; }
 <h2 id="smart-natural-tourism-observatory-snto">Smart Natural Tourism Observatory (SNTO)</h2>
 <h3 id="whitepaper-source-of-truth-document"><em>Whitepaper — Source of Truth Document</em></h3>
 <p><strong>Project:</strong> Gobernanza Inteligente y Transición Regenerativa en Espacios Naturales Protegidos. Territorio principal: <strong>Parque Nacional Sierra de Guadarrama</strong> (Red de Parques Nacionales — OAPN). Marco de gobernanza de referencia: Carta Europea de Turismo Sostenible (CETS / EUROPARC), empleada como metodología. Piloto de calibración: Reserva de la Biosfera Sierra del Rincón.</p>
-<p><strong>Version:</strong> 1.1.1 | <strong>Date:</strong> July 2026 | <strong>Author:</strong> Smart Natural Tourism Observatory Research Team</p>
+<p><strong>Version:</strong> 1.2.0 | <strong>Date:</strong> July 2026 | <strong>Author:</strong> Smart Natural Tourism Observatory Research Team</p>
 <hr />
 <h1 id="1-executive-summary">1. Executive Summary</h1>
 <p>The <strong>Smart Natural Tourism Observatory (SNTO)</strong> is an open, spatially explicit, data-driven platform designed to transition natural tourism destination management from a reactive maintenance paradigm to a proactive, scientifically grounded <strong>Regenerative Tourism</strong> model. Developed primarily for the <strong>Sierra de Guadarrama National Park (PNSG)</strong> — the first site of the Spanish National Parks Network (OAPN) integrated into the observatory — and methodologically grounded in the <strong>European Charter for Sustainable Tourism (CETS / EUROPARC)</strong> governance framework, the SNTO operationalises the core regenerative principle that tourism infrastructure must actively restore the ecological carrying capacity it consumes. The method was initially calibrated on the Sierra del Rincón Biosphere Reserve, retained as a methodological calibration pilot.</p>
@@ -681,6 +681,7 @@ the Pipeline A stress output and converts it to health on load
 - CETS-certified or candidate territory
 - Protected natural area with digitised trail infrastructure in OpenStreetMap</p>
 <p>The full open-source stack (Python, PostGIS, Streamlit) requires no proprietary licensing, and the Sentinel-2 data source is publicly accessible through the Copernicus Open Access Hub. This positions the SNTO as a replicable <strong>open public good</strong> for the European conservation management community.</p>
+<p><strong>Empirical replicability pilot (v1.2.0):</strong> the claim above is no longer purely theoretical. The Sentinel-2 → Mann-Kendall trend method validated on PNSG (v1.1.0/v1.1.1) has been replicated on two additional Red de Parques Nacionales (OAPN) territories of contrasting biome — <strong>Tablas de Daimiel</strong> (Manchegan wetland, NDMI-driven, 5 assets) and <strong>Monfragüe</strong> (Mediterranean dehesa, 21 assets) — using the same GEE extraction pipeline and the identical deseasonalized, tie-corrected Mann-Kendall statistics. Rather than deploying to all 15 remaining OAPN parks at once, the rollout was deliberately staged: 15 GEE extraction templates exist for the full network (<code>scripts/gee_templates_oapn/</code>), but only the 2 pilot parks passed bioma-specific QA and are exposed in the dashboard. 12 further parks have exported data withheld pending an audit of SCL cloud/water/snow-masking artefacts specific to their biomes (Canarian volcanic badlands, maritime-terrestrial water pixels, high-mountain seasonal snow) — publishing them unaudited would overclaim statistical validity. See <code>docs/v1.2.0_oapn_expansion_plan.md</code> for the full QA criteria and staging rationale.</p>
 <h2 id="74-limitations-and-future-research-directions">7.4 Limitations and Future Research Directions</h2>
 <p>The SNTO acknowledges the following methodological constraints:</p>
 <ul>
@@ -713,6 +714,11 @@ activation depends on declared data inputs, not on further method design:</p>
 <td>Real Sentinel-2 temporal trends (2021–2026, v1.1.0/v1.1.1)</td>
 <td><code>src/platform/satellite_trends.py</code>, <code>clean_assets/timeseries/</code></td>
 <td>✅ real GEE data, 21 PNSG assets; Mann-Kendall <strong>deseasonalized, tie-corrected, Yue-Pilon-verified</strong> (v1.1.1)</td>
+</tr>
+<tr>
+<td>Red OAPN replicability pilot (v1.2.0)</td>
+<td><code>scripts/gee_templates_oapn/</code>, <code>src/platform/satellite_trends.py</code> (multi-park)</td>
+<td>✅ 2/15 parks validated and live (Tablas de Daimiel, Monfragüe); 15 GEE templates ready; 12 further CSVs withheld pending bioma-specific mask QA</td>
 </tr>
 <tr>
 <td>Temporal series scaffolding (declarative, separate)</td>
@@ -927,7 +933,7 @@ consolidated assumptions/limits register in
 <hr />
 <p><strong>Codebase Repository:</strong> <code>snto-smart-tourism-observatory</code>
 <strong>Primary Contact:</strong> soroush.karahrodi79@gmail.com
-<strong>Platform Version:</strong> 1.1.1 | <strong>Python:</strong> ≥ 3.12 | <strong>License:</strong> Research Use</p>
+<strong>Platform Version:</strong> 1.2.0 | <strong>Python:</strong> ≥ 3.12 | <strong>License:</strong> Research Use</p>
 
 <div class="doc-footer">
   SNTO — Smart Nature Tourism Observatory &nbsp;·&nbsp;
