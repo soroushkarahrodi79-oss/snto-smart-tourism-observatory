@@ -35,12 +35,12 @@ ndvi_p75, ndvi_stdDev, data_source`.
 | `pn_donana.js` | Doñana | 38 (31+7) | 29SQA / 29SQB | Marisma, fuerte estacionalidad |
 | `pn_garajonay.js` | Garajonay | 23 (20+3) | 28RBS | Canarias, laurisilva, nubosidad alta |
 | `pn_islas_atlanticas.js` | Islas Atlánticas de Galicia (M-T) | 19 (19+0) | 29TNG / 29TNH | Islas dispersas, nubosidad atlántica |
-| `pn_monfrague.js` | Monfragüe | 21 (13+8) | 29SQD / 30STK | Dehesa mediterránea |
+| `pn_monfrague.js` | Monfragüe | 21 (13+8) | 29SQD / 30STK | Dehesa mediterránea · ✅ **validado v1.2.0** |
 | `pn_ordesa.js` | Ordesa y Monte Perdido | 55 (55+0) | 30TYN / 31TBH | Alta montaña, nieve |
 | `pn_picos_europa.js` | Picos de Europa | 47 (47+0) | 30TUN / 30TUP | Multi-tesela, nieve |
 | `pn_sierra_nevada.js` | Sierra Nevada | 53 (39+14) | 30SVF/30SWF/30SVG/30SWG | Multi-tesela, archivo grande (~534 KB) |
 | `pn_sierra_nieves.js` | Sierra de las Nieves | 11 (11+0) | 30SUF | Parque más reciente |
-| `pn_tablas_daimiel.js` | Tablas de Daimiel | 5 (5+0) | 30SVJ | Humedal, NDMI muy informativo |
+| `pn_tablas_daimiel.js` | Tablas de Daimiel | 5 (5+0) | 30SVJ | Humedal, NDMI muy informativo · ✅ **validado v1.2.0** |
 | `pn_teide.js` | Teide | 54 (54+0) | 28RCS | Canarias, alta cota, roca volcánica |
 | `pn_timanfaya.js` | Timanfaya | 7 (7+0) | 28RES / 28RFS | Canarias, malpaís, NDVI bajo natural |
 

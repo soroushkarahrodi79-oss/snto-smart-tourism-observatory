@@ -41,12 +41,63 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[2]
-_TRENDS_JSON = (
-    _ROOT / "clean_assets" / "timeseries" / "analysis" / "mk_trends_pnsg.json"
-)
+_ANALYSIS_DIR = _ROOT / "clean_assets" / "timeseries" / "analysis"
+
+# The baseline (validated) park. Loaders default to it so every existing
+# no-argument caller keeps resolving ``mk_trends_pnsg.json`` unchanged.
+DEFAULT_PARK = "pnsg"
+
+# Human-readable park names for the dashboard selector (v1.2.0 OAPN network).
+# Keys are the ``<park>`` slug used in ``mk_trends_<park>.json`` / GEE templates.
+PARK_LABELS: dict[str, str] = {
+    "pnsg": "Sierra de Guadarrama (PNSG)",
+    "pn_aiguestortes": "Aigüestortes i Estany de Sant Maurici",
+    "pn_cabaneros": "Cabañeros",
+    "pn_cabrera": "Archipiélago de Cabrera",
+    "pn_donana": "Doñana",
+    "pn_garajonay": "Garajonay",
+    "pn_islas_atlanticas": "Islas Atlánticas de Galicia",
+    "pn_monfrague": "Monfragüe",
+    "pn_ordesa": "Ordesa y Monte Perdido",
+    "pn_picos_europa": "Picos de Europa",
+    "pn_sierra_nevada": "Sierra Nevada",
+    "pn_sierra_nieves": "Sierra de las Nieves",
+    "pn_tablas_daimiel": "Tablas de Daimiel",
+    "pn_taburiente": "Caldera de Taburiente",
+    "pn_teide": "Teide",
+    "pn_timanfaya": "Timanfaya",
+}
 
 # Significance threshold (matches run_timeseries_analysis.py)
 _P_SIGNIFICANT = 0.05
+
+
+def _trends_json_for(park: str) -> Path:
+    """Resolve the Mann-Kendall JSON path for a given park slug."""
+    return _ANALYSIS_DIR / f"mk_trends_{park}.json"
+
+
+def park_label(park: str) -> str:
+    """Human-readable name for a park slug (falls back to the slug itself)."""
+    return PARK_LABELS.get(park, park)
+
+
+def available_parks() -> list[str]:
+    """Parks that have a computed ``mk_trends_<park>.json``, PNSG first.
+
+    Lets the dashboard build its park selector dynamically: a pilot park
+    (Tablas, Monfragüe) appears only once its analysis JSON exists, so the UI
+    never offers a park without real data.
+    """
+    if not _ANALYSIS_DIR.exists():
+        return []
+    parks = [
+        p.stem[len("mk_trends_"):]
+        for p in _ANALYSIS_DIR.glob("mk_trends_*.json")
+    ]
+    # Baseline park first, then the rest alphabetically (stable UI order).
+    parks.sort(key=lambda k: (k != DEFAULT_PARK, k))
+    return parks
 
 # Human-readable Spanish trend labels (UI-neutral wording)
 _TREND_ES: dict[str, str] = {
@@ -116,9 +167,30 @@ def _category_from_id(asset_id: str) -> str:
     return parts[1] if len(parts) > 1 else "otro"
 
 
-def load_asset_trends(path: Path | None = None) -> list[AssetTrend]:
-    """Parse the Mann-Kendall JSON into AssetTrend records (empty if missing)."""
-    src = path or _TRENDS_JSON
+def _resolve_category(asset_id: str, rec: dict) -> str:
+    """Category of an asset, preferring the explicit ``category`` field.
+
+    PNSG (v1.1.0) has no ``category`` in its JSON, so we fall back to parsing
+    the id (``pnsg_<cat>_<slug>``). OAPN ids (v1.2.0) are multi-token
+    (``pn_tablas_daimiel_senderismo_<slug>_<idx>``) where positional parsing
+    breaks, so the pipeline persists an explicit ``category`` column that we use
+    verbatim when present.
+    """
+    explicit = rec.get("category")
+    if explicit:
+        return str(explicit)
+    return _category_from_id(asset_id)
+
+
+def load_asset_trends(
+    path: Path | None = None, park: str = DEFAULT_PARK
+) -> list[AssetTrend]:
+    """Parse the Mann-Kendall JSON into AssetTrend records (empty if missing).
+
+    ``path`` wins when given (used by tests); otherwise the JSON is resolved
+    from ``park`` → ``mk_trends_<park>.json``.
+    """
+    src = path or _trends_json_for(park)
     if not src.exists():
         return []
 
@@ -129,7 +201,7 @@ def load_asset_trends(path: Path | None = None) -> list[AssetTrend]:
         rng = rec.get("ndvi_range", {})
         trends.append(AssetTrend(
             asset_id=asset_id,
-            category=_category_from_id(asset_id),
+            category=_resolve_category(asset_id, rec),
             n_observations=int(rec.get("n_observations", 0)),
             tau=float(mk.get("tau", 0.0)),
             p_value=float(mk.get("p_approx", 1.0)),
@@ -153,9 +225,11 @@ def load_asset_trends(path: Path | None = None) -> list[AssetTrend]:
     return trends
 
 
-def summarize_trends(path: Path | None = None) -> TrendSummary:
+def summarize_trends(
+    path: Path | None = None, park: str = DEFAULT_PARK
+) -> TrendSummary:
     """Build the portfolio roll-up consumed by the dashboard."""
-    assets = load_asset_trends(path)
+    assets = load_asset_trends(path, park=park)
     if not assets:
         return TrendSummary(available=False)
 

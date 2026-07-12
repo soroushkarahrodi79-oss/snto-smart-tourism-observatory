@@ -16,12 +16,16 @@ from pathlib import Path
 
 import pytest
 
+import src.platform.satellite_trends as st_mod
 from src.platform.satellite_trends import (
+    DEFAULT_PARK,
     AssetTrend,
     TrendSummary,
     _category_from_id,
+    available_parks,
     find_trend,
     load_asset_trends,
+    park_label,
     summarize_trends,
 )
 
@@ -106,6 +110,77 @@ def test_load_missing_file_returns_empty(tmp_path):
 ])
 def test_category_from_id(asset_id, expected):
     assert _category_from_id(asset_id) == expected
+
+
+def test_explicit_category_column_preferred_over_id(tmp_path):
+    """OAPN (v1.2.0): la columna `category` gana sobre el parseo del id.
+
+    El id multi-token `pn_tablas_daimiel_senderismo_...` rompería el parseo
+    posicional (`parts[1]` → 'tablas'); con `category` explícita se lee tal cual.
+    """
+    rec = _record(tau=0.1, p_approx=0.3, trend="no trend", annual=_ANNUAL)
+    rec["category"] = "senderismo"
+    payload = {"pn_tablas_daimiel_senderismo_la_isla_del_pan_001": rec}
+    a = load_asset_trends(_write_json(tmp_path, payload))[0]
+    assert a.category == "senderismo"          # no 'tablas' (parts[1])
+
+
+def test_missing_category_falls_back_to_id(tmp_path):
+    payload = {"pnsg_escalada_penalara": _record(
+        tau=0.1, p_approx=0.3, trend="no trend", annual=_ANNUAL)}
+    a = load_asset_trends(_write_json(tmp_path, payload))[0]
+    assert a.category == "escalada"            # sin columna → _category_from_id
+
+
+# ── Multi-parque (v1.2.0 Red OAPN): resolución por slug + descubrimiento ────────
+
+def test_load_resolves_park_slug(tmp_path, monkeypatch):
+    monkeypatch.setattr(st_mod, "_ANALYSIS_DIR", tmp_path)
+    (tmp_path / "mk_trends_pn_monfrague.json").write_text(
+        json.dumps({"pn_monfrague_ciclismo_x_0": _record(
+            tau=0.2, p_approx=0.3, trend="no trend", annual=_ANNUAL)}),
+        encoding="utf-8",
+    )
+    # sin `path`, se resuelve por park → mk_trends_pn_monfrague.json
+    trends = load_asset_trends(park="pn_monfrague")
+    assert len(trends) == 1 and trends[0].asset_id == "pn_monfrague_ciclismo_x_0"
+    # un parque inexistente → lista vacía (no revienta)
+    assert load_asset_trends(park="pn_inexistente") == []
+
+
+def test_available_parks_lists_pnsg_first(tmp_path, monkeypatch):
+    monkeypatch.setattr(st_mod, "_ANALYSIS_DIR", tmp_path)
+    for slug in ("pn_monfrague", "pnsg", "pn_tablas_daimiel"):
+        (tmp_path / f"mk_trends_{slug}.json").write_text("{}", encoding="utf-8")
+    parks = available_parks()
+    assert parks[0] == DEFAULT_PARK                       # PNSG siempre primero
+    assert set(parks) == {"pnsg", "pn_monfrague", "pn_tablas_daimiel"}
+    assert parks[1:] == ["pn_monfrague", "pn_tablas_daimiel"]  # resto alfabético
+
+
+def test_available_parks_empty_when_dir_absent(tmp_path, monkeypatch):
+    monkeypatch.setattr(st_mod, "_ANALYSIS_DIR", tmp_path / "nope")
+    assert available_parks() == []
+
+
+def test_summarize_by_park(tmp_path, monkeypatch):
+    monkeypatch.setattr(st_mod, "_ANALYSIS_DIR", tmp_path)
+    (tmp_path / "mk_trends_pn_tablas_daimiel.json").write_text(
+        json.dumps({"pn_tablas_daimiel_senderismo_x_0": _record(
+            tau=-0.3, p_approx=0.01, trend="decreasing", annual=_ANNUAL)}),
+        encoding="utf-8",
+    )
+    s = summarize_trends(park="pn_tablas_daimiel")
+    assert s.available is True and s.n_degrading == 1
+
+
+@pytest.mark.parametrize("slug,expected", [
+    ("pnsg", "Sierra de Guadarrama (PNSG)"),
+    ("pn_monfrague", "Monfragüe"),
+    ("pn_desconocido", "pn_desconocido"),      # fallback al slug
+])
+def test_park_label(slug, expected):
+    assert park_label(slug) == expected
 
 
 # ── AssetTrend: propiedades derivadas ───────────────────────────────────────────

@@ -33,7 +33,13 @@ from src.platform.enrichment import enrich_assets_with_satellite, enrichment_sum
 from src.platform.provenance import (
     data_status_badge, load_timeseries_coverage, snapshot_provenance,
 )
-from src.platform.satellite_trends import summarize_trends, find_trend
+from src.platform.satellite_trends import (
+    DEFAULT_PARK,
+    available_parks,
+    find_trend,
+    park_label,
+    summarize_trends,
+)
 from src.platform.views import ConfidenceDetail, ViewMode, get_view, view_modes
 from src.platform import methodology as method
 from src.temporal import DataStatus
@@ -934,15 +940,16 @@ def load_dashboard(territory_key: str):
 
 
 @st.cache_data(show_spinner=False)
-def _cached_trends():
-    """Tendencias satelitales reales (Mann-Kendall) cacheadas por sesión.
+def _cached_trends(park: str = DEFAULT_PARK):
+    """Tendencias satelitales reales (Mann-Kendall) cacheadas por sesión y parque.
 
-    ``summarize_trends`` parsea el JSON de ``clean_assets/timeseries/analysis``
-    en cada llamada. Sin cache se relee del disco en cada rerun de Streamlit
-    (cada cambio de widget en la Pestaña 6). El payload es pequeño (~15 KB / 21
-    activos) pero el cache elimina la E/S repetida y mantiene la latencia plana.
+    ``summarize_trends`` parsea el JSON ``mk_trends_<park>.json`` de
+    ``clean_assets/timeseries/analysis`` en cada llamada. Sin cache se relee del
+    disco en cada rerun de Streamlit (cada cambio de widget en la Pestaña 6). El
+    payload es pequeño (~15 KB / 21 activos) pero el cache — clavado por ``park``
+    — elimina la E/S repetida y mantiene la latencia plana al cambiar de parque.
     """
-    return summarize_trends()
+    return summarize_trends(park=park)
 
 
 # ── Renderizador de alertas en vivo ──────────────────────────────────────────
@@ -1701,15 +1708,30 @@ with tab_timeseries:
     )
 
     # ── Panel: Tendencias satelitales REALES (Mann-Kendall multianual) ─────────
-    _real_trends = _cached_trends()
+    # Selector de parque (v1.2.0 Red OAPN): sólo se muestra cuando hay más de un
+    # parque con análisis real en disco. Con sólo PNSG, la UI no cambia.
+    _parks = available_parks() or [DEFAULT_PARK]
+    _selected_park = DEFAULT_PARK
+    if len(_parks) > 1:
+        _selected_park = st.selectbox(
+            "Parque Nacional",
+            options=_parks,
+            index=_parks.index(DEFAULT_PARK) if DEFAULT_PARK in _parks else 0,
+            format_func=park_label,
+            help="Red de Parques Nacionales (OAPN). Cada parque tiene su propia "
+                 "serie Sentinel-2 real analizada con Mann-Kendall.",
+            key="real_trend_park",
+        )
+    _real_trends = _cached_trends(_selected_park)
+    _park_name = park_label(_selected_park)
     if _real_trends.available:
         # Rango temporal real derivado de los datos (no hardcodeado)
         _all_years = sorted({y for a in _real_trends.assets for y in a.annual_mean_ndvi})
         _yr_lo, _yr_hi = (_all_years[0], _all_years[-1]) if _all_years else ("", "")
         st.markdown(f"#### 🛰️ Tendencias satelitales reales · Sentinel-2 {_yr_lo}–{_yr_hi}")
         st.caption(
-            "Análisis **Mann-Kendall** sobre activos reales del PNSG con imágenes "
-            "Sentinel-2 (Pipeline GEE). A diferencia del gráfico mensual de más "
+            f"Análisis **Mann-Kendall** sobre activos reales de **{_park_name}** con "
+            "imágenes Sentinel-2 (Pipeline GEE). A diferencia del gráfico mensual de más "
             "abajo (reconstrucción de validación), **estos resultados son empíricos**, "
             "calculados sobre la serie **desestacionalizada** (ver nota abajo)."
         )
@@ -1761,7 +1783,10 @@ with tab_timeseries:
                 icon="⚠️",
             )
 
-        with st.expander("📋 Tabla completa de tendencias reales (21 activos)", expanded=False):
+        with st.expander(
+            f"📋 Tabla completa de tendencias reales ({len(_real_trends.assets)} activos)",
+            expanded=False,
+        ):
             import pandas as pd
             _df = pd.DataFrame([
                 {
@@ -1781,9 +1806,9 @@ with tab_timeseries:
             st.dataframe(_df, use_container_width=True, hide_index=True)
 
         # ── Gráfico multianual REAL (NDVI medio anual 2021→2026) ───────────────
-        # Se elige directamente sobre los 21 activos reales del Pipeline GEE
-        # (no depende del emparejamiento difuso con los activos curados, que para
-        # el PNSG no siempre resuelve). Esta es la serie EMPÍRICA, no simulada.
+        # Se elige directamente sobre los activos reales del Pipeline GEE del
+        # parque seleccionado (no depende del emparejamiento difuso con los
+        # activos curados, que no siempre resuelve). Serie EMPÍRICA, no simulada.
         st.markdown("##### 📈 Serie anual real por activo (Sentinel-2)")
         _real_labels = {
             f"{a.asset_id}  ·  {a.trend_es}": a for a in _real_trends.assets
