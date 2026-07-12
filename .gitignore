@@ -65,3 +65,6 @@ Thumbs.db
 # --- Archivos de salida sueltos -----------------------------
 CUsers*.txt
 *.out.txt
+
+# --- Export GIS generado (reproducible vía scripts/export_gis.py) ---
+clean_assets/gis_export/
