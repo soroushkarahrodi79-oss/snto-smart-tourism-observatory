@@ -19,7 +19,7 @@ doi: "10.5281/zenodo.20818270"
 repository-code: "https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory"
 url: "https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory"
 # Licencia de uso académico/no-comercial: ver fichero LICENSE (no es un identificador SPDX estándar).
-version: "1.3.0"
+version: "1.5.0.dev0"
 date-released: "2026-07-12"
 keywords:
   - remote-sensing
