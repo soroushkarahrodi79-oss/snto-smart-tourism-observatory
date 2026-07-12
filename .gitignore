@@ -66,6 +66,9 @@ Thumbs.db
 CUsers*.txt
 *.out.txt
 
+# --- Export GIS generado (reproducible vía scripts/export_gis.py) ---
+clean_assets/gis_export/
+
 # --- Validación de campo: outputs generados (la plantilla sí se versiona) ---
 clean_assets/field_validation/*
 !clean_assets/field_validation/*_template.csv
