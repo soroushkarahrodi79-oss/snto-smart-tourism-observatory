@@ -25,6 +25,14 @@ class ViewMode(str, Enum):
 
 
 class ConfidenceDetail(str, Enum):
+    """Eje de *verbosidad de confianza* (cuánto caveat lleva una afirmación que
+    las tres vistas muestran en alguna forma). Es independiente de las banderas
+    booleanas de ``ViewProfile`` (``technical``/``simplified``/``audit``), que
+    deciden SI una sección entera aparece. Regla práctica:
+
+    * ¿Aparece o no una sección/bloque? → ``ViewProfile.section(...)``.
+    * ¿Cuánto caveat lleva un dato de confianza que sí se muestra? → este enum.
+    """
     RAW = "raw"          # show the underlying metrics, minimal hand-holding
     CONCISE = "concise"  # one-line actionable confidence flag
     FULL = "full"        # full caveat + methodology + traceability
@@ -48,6 +56,37 @@ class ViewProfile:
     # procedencia, fechas de escena, override, validación cruzada, límites
     audit: bool = False
     shows: str = ""  # resumen de una línea de "qué cambia" (para el sidebar)
+
+    def section(
+        self,
+        *,
+        technical: bool = False,
+        simplified: bool = False,
+        audit: bool = False,
+    ) -> bool:
+        """¿Debe esta vista renderizar una sección con estos requisitos?
+
+        Punto único de decisión de la divulgación por capas (F7/F10): sustituye a
+        leer ``self.technical`` / ``self.simplified`` / ``self.audit`` sueltos por
+        toda la app, para que el contrato de cada sección quede explícito y
+        testeable.
+
+        * sin argumentos → ``True``: núcleo común a las tres vistas.
+        * ``technical=True``  → solo vistas con detalle técnico (Técnica, Auditoría).
+        * ``simplified=True`` → solo la vista en lenguaje llano (Gestor).
+        * ``audit=True``      → solo la vista de auditoría (procedencia/límites).
+
+        Varios ejes se combinan con OR inclusivo (se muestra si la vista satisface
+        CUALQUIERA), coherente con el principio aditivo: cada perfil suma capas.
+        Para el GRADO de caveat de confianza se usa ``confidence_detail``, no esto.
+        """
+        if not (technical or simplified or audit):
+            return True
+        return (
+            (technical and self.technical)
+            or (simplified and self.simplified)
+            or (audit and self.audit)
+        )
 
 
 _PROFILES: dict[ViewMode, ViewProfile] = {

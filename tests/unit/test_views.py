@@ -36,3 +36,35 @@ def test_every_view_has_renderable_fields():
 def test_unknown_view_raises():
     with pytest.raises(ValueError):
         get_view("ejecutiva")
+
+
+# ── F10 Fase 2: helper único de divulgación por capas ─────────────────────────
+def test_section_no_args_is_common_core():
+    # Sin requisitos, la sección es núcleo común: visible en las tres vistas.
+    for mode in view_modes():
+        assert get_view(mode).section() is True
+
+
+def test_section_simplified_only_gestor():
+    assert get_view(ViewMode.GESTOR).section(simplified=True) is True
+    assert get_view(ViewMode.TECNICA).section(simplified=True) is False
+    assert get_view(ViewMode.TRIBUNAL).section(simplified=True) is False
+
+
+def test_section_technical_is_tecnica_and_tribunal():
+    assert get_view(ViewMode.TECNICA).section(technical=True) is True
+    assert get_view(ViewMode.TRIBUNAL).section(technical=True) is True
+    assert get_view(ViewMode.GESTOR).section(technical=True) is False
+
+
+def test_section_audit_only_tribunal():
+    assert get_view(ViewMode.TRIBUNAL).section(audit=True) is True
+    assert get_view(ViewMode.TECNICA).section(audit=True) is False
+    assert get_view(ViewMode.GESTOR).section(audit=True) is False
+
+
+def test_section_multiple_axes_are_inclusive_or():
+    # simplified OR audit → Gestor (simplified) y Auditoría (audit), no Técnica.
+    assert get_view(ViewMode.GESTOR).section(simplified=True, audit=True) is True
+    assert get_view(ViewMode.TRIBUNAL).section(simplified=True, audit=True) is True
+    assert get_view(ViewMode.TECNICA).section(simplified=True, audit=True) is False
