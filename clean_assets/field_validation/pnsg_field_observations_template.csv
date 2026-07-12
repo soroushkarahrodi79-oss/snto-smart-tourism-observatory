@@ -1,0 +1,5 @@
+plot_id,asset_id,lat,lon,distance_to_trail_m,is_control,soil_compaction_mpa,veg_cover_pct,erosion_class,trail_width_m,visitor_count,photo_ref,stratum,observed_at
+porrones_impact_1,pnsg_escalada_maliciosa_porrones,40.7405,-3.9251,0,false,,,,,,,escalada-roquedo,
+porrones_control_1,pnsg_escalada_maliciosa_porrones,40.7405,-3.9251,80,true,,,,,,,escalada-roquedo,
+nevero_impact_1,pnsg_vuelo_libre_el_nevero,40.983965,-3.836133,0,false,,,,,,,vuelo-libre-pastizal,
+nevero_control_1,pnsg_vuelo_libre_el_nevero,40.983965,-3.836133,80,true,,,,,,,vuelo-libre-pastizal,
