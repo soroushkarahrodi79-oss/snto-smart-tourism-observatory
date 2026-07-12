@@ -18,7 +18,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.2361,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 32,
+      "change_point_p": 0.0001,
+      "change_point_significant": true
     },
     "mann_kendall_ndmi": {
       "tau": 0.432,
@@ -36,7 +39,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.4053,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 33,
+      "change_point_p": 0.0,
+      "change_point_significant": true
+    },
+    "change_point": {
+      "date": "2023-09-01",
+      "p_approx": 0.0001,
+      "significant": true
     },
     "annual_mean_ndvi": {
       "2021": 0.3347,
@@ -75,7 +86,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.2524,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 19,
+      "change_point_p": 0.0294,
+      "change_point_significant": true
     },
     "mann_kendall_ndmi": {
       "tau": 0.194,
@@ -93,7 +107,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.5473,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 30,
+      "change_point_p": 0.0001,
+      "change_point_significant": true
+    },
+    "change_point": {
+      "date": "2022-08-01",
+      "p_approx": 0.0294,
+      "significant": true
     },
     "annual_mean_ndvi": {
       "2021": 0.4274,
@@ -132,7 +154,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.2048,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 29,
+      "change_point_p": 0.0002,
+      "change_point_significant": true
     },
     "mann_kendall_ndmi": {
       "tau": 0.377,
@@ -150,7 +175,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.4382,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 33,
+      "change_point_p": 0.0,
+      "change_point_significant": true
+    },
+    "change_point": {
+      "date": "2023-06-01",
+      "p_approx": 0.0002,
+      "significant": true
     },
     "annual_mean_ndvi": {
       "2021": 0.3939,
@@ -189,7 +222,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.4707,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 29,
+      "change_point_p": 0.0011,
+      "change_point_significant": true
     },
     "mann_kendall_ndmi": {
       "tau": 0.373,
@@ -207,7 +243,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.7024,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 34,
+      "change_point_p": 0.0,
+      "change_point_significant": true
+    },
+    "change_point": {
+      "date": "2023-06-01",
+      "p_approx": 0.0011,
+      "significant": true
     },
     "annual_mean_ndvi": {
       "2021": 0.4307,
@@ -246,7 +290,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.45,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 29,
+      "change_point_p": 0.1181,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": 0.081,
@@ -264,7 +311,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.4548,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 34,
+      "change_point_p": 0.005,
+      "change_point_significant": true
+    },
+    "change_point": {
+      "date": "2023-06-01",
+      "p_approx": 0.1181,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.4131,

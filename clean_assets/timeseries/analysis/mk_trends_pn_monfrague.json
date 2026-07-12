@@ -18,7 +18,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.4935,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 50,
+      "change_point_p": 0.0311,
+      "change_point_significant": true
     },
     "mann_kendall_ndmi": {
       "tau": -0.248,
@@ -36,7 +39,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.5472,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 52,
+      "change_point_p": 0.0091,
+      "change_point_significant": true
+    },
+    "change_point": {
+      "date": "2025-03-01",
+      "p_approx": 0.0311,
+      "significant": true
     },
     "annual_mean_ndvi": {
       "2021": 0.3543,
@@ -75,7 +86,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8552,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 11,
+      "change_point_p": 0.1683,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": -0.002,
@@ -93,7 +107,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8857,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 11,
+      "change_point_p": 0.1044,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2021-12-01",
+      "p_approx": 0.1683,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.5707,
@@ -132,7 +154,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8434,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 35,
+      "change_point_p": 0.0424,
+      "change_point_significant": true
     },
     "mann_kendall_ndmi": {
       "tau": 0.06,
@@ -150,7 +175,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8937,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 38,
+      "change_point_p": 0.0132,
+      "change_point_significant": true
+    },
+    "change_point": {
+      "date": "2023-12-01",
+      "p_approx": 0.0424,
+      "significant": true
     },
     "annual_mean_ndvi": {
       "2021": 0.5257,
@@ -189,7 +222,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.838,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 11,
+      "change_point_p": 0.1077,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": -0.096,
@@ -207,7 +243,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8312,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 57,
+      "change_point_p": 0.2161,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2021-12-01",
+      "p_approx": 0.1077,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.4549,
@@ -246,7 +290,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8854,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 30,
+      "change_point_p": 0.0965,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": 0.032,
@@ -264,7 +311,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8144,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 30,
+      "change_point_p": 0.077,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2023-07-01",
+      "p_approx": 0.0965,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.3936,
@@ -303,7 +358,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8994,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 30,
+      "change_point_p": 0.1163,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": -0.012,
@@ -321,7 +379,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.842,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 57,
+      "change_point_p": 0.092,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2023-07-01",
+      "p_approx": 0.1163,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.4511,
@@ -360,7 +426,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.7255,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 10,
+      "change_point_p": 0.4258,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": 0.039,
@@ -378,7 +447,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.6323,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 32,
+      "change_point_p": 0.1524,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2021-11-01",
+      "p_approx": 0.4258,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.4618,
@@ -417,7 +494,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.3514,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 55,
+      "change_point_p": 0.5144,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": -0.061,
@@ -435,7 +515,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.6046,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 13,
+      "change_point_p": 0.1635,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2025-08-01",
+      "p_approx": 0.5144,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.5601,
@@ -474,7 +562,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.6615,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 53,
+      "change_point_p": 0.2469,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": -0.038,
@@ -492,7 +583,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.7915,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 57,
+      "change_point_p": 0.0809,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2025-06-01",
+      "p_approx": 0.2469,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.4941,
@@ -531,7 +630,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.7147,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 53,
+      "change_point_p": 0.1543,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": -0.013,
@@ -549,7 +651,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8412,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 34,
+      "change_point_p": 0.061,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2025-06-01",
+      "p_approx": 0.1543,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.4737,
@@ -588,7 +698,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.6775,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 13,
+      "change_point_p": 0.0135,
+      "change_point_significant": true
     },
     "mann_kendall_ndmi": {
       "tau": -0.13,
@@ -606,7 +719,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8498,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 12,
+      "change_point_p": 0.106,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2022-02-01",
+      "p_approx": 0.0135,
+      "significant": true
     },
     "annual_mean_ndvi": {
       "2021": 0.4456,
@@ -645,7 +766,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.6271,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 34,
+      "change_point_p": 0.3144,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": -0.026,
@@ -663,7 +787,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8048,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 57,
+      "change_point_p": 0.1145,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2023-11-01",
+      "p_approx": 0.3144,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.5018,
@@ -702,7 +834,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.3024,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 35,
+      "change_point_p": 0.0685,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": -0.26,
@@ -720,7 +855,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.1401,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 17,
+      "change_point_p": 0.0219,
+      "change_point_significant": true
+    },
+    "change_point": {
+      "date": "2024-01-01",
+      "p_approx": 0.0685,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.483,
@@ -759,7 +902,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.4935,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 50,
+      "change_point_p": 0.0311,
+      "change_point_significant": true
     },
     "mann_kendall_ndmi": {
       "tau": -0.248,
@@ -777,7 +923,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.5472,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 52,
+      "change_point_p": 0.0091,
+      "change_point_significant": true
+    },
+    "change_point": {
+      "date": "2025-03-01",
+      "p_approx": 0.0311,
+      "significant": true
     },
     "annual_mean_ndvi": {
       "2021": 0.3543,
@@ -816,7 +970,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8552,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 11,
+      "change_point_p": 0.1683,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": -0.002,
@@ -834,7 +991,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8857,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 11,
+      "change_point_p": 0.1044,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2021-12-01",
+      "p_approx": 0.1683,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.5707,
@@ -873,7 +1038,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8434,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 35,
+      "change_point_p": 0.0424,
+      "change_point_significant": true
     },
     "mann_kendall_ndmi": {
       "tau": 0.06,
@@ -891,7 +1059,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8937,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 38,
+      "change_point_p": 0.0132,
+      "change_point_significant": true
+    },
+    "change_point": {
+      "date": "2023-12-01",
+      "p_approx": 0.0424,
+      "significant": true
     },
     "annual_mean_ndvi": {
       "2021": 0.5257,
@@ -930,7 +1106,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.838,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 11,
+      "change_point_p": 0.1077,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": -0.096,
@@ -948,7 +1127,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8312,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 57,
+      "change_point_p": 0.2161,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2021-12-01",
+      "p_approx": 0.1077,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.4549,
@@ -987,7 +1174,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8854,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 30,
+      "change_point_p": 0.0965,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": 0.032,
@@ -1005,7 +1195,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8144,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 30,
+      "change_point_p": 0.077,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2023-07-01",
+      "p_approx": 0.0965,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.3936,
@@ -1044,7 +1242,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8994,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 30,
+      "change_point_p": 0.1163,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": -0.012,
@@ -1062,7 +1263,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.842,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 57,
+      "change_point_p": 0.092,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2023-07-01",
+      "p_approx": 0.1163,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.4511,
@@ -1101,7 +1310,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.7147,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 53,
+      "change_point_p": 0.1543,
+      "change_point_significant": false
     },
     "mann_kendall_ndmi": {
       "tau": -0.013,
@@ -1119,7 +1331,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8412,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 34,
+      "change_point_p": 0.061,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2025-06-01",
+      "p_approx": 0.1543,
+      "significant": false
     },
     "annual_mean_ndvi": {
       "2021": 0.4737,
@@ -1158,7 +1378,10 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.6775,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 13,
+      "change_point_p": 0.0135,
+      "change_point_significant": true
     },
     "mann_kendall_ndmi": {
       "tau": -0.13,
@@ -1176,7 +1399,15 @@
       "prewhitened": false,
       "lag1_autocorr": null,
       "seasonality_strength": 0.8498,
-      "method": "harmonic_deseasonalised+mann_kendall"
+      "method": "harmonic_deseasonalised+mann_kendall",
+      "change_point_index": 12,
+      "change_point_p": 0.106,
+      "change_point_significant": false
+    },
+    "change_point": {
+      "date": "2022-02-01",
+      "p_approx": 0.0135,
+      "significant": true
     },
     "annual_mean_ndvi": {
       "2021": 0.4456,
