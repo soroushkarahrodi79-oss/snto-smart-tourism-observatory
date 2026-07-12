@@ -51,6 +51,11 @@ from src.socioeconomic.loader import load_municipalities, snapshot_exists
 from src.socioeconomic.indicators import (
     aggregate_asset_risk, compute_svi, jobs_at_risk as compute_jobs_at_risk,
 )
+from src.ui.render_helpers import (
+    _ALERT_META, _ALERT_SEVERITY, _ASSET_TYPE_EMOJI, _BG, _COLOR, _EMOJI,
+    _TIER_BADGE_COLOR, _TIER_INVEST_LABEL, _TIER_ROMAN,
+    _alert_chip, _ehs_color, _tier_chip,
+)
 
 # ── Fecha global de informe ───────────────────────────────────────────────────
 REPORT_DATE = "2026-06-12"
@@ -293,35 +298,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ── Paleta de estados ─────────────────────────────────────────────────────────
-_COLOR = {"GREEN": "#2e7d32", "AMBER": "#e65100", "RED": "#c62828", "BLUE": "#1565c0"}
-_BG    = {"GREEN": "#e8f5e9", "AMBER": "#fff3e0", "RED": "#ffebee", "BLUE": "#e3f2fd"}
-_EMOJI = {"GREEN": "🟢",      "AMBER": "🟡",      "RED": "🔴",      "BLUE": "🔵"}
-
-# ── TIER = estrategia / prioridad de inversión pública (NO es riesgo táctico) ──
-# Paleta NEUTRA índigo→pizarra (oscuro = Tier I máxima prioridad → claro = Tier IV).
-# Deliberadamente sin rojo/ámbar/verde: el semáforo se reserva para las ALERTAS.
-_TIER_ROMAN = {1: "I", 2: "II", 3: "III", 4: "IV"}
-_TIER_BADGE_COLOR = {              # (texto, fondo)
-    1: ("#ffffff", "#312e5c"),     # índigo profundo
-    2: ("#ffffff", "#56548a"),     # índigo medio
-    3: ("#2d2f4a", "#a9adcb"),     # pizarra media
-    4: ("#3a3d57", "#d6d9e8"),     # pizarra clara
-}
-_TIER_INVEST_LABEL = {
-    1: "Prioridad máxima de inversión",
-    2: "Inversión preventiva",
-    3: "Monitorización rutinaria",
-    4: "Promoción / mínima inversión pública",
-}
-_ASSET_TYPE_EMOJI = {
-    "TRAIL":             "🥾",
-    "VIEWPOINT":         "🔭",
-    "RECREATIONAL_AREA": "🌿",
-    "NATURAL_PARK":      "🌲",
-    "CYCLING_ROUTE":     "🚴",
-}
-
 
 # ── Pipeline con caché ────────────────────────────────────────────────────────
 
@@ -366,59 +342,6 @@ def _cached_trends(park: str = DEFAULT_PARK):
 
 
 # ── Renderizador de alertas en vivo ──────────────────────────────────────────
-_ALERT_META: dict[str, tuple[str, str, str, str]] = {
-    # level: (icon, label, bg, border)
-    "CRITICAL_INTERVENTION": ("🔴", "Intervención Crítica",  "#fff5f5", "#feb2b2"),
-    "URGENT_MONITORING":     ("🟡", "Monitorización Urgente","#fffbeb", "#fde68a"),
-    "PREVENTIVE_ACTION":     ("🔵", "Acción Preventiva",     "#eff6ff", "#bfdbfe"),
-}
-_ALERT_SEVERITY = {
-    "CRITICAL_INTERVENTION": 0,
-    "URGENT_MONITORING":     1,
-    "PREVENTIVE_ACTION":     2,
-}
-
-# ── FASE 3: helpers de chips — TIER (neutro) y ALERTA (semáforo) ──────────────
-def _tier_chip(tier) -> str:
-    """Chip estructural neutro [TIER N] (prioridad de inversión, no riesgo)."""
-    t = int(tier) if tier else 3
-    fg, bg = _TIER_BADGE_COLOR.get(t, ("#2d2f4a", "#a9adcb"))
-    return (
-        f'<span class="snto-tier-chip" style="background:{bg};color:{fg};" '
-        f'title="{_TIER_INVEST_LABEL.get(t, "")}">TIER {_TIER_ROMAN.get(t, "III")}</span>'
-    )
-
-
-def _alert_chip(alert_level: str) -> str:
-    """Chip semafórico táctico para el estado de alerta actual del activo."""
-    meta = _ALERT_META.get(alert_level)
-    if not meta:
-        return (
-            '<span class="snto-status-chip" style="background:#e8f5e9;color:#1b5e20;">'
-            '🟢 Normal</span>'
-        )
-    icon, label, bg, border = meta
-    return (
-        f'<span class="snto-status-chip" style="background:{bg};'
-        f'border:1px solid {border};color:#2b3440;">{icon} {label}</span>'
-    )
-
-
-def _ehs_color(ehs: float) -> str:
-    """Color de salud para el valor de EHS (gradiente continuo, independiente
-    del tier). Verde=sano, ámbar=alerta, rojo=degradado. Es un dato medido, no
-    una categoría de estrategia."""
-    if ehs >= 75:
-        return "#1a9850"
-    if ehs >= 60:
-        return "#66a61e"
-    if ehs >= 45:
-        return "#e6a700"
-    if ehs >= 30:
-        return "#e0701a"
-    return "#c62828"
-
-
 def _render_live_alerts(assets: list, refresh_count: int) -> None:
     active = sorted(
         [a for a in assets if a.alert_level in _ALERT_META],
