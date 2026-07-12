@@ -26,6 +26,10 @@ secretos; son la evidencia reproducible que sostiene la capa temporal de v1.1.0.
 | `pnsg_assets.py` | Mismo set como lista Python importable | `scripts/build_pnsg_assets.py` |
 | `timeseries/pnsg_gee_timeseries.csv` | Serie NDVI/NDMI/EVI mensual Sentinel-2 (2021–jun 2026) | GEE Code Editor (export) |
 | `timeseries/analysis/mk_trends_pnsg.json` | Tendencias Mann-Kendall por activo | `scripts/run_timeseries_analysis.py` |
+| `timeseries/pn_tablas_daimiel_gee_timeseries.csv` | Piloto OAPN v1.2.0 — humedal, serie mensual (5 activos) | GEE Code Editor (export, `gee_templates_oapn/pn_tablas_daimiel.js`) |
+| `timeseries/analysis/mk_trends_pn_tablas_daimiel.json` | Tendencias Mann-Kendall del piloto Tablas de Daimiel | `scripts/run_timeseries_analysis.py --park pn_tablas_daimiel` |
+| `timeseries/pn_monfrague_gee_timeseries.csv` | Piloto OAPN v1.2.0 — dehesa, serie mensual (21 activos) | GEE Code Editor (export, `gee_templates_oapn/pn_monfrague.js`) |
+| `timeseries/analysis/mk_trends_pn_monfrague.json` | Tendencias Mann-Kendall del piloto Monfragüe | `scripts/run_timeseries_analysis.py --park pn_monfrague` |
 
 ## ✅ Alcance estadístico del Mann-Kendall (corregido en v1.1.1)
 
