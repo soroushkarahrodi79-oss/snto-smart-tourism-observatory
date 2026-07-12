@@ -4,7 +4,9 @@
 
 **Project:** Gobernanza Inteligente y Transición Regenerativa en Espacios Naturales Protegidos. Territorio principal: **Parque Nacional Sierra de Guadarrama** (Red de Parques Nacionales — OAPN). Marco de gobernanza de referencia: Carta Europea de Turismo Sostenible (CETS / EUROPARC), empleada como metodología. Piloto de calibración: Reserva de la Biosfera Sierra del Rincón.
 
-**Version:** 1.2.0 | **Date:** July 2026 | **Author:** Smart Natural Tourism Observatory Research Team
+**Version:** 1.4.0 | **Date:** July 2026 | **Author:** Smart Natural Tourism Observatory Research Team
+
+> **Document scope:** this whitepaper tracks the latest stable methodological baseline (`v1.4.0`). The repository `main` branch may contain later development work (`v1.5.0.dev0`) that is not yet part of a stable release.
 
 ---
 
@@ -413,6 +415,8 @@ activation depends on declared data inputs, not on further method design:
 | Score semantics (health vs stress) | `src/metrics/semantics.py` | ✅ unified across pipeline & dashboard |
 | Real Sentinel-2 temporal trends (2021–2026, v1.1.0/v1.1.1) | `src/platform/satellite_trends.py`, `clean_assets/timeseries/` | ✅ real GEE data, 21 PNSG assets; Mann-Kendall **deseasonalized, tie-corrected, Yue-Pilon-verified** (v1.1.1) |
 | Red OAPN replicability pilot (v1.2.0) | `scripts/gee_templates_oapn/`, `src/platform/satellite_trends.py` (multi-park) | ✅ 2/15 parks validated and live (Tablas de Daimiel, Monfragüe); 15 GEE templates ready; 12 further CSVs withheld pending bioma-specific mask QA |
+| Statistical rigor (v1.3.0) | `src/time_series/changepoint.py`, `src/calibration/ehs_sensitivity.py`, `src/validation/cross_sensor.py` | ✅ Pettitt change points, block-bootstrap EHS confidence intervals, Morris sensitivity and Sentinel-2/MODIS cross-sensor checks |
+| Decision integration and evidence governance (v1.4.0) | `src/reporting/risk_brief.py`, `src/reporting/gis_export.py`, `src/platform/evidence.py`, `src/validation/` | ✅ director-grade risk brief, GIS export, canonical evidence classes and decision gates, and field-campaign tooling; completed ground-truth campaign still pending |
 | Temporal series scaffolding (declarative, separate) | `src/temporal/` | ✅ spec + Mann-Kendall validity gate + provenance manifest; ingestion into this gate still pending |
 | Data provenance & confidence surfacing | `src/platform/provenance.py` | ✅ real/calibrated/synthetic labels in dashboard |
 | Stratified baselines | `src/risk_engine/baselines.py` | ✅ framework; per-habitat/altitude needs a DEM |
@@ -469,10 +473,10 @@ consolidated assumptions/limits register in
 
 ---
 
-*This document constitutes the authoritative methodological reference for the SNTO platform as implemented in the Sierra del Rincón Biosphere Reserve pilot. All formulas, thresholds, and cost parameters are derived from implemented code (`tis_engine.py`, `src/risk_engine/ehs.py`, `src/spatial_causality/analyzer.py`, `src/decision_confidence/assessor.py`) and validated against the references cited. Any modifications to operational parameters must be reflected in both this document and the codebase to maintain source-of-truth integrity.*
+*This document constitutes the authoritative methodological reference for the SNTO platform as implemented primarily for Sierra de Guadarrama National Park, with the Sierra del Rincón Biosphere Reserve retained as a methodological calibration pilot. All formulas, thresholds, and cost parameters are derived from implemented code (`tis_engine.py`, `src/risk_engine/ehs.py`, `src/spatial_causality/analyzer.py`, `src/decision_confidence/assessor.py`) and validated against the references cited. Any modifications to operational parameters must be reflected in both this document and the codebase to maintain source-of-truth integrity.*
 
 ---
 
 **Codebase Repository:** `snto-smart-tourism-observatory`
 **Primary Contact:** soroush.karahrodi79@gmail.com
-**Platform Version:** 1.2.0 | **Python:** ≥ 3.12 | **License:** Research Use
+**Platform Version:** 1.4.0 (latest stable) | **Python:** ≥ 3.12 | **License:** Research Use
