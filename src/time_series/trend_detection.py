@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Shared trend-detection step: deseasonalise, then Mann-Kendall.
 
@@ -15,6 +13,8 @@ Chain: harmonic deseasonalisation (decomposition.py) → optional Yue-Pilon
 pre-whitening (prewhitening.py) → tie-corrected Mann-Kendall (mann_kendall.py).
 See docs/nota_metodologica_rigor_estadistico.md for the justification.
 """
+
+from __future__ import annotations
 
 from dataclasses import dataclass
 

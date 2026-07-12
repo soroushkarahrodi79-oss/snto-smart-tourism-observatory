@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 SNTO — Inter-sensor cross-validation of the NDVI signal.
 
@@ -40,6 +38,8 @@ References
   Bland, J.M. & Altman, D.G. (1986). Statistical methods for assessing agreement
     between two methods of clinical measurement. The Lancet, 327, 307–310.
 """
+
+from __future__ import annotations
 
 import statistics
 from dataclasses import dataclass

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Non-parametric abrupt change-point detection (Pettitt test).
 
@@ -40,6 +38,8 @@ References
   Verbesselt, J. et al. (2010). Detecting trend and seasonal changes in
     satellite image time series. Remote Sensing of Environment, 114, 106–115.
 """
+
+from __future__ import annotations
 
 import math
 from dataclasses import dataclass

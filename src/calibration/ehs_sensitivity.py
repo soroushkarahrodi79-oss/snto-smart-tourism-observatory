@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Global sensitivity analysis of the Environmental Health Score (Morris method).
 
@@ -33,6 +31,8 @@ References
     screening design / radial sampling for global sensitivity analysis.
     Environmental Modelling & Software.
 """
+
+from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Callable, Sequence
