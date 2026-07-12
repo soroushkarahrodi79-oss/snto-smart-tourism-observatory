@@ -44,6 +44,7 @@ class FieldObservation:
     lon: float
     distance_to_trail_m: float
     is_control: bool
+    asset_id: Optional[str] = None                 # SNTO asset this plot belongs to
     soil_compaction_mpa: Optional[float] = None   # penetrometer
     veg_cover_pct: Optional[float] = None          # 0-100
     erosion_class: Optional[int] = None            # ErosionClass 0-3
@@ -82,3 +83,25 @@ def split_impact_control(
     impact = [o for o in observations if not o.is_control]
     control = [o for o in observations if o.is_control]
     return impact, control
+
+
+def field_index_by_asset(
+    observations: list[FieldObservation],
+) -> dict[str, Optional[float]]:
+    """Per-asset field degradation index (mean over that asset's impact plots).
+
+    Only impact plots (``is_control=False``) with a computable
+    ``degradation_index`` and a non-null ``asset_id`` contribute. An asset whose
+    impact plots have no measured components maps to ``None`` — the caller must
+    treat that as "no field datum", never as zero degradation.
+    """
+    sums: dict[str, list[float]] = {}
+    for o in observations:
+        if o.is_control or o.asset_id is None:
+            continue
+        idx = o.degradation_index()
+        if idx is None:
+            continue
+        sums.setdefault(o.asset_id, []).append(idx)
+    return {aid: round(sum(v) / len(v), 2) if v else None
+            for aid, v in sums.items()}

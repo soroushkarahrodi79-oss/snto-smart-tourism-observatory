@@ -65,3 +65,7 @@ Thumbs.db
 # --- Archivos de salida sueltos -----------------------------
 CUsers*.txt
 *.out.txt
+
+# --- Validación de campo: outputs generados (la plantilla sí se versiona) ---
+clean_assets/field_validation/*
+!clean_assets/field_validation/*_template.csv
