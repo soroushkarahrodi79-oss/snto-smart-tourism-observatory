@@ -17,6 +17,7 @@ planetary-computer>=1.0,<2.0   # URL signing for Microsoft Planetary Computer (o
 # ── Database ─────────────────────────────────────────────────────────────────
 psycopg2-binary>=2.9,<3.0
 sqlalchemy>=2.0,<3.0
+alembic>=1.13,<2.0              # migrations for src/persistence (Fase 5, ADR-011)
 python-dotenv>=1.0,<2.0
 
 # ── Web API ──────────────────────────────────────────────────────────────────
