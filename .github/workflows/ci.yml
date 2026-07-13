@@ -32,7 +32,8 @@ jobs:
             src/config/logging_setup.py src/config/run_context.py \
             src/platform/provenance.py src/platform/views.py \
             src/platform/satellite_trends.py src/platform/charts.py \
-            src/risk_engine/baselines.py
+            src/risk_engine/baselines.py \
+            src/persistence tests/persistence
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github
