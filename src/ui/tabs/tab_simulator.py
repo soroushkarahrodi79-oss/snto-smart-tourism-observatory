@@ -12,7 +12,7 @@ import streamlit as st
 from src.intervention import allocate_tis_budget
 
 
-def render_tab_simulator(base_comps, assets_by_id, base_budget, ranked_assets) -> None:
+def render_tab_simulator(base_comps, assets_by_id, base_budget, ranked_assets, _view) -> None:
     """Render the Simulador Financiero What-If tab (issue #27 extraction)."""
     import pandas as pd
 
@@ -58,6 +58,32 @@ def render_tab_simulator(base_comps, assets_by_id, base_budget, ranked_assets) -
         a.visitor_capacity_annual for a in ranked_assets
         if a.asset_id in defunded_ids
     )
+
+    # ── GESTOR: acción primero — qué financia el presupuesto, en lenguaje llano.
+    # Mismas cifras que los KPIs de abajo (idénticas entre vistas); solo lidera
+    # con la decisión: qué entra, qué se queda fuera.
+    if _view.section(simplified=True):
+        _entra = [
+            a.name.split("—")[0].strip()
+            for a in ranked_assets if a.asset_id in newly_funded_ids
+        ]
+        _fuera = [
+            a.name.split("—")[0].strip()
+            for a in ranked_assets if a.asset_id in defunded_ids
+        ]
+        _msg = (
+            f"**Plan con €{sim_budget:,}:** financia "
+            f"**{len(live_funded_ids)} de {len(ranked_assets)}** sendas prioritarias "
+            f"(€{live_budget.total_allocated_eur:,} asignados, "
+            f"€{live_budget.remaining_eur:,} sin asignar)."
+        )
+        if _entra:
+            _msg += f"\n\n➕ **Entran** frente a la base de €100K: {', '.join(_entra)}."
+        if _fuera:
+            _msg += f"\n\n➖ **Se quedan fuera** frente a la base: {', '.join(_fuera)}."
+        if not _entra and not _fuera:
+            _msg += "\n\nMismo conjunto financiado que la base de €100K."
+        st.info(_msg, icon="🧭")
 
     # ── KPI gigante — Visitantes Protegidos ───────────────────────────────────
     delta_sign  = "+" if visitors_gained >= visitors_lost else ""
