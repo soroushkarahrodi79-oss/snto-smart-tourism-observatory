@@ -15,12 +15,13 @@
   home pages por rol). Eso sigue gateado hasta que esta fase entregue un
   backend real que consumir (`ui-evolution-v2-spec.md` §13).
 - **No aprovisiona ningún recurso de nube** (base de datos gestionada, secretos,
-  cambio del modelo de despliegue de Container Apps). Eso es una decisión
-  explícita del propietario, tratada como **Decisión Abierta #1** más abajo.
-- **No implementa SSO institucional.** El auth de la primera versión es mínimo
-  y local (ver **Decisión Abierta #2**); la integración con Azure AD/Entra ID
-  del tenant UCM (ya usado para OIDC de despliegue) es una extensión posterior,
-  no un bloqueante de Fase 5.
+  cambio del modelo de despliegue de Container Apps). El aprovisionamiento de
+  producción sigue siendo un paso explícito y ejecutado por el propietario
+  (comandos documentados en §4bis), no algo que estas PRs hagan por su cuenta.
+- **No implementa SSO institucional.** Decidido (2026-07-13): el auth de la
+  primera versión es **mínimo y propio** (API key / token de sesión, gatea
+  solo escritura). Azure AD/Entra ID del tenant UCM queda como extensión
+  posterior, no un bloqueante de Fase 5.
 
 ## 1. Estado real verificado
 
@@ -38,32 +39,27 @@
   gestionado** con ciclo `detected → verified → assigned → funded → resolved →
   monitored`— no existe en ninguna forma hoy.
 
-## 2. Decisiones abiertas (requieren tu aprobación explícita antes de esos pasos)
+## 2. Decisiones (resueltas 2026-07-13, delegadas por el propietario)
 
-Estas son bifurcaciones reales de coste/gobernanza que **no tomo por ti**:
-
-1. **Aprovisionamiento de la base de datos de producción.** Cuándo y con qué
-   servicio (p. ej. Azure Database for PostgreSQL Flexible Server) se crea el
-   recurso real, quién paga el coste recurrente, y si el Container App actual
-   (scale-to-zero, sin estado) cambia de modelo para sostener una conexión
-   persistente. **Nada en esta fase lo hace por defecto.**
-2. **Estrategia de autenticación.** Auth mínima propia (usuario/contraseña o
-   API key, para desbloquear el modelo de roles) vs. SSO institucional (Azure
-   AD/Entra ID del tenant UCM, ya usado para el despliegue). Recomiendo empezar
-   mínimo y migrar a SSO cuando haya usuarios institucionales reales, pero es tu
-   decisión.
-3. **Quién es el primer consumidor del backend.** El plan de abajo prioriza el
-   módulo P1 "Urgent actions" (`ui-evolution-v2-spec.md` §6) como primer punto
-   de integración real UI↔backend, por ser el objeto central del producto. Si
-   prefieres otro punto de entrada (p. ej. solo el catálogo de activos de
-   solo-lectura), lo reordeno.
+1. **Aprovisionamiento de la base de datos de producción: diferido, ejecución
+   manual del propietario cuando decida pasar a producción.** Ninguna PR de
+   esta fase crea recursos de nube ni incurre coste recurrente. Los comandos
+   exactos para cuando quieras hacer el cutover están en §4bis.
+2. **Estrategia de autenticación: mínima propia** (API key o token de sesión),
+   gatea solo endpoints de **escritura**; lectura queda abierta, misma postura
+   que la API actual. SSO institucional (Azure AD/Entra ID del tenant UCM) se
+   añade más adelante si hace falta acceso multi-usuario real — es un cambio
+   aditivo de la dependencia de auth, no del esquema ni del contrato de API.
+3. **Primer consumidor del backend: el módulo "Urgent actions"** (P1,
+   `ui-evolution-v2-spec.md` §6), por ser el objeto central del producto
+   (activo gestionado con ciclo de vida). Paso 5.9 del plan de abajo.
 
 ## 3. Esquema de recursos (SQLAlchemy, `src/persistence/models/`)
 
 Deriva directamente de la lista de ADR-006 y del ciclo de vida de
 `ui-evolution-v2-spec.md` §3. Tipos de columna portables SQLite↔PostgreSQL
 (sin extensiones específicas de Postgres en el primer corte; PostGIS se añade
-cuando se aprovisione la base de datos real — Decisión Abierta #1).
+cuando se aprovisione la base de datos real, ver §4bis).
 
 ```
 Territory        id, slug, name, budget_eur, created_at
@@ -104,12 +100,38 @@ Cada tabla con un campo de evidencia reutiliza el vocabulario ya canónico de
 | 5.5 | Ciclo de vida de `Intervention` (`detected→…→monitored`) + endpoints de transición de estado con validación de transiciones permitidas | Medio |
 | 5.6 | `FieldVerification` — registro persistente que sustituye/complementa el CSV de `docs/field_validation_protocol.md` (#26) | Bajo |
 | 5.7 | `AuditLogEntry` — cada escritura en 5.3–5.6 deja rastro; endpoint de solo-lectura para auditoría | Bajo |
-| 5.8 | Auth mínima (según Decisión Abierta #2) — gatea escritura, no lectura | Depende de la decisión |
+| 5.8 | Auth mínima propia (API key/token) — gatea escritura, no lectura | Bajo |
 | 5.9 | Primer consumidor real en `src/ui/`: el módulo "Urgent actions" (P1) lee/escribe contra la API v2 en vez de solo memoria — primer punto de integración UI↔backend persistente | Medio — toca `src/ui/tabs/` |
 
 Cada paso: rama desde `main`, tests (SQLite en CI, igual que el resto de la
 suite), sin cambio de comportamiento fuera de lo que el paso añade
 explícitamente, PR individual, **sin auto-merge** (igual que todo lo anterior).
+
+## 4bis. Cutover a producción (ejecución manual del propietario, cuando decidas)
+
+Ningún paso 5.1–5.9 crea esto. Cuando quieras pasar de SQLite a Postgres real:
+
+```bash
+# 1) Aprovisionar Postgres Flexible Server (Azure Cloud Shell, identidad owner)
+RG=rg-snto-observatory-app
+az postgres flexible-server create -g $RG -n snto-db \
+    --admin-user snto_admin --admin-password <secreto> \
+    --sku-name Standard_B1ms --tier Burstable --version 16 \
+    --storage-size 32 --public-access 0.0.0.0
+
+# 2) Habilitar PostGIS
+az postgres flexible-server parameter set -g $RG -s snto-db \
+    --name azure.extensions --value POSTGIS
+
+# 3) Añadir SNTO_DB_HOST/PORT/NAME/USER/PASS reales como secrets del Container
+#    App (no en .env versionado) y aplicar las migraciones Alembic ya
+#    verificadas contra SQLite:
+alembic upgrade head   # con DATABASE_URL apuntando al Postgres real
+```
+
+El coste recurrente y el cambio de modelo de despliegue (el Container App deja
+de ser puramente stateless) son explícitamente tu decisión, no algo que estas
+PRs asuman.
 
 ## 5. Verificación por paso
 
