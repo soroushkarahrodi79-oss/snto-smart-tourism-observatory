@@ -50,7 +50,8 @@ Fases 0–4 of `docs/roadmap/plan_fases_post_v1.2.md` and the #28 rescue are don
 
 1. **Owner cleanup done:** the owner has deleted the rescued `claude/tourism-observatory-views-audit-jyl38k` branch and the merged `feature/v1.5.0-*` branches. Issue #28 should be closed (its full scope is on `main`).
 2. **Field-validation campaign (#26):** the tooling/protocol are merged; the real ground-truth campaign (penetrometer/cover/erosion on PNSG priority assets) is manual field work, still pending — do not claim validation until collected.
-3. **v2.0 — role-based UI evolution** (`docs/ux/ui-evolution-v2-spec.md`): the natural next milestone on top of the modular `src/ui/` + audience views. **Not started, by owner decision — do not begin without explicit go-ahead.**
+3. **v2.0 — role-based UI evolution** (`docs/ux/ui-evolution-v2-spec.md`): gated on persistence (see #4). Do not implement any v2.0 screen before Fase 5 ships.
+4. **Fase 5 — v2.0 persistent-backend foundations** (`docs/roadmap/plan_fase5_v2_foundations.md`, ADR-011): design is done (resource schema, phased PR plan). **Awaiting owner sign-off on its Open Decisions** (production DB provisioning/cost, auth strategy, first UI consumer) before implementation PRs begin. No cloud resource is provisioned by the design.
 
 When cutting the next release, bump `pyproject.toml` from `1.5.0.dev0`, run `scripts/sync_readme.py`, and tag.
 
