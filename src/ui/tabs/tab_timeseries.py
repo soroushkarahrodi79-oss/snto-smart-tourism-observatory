@@ -253,14 +253,14 @@ def render_tab_timeseries(ranked_assets, _view) -> None:
     # ── Detalle modulado por vista/audiencia ──────────────────────────────────
     _trend_es = {"decreasing": "↘ deterioro", "increasing": "↗ mejora",
                  "no_trend": "→ estable"}.get(selected_asset.trend_direction, "→ estable")
-    if _view.simplified:
+    if _view.section(simplified=True):
         # GESTOR: una sola línea, sin jerga estadística.
         st.info(
             f"**Tendencia:** {_trend_es} · **Salud (EHS)** {selected_asset.ehs:.0f}/100. "
             f"{'Requiere actuación.' if (selected_asset.tier or 5) <= 2 else 'Bajo control.'}",
             icon="🧭",
         )
-    if _view.technical:
+    if _view.section(technical=True):
         # TÉCNICA / AUDITORÍA: estadística cruda del activo.
         _sig = "significativa (p<0,05)" if selected_asset.mk_p_value < 0.05 else "no significativa"
         st.caption(

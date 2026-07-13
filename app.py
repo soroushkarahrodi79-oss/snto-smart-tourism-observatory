@@ -13,6 +13,7 @@ from streamlit_autorefresh import st_autorefresh
 from src._version import __version__
 from src.platform.map_layers import LEGEND_ITEMS
 from src.platform.views import ViewMode, get_view, view_modes
+from src.platform.telemetry import record_view, telemetry_enabled
 from src.socioeconomic.indicators import (
     aggregate_asset_risk,
     compute_svi,
@@ -89,6 +90,15 @@ with st.sidebar:
     st.caption(_view.audience)
     if _view.shows:
         st.caption(f"🔁 {_view.shows}")
+    # F10 Fase 5: telemetría de uso de vistas — local y opt-in (SNTO_TELEMETRY=1).
+    # Se registra una vez por CAMBIO de vista en la sesión, no en cada autorefresh,
+    # para medir selecciones reales sin inflar el conteo.
+    if (
+        telemetry_enabled()
+        and st.session_state.get("_telemetry_last") != _view.mode.value
+    ):
+        record_view(_view.mode.value)
+        st.session_state["_telemetry_last"] = _view.mode.value
     st.divider()
 
 # ── Cargar datos ──────────────────────────────────────────────────────────────

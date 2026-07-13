@@ -47,7 +47,7 @@ def render_tab_assets(calibration, ranked_assets, _view) -> None:
     # Modulada por vista: GESTOR ve solo el titular; TÉCNICA/AUDITORÍA, el detalle.
     _calib = calibration
     _cov = coverage_summary(_calib)
-    if _view.simplified:
+    if _view.section(simplified=True):
         st.caption(
             f"🛰️ Validación satelital: **{_cov['mas_degradado']}** activo(s) con override "
             f"(satélite más degradado), **{_cov['confirma']}** confirmados, "
@@ -73,7 +73,7 @@ def render_tab_assets(calibration, ranked_assets, _view) -> None:
             "por geología, no por turismo. Así el satélite **escala**, nunca relaja, el "
             "diagnóstico experto."
         )
-        if _view.audit:
+        if _view.section(audit=True):
             with st.expander("⚖️ Procedencia y límites declarados (vista auditoría)", expanded=False):
                 _real_badge = data_status_badge(DataStatus.REAL)
                 _syn_badge = data_status_badge(DataStatus.SYNTHETIC)
