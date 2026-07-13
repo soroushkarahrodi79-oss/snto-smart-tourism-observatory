@@ -18,8 +18,63 @@ from src.ui.render_helpers import (
 )
 
 
-def render_tab_portfolio(ranked_assets) -> None:
-    """Render the Portafolio TPI tab (issue #27 extraction)."""
+# ── F10: vista "acción primero" para Gestor ──────────────────────────────────
+# Reordena la LECTURA hacia la decisión (qué intervenir primero), sin alterar
+# ninguna cifra: el coste por activo es el mismo del mejor escenario TIS que ven
+# las demás vistas y la pestaña de KPIs. Solo cambia el orden y el lenguaje.
+def _priority_actions(assets: list, comps: list, limit: int = 5) -> list[tuple]:
+    """Activos Tier 1-2 por TPI descendente, con su acción recomendada y el coste
+    del mejor escenario. Devuelve (asset, etiqueta_acción, coste_eur)."""
+    cost_by_id = {
+        c.asset_id: c.scenarios[c.best_scenario_code].cost_eur for c in comps
+    }
+    prio = sorted(
+        [a for a in assets if (a.tier or 5) <= 2],
+        key=lambda a: -(a.tpi or 0),
+    )[:limit]
+    return [
+        (a, a.recommended_action_label or "Intervención de conservación",
+         cost_by_id.get(a.asset_id))
+        for a in prio
+    ]
+
+
+def _render_action_first(assets: list, comps: list) -> None:
+    """Plan de acción prioritario (vista Gestor) para la pestaña de Portafolio."""
+    rows = _priority_actions(assets, comps)
+    st.markdown("#### 🧭 Plan de acción prioritario")
+    if not rows:
+        st.success(
+            "✅ Sin activos en prioridad de intervención (Tier 1-2) en este territorio.",
+            icon="🧭",
+        )
+        return
+    st.caption(
+        "Qué intervenir primero, en orden de urgencia (TPI). Los costes son los "
+        "mismos del mejor escenario TIS que ve el resto de vistas; aquí se leen "
+        "como acciones, no como tabla."
+    )
+    for a, action, cost in rows:
+        cost_txt = f"€{cost:,.0f}" if cost else "coste por confirmar"
+        st.markdown(
+            f'<div class="snto-ficha" style="border-left-color:#EF9F27;">'
+            f'<span class="snto-ficha-ehs" style="background:#fff3e0;color:#854F0B">'
+            f'{cost_txt}</span>'
+            f'<div class="snto-ficha-name">{_tier_chip(a.tier)} '
+            f'{a.name.split("—")[0].strip()}</div>'
+            f'<div class="snto-ficha-meta">{a.region} · {action} · '
+            f'EHS {a.ehs:.0f} · TPI {a.tpi:.0f}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+
+def render_tab_portfolio(ranked_assets, base_comps, _view) -> None:
+    """Render the Portafolio TPI tab, modulated by audience (#28, F10-4).
+
+    GESTOR lidera con el plan de acción prioritario (``_render_action_first``);
+    la matriz y la tabla van debajo. Las demás vistas ven la matriz primero.
+    """
     st.subheader("Matriz de Portafolio TPI — Priorización de Activos Turísticos Críticos")
     st.caption(
         "Cada activo se posiciona según su capacidad de carga antrópica (eje X) y su riesgo "
@@ -27,6 +82,11 @@ def render_tab_portfolio(ranked_assets) -> None:
         "del activo. Los cuadrantes delimitan las cuatro estrategias de gestión del modelo SNTO: "
         "la matriz fundamenta de forma objetiva qué sendas requieren intervención financiera inmediata."
     )
+
+    # ── GESTOR: acción primero — el plan prioritario lidera; la matriz va debajo.
+    if _view.section(simplified=True):
+        _render_action_first(ranked_assets, base_comps)
+        st.divider()
 
     try:
         portfolio_fig = build_portfolio_matrix(ranked_assets)

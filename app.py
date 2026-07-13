@@ -227,7 +227,7 @@ with tab_kpis:
 
 # ── Tab 2: Portafolio TPI ─────────────────────────────────────────────────────
 with tab_portfolio:
-    render_tab_portfolio(ranked_assets)
+    render_tab_portfolio(ranked_assets, base_comps, _view)
 
 
 # ── Tab 3: Series Temporales Espectrales ─────────────────────────────────────
@@ -237,7 +237,7 @@ with tab_timeseries:
 
 # ── Tab 4: Simulador Financiero What-If ──────────────────────────────────────
 with tab_simulator:
-    render_tab_simulator(base_comps, assets_by_id, base_budget, ranked_assets)
+    render_tab_simulator(base_comps, assets_by_id, base_budget, ranked_assets, _view)
 
 
 # ── Tab 5: Impacto Socioeconómico ─────────────────────────────────────────────
