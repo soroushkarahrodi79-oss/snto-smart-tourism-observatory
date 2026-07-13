@@ -40,7 +40,7 @@
 | `feature/v1.2.0-oapn-network-expansion-clean` | 1 / 0 | **Mergear** (PR #21, primero) |
 | `feature/v1.2.0-oapn-integration` | 2 / 0 | **Mergear** (PR #22, tras #21) |
 | `research/statistical-rigor` | 15 / 13 | **Rescatar** por cherry-pick (Fase 2 → v1.3.0). Cortada de un `main` antiguo; su merge directo revertiría v1.1.x |
-| `claude/tourism-observatory-views-audit-jyl38k` | 7 / 14 | **Gated**: toca `app.py` (+173 líneas); bloqueada por el non-negotiable "modularizar antes de evolucionar UI" (Fase 4). Sus docs (`views_audit_design.md`) rescatables antes como docs-only |
+| `claude/tourism-observatory-views-audit-jyl38k` | 7 / 14 | **✅ Rescatada** (PRs #54–#59): re-implementada sobre la estructura modular tras la Fase 4. Pendiente de borrado por el propietario |
 | `feature/v1.1.0-multiyear-trends` | 11 / 4 | **Borrar**: contenido mergeado vía PR #1 (commits duplicados por rebase) |
 | `feature/v1.2.0-oapn-network-expansion` | 8 / 13 | **Borrar**: versión sucia sustituida por `-clean`; su merge revertiría la base estratégica y el rigor v1.1.1 |
 | `fix/v1.1.1-statistical-rigor` | 1 / 2 | **Borrar**: mergeada como PR #19 |
@@ -179,9 +179,17 @@ Orden recomendado (independientes entre sí, PRs pequeños):
 
 ## 6. Fase 4 — Pre-v2.0: modularización de `app.py` (bloqueante)
 
-**Objetivo:** eliminar el mayor riesgo arquitectónico antes de cualquier
-evolución de UI. `app.py` está en **3.172 líneas** (creció desde ~2.890) y
-concentra UI, orquestación, estado, copy y lógica de producto.
+> **✅ COMPLETADA.** `app.py` pasó de ~3.170 a **~285 líneas** (solo
+> composición y navegación). La UI se extrajo a `src/ui/`: `layout.py`
+> (config + CSS + registro de territorios + `load_dashboard`),
+> `render_helpers.py`, `render_widgets.py` y las 8 tabs en `src/ui/tabs/`.
+> El rescate de las vistas por audiencia (#28) también está hecho (ver punto 3).
+> Cada paso se hizo con movimiento verbatim, suite verde y smoke test; sin
+> cambio de comportamiento. Siguiente hito: v2.0 (aún no iniciado).
+
+**Objetivo (original):** eliminar el mayor riesgo arquitectónico antes de
+cualquier evolución de UI. `app.py` estaba en ~3.170 líneas y concentraba UI,
+orquestación, estado, copy y lógica de producto.
 
 1. **Extracción incremental por tabs** a `src/ui/` (un PR por tab, sin cambio
    de comportamiento; los tests de contrato existentes como red de seguridad):
