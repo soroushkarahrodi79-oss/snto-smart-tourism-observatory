@@ -4,25 +4,24 @@ SNTO means Smart Natural Tourism Observatory. The active case study is Parque Na
 
 ## Current Status
 
-- v1.0.0, v1.1.0, and v1.1.1 are released and tagged in `main` (PR #1 merged 2026-07-09; statistical fix via PRs #19/#20).
-- v1.2.0 (OAPN multi-park expansion) is code-complete in open PRs #21 + #22 (stacked). Only the manual GEE data export for the pilot parks (Tablas de Daimiel, Monfragüe) is pending; the code merge does not depend on it (default `park="pnsg"` keeps behavior identical).
-- Statistical-rigor work lives in `research/statistical-rigor` (cut from an old `main`; must be rescued via cherry-pick, not merged directly) → planned as v1.3.0.
-- The operational roadmap is `docs/roadmap/plan_fases_post_v1.2.md` (Fases 0–5), tracked in issues #24–#28.
-- v2.0 should not start before v1.2/v1.3 integration and app modularization.
+- v1.0.0 → v1.4.0 are all released and tagged in `main`. `main` is on `1.5.0.dev0` (a development marker, not a release): pyproject.toml / `src/_version` / CITATION.cff all read `1.5.0.dev0`, and the last stable tag is `v1.4.0`.
+- v1.2.0 (OAPN multi-park expansion), v1.3.0 (statistical rigor), and v1.4.0 (decision integration: risk brief #12, GIS export #25, evidence separation #10, positioning #9, field-validation tooling #26) are merged. Only the manual GEE field-validation campaign for the pilot parks remains open work, not a code blocker.
+- **Fase 4 (`app.py` modularization, #27) is COMPLETE.** `app.py` went from ~3,170 lines to ~285 (composition/navigation only); the UI was extracted to `src/ui/`.
+- **Audience-views rescue (#28) is COMPLETE.** The `claude/tourism-observatory-views-audit-jyl38k` branch was rescued (re-implemented, not cherry-picked) onto the modular structure.
+- The operational roadmap is `docs/roadmap/plan_fases_post_v1.2.md`. The next milestone is v2.0 (role-based UI evolution) — **not yet started**, by owner decision.
 
 ## Pull Requests
 
-- PR #21 (`feature/v1.2.0-oapn-network-expansion-clean` → `main`): GEE templates for 15 OAPN parks + pilot plan. Additive, low risk. Merge first.
-- PR #22 (`feature/v1.2.0-oapn-integration`, stacked on #21): multi-park generalization of the temporal flow. Backward compatible by design. Merge after #21.
-- PR #1 (v1.1.0) and PR #7 (contaminated docs) are resolved history: #1 merged; #7's docs content reached `main` and its functional commits are preserved on `research/statistical-rigor`.
+- No SNTO release PRs are currently pending. Fase 3 (#33–#37), Fase 4 modularization (#38–#53) and the #28 audience-views rescue (#54–#59) are all merged.
+- Historical note: PR #1 (v1.1.0) merged; the statistical-rigor work formerly on `research/statistical-rigor` reached `main` via the v1.3.0 rescue.
 
 ## Architecture Facts
 
-- `app.py` is currently a monolith of around 3,170 lines (and growing).
-- The analytical core under `src/` is healthier and better separated.
-- The main architectural risk is concentration of UI, orchestration, state, copy, and product logic in `app.py`.
-- A FastAPI API exists but is secondary and under-integrated.
-- The Streamlit dashboard is feature-rich but cognitively dense.
+- `app.py` is now ~285 lines: page setup + sidebar/KPI assembly + `st.tabs(...)` + the eight `with tab_x: render_tab_x(...)` calls + footer. Composition and navigation only.
+- The UI lives in `src/ui/`: `layout.py` (page config, institutional CSS, territory registry, cached `load_dashboard`), `render_helpers.py` (presentation primitives), `render_widgets.py` (`st.`-rendering widgets), and `src/ui/tabs/` (one module per tab).
+- Audience views: `src/platform/views.py` (`ViewProfile.section()` is the single layered-disclosure contract), `src/platform/telemetry.py` (local opt-in usage telemetry, `SNTO_TELEMETRY=1`). Financial figures are invariant across views (verified by `tests/integration/test_view_modulation.py`).
+- The analytical core under `src/` is well separated. A FastAPI API exists but is secondary and under-integrated.
+- The Streamlit dashboard is feature-rich; the audience-view modulation (#28) reduces cognitive density per role.
 
 ## Product Direction
 
@@ -47,12 +46,11 @@ SNTO has the intellectual core of a reference product but the body of an advance
 
 ## Next Recommended Actions
 
-Follow `docs/roadmap/plan_fases_post_v1.2.md`:
+Fases 0–4 of `docs/roadmap/plan_fases_post_v1.2.md` and the #28 rescue are done. Remaining / next:
 
-1. Fase 0 (code): review and merge PR #21, then PR #22 (human approval required).
-2. Fase 0 (data): run the GEE exports for Tablas de Daimiel and Monfragüe, ingest via `run_timeseries_analysis.py --park <key>`, QA per biome, then tag `v1.2.0`.
-3. Fase 1 (remaining): delete the superseded branches listed in the plan (verified against `main`; requires explicit owner confirmation).
-4. Fase 2: rescue `research/statistical-rigor` via clean cherry-pick branch → v1.3.0 (issue #24).
-5. Fase 3: pilot readiness — GIS export (#25), field validation (#26), risk brief (#12), evidence separation (#10), positioning copy (#9) → v1.4.0.
-6. Fase 4: modularize `app.py` (#27) before any major UI redesign, then rescue the audience-views branch (#28).
+1. **Owner cleanup done:** the owner has deleted the rescued `claude/tourism-observatory-views-audit-jyl38k` branch and the merged `feature/v1.5.0-*` branches. Issue #28 should be closed (its full scope is on `main`).
+2. **Field-validation campaign (#26):** the tooling/protocol are merged; the real ground-truth campaign (penetrometer/cover/erosion on PNSG priority assets) is manual field work, still pending — do not claim validation until collected.
+3. **v2.0 — role-based UI evolution** (`docs/ux/ui-evolution-v2-spec.md`): the natural next milestone on top of the modular `src/ui/` + audience views. **Not started, by owner decision — do not begin without explicit go-ahead.**
+
+When cutting the next release, bump `pyproject.toml` from `1.5.0.dev0`, run `scripts/sync_readme.py`, and tag.
 
