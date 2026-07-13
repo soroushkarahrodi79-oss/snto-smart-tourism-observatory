@@ -48,7 +48,7 @@ SNTO has the intellectual core of a reference product but the body of an advance
 
 Fases 0–4 of `docs/roadmap/plan_fases_post_v1.2.md` and the #28 rescue are done. Remaining / next:
 
-1. **Owner-only cleanup (needs explicit confirmation; the environment cannot push branch/tag deletions):** delete the already-merged/rescued `claude/tourism-observatory-views-audit-jyl38k` branch and the stale `feature/v1.5.0-*` branches; close issue #28.
+1. **Owner cleanup done:** the owner has deleted the rescued `claude/tourism-observatory-views-audit-jyl38k` branch and the merged `feature/v1.5.0-*` branches. Issue #28 should be closed (its full scope is on `main`).
 2. **Field-validation campaign (#26):** the tooling/protocol are merged; the real ground-truth campaign (penetrometer/cover/erosion on PNSG priority assets) is manual field work, still pending — do not claim validation until collected.
 3. **v2.0 — role-based UI evolution** (`docs/ux/ui-evolution-v2-spec.md`): the natural next milestone on top of the modular `src/ui/` + audience views. **Not started, by owner decision — do not begin without explicit go-ahead.**
 
