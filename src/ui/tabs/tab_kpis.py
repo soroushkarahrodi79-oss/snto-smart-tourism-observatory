@@ -33,7 +33,7 @@ def render_tab_kpis(dashboard, ranked_assets, base_comps, calibration, _view) ->
     }
 
     # ── Vista GESTOR: acción prioritaria en lenguaje de dirección ─────────────
-    if _view.simplified:
+    if _view.section(simplified=True):
         _priority = next((a for a in ranked_assets if (a.tier or 5) <= 2), None)
         if _priority is not None:
             _act = _priority.recommended_action_label or "intervención de conservación"
