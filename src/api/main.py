@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from src._version import __version__
 from src.api.routers import alerts, evaluate, ranking
+from src.api.v2 import managed_assets as v2_managed_assets
 
 
 def create_app() -> FastAPI:
@@ -16,9 +17,15 @@ def create_app() -> FastAPI:
         version=__version__,
     )
 
+    # Existing stateless routers — behavior unchanged (Fase 5 keeps these intact).
     app.include_router(evaluate.router, prefix="/evaluate_asset")
     app.include_router(ranking.router, prefix="/ranking")
     app.include_router(alerts.router, prefix="/alerts")
+
+    # /api/v2 — persistence-backed, read-only in this step (Fase 5, ADR-011).
+    app.include_router(
+        v2_managed_assets.router, prefix="/api/v2/managed-assets"
+    )
 
     @app.get("/health")
     async def health() -> dict:
