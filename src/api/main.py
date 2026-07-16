@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from src._version import __version__
 from src.api.routers import alerts, evaluate, ranking
+from src.api.v2 import alerts as v2_alerts
 from src.api.v2 import managed_assets as v2_managed_assets
 
 
@@ -26,6 +27,7 @@ def create_app() -> FastAPI:
     app.include_router(
         v2_managed_assets.router, prefix="/api/v2/managed-assets"
     )
+    app.include_router(v2_alerts.router, prefix="/api/v2/alerts")
 
     @app.get("/health")
     async def health() -> dict:

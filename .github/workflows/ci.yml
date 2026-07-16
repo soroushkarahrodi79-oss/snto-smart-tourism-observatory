@@ -34,7 +34,8 @@ jobs:
             src/platform/satellite_trends.py src/platform/charts.py \
             src/risk_engine/baselines.py \
             src/persistence tests/persistence \
-            src/api/v2 tests/integration/test_api_v2_read.py
+            src/api/v2 tests/integration/test_api_v2_read.py \
+            tests/integration/test_api_v2_alerts.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github
