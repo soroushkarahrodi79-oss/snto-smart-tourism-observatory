@@ -11,6 +11,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from src.api.v2.schemas import (
+    AlertListResponse,
+    AlertOut,
     ManagedAssetListResponse,
     ManagedAssetOut,
     ObservationListResponse,
@@ -18,6 +20,7 @@ from src.api.v2.schemas import (
 )
 from src.persistence.enums import ManagedAssetStatus
 from src.persistence.repositories import (
+    AlertRepository,
     ManagedAssetRepository,
     ObservationRepository,
 )
@@ -69,4 +72,17 @@ def list_asset_observations(
     return ObservationListResponse(
         total=len(observations),
         observations=[ObservationOut.model_validate(o) for o in observations],
+    )
+
+
+@router.get("/{asset_id}/alerts", response_model=AlertListResponse)
+def list_asset_alerts(
+    asset_id: int, db: Session = Depends(get_db)
+) -> AlertListResponse:
+    if ManagedAssetRepository(db).get(asset_id) is None:
+        raise HTTPException(status_code=404, detail="ManagedAsset not found")
+    alerts = AlertRepository(db).list_by_asset(asset_id)
+    return AlertListResponse(
+        total=len(alerts),
+        alerts=[AlertOut.model_validate(a) for a in alerts],
     )

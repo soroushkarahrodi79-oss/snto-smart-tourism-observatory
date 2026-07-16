@@ -9,11 +9,15 @@ in step 5.8, so nothing here accepts client-supplied state.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict
 
-from src.persistence.enums import ManagedAssetStatus
+from src.persistence.enums import (
+    AlertStatus,
+    ManagedAssetStatus,
+    RecommendationStatus,
+)
 
 
 class TerritoryOut(BaseModel):
@@ -52,6 +56,33 @@ class ObservationOut(BaseModel):
     ndmi: float | None
 
 
+class AlertOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    asset_id: int
+    level: str
+    risk_score: float
+    triggered_rules: list[str]
+    status: AlertStatus
+    reason: str | None
+    created_at: datetime
+
+
+class RecommendationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    alert_id: int
+    action_label: str
+    cost_eur_low: float | None
+    cost_eur_high: float | None
+    confidence: float | None
+    owner: str | None
+    deadline: date | None
+    status: RecommendationStatus
+
+
 class ManagedAssetListResponse(BaseModel):
     total: int
     assets: list[ManagedAssetOut]
@@ -60,3 +91,13 @@ class ManagedAssetListResponse(BaseModel):
 class ObservationListResponse(BaseModel):
     total: int
     observations: list[ObservationOut]
+
+
+class AlertListResponse(BaseModel):
+    total: int
+    alerts: list[AlertOut]
+
+
+class RecommendationListResponse(BaseModel):
+    total: int
+    recommendations: list[RecommendationOut]
