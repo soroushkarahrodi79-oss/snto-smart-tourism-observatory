@@ -15,6 +15,7 @@ from pydantic import BaseModel, ConfigDict
 
 from src.persistence.enums import (
     AlertStatus,
+    InterventionStatus,
     ManagedAssetStatus,
     RecommendationStatus,
 )
@@ -81,6 +82,35 @@ class RecommendationOut(BaseModel):
     owner: str | None
     deadline: date | None
     status: RecommendationStatus
+
+
+class InterventionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    asset_id: int
+    recommendation_id: int | None
+    status: InterventionStatus
+    budget_eur: float | None
+    started_at: datetime | None
+    resolved_at: datetime | None
+
+
+# ── Write request bodies (Fase 5.5) ──────────────────────────────────────────
+# First client-supplied inputs in /api/v2. These endpoints are not auth-gated
+# yet — minimal auth gates every write in step 5.8 (ADR-011).
+
+class InterventionCreate(BaseModel):
+    recommendation_id: int | None = None
+    budget_eur: float | None = None
+
+
+class ManagedAssetTransitionRequest(BaseModel):
+    to_status: ManagedAssetStatus
+
+
+class InterventionTransitionRequest(BaseModel):
+    to_status: InterventionStatus
 
 
 class ManagedAssetListResponse(BaseModel):

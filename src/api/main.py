@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from src._version import __version__
 from src.api.routers import alerts, evaluate, ranking
 from src.api.v2 import alerts as v2_alerts
+from src.api.v2 import interventions as v2_interventions
 from src.api.v2 import managed_assets as v2_managed_assets
 
 
@@ -28,6 +29,9 @@ def create_app() -> FastAPI:
         v2_managed_assets.router, prefix="/api/v2/managed-assets"
     )
     app.include_router(v2_alerts.router, prefix="/api/v2/alerts")
+    # Intervention lifecycle (5.5): routes span /managed-assets/.../interventions
+    # and /interventions/..., so this router mounts at the /api/v2 root.
+    app.include_router(v2_interventions.router, prefix="/api/v2")
 
     @app.get("/health")
     async def health() -> dict:
