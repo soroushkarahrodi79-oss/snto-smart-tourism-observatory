@@ -12,7 +12,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from src.api.v2.deps import get_actor
+from src.api.v2.deps import require_write_auth
 from src.api.v2.schemas import (
     InterventionCreate,
     InterventionOut,
@@ -41,7 +41,7 @@ def create_intervention(
     asset_id: int,
     body: InterventionCreate,
     db: Session = Depends(get_db),
-    actor: str = Depends(get_actor),
+    actor: str = Depends(require_write_auth),
 ) -> InterventionOut:
     if ManagedAssetRepository(db).get(asset_id) is None:
         raise HTTPException(status_code=404, detail="ManagedAsset not found")
@@ -82,7 +82,7 @@ def transition_intervention_status(
     intervention_id: int,
     body: InterventionTransitionRequest,
     db: Session = Depends(get_db),
-    actor: str = Depends(get_actor),
+    actor: str = Depends(require_write_auth),
 ) -> InterventionOut:
     try:
         intervention = transition_intervention(

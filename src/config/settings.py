@@ -28,6 +28,13 @@ class Settings(BaseSettings):
     # sobre snto_db_host/sqlite por defecto cuando se establece.
     snto_database_url: str = ""
 
+    # ── Auth mínima de escritura (Fase 5.8, ADR-011) ─────────────────────────
+    # Vacío por defecto -> auth desactivada (dev local: las escrituras quedan
+    # abiertas, igual que el resto de la capa por defecto). Rellenar activa el
+    # gating: toda escritura /api/v2 exige la cabecera X-API-Key. La lectura
+    # nunca se gatea. SSO/Entra ID queda diferido (swap aditivo, ver ADR-011).
+    snto_api_key: str = ""
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
     @property
