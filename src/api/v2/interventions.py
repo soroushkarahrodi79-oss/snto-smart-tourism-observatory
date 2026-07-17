@@ -12,6 +12,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from src.api.v2.deps import get_actor
 from src.api.v2.schemas import (
     InterventionCreate,
     InterventionOut,
@@ -22,6 +23,7 @@ from src.persistence.repositories import (
     InterventionRepository,
     ManagedAssetRepository,
 )
+from src.persistence.services import audit
 from src.persistence.services.lifecycle import (
     IllegalTransitionError,
     ResourceNotFoundError,
@@ -39,6 +41,7 @@ def create_intervention(
     asset_id: int,
     body: InterventionCreate,
     db: Session = Depends(get_db),
+    actor: str = Depends(get_actor),
 ) -> InterventionOut:
     if ManagedAssetRepository(db).get(asset_id) is None:
         raise HTTPException(status_code=404, detail="ManagedAsset not found")
@@ -48,6 +51,14 @@ def create_intervention(
             recommendation_id=body.recommendation_id,
             budget_eur=body.budget_eur,
         )
+    )
+    audit.record(
+        db,
+        actor=actor,
+        action=audit.INTERVENTION_CREATED,
+        subject_type="intervention",
+        subject_id=intervention.id,
+        payload={"asset_id": asset_id, "budget_eur": body.budget_eur},
     )
     db.commit()
     return InterventionOut.model_validate(intervention)
@@ -71,10 +82,11 @@ def transition_intervention_status(
     intervention_id: int,
     body: InterventionTransitionRequest,
     db: Session = Depends(get_db),
+    actor: str = Depends(get_actor),
 ) -> InterventionOut:
     try:
         intervention = transition_intervention(
-            db, intervention_id, body.to_status
+            db, intervention_id, body.to_status, actor=actor
         )
     except ResourceNotFoundError:
         raise HTTPException(status_code=404, detail="Intervention not found")

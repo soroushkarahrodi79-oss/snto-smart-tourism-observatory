@@ -155,6 +155,23 @@ class FieldVerificationListResponse(BaseModel):
     field_verifications: list[FieldVerificationOut]
 
 
+class AuditLogEntryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    actor: str
+    action: str
+    subject_type: str
+    subject_id: int
+    payload: dict | None
+    created_at: datetime
+
+
+class AuditLogListResponse(BaseModel):
+    total: int
+    entries: list[AuditLogEntryOut]
+
+
 class RecommendationListResponse(BaseModel):
     total: int
     recommendations: list[RecommendationOut]

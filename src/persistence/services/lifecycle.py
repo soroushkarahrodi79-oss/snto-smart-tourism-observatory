@@ -27,6 +27,7 @@ from src.persistence.repositories import (
     InterventionRepository,
     ManagedAssetRepository,
 )
+from src.persistence.services import audit
 
 # Allowed forward transitions. A status absent as a key is terminal.
 MANAGED_ASSET_TRANSITIONS: dict[ManagedAssetStatus, set[ManagedAssetStatus]] = {
@@ -67,20 +68,37 @@ def _validate(current, requested, transitions) -> None:
 
 
 def transition_managed_asset(
-    session: Session, asset_id: int, to_status: ManagedAssetStatus
+    session: Session,
+    asset_id: int,
+    to_status: ManagedAssetStatus,
+    *,
+    actor: str = audit.ACTOR_SYSTEM,
 ):
     """Advance a ManagedAsset's status if the transition is allowed."""
     asset = ManagedAssetRepository(session).get(asset_id)
     if asset is None:
         raise ResourceNotFoundError(f"ManagedAsset id={asset_id} not found")
-    _validate(asset.status, to_status, MANAGED_ASSET_TRANSITIONS)
+    from_status = asset.status
+    _validate(from_status, to_status, MANAGED_ASSET_TRANSITIONS)
     asset.status = to_status
     session.flush()
+    audit.record(
+        session,
+        actor=actor,
+        action=audit.MANAGED_ASSET_TRANSITIONED,
+        subject_type="managed_asset",
+        subject_id=asset.id,
+        payload={"from": from_status.value, "to": to_status.value},
+    )
     return asset
 
 
 def transition_intervention(
-    session: Session, intervention_id: int, to_status: InterventionStatus
+    session: Session,
+    intervention_id: int,
+    to_status: InterventionStatus,
+    *,
+    actor: str = audit.ACTOR_SYSTEM,
 ):
     """Advance an Intervention's status if the transition is allowed."""
     intervention = InterventionRepository(session).get(intervention_id)
@@ -88,7 +106,16 @@ def transition_intervention(
         raise ResourceNotFoundError(
             f"Intervention id={intervention_id} not found"
         )
-    _validate(intervention.status, to_status, INTERVENTION_TRANSITIONS)
+    from_status = intervention.status
+    _validate(from_status, to_status, INTERVENTION_TRANSITIONS)
     intervention.status = to_status
     session.flush()
+    audit.record(
+        session,
+        actor=actor,
+        action=audit.INTERVENTION_TRANSITIONED,
+        subject_type="intervention",
+        subject_id=intervention.id,
+        payload={"from": from_status.value, "to": to_status.value},
+    )
     return intervention

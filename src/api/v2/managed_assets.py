@@ -12,6 +12,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from src.api.v2.deps import get_actor
 from src.api.v2.schemas import (
     AlertListResponse,
     AlertOut,
@@ -101,6 +102,7 @@ def transition_asset(
     asset_id: int,
     body: ManagedAssetTransitionRequest,
     db: Session = Depends(get_db),
+    actor: str = Depends(get_actor),
 ) -> ManagedAssetOut:
     """
     Advance a ManagedAsset along its lifecycle
@@ -109,7 +111,7 @@ def transition_asset(
     state.
     """
     try:
-        asset = transition_managed_asset(db, asset_id, body.to_status)
+        asset = transition_managed_asset(db, asset_id, body.to_status, actor=actor)
     except ResourceNotFoundError:
         raise HTTPException(status_code=404, detail="ManagedAsset not found")
     except IllegalTransitionError as exc:

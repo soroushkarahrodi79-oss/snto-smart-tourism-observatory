@@ -12,6 +12,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from src.api.v2.deps import get_actor
 from src.api.v2.schemas import (
     FieldVerificationCreate,
     FieldVerificationListResponse,
@@ -22,6 +23,7 @@ from src.persistence.repositories import (
     FieldVerificationRepository,
     ManagedAssetRepository,
 )
+from src.persistence.services import audit
 from src.persistence.session import get_db
 
 router = APIRouter(tags=["field-verifications"])
@@ -53,6 +55,7 @@ def create_field_verification(
     asset_id: int,
     body: FieldVerificationCreate,
     db: Session = Depends(get_db),
+    actor: str = Depends(get_actor),
 ) -> FieldVerificationOut:
     if ManagedAssetRepository(db).get(asset_id) is None:
         raise HTTPException(status_code=404, detail="ManagedAsset not found")
@@ -66,6 +69,14 @@ def create_field_verification(
             photo_ref=body.photo_ref,
             notes=body.notes,
         )
+    )
+    audit.record(
+        db,
+        actor=actor,
+        action=audit.FIELD_VERIFICATION_CREATED,
+        subject_type="field_verification",
+        subject_id=verification.id,
+        payload={"asset_id": asset_id, "method": body.method},
     )
     db.commit()
     return FieldVerificationOut.model_validate(verification)
