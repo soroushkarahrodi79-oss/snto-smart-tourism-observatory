@@ -36,7 +36,8 @@ jobs:
             src/persistence tests/persistence \
             src/api/v2 tests/integration/test_api_v2_read.py \
             tests/integration/test_api_v2_alerts.py \
-            tests/integration/test_api_v2_lifecycle.py
+            tests/integration/test_api_v2_lifecycle.py \
+            tests/integration/test_api_v2_field_verifications.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github
