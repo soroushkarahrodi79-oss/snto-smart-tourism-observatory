@@ -4,15 +4,15 @@
 Backed by ManagedAssetRepository over the persistence session. Optional
 filters (territory_id, status) map to the repository's typed lookups; the
 unfiltered path lists everything with limit/offset paging. The transition
-endpoint (5.5) is the first write here and is not auth-gated yet — minimal
-auth gates writes in step 5.8.
+endpoint (5.5) is a write, gated by ``require_write_auth`` (5.8) — writes need
+the API key when one is configured; reads stay open.
 """
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from src.api.v2.deps import get_actor
+from src.api.v2.deps import require_write_auth
 from src.api.v2.schemas import (
     AlertListResponse,
     AlertOut,
@@ -102,7 +102,7 @@ def transition_asset(
     asset_id: int,
     body: ManagedAssetTransitionRequest,
     db: Session = Depends(get_db),
-    actor: str = Depends(get_actor),
+    actor: str = Depends(require_write_auth),
 ) -> ManagedAssetOut:
     """
     Advance a ManagedAsset along its lifecycle
