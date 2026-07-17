@@ -34,6 +34,7 @@ from src.persistence.repositories import (
     FieldVerificationRepository,
     ManagedAssetRepository,
 )
+from src.persistence.services import audit
 from src.persistence.services.alert_ingest import AssetNotRegisteredError
 from src.validation.field import FieldObservation
 
@@ -60,6 +61,7 @@ def persist_field_observation(
     observation: FieldObservation,
     *,
     verifier: str,
+    actor: str = audit.ACTOR_SYSTEM,
 ) -> FieldVerification:
     """
     Persist one impact FieldObservation as a FieldVerification for its asset.
@@ -85,7 +87,7 @@ def persist_field_observation(
         else datetime.utcnow()
     )
 
-    return FieldVerificationRepository(session).add(
+    verification = FieldVerificationRepository(session).add(
         FieldVerification(
             asset_id=asset.id,
             verified_at=verified_at,
@@ -96,3 +98,12 @@ def persist_field_observation(
             notes=_summarise_components(observation),
         )
     )
+    audit.record(
+        session,
+        actor=actor,
+        action=audit.FIELD_VERIFICATION_PERSISTED,
+        subject_type="field_verification",
+        subject_id=verification.id,
+        payload={"asset_id": asset.id, "result": result},
+    )
+    return verification

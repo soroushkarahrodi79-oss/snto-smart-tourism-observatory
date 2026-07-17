@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from src._version import __version__
 from src.api.routers import alerts, evaluate, ranking
 from src.api.v2 import alerts as v2_alerts
+from src.api.v2 import audit_log as v2_audit_log
 from src.api.v2 import field_verifications as v2_field_verifications
 from src.api.v2 import interventions as v2_interventions
 from src.api.v2 import managed_assets as v2_managed_assets
@@ -35,6 +36,8 @@ def create_app() -> FastAPI:
     app.include_router(v2_interventions.router, prefix="/api/v2")
     # Field verifications (5.6): /managed-assets/.../field-verifications.
     app.include_router(v2_field_verifications.router, prefix="/api/v2")
+    # Audit log (5.7): read-only trail of every write above.
+    app.include_router(v2_audit_log.router, prefix="/api/v2/audit-log")
 
     @app.get("/health")
     async def health() -> dict:

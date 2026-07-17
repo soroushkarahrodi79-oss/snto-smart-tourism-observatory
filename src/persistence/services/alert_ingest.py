@@ -31,6 +31,7 @@ from src.persistence.repositories import (
     ManagedAssetRepository,
     RecommendationRepository,
 )
+from src.persistence.services import audit
 
 
 class AssetNotRegisteredError(LookupError):
@@ -44,7 +45,12 @@ class AssetNotRegisteredError(LookupError):
         self.external_asset_id = external_asset_id
 
 
-def persist_engine_alert(session: Session, engine_alert: EngineAlert) -> Alert:
+def persist_engine_alert(
+    session: Session,
+    engine_alert: EngineAlert,
+    *,
+    actor: str = audit.ACTOR_SYSTEM,
+) -> Alert:
     """
     Persist one engine Alert (and its recommended actions) for an existing
     ManagedAsset, returning the created persistent ``Alert``.
@@ -68,4 +74,12 @@ def persist_engine_alert(session: Session, engine_alert: EngineAlert) -> Alert:
     for action in engine_alert.recommended_actions:
         rec_repo.add(Recommendation(alert_id=alert.id, action_label=action))
 
+    audit.record(
+        session,
+        actor=actor,
+        action=audit.ALERT_PERSISTED,
+        subject_type="alert",
+        subject_id=alert.id,
+        payload={"level": alert.level, "risk_score": alert.risk_score},
+    )
     return alert
