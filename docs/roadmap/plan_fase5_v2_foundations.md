@@ -90,26 +90,53 @@ Cada tabla con un campo de evidencia reutiliza el vocabulario ya canónico de
 
 ## 4. Pasos de implementación (PRs pequeños, patrón de Fase 4)
 
-| Paso | Contenido | Riesgo |
-|---|---|---|
-| 5.0 | Este documento + ADR-011 (docs-only) | Ninguno |
-| 5.1 | `src/persistence/models/` (SQLAlchemy 2.0, `Mapped`/`mapped_column`) + `src/persistence/session.py` (engine/session factory leyendo `SNTO_DB_*` de `settings`, con SQLite de fichero como default de desarrollo) + Alembic inicializado (`alembic/`, primera migración) | Bajo — solo código + SQLite local, sin infra nueva |
-| 5.2 | Capa de repositorio/servicio (`src/persistence/repositories/`) — CRUD tipado por recurso, tests con SQLite en memoria | Bajo |
-| 5.3 | `src/api/v2/` — nuevo namespace versionado; endpoints de solo-lectura para `ManagedAsset`/`Observation` respaldados por la capa de persistencia; `/evaluate_asset` etc. actuales quedan intactos (o se re-etiquetan como `/api/v1/` sin cambiar comportamiento) | Bajo — aditivo |
-| 5.4 | `Alert`/`Recommendation` como recursos persistentes; puente desde `src.alerts.engine` (ya calcula esto en memoria) a un registro persistente | Medio |
-| 5.5 | Ciclo de vida de `Intervention` (`detected→…→monitored`) + endpoints de transición de estado con validación de transiciones permitidas | Medio |
-| 5.6 | `FieldVerification` — registro persistente que sustituye/complementa el CSV de `docs/field_validation_protocol.md` (#26) | Bajo |
-| 5.7 | `AuditLogEntry` — cada escritura en 5.3–5.6 deja rastro; endpoint de solo-lectura para auditoría | Bajo |
-| 5.8 | Auth mínima propia (API key/token) — gatea escritura, no lectura | Bajo |
-| 5.9 | Primer consumidor real en `src/ui/`: el módulo "Urgent actions" (P1) lee/escribe contra la API v2 en vez de solo memoria — primer punto de integración UI↔backend persistente | Medio — toca `src/ui/tabs/` |
+**✅ COMPLETADA — los 10 pasos (5.0–5.9) están mergeados en `main`** (PRs #61
+diseño y #62–#70 implementación). Lo único pendiente de Fase 5 es el cutover
+manual a Postgres (§4bis), que es una acción explícita del propietario, no un
+paso de código.
 
-Cada paso: rama desde `main`, tests (SQLite en CI, igual que el resto de la
-suite), sin cambio de comportamiento fuera de lo que el paso añade
-explícitamente, PR individual, **sin auto-merge** (igual que todo lo anterior).
+| Paso | Contenido | Riesgo | Estado |
+|---|---|---|---|
+| 5.0 | Este documento + ADR-011 (docs-only) | Ninguno | ✅ #61 |
+| 5.1 | `src/persistence/models/` (SQLAlchemy 2.0, `Mapped`/`mapped_column`) + `src/persistence/session.py` (engine/session factory leyendo `SNTO_DB_*` de `settings`, con SQLite de fichero como default de desarrollo) + Alembic inicializado (`alembic/`, primera migración) | Bajo — solo código + SQLite local, sin infra nueva | ✅ #62 |
+| 5.2 | Capa de repositorio/servicio (`src/persistence/repositories/`) — CRUD tipado por recurso, tests con SQLite en memoria | Bajo | ✅ #63 |
+| 5.3 | `src/api/v2/` — nuevo namespace versionado; endpoints de solo-lectura para `ManagedAsset`/`Observation` respaldados por la capa de persistencia; `/evaluate_asset` etc. actuales quedan intactos | Bajo — aditivo | ✅ #64 |
+| 5.4 | `Alert`/`Recommendation` como recursos persistentes; puente desde `src.alerts.engine` (ya calcula esto en memoria) a un registro persistente | Medio | ✅ #65 |
+| 5.5 | Ciclo de vida (activo gestionado `detected→…→monitored` + intervención `planned→…→resolved`) + endpoints de transición con validación de transiciones permitidas | Medio | ✅ #66 |
+| 5.6 | `FieldVerification` — registro persistente que sustituye/complementa el CSV de `docs/field_validation_protocol.md` (#26) | Bajo | ✅ #67 |
+| 5.7 | `AuditLogEntry` — cada escritura en 5.3–5.6 deja rastro; endpoint de solo-lectura para auditoría | Bajo | ✅ #68 |
+| 5.8 | Auth mínima propia (API key) — gatea escritura, no lectura | Bajo | ✅ #69 |
+| 5.9 | Primer consumidor real en `src/ui/`: el módulo "Acciones urgentes" (P1) lee/escribe contra el backend persistente — primer punto de integración UI↔backend | Medio — toca `src/ui/tabs/` | ✅ #70 |
+
+Cada paso siguió: rama desde `main`, tests (SQLite en CI, igual que el resto de
+la suite), sin cambio de comportamiento fuera de lo que el paso añadió
+explícitamente, PR individual, **sin auto-merge** (aprobación humana por PR).
 
 ## 4bis. Cutover a producción (ejecución manual del propietario, cuando decidas)
 
-Ningún paso 5.1–5.9 crea esto. Cuando quieras pasar de SQLite a Postgres real:
+> **✅ EJECUTADO por el propietario el 2026-07-18.** Azure Postgres Flexible
+> Server `snto-db` (v16, Burstable B1ms, PostGIS, Sweden Central, mismo RG que
+> el Container App), firewall estrecho (Azure services + IP del propietario),
+> las 9 tablas creadas vía Alembic, y los 5 secrets `SNTO_DB_*` cableados en el
+> Container App `snto-observatory`. Verificado en vivo: la pestaña "Acciones
+> Urgentes" muestra el estado conectado-pero-vacío. `SNTO_API_KEY` queda
+> deliberadamente sin fijar (escrituras abiertas) por ahora. Rollback trivial:
+> quitar los 5 `SNTO_DB_*` del Container App → vuelta automática a SQLite.
+>
+> Gotchas operativos aprendidos: (1) `az postgres flexible-server create`
+> imprime la contraseña admin en su salida JSON — usar `-o none`; (2) `db
+> create` usa `--name`, no `-d`; (3) habilitar acceso público a posteriori es
+> `--public-access Enabled`, no `--public-network-access`; (4) un Container App
+> en modo Single revision **no** recoge un secret actualizado sin un
+> `az containerapp revision restart` explícito.
+>
+> **Hallazgo clave:** la API FastAPI `/api/v2` (`src/api/main.py`) **no está
+> desplegada en ningún sitio** — solo la pestaña Streamlit in-process
+> (`src/ui/services/urgent_actions.py`) consume la capa de persistencia.
+> Exponer la API REST por HTTP es un follow-up separado, aún sin scope.
+
+Ningún paso 5.1–5.9 crea esto. Cuando quieras pasar de SQLite a Postgres real
+(comandos originales, ya ejecutados una vez):
 
 ```bash
 # 1) Aprovisionar Postgres Flexible Server (Azure Cloud Shell, identidad owner)

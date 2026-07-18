@@ -8,19 +8,21 @@ SNTO means Smart Natural Tourism Observatory. The active case study is Parque Na
 - v1.2.0 (OAPN multi-park expansion), v1.3.0 (statistical rigor), and v1.4.0 (decision integration: risk brief #12, GIS export #25, evidence separation #10, positioning #9, field-validation tooling #26) are merged. Only the manual GEE field-validation campaign for the pilot parks remains open work, not a code blocker.
 - **Fase 4 (`app.py` modularization, #27) is COMPLETE.** `app.py` went from ~3,170 lines to ~285 (composition/navigation only); the UI was extracted to `src/ui/`.
 - **Audience-views rescue (#28) is COMPLETE.** The `claude/tourism-observatory-views-audit-jyl38k` branch was rescued (re-implemented, not cherry-picked) onto the modular structure.
-- The operational roadmap is `docs/roadmap/plan_fases_post_v1.2.md`. The next milestone is v2.0 (role-based UI evolution) — **not yet started**, by owner decision.
+- **Fase 5 (v2.0 persistent-backend foundations, ADR-011 / `docs/roadmap/plan_fase5_v2_foundations.md`) is COMPLETE in code.** All 10 steps 5.0–5.9 are merged (PR #61 design; #62–#70 implementation): SQLAlchemy models + Alembic, typed repositories, a read+write `/api/v2` surface, lifecycle state machines with validated transitions, the alert & field-verification persistence bridges, an audit trail on every write, minimal API-key write-auth (reads open), and the first UI consumer ("Acciones urgentes" tab). Built/tested against SQLite; no cloud resource was provisioned by any Fase 5 PR. **The production Postgres cutover (ADR-011 §4bis) was executed by the owner on 2026-07-18** — see "Next Recommended Actions" #3 for the live-infra facts.
+- The operational roadmap is `docs/roadmap/plan_fases_post_v1.2.md`. With Fase 5 foundations in place, the next milestone is the v2.0 role-based UI evolution proper (`docs/ux/ui-evolution-v2-spec.md`) — **not yet started**, by owner decision.
 
 ## Pull Requests
 
-- No SNTO release PRs are currently pending. Fase 3 (#33–#37), Fase 4 modularization (#38–#53) and the #28 audience-views rescue (#54–#59) are all merged.
+- No SNTO release PRs are currently pending. Fase 3 (#33–#37), Fase 4 modularization (#38–#53), the #28 audience-views rescue (#54–#59) and Fase 5 v2.0 foundations (#61–#70) are all merged.
 - Historical note: PR #1 (v1.1.0) merged; the statistical-rigor work formerly on `research/statistical-rigor` reached `main` via the v1.3.0 rescue.
 
 ## Architecture Facts
 
-- `app.py` is now ~285 lines: page setup + sidebar/KPI assembly + `st.tabs(...)` + the eight `with tab_x: render_tab_x(...)` calls + footer. Composition and navigation only.
-- The UI lives in `src/ui/`: `layout.py` (page config, institutional CSS, territory registry, cached `load_dashboard`), `render_helpers.py` (presentation primitives), `render_widgets.py` (`st.`-rendering widgets), and `src/ui/tabs/` (one module per tab).
+- `app.py` is composition/navigation only: page setup + sidebar/KPI assembly + `st.tabs(...)` + the nine `with tab_x: render_tab_x(...)` calls (the 9th, "Acciones urgentes", is the Fase 5.9 UI consumer) + footer.
+- The UI lives in `src/ui/`: `layout.py` (page config, institutional CSS, territory registry, cached `load_dashboard`), `render_helpers.py` (presentation primitives), `render_widgets.py` (`st.`-rendering widgets), `src/ui/tabs/` (one module per tab), and `src/ui/services/` (persistence-backed query services, e.g. `urgent_actions.py`).
 - Audience views: `src/platform/views.py` (`ViewProfile.section()` is the single layered-disclosure contract), `src/platform/telemetry.py` (local opt-in usage telemetry, `SNTO_TELEMETRY=1`). Financial figures are invariant across views (verified by `tests/integration/test_view_modulation.py`).
-- The analytical core under `src/` is well separated. A FastAPI API exists but is secondary and under-integrated.
+- **Persistence layer (Fase 5, ADR-011):** `src/persistence/` — SQLAlchemy 2.0 models (`models/`), typed repositories (`repositories/`), services (`services/`: the alert & field-verification bridges, lifecycle state machines, and the single audit choke-point), `session.py` (engine/session reading `settings.database_url`), and Alembic migrations (`migrations/`). `src/api/v2/` is the read+write surface over it; write endpoints are gated by `require_write_auth` (API key, `SNTO_API_KEY`), reads are open. Built against SQLite by default; Postgres is env-gated (`SNTO_DB_*`) and never auto-provisioned by code — production now runs against Azure Postgres (`snto-db`) since the 2026-07-18 owner cutover. **The FastAPI app itself is not deployed**; the deployed Streamlit Container App consumes persistence in-process (`src/ui/services/`), so `/api/v2` currently exists as code + tests only.
+- The analytical core under `src/` is well separated. The v2 API (`src/api/v2/`) is now the persistence-backed integration surface; the older stateless routers (`/evaluate_asset`, `/ranking`, `/alerts`) remain unchanged.
 - The Streamlit dashboard is feature-rich; the audience-view modulation (#28) reduces cognitive density per role.
 
 ## Product Direction
@@ -46,12 +48,13 @@ SNTO has the intellectual core of a reference product but the body of an advance
 
 ## Next Recommended Actions
 
-Fases 0–4 of `docs/roadmap/plan_fases_post_v1.2.md` and the #28 rescue are done. Remaining / next:
+Fases 0–4 of `docs/roadmap/plan_fases_post_v1.2.md`, the #28 rescue, and **Fase 5 (v2.0 persistent-backend foundations, ADR-011)** are all done and on `main`. Remaining / next:
 
-1. **Owner cleanup done:** the owner has deleted the rescued `claude/tourism-observatory-views-audit-jyl38k` branch and the merged `feature/v1.5.0-*` branches. Issue #28 should be closed (its full scope is on `main`).
-2. **Field-validation campaign (#26):** the tooling/protocol are merged; the real ground-truth campaign (penetrometer/cover/erosion on PNSG priority assets) is manual field work, still pending — do not claim validation until collected.
-3. **v2.0 — role-based UI evolution** (`docs/ux/ui-evolution-v2-spec.md`): gated on persistence (see #4). Do not implement any v2.0 screen before Fase 5 ships.
-4. **Fase 5 — v2.0 persistent-backend foundations** (`docs/roadmap/plan_fase5_v2_foundations.md`, ADR-011): design is done (resource schema, phased PR plan). **Awaiting owner sign-off on its Open Decisions** (production DB provisioning/cost, auth strategy, first UI consumer) before implementation PRs begin. No cloud resource is provisioned by the design.
+1. **Owner cleanup:** issue #28 should be closed (its full scope is on `main`). The merged Fase 5 branches (`feature/v2-fase5.*`) can be deleted once satisfied.
+2. **Field-validation campaign (#26):** the tooling/protocol are merged (and Fase 5.6 added persistent `FieldVerification` records); the real ground-truth campaign (penetrometer/cover/erosion on PNSG priority assets) is manual field work, still pending — do not claim validation until collected.
+3. **Production DB cutover (ADR-011 §4bis): ✅ EXECUTED by the owner on 2026-07-18.** Azure Postgres Flexible Server `snto-db` (v16, Burstable B1ms, PostGIS, Sweden Central, same RG as the Container App), narrow firewall (Azure services + owner IP), Alembic created all 9 tables, and the five `SNTO_DB_*` secrets are wired into the `snto-observatory` Container App. Verified live: the "Acciones Urgentes" tab shows the connected-but-empty state. `SNTO_API_KEY` intentionally left unset (writes open) for now. Rollback: unset the 5 `SNTO_DB_*` Container App vars → automatic fallback to local SQLite. Ops gotcha: Container Apps in Single-revision mode do NOT pick up updated secret values without an explicit `az containerapp revision restart`.
+4. **Deploy the `/api/v2` HTTP surface (follow-up found during cutover):** the standalone FastAPI app (`src/api/main.py`) is **not deployed anywhere** — only the in-process Streamlit tab (`src/ui/services/urgent_actions.py`) consumes the persistence layer, calling it directly rather than over HTTP. Exposing the REST API (second Container App or sidecar process) is a separate, not-yet-scoped piece of work.
+5. **v2.0 — role-based UI evolution proper** (`docs/ux/ui-evolution-v2-spec.md`): the persistence gate is now lifted (Fase 5 foundations shipped; the "Acciones urgentes" tab is the first UI↔backend consumer). The broader role-based screen redesign is the next milestone — **not yet started**, by owner decision.
 
 When cutting the next release, bump `pyproject.toml` from `1.5.0.dev0`, run `scripts/sync_readme.py`, and tag.
 
