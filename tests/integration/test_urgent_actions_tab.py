@@ -82,7 +82,17 @@ def test_tab_renders_populated(monkeypatch) -> None:
         rendered = " ".join(m.value for m in at.markdown)
         assert "Sendero Circular" in rendered
         assert "Cerrar acceso" in " ".join(c.value for c in at.caption)
-        # The lifecycle-advance button is present for a detected asset.
-        assert any("Avanzar" in b.label for b in at.button)
+        labels = [b.label for b in at.button]
+        # Triage controls (Fase 6.2b) + the lifecycle-advance button.
+        assert "Asignar" in labels
+        assert "Escalar" in labels
+        assert "Descartar" in labels
+        assert any("Avanzar" in label for label in labels)
+        # Only a single AppTest run here (clicking a button triggers a second
+        # app run per process, which segfaults with the heavy C-extension app +
+        # a persistent cross-thread SQLite connection). The triage write path
+        # and "triaged alert leaves the open queue" are covered by the fast
+        # service/integration tests (test_alert_triage.py, test_api_v2_alerts.py,
+        # test_urgent_actions_service.test_only_open_alerts_surface).
     finally:
         engine.dispose()

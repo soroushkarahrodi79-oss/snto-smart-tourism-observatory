@@ -1,18 +1,22 @@
 """
-Tab — "Acciones urgentes" (Fase 5, step 5.9).
+Tab — "Acciones urgentes" (Fase 5.9 + Fase 6.2b triage wiring).
 
 The first UI↔persistent-backend integration point (P1,
 ``docs/ux/ui-evolution-v2-spec.md`` §6). Reads open alerts from the
-persistence layer (via ``src.ui.services.urgent_actions``) and lets a manager
-advance an asset one step along its lifecycle — a write that goes through the
-same validated ``transition_managed_asset`` service the ``/api/v2`` endpoint
-uses, so the state machine (5.5) and audit trail (5.7) are honoured.
+persistence layer (via ``src.ui.services.urgent_actions``) and lets a manager:
+
+- **triage** each alert — assign / escalate / dismiss-with-reason — through the
+  validated ``triage_alert`` service (same state machine + audit trail the
+  ``/api/v2/alerts/{id}/triage`` endpoint uses); dismissing a false positive
+  requires a reason, and a triaged alert leaves the open queue on rerun; and
+- advance the underlying asset one step along its lifecycle
+  (``transition_managed_asset``, Fase 5.5).
 
 Session access is funnelled through ``_open_session`` so tests can inject an
 in-memory populated session; in the app it is the real ``session_scope``
 (SQLite by default — an empty backend simply shows the empty state, never an
-error). The in-process write uses actor ``ui`` — the API key gate (5.8) guards
-the HTTP surface, not this trusted in-process caller.
+error). In-process writes use actor ``ui`` — the API key gate (5.8) guards the
+HTTP surface, not this trusted in-process caller.
 """
 from __future__ import annotations
 
@@ -23,6 +27,8 @@ import streamlit as st
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from src.persistence.enums import AlertStatus
+from src.persistence.services.alert_triage import ReasonRequiredError, triage_alert
 from src.persistence.services.lifecycle import (
     IllegalTransitionError,
     transition_managed_asset,
@@ -57,17 +63,76 @@ def _advance_asset(asset_id: int, target_value: str) -> None:
             st.warning(str(exc))
 
 
+def _triage(alert_id: int, target_value: str, reason_key: str | None = None) -> None:
+    reason = st.session_state.get(reason_key, "") if reason_key else None
+    with _open_session() as session:
+        try:
+            triage_alert(
+                session,
+                alert_id,
+                AlertStatus(target_value),
+                reason=reason,
+                actor="ui",
+            )
+        except ReasonRequiredError:
+            st.warning("Descartar una alerta requiere un motivo.")
+        except IllegalTransitionError as exc:  # pragma: no cover - guarded in UI
+            st.warning(str(exc))
+
+
 def _render_action(action: UrgentAction) -> None:
     emoji = _LEVEL_EMOJI.get(action.level, "•")
     st.markdown(
         f"**{emoji} {action.asset_name}** "
         f"· riesgo {action.risk_score:.2f} · estado `{action.asset_status.value}`"
     )
+
+    meta: list[str] = []
     if action.top_action:
-        st.caption(f"Acción recomendada: {action.top_action}")
+        meta.append(f"Acción recomendada: {action.top_action}")
+    if action.confidence is not None:
+        # No spurious decimals (spec §8): integer percent.
+        meta.append(f"confianza {round(action.confidence * 100)}%")
+    meta.append(
+        "✓ verificado en campo"
+        if action.field_verified
+        else "sin verificación de campo"
+    )
+    st.caption(" · ".join(meta))
+
+    # Triage row: assign / escalate, plus dismiss-with-reason.
+    col_assign, col_escalate = st.columns(2)
+    col_assign.button(
+        "Asignar",
+        key=f"assign-{action.alert_id}",
+        on_click=_triage,
+        args=(action.alert_id, AlertStatus.ASSIGNED.value),
+    )
+    col_escalate.button(
+        "Escalar",
+        key=f"escalate-{action.alert_id}",
+        on_click=_triage,
+        args=(action.alert_id, AlertStatus.ESCALATED.value),
+    )
+
+    reason_key = f"dismiss-reason-{action.alert_id}"
+    st.text_input(
+        "Motivo de descarte (obligatorio para descartar / marcar falso positivo)",
+        key=reason_key,
+        label_visibility="collapsed",
+        placeholder="Motivo de descarte (p. ej. «falso positivo: artefacto SCL»)",
+    )
+    st.button(
+        "Descartar",
+        key=f"dismiss-{action.alert_id}",
+        on_click=_triage,
+        args=(action.alert_id, AlertStatus.DISMISSED.value, reason_key),
+    )
+
+    # Asset-lifecycle advance (Fase 5.5) — orthogonal to alert triage.
     if action.next_status is not None:
         st.button(
-            f"Avanzar a «{action.next_status.value}»",
+            f"Avanzar activo a «{action.next_status.value}»",
             key=f"advance-{action.alert_id}",
             on_click=_advance_asset,
             args=(action.asset_id, action.next_status.value),
@@ -79,8 +144,8 @@ def render_tab_urgent_actions() -> None:
     st.subheader("🚨 Acciones urgentes")
     st.caption(
         "Alertas abiertas priorizadas por riesgo, leídas del backend persistente "
-        "(la misma capa que expone /api/v2). Primer punto de integración "
-        "UI↔backend (Fase 5.9)."
+        "(la misma capa que expone /api/v2). Triaje (asignar/escalar/descartar) "
+        "auditado; primer punto de integración UI↔backend (Fase 5.9 + 6.2)."
     )
     try:
         with _open_session() as session:
