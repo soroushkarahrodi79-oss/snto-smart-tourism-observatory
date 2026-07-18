@@ -8,7 +8,7 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 
 > SNTO **no reemplaza** a ArcGIS, Google Earth Engine, Sentinel Hub, Tableau ni Power BI: se sitúa **por encima** de las plataformas GIS, de observación de la Tierra y de BI, y traduce su señal en decisiones de conservación defendibles (riesgo de presión de visitantes, prioridad e inversión, con nivel de confianza).
 
-[![Tests](https://img.shields.io/badge/tests-742%20passing-brightgreen)](#8-tests)
+[![Tests](https://img.shields.io/badge/tests-743%20passing-brightgreen)](#8-tests)
 [![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue)](https://www.python.org/)
 [![CI](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml)
 [![Deploy](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml)
@@ -27,9 +27,9 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 
 La mayoría de los espacios naturales protegidos gestionan el impacto del turismo de forma **reactiva**: actúan cuando la degradación ya es visible. El SNTO transforma ese paradigma en **gobernanza regenerativa proactiva** — detecta el estrés ecológico desde el satélite antes de que sea irreversible, distingue si la causa es el uso turístico o el clima, y traduce cada hallazgo en una **prioridad de inversión con presupuesto y nivel de confianza**.
 
-> **Para evaluadores y revisores:** este repositorio es un proyecto de investigación académica de la **Universidad Complutense de Madrid (UCM)**: un observatorio que evalúa el estado de senderos y enclaves de turismo natural por teledetección satelital, detecta zonas de riesgo de degradación y prioriza la intervención con fórmulas financieras. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (218 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases, con capas de **andamiaje temporal (serie 2021–2026), trazabilidad/confianza del dato, baselines estratificados, incertidumbre del ranking y validación de campo**. **742 tests, CI separado del deploy, dos pipelines arquitectónicamente desacoplados.** La gobernanza se alinea con los marcos europeos de reporte de espacios protegidos (Natura 2000 / EUROPARC / SISMOTUR), validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
+> **Para evaluadores y revisores:** este repositorio es un proyecto de investigación académica de la **Universidad Complutense de Madrid (UCM)**: un observatorio que evalúa el estado de senderos y enclaves de turismo natural por teledetección satelital, detecta zonas de riesgo de degradación y prioriza la intervención con fórmulas financieras. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (218 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases, con capas de **andamiaje temporal (serie 2021–2026), trazabilidad/confianza del dato, baselines estratificados, incertidumbre del ranking y validación de campo**. **743 tests, CI separado del deploy, dos pipelines arquitectónicamente desacoplados.** La gobernanza se alinea con los marcos europeos de reporte de espacios protegidos (Natura 2000 / EUROPARC / SISMOTUR), validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
 
-> **Estado de versión:** [`v1.4.0`](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/releases/tag/v1.4.0) es la última release estable. `main` está en `v1.5.0.dev0` (marcador de desarrollo, no una release final). La **Fase 4 (modularización de `app.py`, #27) está completa** — `app.py` pasó de ~3.170 a ~285 líneas, con la UI extraída a `src/ui/` — y las **vistas por audiencia (#28) están rescatadas** sobre esa estructura modular. El siguiente hito (v2.0, evolución de UI por roles) aún no ha arrancado.
+> **Estado de versión:** [`v1.5.0`](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/releases/tag/v1.5.0) es la última release estable. Consolida tres hitos: la **modularización de `app.py`** (#27: de ~3.170 a ~285 líneas, UI extraída a `src/ui/`), las **vistas por audiencia** (#28: Técnica/Gestor/Auditoría con cifras financieras invariantes), y los **fundamentos del backend persistente de v2.0** (Fase 5, ADR-011: capa de persistencia SQLAlchemy+Alembic, API `/api/v2` de lectura+escritura con auth mínima, ciclo de vida del activo gestionado, rastro de auditoría y la pestaña «Acciones Urgentes» como primer consumidor UI↔backend). En producción el backend corre sobre Azure PostgreSQL (cutover del 2026-07-18, ADR-011 §4bis). El siguiente hito (v2.0, evolución de UI por roles) aún no ha arrancado.
 
 ---
 
@@ -374,5 +374,5 @@ Fichero de cita: [`CITATION.cff`](CITATION.cff) · Contribuciones: [`CONTRIBUTIN
 ---
 
 <div align="center">
-<sub>SNTO v1.5.0.dev0 · Python ≥ 3.12 · 742 tests passing · julio 2026</sub>
+<sub>SNTO v1.5.0 · Python ≥ 3.12 · 743 tests passing · julio 2026</sub>
 </div>
