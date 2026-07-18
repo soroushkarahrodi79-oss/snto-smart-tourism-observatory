@@ -29,7 +29,7 @@ La mayoría de los espacios naturales protegidos gestionan el impacto del turism
 
 > **Para evaluadores y revisores:** este repositorio es un proyecto de investigación académica de la **Universidad Complutense de Madrid (UCM)**: un observatorio que evalúa el estado de senderos y enclaves de turismo natural por teledetección satelital, detecta zonas de riesgo de degradación y prioriza la intervención con fórmulas financieras. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (218 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases, con capas de **andamiaje temporal (serie 2021–2026), trazabilidad/confianza del dato, baselines estratificados, incertidumbre del ranking y validación de campo**. **743 tests, CI separado del deploy, dos pipelines arquitectónicamente desacoplados.** La gobernanza se alinea con los marcos europeos de reporte de espacios protegidos (Natura 2000 / EUROPARC / SISMOTUR), validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
 
-> **Estado de versión:** [`v1.5.0`](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/releases/tag/v1.5.0) es la última release estable. Consolida tres hitos: la **modularización de `app.py`** (#27: de ~3.170 a ~285 líneas, UI extraída a `src/ui/`), las **vistas por audiencia** (#28: Técnica/Gestor/Auditoría con cifras financieras invariantes), y los **fundamentos del backend persistente de v2.0** (Fase 5, ADR-011: capa de persistencia SQLAlchemy+Alembic, API `/api/v2` de lectura+escritura con auth mínima, ciclo de vida del activo gestionado, rastro de auditoría y la pestaña «Acciones Urgentes» como primer consumidor UI↔backend). En producción el backend corre sobre Azure PostgreSQL (cutover del 2026-07-18, ADR-011 §4bis). El siguiente hito (v2.0, evolución de UI por roles) aún no ha arrancado.
+> **Estado de versión:** [`v1.5.0`](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/releases/tag/v1.5.0) es la última release estable; `main` está en `v1.6.0.dev0` (marcador de desarrollo, no una release final). v1.5.0 consolida tres hitos: la **modularización de `app.py`** (#27: de ~3.170 a ~285 líneas, UI extraída a `src/ui/`), las **vistas por audiencia** (#28: Técnica/Gestor/Auditoría con cifras financieras invariantes), y los **fundamentos del backend persistente de v2.0** (Fase 5, ADR-011: capa de persistencia SQLAlchemy+Alembic, API `/api/v2` de lectura+escritura con auth mínima, ciclo de vida del activo gestionado, rastro de auditoría y la pestaña «Acciones Urgentes» como primer consumidor UI↔backend). En producción el backend corre sobre Azure PostgreSQL (cutover del 2026-07-18, ADR-011 §4bis). El siguiente hito (v2.0, evolución de UI por roles) aún no ha arrancado.
 
 ---
 
@@ -374,5 +374,5 @@ Fichero de cita: [`CITATION.cff`](CITATION.cff) · Contribuciones: [`CONTRIBUTIN
 ---
 
 <div align="center">
-<sub>SNTO v1.5.0 · Python ≥ 3.12 · 743 tests passing · julio 2026</sub>
+<sub>SNTO v1.6.0.dev0 · Python ≥ 3.12 · 743 tests passing · julio 2026</sub>
 </div>
