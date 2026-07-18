@@ -127,14 +127,15 @@ _PROFILES: dict[ViewMode, ViewProfile] = {
         confidence_detail=ConfidenceDetail.FULL,
         # Banner deliberadamente conciso: la metodología detallada (procedencia,
         # fórmulas, cobertura ALMUDENA/INE, resolución, override) vive en la
-        # pestaña «Fundamento y Trazabilidad» (src/platform/methodology.py) y en
+        # capa «Gobernar → Metodología y auditoría» (src/platform/methodology.py) y en
         # los docs de diseño. El banner solo enuncia el contrato y remite, para no
         # duplicar —y que diverja— el texto canónico.
         banner="Vista de auditoría: cada cifra lleva su procedencia (satélite "
                "Sentinel-2 / dato curado / socioeconómico) y su confianza (DCS), con "
                "override conservador (el satélite solo agrava, nunca relaja el juicio "
-               "experto). Fundamento, fórmulas y límites declarados en la pestaña "
-               "«Fundamento y Trazabilidad» y en docs/informe_tecnico_limites.md, "
+               "experto). Fundamento, fórmulas y límites declarados en "
+               "«Gobernar → Metodología y auditoría» y en "
+               "docs/informe_tecnico_limites.md, "
                "docs/baselines_uncertainty_design.md y "
                "docs/socioeconomic_integration_design.md.",
         technical=True,

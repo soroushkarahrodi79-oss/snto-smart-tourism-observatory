@@ -12,8 +12,8 @@ from streamlit_autorefresh import st_autorefresh
 
 from src._version import __version__
 from src.platform.map_layers import LEGEND_ITEMS
-from src.platform.views import ViewMode, get_view, view_modes
 from src.platform.telemetry import record_view, telemetry_enabled
+from src.platform.views import ViewMode, get_view, view_modes
 from src.socioeconomic.indicators import (
     aggregate_asset_risk,
     compute_svi,
@@ -28,6 +28,11 @@ from src.ui.layout import (
     configure_page,
     inject_base_styles,
     load_dashboard,
+)
+from src.ui.navigation import (
+    layer_tab_labels,
+    module_tab_labels,
+    navigation_layer,
 )
 from src.ui.render_widgets import (
     _compute_exec_kpis,
@@ -190,36 +195,51 @@ if _socio:
     st.caption(
         "ℹ️ *Empleos locales en riesgo* calculado con datos reales **ALMUDENA / INE** "
         "(afiliados a hostelería del municipio × exposición ambiental de sus activos), "
-        "no con el proxy de visitantes. Detalle en la pestaña **Impacto Socioeconómico**."
+        "no con el proxy de visitantes. Detalle en "
+        "**Decidir → Impacto socioeconómico**."
     )
 
 st.divider()
 
 # FASE 1: el mapa espacial "above the fold" se ha retirado para liberar espacio
-# cognitivo. El mapa vive ahora en la pestaña «Diagnóstico Satelital y Mapa» y
-# las fichas de activos críticos en «Resumen Ejecutivo (KPIs)».
+# cognitivo. El mapa vive en «Diagnosticar → Diagnóstico espacial» y las fichas
+# de activos críticos en «Decidir → Panorama ejecutivo».
 
 # ── TAREA 4: Suite de módulos analíticos ──────────────────────────────────────
 st.markdown(
     '<div style="font-size:0.70rem;font-weight:600;color:#7a8899;'
     'text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px">'
-    'Módulos de análisis estratégico</div>',
+    'Arquitectura de decisión y evidencia</div>',
     unsafe_allow_html=True,
 )
-# FASE 1: flujo narrativo ejecutivo → científico → táctico → financiero →
-# socioeconómico → temporal → auditoría (7 pestañas).
-(tab_kpis, tab_diagnostic, tab_portfolio, tab_simulator,
- tab_socioeco, tab_timeseries, tab_assets, tab_method, tab_urgent) = st.tabs([
-    "1️⃣ Resumen Ejecutivo (KPIs)",
-    "2️⃣ Diagnóstico Satelital y Mapa",
-    "3️⃣ Priorización y Alertas (Portafolio TPI)",
-    "4️⃣ Simulador Financiero",
-    "5️⃣ Impacto Socioeconómico",
-    "6️⃣ Evolución Temporal (Series Espectrales)",
-    "7️⃣ Catálogo de Activos y Auditoría",
-    "8️⃣ Fundamento y Trazabilidad",
-    "9️⃣ Acciones Urgentes",
-])
+# Opción 2.1-A: se conserva st.tabs(), reagrupado en cuatro capas IA. Los
+# módulos mantienen sus renderizadores y estado; solo cambia su propietario
+# visual. La navegación multipágina queda diferida a la evaluación de 6.5.
+(layer_decide, layer_diagnose, layer_evidence, layer_govern) = st.tabs(
+    layer_tab_labels()
+)
+
+with layer_decide:
+    st.caption(f"**Decidir** · {navigation_layer('decidir').question}")
+    (tab_kpis, tab_urgent, tab_simulator, tab_socioeco) = st.tabs(
+        module_tab_labels("decidir")
+    )
+
+with layer_diagnose:
+    st.caption(
+        f"**Diagnosticar** · {navigation_layer('diagnosticar').question}"
+    )
+    (tab_diagnostic, tab_assets, tab_portfolio) = st.tabs(
+        module_tab_labels("diagnosticar")
+    )
+
+with layer_evidence:
+    st.caption(f"**Evidenciar** · {navigation_layer('evidenciar').question}")
+    (tab_timeseries,) = st.tabs(module_tab_labels("evidenciar"))
+
+with layer_govern:
+    st.caption(f"**Gobernar** · {navigation_layer('gobernar').question}")
+    (tab_method,) = st.tabs(module_tab_labels("gobernar"))
 
 
 # ── Tab 1: KPIs ───────────────────────────────────────────────────────────────
@@ -293,7 +313,7 @@ st.markdown(
     'Fuentes de datos: Contiene datos Copernicus Sentinel-2 modificados (ESA) · '
     'cartografía © OpenStreetMap (ODbL) y OAPN (Red de Parques Nacionales) · '
     'INE (Padrón, EOATR) · ALMUDENA, Comunidad de Madrid · '
-    'Procedencia y licencias en la pestaña «Fundamento y Trazabilidad».'
+    'Procedencia y licencias en «Gobernar → Metodología y auditoría».'
     '</div>',
     unsafe_allow_html=True,
 )

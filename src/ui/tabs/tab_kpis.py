@@ -24,7 +24,7 @@ def render_tab_kpis(dashboard, ranked_assets, base_comps, calibration, _view) ->
     st.caption(
         "Cuatro cifras calculadas para decidir esta semana: intervenir, posponer "
         "o solicitar verificación. Los seis indicadores de contexto permanecen en "
-        "**Diagnóstico Satelital y Mapa**; no se elimina ninguna métrica."
+        "**Diagnosticar → Diagnóstico espacial**; no se elimina ninguna métrica."
     )
 
     # Coste de mitigación recomendado por activo (escenario óptimo TIS, Fase 6)
@@ -59,7 +59,7 @@ def render_tab_kpis(dashboard, ranked_assets, base_comps, calibration, _view) ->
     )
     st.caption(
         "La base técnica EHS/TPI/DCS y sus límites están a un clic en "
-        "**Fundamento y Trazabilidad**."
+        "**Gobernar → Metodología y auditoría**."
     )
 
     st.divider()
@@ -74,8 +74,8 @@ def render_tab_kpis(dashboard, ranked_assets, base_comps, calibration, _view) ->
     st.caption(
         "Cada ficha separa **estrategia** (chip neutro `TIER`, prioridad de inversión) "
         "de **táctica** (chip semafórico de alerta, riesgo actual). La barra colorea el "
-        "EHS por su propia escala de salud. El mapa espacial vive en la pestaña "
-        "**Diagnóstico Satelital y Mapa**."
+        "EHS por su propia escala de salud. El mapa espacial vive en "
+        "**Diagnosticar → Diagnóstico espacial**."
     )
     # ── Procedencia: cuántos KPIs reflejan dato satelital real (override F2) ───
     _enr = enrichment_summary(calibration)
@@ -86,11 +86,13 @@ def render_tab_kpis(dashboard, ranked_assets, base_comps, calibration, _view) ->
             f"tienen su EHS **sobreescrito por observación satelital real** (Sentinel-2, "
             f"Pipeline A) donde el satélite detectó más degradación que el juicio experto; "
             f"estos KPIs, tiers y alertas reflejan el dato real. El resto mantiene el dato "
-            f"curado (validado, no sustituido). Trazabilidad completa en **Catálogo y Auditoría**."
+            f"curado (validado, no sustituido). Trazabilidad completa en "
+            f"**Diagnosticar → Catálogo de activos y sendas**."
         )
     else:
         st.caption(
             "ℹ️ Ningún activo requiere override satelital en este territorio (el satélite "
             "confirma o es más verde que el juicio experto). Los KPIs usan el dato curado, "
-            "contrastado con Sentinel-2 en **Catálogo y Auditoría**."
+            "contrastado con Sentinel-2 en "
+            "**Diagnosticar → Catálogo de activos y sendas**."
         )

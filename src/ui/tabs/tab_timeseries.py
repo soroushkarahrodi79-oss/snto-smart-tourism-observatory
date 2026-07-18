@@ -321,7 +321,8 @@ La serie mensual mostrada es una simulación coherente con la ecología real de 
 - **Activo seleccionado — {selected_asset.name}:** EHS = {selected_asset.ehs:.0f},
   TIER {_TIER_ROMAN.get(selected_asset.tier or 3, "III")} (prioridad de inversión).
   La serie mensual es una reconstrucción de validación; el EHS satelital real de su
-  senda (Sentinel-2, Pipeline A) se contrasta en la pestaña *Diagnóstico Satelital*.
+  senda (Sentinel-2, Pipeline A) se contrasta en
+  *Diagnosticar → Diagnóstico espacial*.
             """
         )
 
