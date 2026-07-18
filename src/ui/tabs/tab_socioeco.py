@@ -41,8 +41,8 @@ def render_tab_socioeco(_socio, base_comps, ranked_assets, base_budget, _view) -
             "Este modelo responde a *«¿cuánto valor turístico estaría expuesto SI un activo "
             "crítico se degrada hasta requerir cierre?»*. Es un **escenario**, útil para "
             "comparar el coste de intervenir frente al de no hacerlo, pero condicionado por "
-            "supuestos. Trazabilidad completa y sensibilidad en la pestaña "
-            "**8️⃣ Fundamento y Trazabilidad**."
+            "supuestos. Trazabilidad completa y sensibilidad en "
+            "**Gobernar → Metodología y auditoría**."
         )
         method.render_multiplier_table()
 
@@ -265,8 +265,8 @@ def render_tab_socioeco(_socio, base_comps, ranked_assets, base_budget, _view) -
     st.caption(
         "Banda lineal ±20% sobre el gasto/visitante. Es un **análisis prospectivo de "
         "incertidumbre** sobre un parámetro estimado, no un rango de confianza estadístico. "
-        "Trazabilidad y sensibilidad de todos los multiplicadores en la pestaña "
-        "**8️⃣ Fundamento y Trazabilidad**."
+        "Trazabilidad y sensibilidad de todos los multiplicadores en "
+        "**Gobernar → Metodología y auditoría**."
     )
     st.write("")
 
@@ -417,6 +417,6 @@ No es una pérdida observada ni una predicción de pérdida.
 *en el escenario*, la inversión equivale a más de un año de ingresos protegidos. Es un
 indicador comparativo de escenario, no un retorno financiero realizado.
 
-> Sensibilidad y trazabilidad completas en la pestaña **8️⃣ Fundamento y Trazabilidad**.
+> Sensibilidad y trazabilidad completas en **Gobernar → Metodología y auditoría**.
             """
         )

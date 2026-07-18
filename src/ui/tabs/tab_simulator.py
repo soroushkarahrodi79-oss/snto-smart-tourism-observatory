@@ -123,7 +123,7 @@ def render_tab_simulator(base_comps, assets_by_id, base_budget, ranked_assets, _
             "planificación), no un aforo medido. Por eso esta cifra es un **indicador de "
             "cobertura del escenario**, no una predicción de afluencia.\n"
             "- El delta compara el escenario seleccionado con la base de €100.000.\n\n"
-            "Clasificación y trazabilidad en la pestaña **8️⃣ Fundamento y Trazabilidad**."
+            "Clasificación y trazabilidad en **Gobernar → Metodología y auditoría**."
         )
     st.write("")
 

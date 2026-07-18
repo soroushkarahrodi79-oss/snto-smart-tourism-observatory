@@ -36,7 +36,7 @@ def render_tab_assets(calibration, ranked_assets, _view) -> None:
         f'<div style="font-size:0.8rem;color:{_cur_badge.color};margin:-4px 0 8px">'
         f'{_cur_badge.emoji} <b>{_cur_badge.label}</b> · estos activos son una capa '
         f'narrativa de juicio experto, contrastada (no sustituida) por el satélite '
-        f'en la pestaña <i>Diagnóstico Satelital y Mapa</i>. No usar para intervención formal sin '
+        f'en <i>Diagnosticar → Diagnóstico espacial</i>. No usar para intervención formal sin '
         f'el dato satelital de su senda.</div>',
         unsafe_allow_html=True,
     )
