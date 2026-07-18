@@ -252,7 +252,14 @@ with tab_socioeco:
 # Pipeline A (Sentinel-2). El bloque del mapa se ejecuta primero (arriba) y el
 # de sendas reales después (abajo), ambos dentro de la misma pestaña.
 with tab_diagnostic:
-    render_tab_diagnostic(selected_key, _terr_cfg, ranked_assets, _view)
+    render_tab_diagnostic(
+        selected_key,
+        _terr_cfg,
+        ranked_assets,
+        _view,
+        dashboard,
+        base_comps,
+    )
 
 
 # ── Tab 7: Catálogo de activos ────────────────────────────────────────────────
