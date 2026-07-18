@@ -114,7 +114,29 @@ explícitamente, PR individual, **sin auto-merge** (aprobación humana por PR).
 
 ## 4bis. Cutover a producción (ejecución manual del propietario, cuando decidas)
 
-Ningún paso 5.1–5.9 crea esto. Cuando quieras pasar de SQLite a Postgres real:
+> **✅ EJECUTADO por el propietario el 2026-07-18.** Azure Postgres Flexible
+> Server `snto-db` (v16, Burstable B1ms, PostGIS, Sweden Central, mismo RG que
+> el Container App), firewall estrecho (Azure services + IP del propietario),
+> las 9 tablas creadas vía Alembic, y los 5 secrets `SNTO_DB_*` cableados en el
+> Container App `snto-observatory`. Verificado en vivo: la pestaña "Acciones
+> Urgentes" muestra el estado conectado-pero-vacío. `SNTO_API_KEY` queda
+> deliberadamente sin fijar (escrituras abiertas) por ahora. Rollback trivial:
+> quitar los 5 `SNTO_DB_*` del Container App → vuelta automática a SQLite.
+>
+> Gotchas operativos aprendidos: (1) `az postgres flexible-server create`
+> imprime la contraseña admin en su salida JSON — usar `-o none`; (2) `db
+> create` usa `--name`, no `-d`; (3) habilitar acceso público a posteriori es
+> `--public-access Enabled`, no `--public-network-access`; (4) un Container App
+> en modo Single revision **no** recoge un secret actualizado sin un
+> `az containerapp revision restart` explícito.
+>
+> **Hallazgo clave:** la API FastAPI `/api/v2` (`src/api/main.py`) **no está
+> desplegada en ningún sitio** — solo la pestaña Streamlit in-process
+> (`src/ui/services/urgent_actions.py`) consume la capa de persistencia.
+> Exponer la API REST por HTTP es un follow-up separado, aún sin scope.
+
+Ningún paso 5.1–5.9 crea esto. Cuando quieras pasar de SQLite a Postgres real
+(comandos originales, ya ejecutados una vez):
 
 ```bash
 # 1) Aprovisionar Postgres Flexible Server (Azure Cloud Shell, identidad owner)
