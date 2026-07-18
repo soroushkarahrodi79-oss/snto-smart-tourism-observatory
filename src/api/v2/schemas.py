@@ -135,6 +135,11 @@ class InterventionTransitionRequest(BaseModel):
     to_status: InterventionStatus
 
 
+class AlertTriageRequest(BaseModel):
+    to_status: AlertStatus
+    reason: str | None = None  # required by the service when dismissing
+
+
 class ManagedAssetListResponse(BaseModel):
     total: int
     assets: list[ManagedAssetOut]

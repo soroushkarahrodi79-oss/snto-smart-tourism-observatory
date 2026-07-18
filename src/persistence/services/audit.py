@@ -28,6 +28,7 @@ FIELD_VERIFICATION_CREATED = "field_verification.created"
 MANAGED_ASSET_TRANSITIONED = "managed_asset.transitioned"
 INTERVENTION_CREATED = "intervention.created"
 INTERVENTION_TRANSITIONED = "intervention.transitioned"
+ALERT_TRIAGED = "alert.triaged"
 
 
 def record(

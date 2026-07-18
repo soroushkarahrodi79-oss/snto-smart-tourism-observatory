@@ -142,8 +142,10 @@ persistidos en Fase 5 (`ManagedAsset`, `Alert`, `Recommendation`,
 - `src/ui/layers/` (o el nombre que 2.1 determine) — agrupación de tabs por
   capa IA, sin nuevo estado de dominio.
 - Extensión de `AlertStatus`/`Alert` si el cierre de brecha de Urgent
-  Actions (§1.3) lo requiere — a decidir en el diseño del paso 6.2, con su
-  propia migración Alembic si aplica.
+  Actions (§1.3) lo requiere — **resuelto en 6.2a sin cambio de esquema**: el
+  triaje reutiliza el `AlertStatus` y el campo `reason` ya existentes, y la
+  confianza sale del `Recommendation.confidence` ya modelado. Ninguna
+  migración Alembic fue necesaria.
 - Ningún cambio a `src/persistence/` fuera de eso.
 
 ## 4. Pasos de implementación
@@ -152,7 +154,8 @@ persistidos en Fase 5 (`ManagedAsset`, `Alert`, `Recommendation`,
 |---|---|---|---|
 | 6.0 | Este documento (docs-only) + corrección de numeración en `plan_fases_post_v1.2.md` | Ninguno | — |
 | 6.1 | Reglas del sistema de diseño (spec §7–9) aplicadas *in situ* a las tabs existentes: jerarquía tipográfica, precedencia de paleta, tarjetas de evidencia sin acento en Diagnosticar/Evidenciar. Sin reestructurar navegación. | Bajo — solo CSS/presentación, mismo patrón que `render_helpers.py` | Ninguno |
-| 6.2 | Cierre de brecha de Urgent Actions (§1.3): motivo de descarte, enlace a `FieldVerification`, score de confianza si el modelo `Alert` lo admite sin migración mayor | Medio — toca `src/persistence` y el endpoint `/api/v2/alerts` | Ninguno |
+| 6.2a | **✅ Backend de triaje de alertas** (`alert_triage.py`: máquina de estados assign/escalate/dismiss-with-reason, auditada; `POST /api/v2/alerts/{id}/triage`; `UrgentAction` enriquecida con `confidence` del top recommendation y `field_verified`). **Sin cambio de esquema**: reutiliza `Alert.status`/`reason`, `Recommendation.confidence`, `FieldVerification`. Falsos positivos = dismiss con motivo. | Medio — `src/persistence` + `/api/v2/alerts` | Ninguno |
+| 6.2b | Wiring UI del triaje en la pestaña «Acciones Urgentes» (botones assign/escalate/dismiss con input de motivo, mostrar confidence y badge de verificación de campo). Requiere verificación visual manual. | Medio — `src/ui/tabs/` | 6.2a |
 | 6.3 | Panorama de decisión ejecutivo: de 10 KPIs a 3–4 cifras de decisión + reubicación de las 6 restantes a Diagnosticar | Medio — toca `app.py`/`tab_kpis.py` | Ninguno |
 | 6.4 | Reagrupación de navegación en las 4 capas IA (implementa la decisión de §2.1) | Alto — toca `app.py` y la navegación completa | **§2.1** |
 | 6.5 | Activo como página (implementa la decisión de §2.3) | Alto — nueva superficie de navegación | **§2.1, §2.3** |
