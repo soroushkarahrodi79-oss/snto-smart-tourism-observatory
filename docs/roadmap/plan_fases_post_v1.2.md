@@ -210,19 +210,35 @@ Esta fase no lleva número de release propio si no cambia comportamiento
 
 ---
 
-## 7. Fase 5 — v2.0: fundamentos de producto
+## 7. Fase 5 — v2.0: fundamentos de producto ✅ COMPLETADA (backend)
+
+> **Nota de renumeración:** esta sección agrupaba originalmente backend
+> persistente *y* evolución de UI en un solo bloque aspiracional. Lo que se
+> ejecutó como "Fase 5" (ADR-011, PRs #61–#70, docs-only design #61) cubrió
+> únicamente los fundamentos de backend persistente. La evolución de UI por
+> roles se separó en **Fase 6** (`docs/roadmap/plan_fase6_v2_ui_evolution.md`)
+> para mantener el histórico de PRs trazable.
 
 Según `docs/roadmap/v2.0.md`, y **solo tras** integrar Fases 0–4:
 
-- Arquitectura modular consolidada (ya iniciada en Fase 4).
-- Promoción del API FastAPI (hoy secundaria) a contrato versionado.
-- Backend persistente, identidad/autorización, audit trail.
+- ✅ Arquitectura modular consolidada (Fase 4).
+- Promoción del API FastAPI (hoy secundaria) a contrato versionado — hecho vía
+  `/api/v2` (Fase 5), aún no desplegado como servicio HTTP (ADR-012).
+- ✅ Backend persistente (ADR-011), audit trail. Identidad/autorización:
+  auth mínima por API key (Fase 5.8); SSO/roles completos quedan para cuando
+  haga falta acceso institucional multi-usuario real.
 - Evolución mayor de UI por roles (director, analista, campo, informes,
-  auditoría), sobre la especificación UX v2.0 ya mergeada (PR #17) y el
-  trabajo de vistas rescatado en Fase 4.
+  auditoría), sobre la especificación UX v2.0 (`docs/ux/ui-evolution-v2-spec.md`)
+  y el trabajo de vistas rescatado en Fase 4 (#28) → **ver Fase 6**.
 - v3.0 (multi-parque enterprise, escala Red OAPN completa) queda fuera de este
   plan; sus 13 plantillas GEE ya están preparadas y esperan validación
   incremental parque a parque.
+
+## 7bis. Fase 6 — v2.0: evolución de UI por roles
+
+Ver `docs/roadmap/plan_fase6_v2_ui_evolution.md` para el plan completo
+(estado real verificado, decisiones de producto abiertas para el
+propietario, y los pasos de implementación en PRs pequeños).
 
 ---
 
