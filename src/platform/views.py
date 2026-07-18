@@ -134,7 +134,8 @@ _PROFILES: dict[ViewMode, ViewProfile] = {
                "Sentinel-2 / dato curado / socioeconómico) y su confianza (DCS), con "
                "override conservador (el satélite solo agrava, nunca relaja el juicio "
                "experto). Fundamento, fórmulas y límites declarados en "
-               "«Gobernar → Metodología y auditoría» y en docs/informe_tecnico_limites.md, "
+               "«Gobernar → Metodología y auditoría» y en "
+               "docs/informe_tecnico_limites.md, "
                "docs/baselines_uncertainty_design.md y "
                "docs/socioeconomic_integration_design.md.",
         technical=True,
