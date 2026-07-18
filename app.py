@@ -195,7 +195,8 @@ if _socio:
     st.caption(
         "ℹ️ *Empleos locales en riesgo* calculado con datos reales **ALMUDENA / INE** "
         "(afiliados a hostelería del municipio × exposición ambiental de sus activos), "
-        "no con el proxy de visitantes. Detalle en **Decidir → Impacto socioeconómico**."
+        "no con el proxy de visitantes. Detalle en "
+        "**Decidir → Impacto socioeconómico**."
     )
 
 st.divider()
