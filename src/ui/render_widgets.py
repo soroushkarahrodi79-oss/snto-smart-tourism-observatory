@@ -24,7 +24,7 @@ from src.ui.render_helpers import (
     _BG,
     _COLOR,
     _EMOJI,
-    _TIER_BADGE_COLOR,
+    _alert_accent,
     _alert_chip,
     _ehs_color,
     _tier_chip,
@@ -198,7 +198,8 @@ def _render_exec_kpis(kpis_data: dict, selected_key: str) -> None:
 
     with c1:
         st.markdown(
-            f'<div class="exec-kpi" style="border-top-color:{ehs_color};">'
+            f'<div class="snto-decision-card exec-kpi" '
+            f'style="border-top-color:{ehs_color};">'
             f'<div class="exec-kpi-label">Salud ecológica media</div>'
             f'<div class="exec-kpi-value" style="color:{ehs_color}">'
             f'{ehs:.1f}<span style="font-size:0.85rem;color:#9aa4af">/100</span></div>'
@@ -208,7 +209,8 @@ def _render_exec_kpis(kpis_data: dict, selected_key: str) -> None:
         )
     with c2:
         st.markdown(
-            f'<div class="exec-kpi" style="border-top-color:#185FA5;">'
+            f'<div class="snto-decision-card exec-kpi" '
+            f'style="border-top-color:#185FA5;">'
             f'<div class="exec-kpi-label">TIS portfolio</div>'
             f'<div class="exec-kpi-value" style="color:#185FA5">{tis:.1f}</div>'
             f'<div class="exec-kpi-delta">{_delta_html(d["tis"], positive_is_bad=False)}</div>'
@@ -217,7 +219,8 @@ def _render_exec_kpis(kpis_data: dict, selected_key: str) -> None:
         )
     with c3:
         st.markdown(
-            f'<div class="exec-kpi" style="border-top-color:#854F0B;">'
+            f'<div class="snto-decision-card exec-kpi" '
+            f'style="border-top-color:#854F0B;">'
             f'<div class="exec-kpi-label">Deuda ecológica acumulada</div>'
             f'<div class="exec-kpi-value" style="color:#854F0B">€{deuda:,.0f}</div>'
             f'<div class="exec-kpi-delta">{_delta_html(d["deuda"], positive_is_bad=True)}</div>'
@@ -226,7 +229,8 @@ def _render_exec_kpis(kpis_data: dict, selected_key: str) -> None:
         )
     with c4:
         st.markdown(
-            f'<div class="exec-kpi" style="border-top-color:#A32D2D;">'
+            f'<div class="snto-decision-card exec-kpi" '
+            f'style="border-top-color:#A32D2D;">'
             f'<div class="exec-kpi-label">Empleos locales en riesgo</div>'
             f'<div class="exec-kpi-value" style="color:#A32D2D">{jobs:.1f}</div>'
             f'<div class="exec-kpi-delta">{_delta_html(d["jobs"], positive_is_bad=True)}</div>'
@@ -246,13 +250,14 @@ def _render_fichas_rapidas(ranked_assets: list) -> None:
         unsafe_allow_html=True,
     )
     for a in top3:
-        _, tier_bg = _TIER_BADGE_COLOR.get(a.tier or 3, ("#2d2f4a", "#a9adcb"))
+        alert_accent = _alert_accent(a.alert_level)
         ehs_c = _ehs_color(a.ehs)
         name_short = a.name.split("—")[0].strip()
         ehs_w = max(2, int(a.ehs))
         vis   = f"{a.visitor_capacity_annual:,}"
         st.markdown(
-            f'<div class="snto-ficha" style="border-left-color:{tier_bg};">'
+            f'<div class="snto-asset-card snto-ficha" '
+            f'style="border-left-color:{alert_accent};">'
             f'<span class="snto-ficha-ehs" style="background:{ehs_c}1a;color:{ehs_c};">'
             f'EHS {a.ehs:.0f}</span>'
             f'<div class="snto-ficha-name">{name_short}</div>'

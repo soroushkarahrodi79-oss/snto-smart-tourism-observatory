@@ -15,9 +15,9 @@ from src.platform.provenance import data_status_badge
 from src.temporal import DataStatus
 from src.ui.render_helpers import (
     _ASSET_TYPE_EMOJI,
-    _TIER_BADGE_COLOR,
     _TIER_INVEST_LABEL,
     _TIER_ROMAN,
+    _alert_accent,
     _alert_chip,
     _ehs_color,
     _tier_chip,
@@ -127,7 +127,7 @@ def render_tab_assets(calibration, ranked_assets, _view) -> None:
     for asset in filtered:
         tier   = asset.tier or 0
         tpi    = asset.tpi or 0.0
-        tier_fg, tier_bg = _TIER_BADGE_COLOR.get(tier, ("#2d2f4a", "#a9adcb"))
+        alert_accent = _alert_accent(asset.alert_level)
         ehs_c  = _ehs_color(asset.ehs)
         emoji  = _ASSET_TYPE_EMOJI.get(asset.asset_type, "📍")
         rank   = asset.priority_rank or "—"
@@ -163,7 +163,8 @@ def render_tab_assets(calibration, ranked_assets, _view) -> None:
             _val_html = ""
 
         st.markdown(
-            f"""<div class="kpi-card" style="border-left:5px solid {tier_bg};margin-bottom:0.5rem;">
+            f"""<div class="snto-asset-card kpi-card"
+  style="border-left-color:{alert_accent};margin-bottom:0.5rem;">
   <div style="display:flex;align-items:center;gap:12px;">
     <div style="font-size:1.8rem;line-height:1">{emoji}</div>
     <div style="flex:1">
@@ -186,7 +187,7 @@ def render_tab_assets(calibration, ranked_assets, _view) -> None:
       <div style="font-size:1.3rem;font-weight:700;color:#0d1b2a">{tpi:.0f}</div>
     </div>
   </div>
-  <div style="font-size:0.75rem;color:#555;margin-top:8px;padding-top:6px;
+  <div class="snto-body-copy" style="margin-top:8px;padding-top:6px;
               border-top:1px solid #e8ecf0">
     {asset.description[:160]}{'…' if len(asset.description) > 160 else ''}
   </div>

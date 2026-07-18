@@ -54,6 +54,12 @@ _ALERT_SEVERITY = {
     "URGENT_MONITORING":     1,
     "PREVENTIVE_ACTION":     2,
 }
+_ALERT_ACCENT = {
+    "CRITICAL_INTERVENTION": "#c62828",
+    "URGENT_MONITORING": "#e65100",
+    "PREVENTIVE_ACTION": "#1565c0",
+    "NORMAL": "#2e7d32",
+}
 
 # ── FASE 3: helpers de chips — TIER (neutro) y ALERTA (semáforo) ──────────────
 def _tier_chip(tier) -> str:
@@ -79,6 +85,15 @@ def _alert_chip(alert_level: str) -> str:
         f'<span class="snto-status-chip" style="background:{bg};'
         f'border:1px solid {border};color:#2b3440;">{icon} {label}</span>'
     )
+
+
+def _alert_accent(alert_level: str) -> str:
+    """Return the tactical severity accent used by asset cards.
+
+    Fase 6.1 reserves asset-card accents for severity. Investment tier stays a
+    neutral indigo/slate badge and must never drive the card border.
+    """
+    return _ALERT_ACCENT.get(alert_level, _ALERT_ACCENT["NORMAL"])
 
 
 def _ehs_color(ehs: float) -> str:
