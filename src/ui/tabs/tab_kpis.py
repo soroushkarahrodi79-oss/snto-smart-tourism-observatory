@@ -14,16 +14,17 @@ import streamlit as st
 from src.platform.enrichment import enrichment_summary
 from src.platform.provenance import data_status_badge
 from src.temporal import DataStatus
-from src.ui.render_widgets import _render_fichas_rapidas, render_kpi_card
+from src.ui.kpi_sections import decision_kpis
+from src.ui.render_widgets import _render_fichas_rapidas, render_kpi_grid
 
 
 def render_tab_kpis(dashboard, ranked_assets, base_comps, calibration, _view) -> None:
     """Render the Resumen Ejecutivo (KPIs) tab (issue #27 extraction)."""
-    st.subheader("Panel de Indicadores Estratégicos · Soporte a la decisión de gestión")
+    st.subheader("Panorama de decisión ejecutivo")
     st.caption(
-        "Cada indicador responde a una pregunta de gestión pública concreta. "
-        "Despliega cada tarjeta para ver la interpretación, la acción recomendada "
-        "y el desglose de sendas afectadas (drill-down por indicador)."
+        "Cuatro cifras calculadas para decidir esta semana: intervenir, posponer "
+        "o solicitar verificación. Los seis indicadores de contexto permanecen en "
+        "**Diagnóstico Satelital y Mapa**; no se elimina ninguna métrica."
     )
 
     # Coste de mitigación recomendado por activo (escenario óptimo TIS, Fase 6)
@@ -50,29 +51,16 @@ def render_tab_kpis(dashboard, ranked_assets, base_comps, calibration, _view) ->
                 unsafe_allow_html=True,
             )
 
-    with st.expander("📐 Fórmulas de los índices (EHS · TPI · DCS)", expanded=False):
-        st.markdown(
-            "- **EHS (Ecosystem Health Score), 0–100, alto = sano.** Déficit de NDVI/NDMI "
-            "respecto a percentiles sanos de la propia escena Sentinel-2: "
-            "`EHS = 100·(1 − D)`. *Calculada desde observación satelital real.*\n"
-            "- **TPI (Territorial Priority Index), 0–100.** Urgencia (0–40) + evidencia "
-            "DCS (0–25) + valor estratégico (0–20) + claridad causal (0–15). *Índice "
-            "compuesto; los cortes de tier son heurísticos.*\n"
-            "- **DCS (Decision Confidence Score), 0–100.** Calidad del dato (25) + robustez "
-            "temporal (25) + consistencia espacial (20) + estabilidad de modelo (15) + "
-            "fuerza de señal (15). Es un *gate* que frena decidir con poca evidencia.\n\n"
-            "Matriz completa de trazabilidad, multiplicadores y límites en la pestaña "
-            "**8️⃣ Fundamento y Trazabilidad**."
-        )
-
-    kpis = dashboard.kpis
-    for row_start in range(0, len(kpis), 4):
-        row_kpis = kpis[row_start : row_start + 4]
-        cols = st.columns(4)
-        for i, kpi in enumerate(row_kpis):
-            with cols[i]:
-                render_kpi_card(kpi, ranked_assets, _cost_by_id)
-        st.write("")
+    render_kpi_grid(
+        decision_kpis(dashboard.kpis),
+        ranked_assets,
+        _cost_by_id,
+        columns=4,
+    )
+    st.caption(
+        "La base técnica EHS/TPI/DCS y sus límites están a un clic en "
+        "**Fundamento y Trazabilidad**."
+    )
 
     st.divider()
     # ── Fichas de activos críticos (reubicadas desde el antiguo mapa hero) ─────

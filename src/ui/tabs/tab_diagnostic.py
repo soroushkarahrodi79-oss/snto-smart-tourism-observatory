@@ -32,9 +32,18 @@ from src.platform.real_trails import (
     get_real_trails,
 )
 from src.platform.views import ConfidenceDetail
+from src.ui.kpi_sections import diagnostic_kpis
+from src.ui.render_widgets import render_kpi_grid
 
 
-def render_tab_diagnostic(selected_key, _terr_cfg, ranked_assets, _view) -> None:
+def render_tab_diagnostic(
+    selected_key,
+    _terr_cfg,
+    ranked_assets,
+    _view,
+    dashboard,
+    base_comps,
+) -> None:
     """Render the Diagnóstico Satelital y Mapa tab (issue #27; fuses 2 blocks)."""
     st.subheader("Diagnóstico Satelital y Mapa — Visión Espacial del Territorio")
     st.caption(
@@ -42,6 +51,27 @@ def render_tab_diagnostic(selected_key, _terr_cfg, ranked_assets, _view) -> None
         "diagnóstico espectral) y, debajo, las **sendas reales** medidas por "
         "Sentinel-2 (Pipeline A) con su EHS y ΔEHS observados."
     )
+
+    st.markdown("#### Salud del espacio protegido · indicadores de contexto")
+    st.caption(
+        "Los seis indicadores trasladados desde el panorama ejecutivo informan el "
+        "diagnóstico sin competir con las decisiones urgentes. Su badge declara la "
+        "clase de evidencia heredada por cada cifra."
+    )
+    _cost_by_id = {
+        comparison.asset_id: comparison.scenarios[
+            comparison.best_scenario_code
+        ].cost_eur
+        for comparison in base_comps
+    }
+    render_kpi_grid(
+        diagnostic_kpis(dashboard.kpis),
+        ranked_assets,
+        _cost_by_id,
+        columns=3,
+        context=True,
+    )
+    st.divider()
 
     with st.expander("📐 Nota metodológica — índices espectrales, EHS y convención de signo",
                      expanded=_view.section(technical=True)):

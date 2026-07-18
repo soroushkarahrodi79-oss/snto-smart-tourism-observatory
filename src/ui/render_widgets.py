@@ -18,6 +18,7 @@ import datetime
 
 import streamlit as st
 
+from src.ui.kpi_sections import kpi_evidence_label
 from src.ui.render_helpers import (
     _ALERT_META,
     _ALERT_SEVERITY,
@@ -373,16 +374,25 @@ def _render_kpi_drilldown(kpi, ranked_assets: list, cost_by_id: dict) -> None:
 
 
 # ── Renderizador de tarjeta KPI ───────────────────────────────────────────────
-def render_kpi_card(kpi, ranked_assets: list | None = None,
-                    cost_by_id: dict | None = None) -> None:
+def render_kpi_card(
+    kpi,
+    ranked_assets: list | None = None,
+    cost_by_id: dict | None = None,
+    *,
+    context: bool = False,
+) -> None:
     color = _COLOR[kpi.status]
     bg    = _BG[kpi.status]
     emoji = _EMOJI[kpi.status]
+    evidence = kpi_evidence_label(kpi.number)
+    card_class = "snto-evidence-card" if context else "snto-decision-card kpi-card"
+    card_style = "" if context else f' style="border-top-color:{color};"'
+    value_class = "snto-context-value" if context else "snto-decision-value"
     st.markdown(
-        f"""<div class="kpi-card" style="border-left:5px solid {color};">
-  <div class="kpi-meta">KPI {kpi.number}</div>
+        f"""<div class="{card_class}"{card_style}>
+  <div class="kpi-meta">KPI {kpi.number} · <span class="snto-evidence-badge">{evidence}</span></div>
   <div class="kpi-name">{kpi.name}</div>
-  <div class="kpi-value">{kpi.value}</div>
+  <div class="{value_class}">{kpi.value}</div>
   <span class="kpi-badge" style="color:{color};background:{bg};">{emoji}&thinsp;{kpi.status_label}</span>
 </div>""",
         unsafe_allow_html=True,
@@ -397,3 +407,26 @@ def render_kpi_card(kpi, ranked_assets: list | None = None,
         if has_drilldown:
             st.divider()
             _render_kpi_drilldown(kpi, ranked_assets, cost_by_id or {})
+
+
+def render_kpi_grid(
+    kpis: list,
+    ranked_assets: list,
+    cost_by_id: dict,
+    *,
+    columns: int,
+    context: bool = False,
+) -> None:
+    """Render a stable KPI subset in semantic decision/evidence cards."""
+    for row_start in range(0, len(kpis), columns):
+        row_kpis = kpis[row_start : row_start + columns]
+        row_columns = st.columns(columns)
+        for index, kpi in enumerate(row_kpis):
+            with row_columns[index]:
+                render_kpi_card(
+                    kpi,
+                    ranked_assets,
+                    cost_by_id,
+                    context=context,
+                )
+        st.write("")
