@@ -1,24 +1,31 @@
 """
-Read-only /api/v2/alerts endpoints (Fase 5, 5.4).
+/api/v2/alerts endpoints (Fase 5.4 reads + Fase 6.2 triage).
 
 Exposes the persisted alerts (written by the AlertEngine bridge,
-``src.persistence.services.alert_ingest``) and their recommendations. Still
-read-only — triage/state changes arrive as auth-gated write endpoints in
-step 5.8.
+``src.persistence.services.alert_ingest``) and their recommendations, plus a
+triage write endpoint (assign / escalate / dismiss-with-reason). The triage
+endpoint is auth-gated (`require_write_auth`, 5.8); the reads stay open.
 """
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from src.api.v2.deps import require_write_auth
 from src.api.v2.schemas import (
     AlertOut,
+    AlertTriageRequest,
     RecommendationListResponse,
     RecommendationOut,
 )
 from src.persistence.repositories import (
     AlertRepository,
     RecommendationRepository,
+)
+from src.persistence.services.alert_triage import ReasonRequiredError, triage_alert
+from src.persistence.services.lifecycle import (
+    IllegalTransitionError,
+    ResourceNotFoundError,
 )
 from src.persistence.session import get_db
 
@@ -48,3 +55,30 @@ def list_alert_recommendations(
             RecommendationOut.model_validate(r) for r in recommendations
         ],
     )
+
+
+@router.post("/{alert_id}/triage", response_model=AlertOut)
+def triage(
+    alert_id: int,
+    body: AlertTriageRequest,
+    db: Session = Depends(get_db),
+    actor: str = Depends(require_write_auth),
+) -> AlertOut:
+    """
+    Triage an alert: assign / escalate / dismiss. Dismissing requires a reason
+    (that is how a false positive is logged). Returns 404 if absent, 409 if the
+    transition is not allowed from the current status, 422 if dismissing with
+    no reason.
+    """
+    try:
+        alert = triage_alert(
+            db, alert_id, body.to_status, reason=body.reason, actor=actor
+        )
+    except ResourceNotFoundError:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    except IllegalTransitionError as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+    except ReasonRequiredError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    db.commit()
+    return AlertOut.model_validate(alert)

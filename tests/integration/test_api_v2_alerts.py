@@ -117,3 +117,53 @@ def test_list_alert_recommendations(client: TestClient) -> None:
 def test_recommendations_for_missing_alert_404(client: TestClient) -> None:
     resp = client.get("/api/v2/alerts/999/recommendations")
     assert resp.status_code == 404
+
+
+# ── Triage (Fase 6.2) ────────────────────────────────────────────────────────
+
+def test_triage_assign(client: TestClient) -> None:
+    resp = client.post("/api/v2/alerts/1/triage", json={"to_status": "assigned"})
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "assigned"
+    # Persisted + audited.
+    assert client.get("/api/v2/alerts/1").json()["status"] == "assigned"
+    log = client.get("/api/v2/audit-log/").json()
+    assert log["entries"][0]["action"] == "alert.triaged"
+
+
+def test_triage_dismiss_requires_reason_422(client: TestClient) -> None:
+    resp = client.post("/api/v2/alerts/1/triage", json={"to_status": "dismissed"})
+    assert resp.status_code == 422
+    # Unchanged.
+    assert client.get("/api/v2/alerts/1").json()["status"] == "open"
+
+
+def test_triage_dismiss_with_reason(client: TestClient) -> None:
+    resp = client.post(
+        "/api/v2/alerts/1/triage",
+        json={"to_status": "dismissed", "reason": "falso positivo"},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["status"] == "dismissed"
+    assert body["reason"] == "falso positivo"
+
+
+def test_triage_illegal_transition_409(client: TestClient) -> None:
+    client.post(
+        "/api/v2/alerts/1/triage",
+        json={"to_status": "dismissed", "reason": "cerrado"},
+    )
+    # dismissed is terminal.
+    resp = client.post("/api/v2/alerts/1/triage", json={"to_status": "assigned"})
+    assert resp.status_code == 409
+
+
+def test_triage_missing_alert_404(client: TestClient) -> None:
+    resp = client.post("/api/v2/alerts/999/triage", json={"to_status": "assigned"})
+    assert resp.status_code == 404
+
+
+def test_triage_invalid_status_422(client: TestClient) -> None:
+    resp = client.post("/api/v2/alerts/1/triage", json={"to_status": "nonsense"})
+    assert resp.status_code == 422

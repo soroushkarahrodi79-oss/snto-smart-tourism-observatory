@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from datetime import datetime
 
 import pytest
 from sqlalchemy import create_engine
@@ -10,6 +11,7 @@ from src.persistence.enums import AlertStatus, ManagedAssetStatus
 from src.persistence.models import (
     Alert,
     Base,
+    FieldVerification,
     ManagedAsset,
     Recommendation,
     Territory,
@@ -72,6 +74,38 @@ def test_orders_by_risk_desc_and_maps_fields(session) -> None:
     # detected -> next allowed status is verified (5.5 state map).
     assert top.next_status == ManagedAssetStatus.VERIFIED
     assert actions[1].top_action is None
+
+
+def test_confidence_and_field_verification_enrichment(session) -> None:
+    asset = _asset(session, "t-1", "Sendero A")
+    alert = _alert(session, asset, "CRITICAL_INTERVENTION", 0.9)
+    session.add(
+        Recommendation(
+            alert_id=alert.id, action_label="Cerrar acceso", confidence=0.72
+        )
+    )
+    session.add(
+        FieldVerification(
+            asset_id=asset.id,
+            verified_at=datetime(2026, 6, 1),
+            method="penetrometro",
+            verifier="Equipo PNSG",
+            result="42.0",
+        )
+    )
+    session.flush()
+
+    action = list_urgent_actions(session)[0]
+    assert action.confidence == 0.72
+    assert action.field_verified is True
+
+
+def test_no_recommendation_or_verification_is_honest_null(session) -> None:
+    asset = _asset(session, "t-1", "Sendero A")
+    _alert(session, asset, "NORMAL", 0.3)
+    action = list_urgent_actions(session)[0]
+    assert action.confidence is None
+    assert action.field_verified is False
 
 
 def test_only_open_alerts_surface(session) -> None:

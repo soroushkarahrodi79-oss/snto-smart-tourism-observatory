@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from src.persistence.enums import ManagedAssetStatus
 from src.persistence.repositories import (
     AlertRepository,
+    FieldVerificationRepository,
     ManagedAssetRepository,
     RecommendationRepository,
 )
@@ -40,6 +41,14 @@ class UrgentAction:
     risk_score: float
     top_action: str | None
     next_status: ManagedAssetStatus | None
+    # DCS of the top recommendation, when the engine produced one (often None —
+    # populating it is the P2 "Confidence & uncertainty" module, spec §6). Shown
+    # for triage context; ordering stays by risk_score until confidence is real.
+    confidence: float | None
+    # Whether the asset has any FieldVerification record (Fase 5.6). Lets a
+    # manager see, per alert, if the signal was ground-checked — the field-
+    # verification-status item of the Urgent-actions P1 gap.
+    field_verified: bool
 
 
 def _next_status(current: ManagedAssetStatus) -> ManagedAssetStatus | None:
@@ -53,6 +62,7 @@ def list_urgent_actions(session: Session, *, limit: int = 20) -> list[UrgentActi
     alert_repo = AlertRepository(session)
     asset_repo = ManagedAssetRepository(session)
     rec_repo = RecommendationRepository(session)
+    fv_repo = FieldVerificationRepository(session)
 
     open_alerts = sorted(
         alert_repo.list_open(), key=lambda a: a.risk_score, reverse=True
@@ -64,6 +74,7 @@ def list_urgent_actions(session: Session, *, limit: int = 20) -> list[UrgentActi
         if asset is None:  # pragma: no cover - referential integrity guards this
             continue
         recs = rec_repo.list_by_alert(alert.id)
+        top_rec = recs[0] if recs else None
         actions.append(
             UrgentAction(
                 alert_id=alert.id,
@@ -73,8 +84,10 @@ def list_urgent_actions(session: Session, *, limit: int = 20) -> list[UrgentActi
                 asset_status=asset.status,
                 level=alert.level,
                 risk_score=alert.risk_score,
-                top_action=recs[0].action_label if recs else None,
+                top_action=top_rec.action_label if top_rec else None,
                 next_status=_next_status(asset.status),
+                confidence=top_rec.confidence if top_rec else None,
+                field_verified=bool(fv_repo.list_by_asset(asset.id)),
             )
         )
     return actions
