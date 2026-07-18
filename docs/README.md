@@ -9,7 +9,7 @@ The documentation transforms approved multi-perspective reviews into durable pro
 ## Current State
 SNTO is framed as a potential decision-intelligence platform for protected natural tourism destinations, not as a generic GIS, dashboard, or academic observatory.
 
-The latest stable documentation baseline is `v1.4.0`. The repository `main` branch is currently `v1.5.0.dev0`, with Phase 4 modularization still in progress.
+The latest stable documentation baseline is `v1.5.0` (app modularization, audience views, and the Fase 5 persistent-backend foundations, running on Azure PostgreSQL in production since 2026-07-18). The repository `main` branch may carry a later development marker between releases.
 
 ## Versioned publications
 

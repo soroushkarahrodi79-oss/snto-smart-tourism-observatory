@@ -6,7 +6,7 @@
 
 **Version:** 1.4.0 | **Date:** July 2026 | **Author:** Smart Natural Tourism Observatory Research Team
 
-> **Document scope:** this whitepaper tracks the latest stable methodological baseline (`v1.4.0`). The repository `main` branch may contain later development work (`v1.5.0.dev0`) that is not yet part of a stable release.
+> **Document scope:** this whitepaper tracks the latest stable methodological baseline (`v1.5.0`). The repository `main` branch may contain later development work that is not yet part of a stable release.
 
 ---
 
