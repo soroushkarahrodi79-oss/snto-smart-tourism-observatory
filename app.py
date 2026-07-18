@@ -43,6 +43,7 @@ from src.ui.tabs.tab_portfolio import render_tab_portfolio
 from src.ui.tabs.tab_simulator import render_tab_simulator
 from src.ui.tabs.tab_socioeco import render_tab_socioeco
 from src.ui.tabs.tab_timeseries import render_tab_timeseries
+from src.ui.tabs.tab_urgent_actions import render_tab_urgent_actions
 
 # ── Configuración de página ───────────────────────────────────────────────────
 configure_page()
@@ -208,7 +209,7 @@ st.markdown(
 # FASE 1: flujo narrativo ejecutivo → científico → táctico → financiero →
 # socioeconómico → temporal → auditoría (7 pestañas).
 (tab_kpis, tab_diagnostic, tab_portfolio, tab_simulator,
- tab_socioeco, tab_timeseries, tab_assets, tab_method) = st.tabs([
+ tab_socioeco, tab_timeseries, tab_assets, tab_method, tab_urgent) = st.tabs([
     "1️⃣ Resumen Ejecutivo (KPIs)",
     "2️⃣ Diagnóstico Satelital y Mapa",
     "3️⃣ Priorización y Alertas (Portafolio TPI)",
@@ -217,6 +218,7 @@ st.markdown(
     "6️⃣ Evolución Temporal (Series Espectrales)",
     "7️⃣ Catálogo de Activos y Auditoría",
     "8️⃣ Fundamento y Trazabilidad",
+    "9️⃣ Acciones Urgentes",
 ])
 
 
@@ -261,6 +263,11 @@ with tab_assets:
 # ── Tab 8: Fundamento y Trazabilidad ──────────────────────────────────────────
 with tab_method:
     render_tab_method(_view)
+
+
+# ── Tab 9: Acciones Urgentes (primer consumidor del backend persistente) ──────
+with tab_urgent:
+    render_tab_urgent_actions()
 
 
 # ── Pie de página ─────────────────────────────────────────────────────────────

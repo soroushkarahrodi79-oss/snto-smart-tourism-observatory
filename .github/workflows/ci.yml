@@ -39,7 +39,9 @@ jobs:
             tests/integration/test_api_v2_lifecycle.py \
             tests/integration/test_api_v2_field_verifications.py \
             tests/integration/test_api_v2_audit_log.py \
-            tests/integration/test_api_v2_auth.py
+            tests/integration/test_api_v2_auth.py \
+            src/ui/services src/ui/tabs/tab_urgent_actions.py \
+            tests/ui tests/integration/test_urgent_actions_tab.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github
