@@ -19,7 +19,6 @@ from src.platform.satellite_trends import (
     summarize_trends,
 )
 from src.ui.render_helpers import (
-    _TIER_BADGE_COLOR,
     _TIER_ROMAN,
     _alert_chip,
     _ehs_color,
@@ -205,8 +204,6 @@ def render_tab_timeseries(ranked_assets, _view) -> None:
     selected_asset = asset_by_label[selected_label]
 
     # ── KPI rápido del activo seleccionado ────────────────────────────────────
-    tier = selected_asset.tier or 0
-    _, tier_accent = _TIER_BADGE_COLOR.get(tier, ("#2d2f4a", "#a9adcb"))
     ehs_c = _ehs_color(selected_asset.ehs)
     st.markdown(
         f'<div style="margin-bottom:6px">{_tier_chip(selected_asset.tier)}'
@@ -216,29 +213,36 @@ def render_tab_timeseries(ranked_assets, _view) -> None:
     kpi_cols = st.columns(4)
     with kpi_cols[0]:
         st.markdown(
-            f'<div class="kpi-card" style="border-left:4px solid {ehs_c};">'
-            f'<div class="kpi-meta">EHS</div>'
-            f'<div class="kpi-value" style="color:{ehs_c}">{selected_asset.ehs:.0f}<span style="font-size:.9rem;color:#9aa4af">/100</span></div>'
+            f'<div class="snto-evidence-card">'
+            f'<div class="snto-micro-label">EHS '
+            f'<span class="snto-evidence-badge">Calculado</span></div>'
+            f'<div class="snto-context-value" style="color:{ehs_c}">'
+            f'{selected_asset.ehs:.0f}'
+            f'<span style="font-size:.9rem;color:#68798a">/100</span></div>'
             f'</div>', unsafe_allow_html=True)
     with kpi_cols[1]:
         st.markdown(
-            f'<div class="kpi-card" style="border-left:4px solid {tier_accent};">'
-            f'<div class="kpi-meta">DCS</div>'
-            f'<div class="kpi-value">{selected_asset.dcs:.0f}<span style="font-size:.9rem;color:#9aa4af">/100</span></div>'
+            f'<div class="snto-evidence-card">'
+            f'<div class="snto-micro-label">DCS '
+            f'<span class="snto-evidence-badge">Calculado</span></div>'
+            f'<div class="snto-context-value">{selected_asset.dcs:.0f}'
+            f'<span style="font-size:.9rem;color:#68798a">/100</span></div>'
             f'</div>', unsafe_allow_html=True)
     with kpi_cols[2]:
         tpi_val = f"{selected_asset.tpi:.0f}" if selected_asset.tpi else "—"
         st.markdown(
-            f'<div class="kpi-card" style="border-left:4px solid {tier_accent};">'
-            f'<div class="kpi-meta">TPI</div>'
-            f'<div class="kpi-value">{tpi_val}</div>'
+            f'<div class="snto-evidence-card">'
+            f'<div class="snto-micro-label">TPI '
+            f'<span class="snto-evidence-badge">Calculado</span></div>'
+            f'<div class="snto-context-value">{tpi_val}</div>'
             f'</div>', unsafe_allow_html=True)
     with kpi_cols[3]:
         vis = f"{selected_asset.visitor_capacity_annual:,}"
         st.markdown(
-            f'<div class="kpi-card" style="border-left:4px solid {tier_accent};">'
-            f'<div class="kpi-meta">Visitantes/año</div>'
-            f'<div class="kpi-value">{vis}</div>'
+            f'<div class="snto-evidence-card">'
+            f'<div class="snto-micro-label">Visitantes/año '
+            f'<span class="snto-evidence-badge">Estimado</span></div>'
+            f'<div class="snto-context-value">{vis}</div>'
             f'</div>', unsafe_allow_html=True)
 
     st.write("")

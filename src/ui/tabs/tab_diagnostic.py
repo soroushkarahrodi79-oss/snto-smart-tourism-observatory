@@ -245,16 +245,16 @@ def render_tab_diagnostic(selected_key, _terr_cfg, ranked_assets, _view) -> None
         _scenes = (" · ".join(_prov.scene_dates)
                    if _prov.scene_dates else f"{_prov.n_scenes} escenas estacionales")
         st.markdown(
-            f'<div style="padding:10px 14px;border-radius:8px;'
-            f'background:#f3f8f6;border-left:4px solid {_badge.color};margin-bottom:6px;">'
-            f'<span style="font-weight:700;color:{_badge.color}">'
+            f'<div class="snto-evidence-card">'
+            f'<span class="snto-evidence-badge" '
+            f'style="color:{_badge.color};border-color:{_badge.color}">'
             f'{_badge.emoji} {_badge.label}</span> '
-            f'<span style="font-size:0.8rem;color:#5a6b7a">· {_badge.caveat}</span><br/>'
-            f'<span style="font-size:0.8rem;color:#33485c">'
+            f'<span class="snto-body-copy">· {_badge.caveat}</span><br/>'
+            f'<span class="snto-body-copy">'
             f'<b>Escenas Sentinel-2:</b> {_scenes} &nbsp;·&nbsp; '
             f'<b>Composición:</b> percentiles de escena (P90/P10) &nbsp;·&nbsp; '
             f'<b>Tile:</b> T30TVL</span><br/>'
-            f'<span style="font-size:0.8rem;color:#33485c">'
+            f'<span class="snto-body-copy">'
             f'<b>Profundidad temporal:</b> {_prov.inference_label}</span>'
             f'</div>',
             unsafe_allow_html=True,
@@ -350,11 +350,9 @@ def render_tab_diagnostic(selected_key, _terr_cfg, ranked_assets, _view) -> None
             _prot = sum(1 for t in _real.trails
                         if t.prug_zone in ("Zona de Reserva", "Zona de Uso Restringido"))
             st.markdown(
-                f'<div style="margin-top:8px;padding:10px 12px;background:#fffdf5;'
-                f'border-radius:6px;border-left:3px solid #d4a017;">'
-                f'<span style="font-size:0.72rem;color:#8a6d1a;text-transform:uppercase;'
-                f'letter-spacing:0.06em;font-weight:700">⛰ Zonificación PRUG oficial</span><br/>'
-                f'<span style="font-size:0.80rem;color:#444">'
+                f'<div class="snto-evidence-card" style="margin-top:8px">'
+                f'<span class="snto-micro-label">⛰ Zonificación PRUG oficial</span><br/>'
+                f'<span class="snto-body-copy">'
                 f'{_prot} de {len(_real.trails)} sendas discurren por zonas de alta protección '
                 f'(Reserva / Uso Restringido). La prioridad de intervención pondera la '
                 f'degradación por el nivel de protección del PRUG.</span></div>',

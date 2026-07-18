@@ -39,6 +39,18 @@ def configure_page() -> None:
 
 _BASE_CSS = """
 <style>
+:root {
+    --snto-space-1: 4px;
+    --snto-space-2: 8px;
+    --snto-space-3: 12px;
+    --snto-space-4: 16px;
+    --snto-space-6: 24px;
+    --snto-space-8: 32px;
+    --snto-border-hairline: #d9e0e7;
+    --snto-text-primary: #0d1b2a;
+    --snto-text-secondary: #4b5b6b;
+}
+
 [data-testid="stAppViewContainer"] > .main { background: #f4f5f7; }
 
 [data-testid="stSidebar"] { background: #1b2d42; }
@@ -92,7 +104,7 @@ _BASE_CSS = """
     box-shadow: 0 1px 4px rgba(0,0,0,.08);
 }
 .kpi-meta  { font-size: 0.65rem; color: #9aa4af; text-transform: uppercase; letter-spacing: 0.08em; }
-.kpi-name  { font-size: 0.82rem; color: #3d4a5c; font-weight: 600; margin: 0.15rem 0 0.45rem; }
+.kpi-name  { font-size: 0.875rem; color: #3d4a5c; font-weight: 600; margin: 0.15rem 0 0.45rem; }
 .kpi-value { font-size: 1.45rem; font-weight: 700; color: #0d1b2a; line-height: 1.2; }
 .kpi-badge {
     display: inline-block;
@@ -188,7 +200,7 @@ _BASE_CSS = """
     box-shadow: 0 1px 3px rgba(0,0,0,.06);
 }
 .snto-ficha-name {
-    font-size: 0.79rem; font-weight: 600; color: #0d1b2a;
+    font-size: 0.875rem; font-weight: 600; color: #0d1b2a;
     line-height: 1.3; clear: right;
 }
 .snto-ficha-meta { font-size: 0.67rem; color: #7a8899; margin-top: 1px; }
@@ -204,6 +216,67 @@ _BASE_CSS = """
 .snto-panel-title {
     font-size: 0.67rem; font-weight: 600; color: #7a8899;
     text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px;
+}
+
+/* FASE 6.1: semantic hierarchy from the v2 design-system rules. */
+.snto-decision-card {
+    background: #ffffff;
+    border-radius: 8px;
+    border-top: 3px solid #33485c;
+    padding: var(--snto-space-4);
+    margin-bottom: var(--snto-space-6);
+    box-shadow: 0 1px 4px rgba(0,0,0,.07);
+}
+.snto-asset-card {
+    background: #ffffff;
+    border-radius: 7px;
+    border-left: 4px solid #607d8b;
+    padding: var(--snto-space-3) var(--snto-space-4);
+    margin-bottom: var(--snto-space-2);
+}
+.snto-evidence-card {
+    background: #ffffff;
+    border: 1px solid var(--snto-border-hairline);
+    border-radius: 8px;
+    padding: var(--snto-space-3) var(--snto-space-4);
+    margin-bottom: var(--snto-space-3);
+    box-shadow: none;
+}
+.snto-decision-value {
+    color: var(--snto-text-primary);
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+.snto-context-value {
+    color: var(--snto-text-primary);
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+.snto-micro-label {
+    color: #68798a;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+.snto-body-copy {
+    color: var(--snto-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+.snto-evidence-badge {
+    display: inline-block;
+    border: 1px solid #aebbc8;
+    border-radius: 3px;
+    color: #33485c;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    padding: 2px 6px;
+    text-transform: uppercase;
+    vertical-align: middle;
 }
 
 /* ── FASE 3: TIER (estrategia, neutro) vs ALERTA (táctica, semáforo) ─────── */
