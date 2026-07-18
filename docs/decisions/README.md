@@ -24,6 +24,8 @@ ADR source material is the 2026 review archive.
 - [ADR-008: Use Existing GIS and EO Platforms as Integration Surfaces](ADR-008.md)
 - [ADR-009: Formalize Deployment Governance Before Institutional Rollout](ADR-009.md)
 - [ADR-010: Use a Hybrid Documentation Repository Strategy](ADR-010.md)
+- [ADR-011: Concrete Persistent-Backend Architecture for v2.0 (Fase 5)](ADR-011.md)
+- [ADR-012: Deploying the /api/v2 HTTP Surface](ADR-012.md)
 
 ## Recommendations
 Use ADRs for any future decision that changes architecture, product category, scientific claims, or institutional readiness.
