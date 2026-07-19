@@ -18,6 +18,7 @@ import datetime
 
 import streamlit as st
 
+from src.ui.asset_navigation import select_asset
 from src.ui.kpi_sections import kpi_evidence_label
 from src.ui.render_helpers import (
     _ALERT_META,
@@ -269,6 +270,12 @@ def _render_fichas_rapidas(ranked_assets: list) -> None:
             f'</div>'
             f'</div>',
             unsafe_allow_html=True,
+        )
+        st.button(
+            "Abrir ficha",
+            key=f"asset-page-critical-{a.asset_id}",
+            on_click=select_asset,
+            args=(st.session_state, a.asset_id),
         )
     # Visitor count summary below fichas
     _visitors_t12 = sum(

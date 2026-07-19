@@ -13,6 +13,7 @@ import streamlit as st
 from src.platform.calibration import coverage_summary
 from src.platform.provenance import data_status_badge
 from src.temporal import DataStatus
+from src.ui.asset_navigation import select_asset
 from src.ui.render_helpers import (
     _ASSET_TYPE_EMOJI,
     _TIER_INVEST_LABEL,
@@ -194,4 +195,10 @@ def render_tab_assets(calibration, ranked_assets, _view) -> None:
   {_val_html}
 </div>""",
             unsafe_allow_html=True,
+        )
+        st.button(
+            "Abrir ficha del activo",
+            key=f"asset-page-catalog-{asset.asset_id}",
+            on_click=select_asset,
+            args=(st.session_state, asset.asset_id),
         )
