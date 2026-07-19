@@ -75,9 +75,9 @@ NAVIGATION_LAYERS = (
 _LAYERS_BY_KEY = {layer.key: layer for layer in NAVIGATION_LAYERS}
 
 
-def layer_tab_labels() -> list[str]:
-    """Return the four stable top-level labels in decision-flow order."""
-    return [layer.tab_label for layer in NAVIGATION_LAYERS]
+def layer_tab_labels(home_layer_key: str | None = None) -> list[str]:
+    """Return layer labels with an optional audience home first."""
+    return [layer.tab_label for layer in navigation_layers(home_layer_key)]
 
 
 def navigation_layer(key: str) -> NavigationLayer:
@@ -86,6 +86,18 @@ def navigation_layer(key: str) -> NavigationLayer:
         return _LAYERS_BY_KEY[key]
     except KeyError as exc:
         raise ValueError(f"Unknown navigation layer: {key}") from exc
+
+
+def navigation_layers(
+    home_layer_key: str | None = None,
+) -> tuple[NavigationLayer, ...]:
+    """Put one audience home first while preserving canonical remainder order."""
+    if home_layer_key is None:
+        return NAVIGATION_LAYERS
+    home = navigation_layer(home_layer_key)
+    return (home,) + tuple(
+        layer for layer in NAVIGATION_LAYERS if layer.key != home_layer_key
+    )
 
 
 def module_tab_labels(layer_key: str) -> list[str]:

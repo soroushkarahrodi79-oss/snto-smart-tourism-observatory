@@ -7,6 +7,7 @@ from src.ui.navigation import (
     layer_tab_labels,
     module_tab_labels,
     navigation_layer,
+    navigation_layers,
 )
 
 
@@ -63,3 +64,23 @@ def test_each_layer_declares_the_question_it_answers() -> None:
     assert all(layer.question.endswith("?") for layer in NAVIGATION_LAYERS)
     with pytest.raises(ValueError, match="Unknown navigation layer"):
         navigation_layer("unknown")
+
+
+@pytest.mark.parametrize(
+    ("home", "first"),
+    [
+        ("decidir", "🧭 Decidir"),
+        ("diagnosticar", "🔬 Diagnosticar"),
+        ("gobernar", "⚖️ Gobernar"),
+    ],
+)
+def test_audience_home_layer_is_first_without_losing_modules(home, first) -> None:
+    layers = navigation_layers(home)
+    assert layer_tab_labels(home)[0] == first
+    assert layers[0].key == home
+    assert {layer.key for layer in layers} == {
+        "decidir",
+        "diagnosticar",
+        "evidenciar",
+        "gobernar",
+    }

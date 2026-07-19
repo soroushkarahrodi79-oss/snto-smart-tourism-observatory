@@ -90,6 +90,13 @@ def test_action_first_panels_only_in_gestor(rendered: dict):
     assert "Plan con €" not in rendered["tribunal"]["info"]
 
 
+def test_executive_header_figures_only_precede_gestor_home(rendered: dict):
+    needle = "Salud ecológica media"
+    assert needle in rendered["gestor"]["md"]
+    assert needle not in rendered["tecnica"]["md"]
+    assert needle not in rendered["tribunal"]["md"]
+
+
 def test_each_view_shows_its_own_banner(rendered: dict):
     # Cada vista renderiza su propio banner y no el de las otras.
     distinctive = {

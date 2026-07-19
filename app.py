@@ -38,7 +38,7 @@ from src.ui.layout import (
 from src.ui.navigation import (
     layer_tab_labels,
     module_tab_labels,
-    navigation_layer,
+    navigation_layers,
 )
 from src.ui.render_widgets import (
     _compute_exec_kpis,
@@ -100,6 +100,8 @@ with st.sidebar:
     )
     _view = get_view(_view_mode)
     st.caption(_view.audience)
+    st.caption(f"Personas agrupadas: {' · '.join(_view.personas)}")
+    st.caption(f"🏠 Inicio: {_view.home_path}")
     if _view.shows:
         st.caption(f"🔁 {_view.shows}")
     # F10 Fase 5: telemetría de uso de vistas — local y opt-in (SNTO_TELEMETRY=1).
@@ -163,6 +165,8 @@ st.markdown(
     f'<div style="padding:7px 14px;border-radius:6px;margin:4px 0 2px;'
     f'background:#eef3f8;border-left:4px solid #33485c;font-size:0.82rem;color:#33485c">'
     f'{_view.icon} <b>{_view.label}</b> — {_view.banner} '
+    f'<br><span style="font-size:0.76rem"><b>Inicio:</b> {_view.home_path} · '
+    f'<b>Perfiles:</b> {" · ".join(_view.personas)}</span> '
     f'<span style="color:#7a8899">Énfasis: {_view.emphasis}</span></div>',
     unsafe_allow_html=True,
 )
@@ -213,17 +217,20 @@ elif _selected_asset is not None:
     st.stop()
 
 # ── TAREA 2: Tira de 4 KPIs ejecutivos ───────────────────────────────────────
-_exec_kpis = _compute_exec_kpis(ranked_assets, base_budget, assets_by_id)
-if _socio:  # KPI "Empleos locales en riesgo" respaldado por datos reales
-    _exec_kpis["jobs_risk"] = _socio["jobs"].total
-_render_exec_kpis(_exec_kpis, selected_key)
-if _socio:
-    st.caption(
-        "ℹ️ *Empleos locales en riesgo* calculado con datos reales **ALMUDENA / INE** "
-        "(afiliados a hostelería del municipio × exposición ambiental de sus activos), "
-        "no con el proxy de visitantes. Detalle en "
-        "**Decidir → Impacto socioeconómico**."
-    )
+# Fase 6.6: el encabezado de decisión pertenece al home Gestor. Técnica y
+# Auditoría abren directamente su capa sin cifras ejecutivas por delante.
+if _view.home_layer == "decidir":
+    _exec_kpis = _compute_exec_kpis(ranked_assets, base_budget, assets_by_id)
+    if _socio:  # KPI "Empleos locales en riesgo" respaldado por datos reales
+        _exec_kpis["jobs_risk"] = _socio["jobs"].total
+    _render_exec_kpis(_exec_kpis, selected_key)
+    if _socio:
+        st.caption(
+            "ℹ️ *Empleos locales en riesgo* calculado con datos reales "
+            "**ALMUDENA / INE** (afiliados a hostelería del municipio × "
+            "exposición ambiental de sus activos), no con el proxy de "
+            "visitantes. Detalle en **Decidir → Impacto socioeconómico**."
+        )
 
 st.divider()
 
@@ -238,89 +245,55 @@ st.markdown(
     'Arquitectura de decisión y evidencia</div>',
     unsafe_allow_html=True,
 )
-# Opción 2.1-A: se conserva st.tabs(), reagrupado en cuatro capas IA. Los
-# módulos mantienen sus renderizadores y estado; solo cambia su propietario
-# visual. La navegación multipágina queda diferida a la evaluación de 6.5.
-(layer_decide, layer_diagnose, layer_evidence, layer_govern) = st.tabs(
-    layer_tab_labels()
-)
-
-with layer_decide:
-    st.caption(f"**Decidir** · {navigation_layer('decidir').question}")
-    (tab_kpis, tab_urgent, tab_simulator, tab_socioeco) = st.tabs(
-        module_tab_labels("decidir")
-    )
-
-with layer_diagnose:
-    st.caption(
-        f"**Diagnosticar** · {navigation_layer('diagnosticar').question}"
-    )
-    (tab_diagnostic, tab_assets, tab_portfolio) = st.tabs(
-        module_tab_labels("diagnosticar")
-    )
-
-with layer_evidence:
-    st.caption(f"**Evidenciar** · {navigation_layer('evidenciar').question}")
-    (tab_timeseries,) = st.tabs(module_tab_labels("evidenciar"))
-
-with layer_govern:
-    st.caption(f"**Gobernar** · {navigation_layer('gobernar').question}")
-    (tab_method,) = st.tabs(module_tab_labels("gobernar"))
-
-
-# ── Tab 1: KPIs ───────────────────────────────────────────────────────────────
-with tab_kpis:
-    render_tab_kpis(dashboard, ranked_assets, base_comps, calibration, _view)
-
-
-# ── Tab 2: Portafolio TPI ─────────────────────────────────────────────────────
-with tab_portfolio:
-    render_tab_portfolio(ranked_assets, base_comps, _view)
-
-
-# ── Tab 3: Series Temporales Espectrales ─────────────────────────────────────
-with tab_timeseries:
-    render_tab_timeseries(ranked_assets, _view)
-
-
-# ── Tab 4: Simulador Financiero What-If ──────────────────────────────────────
-with tab_simulator:
-    render_tab_simulator(base_comps, assets_by_id, base_budget, ranked_assets, _view)
-
-
-# ── Tab 5: Impacto Socioeconómico ─────────────────────────────────────────────
-with tab_socioeco:
-    render_tab_socioeco(_socio, base_comps, ranked_assets, base_budget, _view)
-
-
-# ── Tab 2: Diagnóstico Satelital y Mapa (corazón científico) ──────────────────
-# Fusiona el mapa territorial (gestión/espectral) con las sendas reales del
-# Pipeline A (Sentinel-2). El bloque del mapa se ejecuta primero (arriba) y el
-# de sendas reales después (abajo), ambos dentro de la misma pestaña.
-with tab_diagnostic:
-    render_tab_diagnostic(
-        selected_key,
-        _terr_cfg,
-        ranked_assets,
-        _view,
-        dashboard,
-        base_comps,
-    )
-
-
-# ── Tab 7: Catálogo de activos ────────────────────────────────────────────────
-with tab_assets:
-    render_tab_assets(calibration, ranked_assets, _view)
-
-
-# ── Tab 8: Fundamento y Trazabilidad ──────────────────────────────────────────
-with tab_method:
-    render_tab_method(_view)
-
-
-# ── Tab 9: Acciones Urgentes (primer consumidor del backend persistente) ──────
-with tab_urgent:
-    render_tab_urgent_actions()
+# Opciones 2.1-A + 2.2-A: se conservan las cuatro capas en st.tabs(), pero la
+# capa home de la audiencia se coloca primero y queda seleccionada al cargar.
+_layer_order = navigation_layers(_view.home_layer)
+_layer_tabs = st.tabs(layer_tab_labels(_view.home_layer))
+for _layer, _layer_container in zip(_layer_order, _layer_tabs, strict=True):
+    with _layer_container:
+        st.caption(f"**{_layer.label}** · {_layer.question}")
+        _module_tabs = st.tabs(module_tab_labels(_layer.key))
+        for _module, _module_container in zip(
+            _layer.modules, _module_tabs, strict=True
+        ):
+            with _module_container:
+                if _module.key == "panorama":
+                    render_tab_kpis(
+                        dashboard, ranked_assets, base_comps, calibration, _view
+                    )
+                elif _module.key == "urgent_actions":
+                    render_tab_urgent_actions()
+                elif _module.key == "budget":
+                    render_tab_simulator(
+                        base_comps,
+                        assets_by_id,
+                        base_budget,
+                        ranked_assets,
+                        _view,
+                    )
+                elif _module.key == "socioeconomic":
+                    render_tab_socioeco(
+                        _socio, base_comps, ranked_assets, base_budget, _view
+                    )
+                elif _module.key == "spatial":
+                    render_tab_diagnostic(
+                        selected_key,
+                        _terr_cfg,
+                        ranked_assets,
+                        _view,
+                        dashboard,
+                        base_comps,
+                    )
+                elif _module.key == "assets":
+                    render_tab_assets(calibration, ranked_assets, _view)
+                elif _module.key == "pressure":
+                    render_tab_portfolio(ranked_assets, base_comps, _view)
+                elif _module.key == "satellite":
+                    render_tab_timeseries(ranked_assets, _view)
+                elif _module.key == "methodology":
+                    render_tab_method(_view)
+                else:  # pragma: no cover - guarded by navigation contract tests
+                    raise ValueError(f"Unknown navigation module: {_module.key}")
 
 
 # ── Pie de página ─────────────────────────────────────────────────────────────

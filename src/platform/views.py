@@ -47,6 +47,9 @@ class ViewProfile:
     emphasis: str
     confidence_detail: ConfidenceDetail
     banner: str
+    personas: tuple[str, ...]
+    home_layer: str
+    home_module: str
     # ── Política de divulgación por capas (F7) ────────────────────────────────
     # Controlan qué muestra cada vista, para que las tres difieran de verdad y no
     # solo en el banner. Principio aditivo: todas ven el núcleo; cada perfil suma
@@ -56,6 +59,11 @@ class ViewProfile:
     # procedencia, fechas de escena, override, validación cruzada, límites
     audit: bool = False
     shows: str = ""  # resumen de una línea de "qué cambia" (para el sidebar)
+
+    @property
+    def home_path(self) -> str:
+        """Visible IA path that opens first for this grouped audience."""
+        return f"{self.home_layer.title()} → {self.home_module}"
 
     def section(
         self,
@@ -99,9 +107,12 @@ _PROFILES: dict[ViewMode, ViewProfile] = {
         confidence_detail=ConfidenceDetail.RAW,
         banner="Vista técnica: índices espectrales, baselines y métricas de "
                "incertidumbre sin simplificar.",
+        personas=("Analista GIS / EO",),
+        home_layer="diagnosticar",
+        home_module="Diagnóstico espacial",
         technical=True,
-        shows="Añade p-valores Mann-Kendall, componentes DCS"
-              " y notas espectrales abiertas.",
+        shows="Abre el diagnóstico espacial y añade p-valores Mann-Kendall, "
+              "componentes DCS y notas espectrales.",
     ),
     ViewMode.GESTOR: ViewProfile(
         mode=ViewMode.GESTOR,
@@ -112,9 +123,16 @@ _PROFILES: dict[ViewMode, ViewProfile] = {
         confidence_detail=ConfidenceDetail.CONCISE,
         banner="Vista gestor: prioridad, presupuesto y acción — con el nivel de "
                "confianza resumido en una línea.",
+        personas=(
+            "Dirección del parque",
+            "Gestión de destino",
+            "Decisión pública",
+        ),
+        home_layer="decidir",
+        home_module="Panorama ejecutivo",
         simplified=True,
-        shows="Oculta la jerga estadística y añade"
-              " la acción prioritaria del territorio.",
+        shows="Abre el panorama ejecutivo, oculta jerga estadística y prioriza "
+              "la acción del territorio.",
     ),
     ViewMode.TRIBUNAL: ViewProfile(
         mode=ViewMode.TRIBUNAL,
@@ -138,10 +156,13 @@ _PROFILES: dict[ViewMode, ViewProfile] = {
                "docs/informe_tecnico_limites.md, "
                "docs/baselines_uncertainty_design.md y "
                "docs/socioeconomic_integration_design.md.",
+        personas=("Revisión científica", "Auditoría / evaluación"),
+        home_layer="gobernar",
+        home_module="Metodología y auditoría",
         technical=True,
         audit=True,
-        shows="Suma a la vista técnica la procedencia del dato,"
-              " la validación cruzada y los límites declarados.",
+        shows="Abre metodología y suma procedencia, validación cruzada y "
+              "límites declarados.",
     ),
 }
 
