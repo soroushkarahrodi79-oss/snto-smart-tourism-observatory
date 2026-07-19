@@ -155,6 +155,13 @@ def test_pressure_capacity_contract_keeps_causal_caveat(rendered: dict):
         assert "Correlación ≠ causa" in rendered[view]["warning"]
 
 
+def test_confidence_module_declares_pending_component_propagation(rendered: dict):
+    for view in ("tecnica", "gestor", "tribunal"):
+        assert "PROPAGACIÓN PENDIENTE" in rendered[view]["md"]
+        assert "Mapa de brechas de evidencia" in rendered[view]["md"]
+        assert "no sus cinco componentes" in rendered[view]["warning"]
+
+
 def test_telemetry_records_view_when_enabled(tmp_path, monkeypatch):
     # F10 Fase 5: con SNTO_TELEMETRY=1 la app registra la vista en el log local.
     # Redirigimos DEFAULT_LOG a tmp para no tocar data/outputs del repo.

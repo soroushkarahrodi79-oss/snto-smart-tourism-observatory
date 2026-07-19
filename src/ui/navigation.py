@@ -61,7 +61,10 @@ NAVIGATION_LAYERS = (
         label="Evidenciar",
         icon="🛰️",
         question="¿Qué datos sostienen la señal?",
-        modules=(NavigationModule("satellite", "Evidencia satelital"),),
+        modules=(
+            NavigationModule("satellite", "Evidencia satelital"),
+            NavigationModule("confidence", "Confianza e incertidumbre"),
+        ),
     ),
     NavigationLayer(
         key="gobernar",

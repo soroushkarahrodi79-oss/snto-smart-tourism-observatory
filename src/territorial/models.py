@@ -120,6 +120,9 @@ class TerritorialAsset:
     recommended_action_label: Optional[str] = None
     budget_estimate_eur: Optional[int] = None
     priority_rank: Optional[int] = None
+    # Exact assessor output when the pipeline persists DCS decomposition.
+    # ``None`` is meaningful: total DCS exists, component propagation pending.
+    dcs_components: Optional[dict[str, float]] = None
 
 
 # ── TPI component breakdown ───────────────────────────────────────────────
