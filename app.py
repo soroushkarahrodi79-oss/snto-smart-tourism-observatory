@@ -52,6 +52,7 @@ from src.ui.tabs.tab_diagnostic import render_tab_diagnostic
 from src.ui.tabs.tab_kpis import render_tab_kpis
 from src.ui.tabs.tab_method import render_tab_method
 from src.ui.tabs.tab_portfolio import render_tab_portfolio
+from src.ui.tabs.tab_provenance import render_tab_provenance
 from src.ui.tabs.tab_simulator import render_tab_simulator
 from src.ui.tabs.tab_socioeco import render_tab_socioeco
 from src.ui.tabs.tab_timeseries import render_tab_timeseries
@@ -293,6 +294,14 @@ for _layer, _layer_container in zip(_layer_order, _layer_tabs, strict=True):
                     render_tab_timeseries(ranked_assets, _view)
                 elif _module.key == "confidence":
                     render_tab_confidence(ranked_assets, _view)
+                elif _module.key == "provenance":
+                    render_tab_provenance(
+                        ranked_assets,
+                        calibration,
+                        selected_key,
+                        dashboard.report_date,
+                        _view,
+                    )
                 elif _module.key == "methodology":
                     render_tab_method(_view)
                 else:  # pragma: no cover - guarded by navigation contract tests

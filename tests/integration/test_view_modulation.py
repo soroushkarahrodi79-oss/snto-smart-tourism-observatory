@@ -59,8 +59,10 @@ def _render(view_value: str) -> dict:
     )
     return {
         "md": " ".join(m.value for m in at.markdown),
+        "subheader": " ".join(s.value for s in at.subheader),
         "info": " ".join(i.value for i in at.info),
         "warning": " ".join(w.value for w in at.warning),
+        "error": " ".join(e.value for e in at.error),
         "fin": {
             f"{m.label}={m.value}" for m in at.metric
             if m.label in _FINANCIAL_LABELS
@@ -160,6 +162,15 @@ def test_confidence_module_declares_pending_component_propagation(rendered: dict
         assert "PROPAGACIÓN PENDIENTE" in rendered[view]["md"]
         assert "Mapa de brechas de evidencia" in rendered[view]["md"]
         assert "no sus cinco componentes" in rendered[view]["warning"]
+
+
+def test_provenance_module_never_fakes_missing_audit_metadata(rendered: dict):
+    for view in ("tecnica", "gestor", "tribunal"):
+        assert "Proveniencia de datos y linaje" in rendered[view]["subheader"]
+        assert "PROPAGACIÓN INCOMPLETA" in rendered[view]["error"]
+        assert "Fecha de informe no equivale a fecha del dato" in rendered[view][
+            "warning"
+        ]
 
 
 def test_telemetry_records_view_when_enabled(tmp_path, monkeypatch):
