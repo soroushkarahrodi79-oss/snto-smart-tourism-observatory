@@ -160,7 +160,8 @@ persistidos en Fase 5 (`ManagedAsset`, `Alert`, `Recommendation`,
 | 6.4 | Reagrupación de navegación en las 4 capas IA (implementa la decisión de §2.1) | Alto — toca `app.py` y la navegación completa | **§2.1** |
 | 6.5 | Activo como página (implementa la decisión de §2.3) | Alto — nueva superficie de navegación | **§2.1, §2.3** |
 | 6.6 | Home pages por persona (implementa la decisión de §2.2) | Medio-Alto | **§2.2** |
-| 6.7+ | Módulos P2/P3 restantes de la tabla de prioridad (spec §6): simulador de escenarios, presión y capacidad de carga, confianza y decomposición DCS, proveniencia, generador de informes, configuración territorial | Variable, uno por PR | Depende de cada módulo |
+| 6.7a | **✅ Simulador de escenarios v2**: tres carteras anuales comparables (esencial / plan / refuerzo), supuestos editables de coste y eficacia, costes como horquilla redondeada, delta de riesgo evitado y composición por Tier en paleta índigo. Reutiliza el optimizador TIS/DCS existente y etiqueta todos los resultados como simulados. | Medio — `src/intervention/planning.py` + `src/ui/tabs/tab_simulator.py` | Ninguno |
+| 6.7b+ | Módulos P2/P3 restantes de la tabla de prioridad (spec §6): presión y capacidad de carga, confianza y decomposición DCS, proveniencia, generador de informes, configuración territorial | Variable, uno por PR | Depende de cada módulo |
 
 Cada paso: rama desde `main`, tests, PR individual, **sin auto-merge**,
 verificación manual (`streamlit run app.py`) cuando toque `src/ui/` — mismo

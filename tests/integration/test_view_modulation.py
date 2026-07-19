@@ -22,7 +22,12 @@ _APP = str(Path(__file__).resolve().parents[2] / "app.py")
 
 # st.metric financieros que NO dependen de la vista (pestaña Simulador). Deben
 # salir idénticos en las tres audiencias: las cifras no cambian, solo su lectura.
-_FINANCIAL_LABELS = {"Total asignado", "Delta EHS portafolio", "Delta visitantes"}
+_FINANCIAL_LABELS = {
+    "Coste de cartera",
+    "Delta EHS portafolio",
+    "Riesgo evitado (simulado)",
+    "Delta visitantes",
+}
 
 
 def _run_app(view_value: str) -> AppTest:
@@ -59,6 +64,7 @@ def _render(view_value: str) -> dict:
             f"{m.label}={m.value}" for m in at.metric
             if m.label in _FINANCIAL_LABELS
         },
+        "sliders": {slider.label: slider.value for slider in at.slider},
         "map_mode": map_mode,
     }
 
@@ -127,6 +133,18 @@ def test_financial_figures_are_identical_across_views(rendered: dict):
     fin = [rendered[v]["fin"] for v in ("tecnica", "gestor", "tribunal")]
     assert fin[0], "no se capturó ninguna métrica financiera"
     assert fin[0] == fin[1] == fin[2], f"cifras financieras divergen: {fin}"
+
+
+def test_budget_scenario_contract_is_visible_and_editable(rendered: dict):
+    expected_sliders = {
+        "Presupuesto anual de referencia (€)": 100_000,
+        "Banda de coste (±%)": 20,
+        "Eficacia realizada (%)": 80,
+    }
+    for view in ("tecnica", "gestor", "tribunal"):
+        assert expected_sliders.items() <= rendered[view]["sliders"].items()
+        assert "ESCENARIO SIMULADO" in rendered[view]["md"]
+        assert "Riesgo evitado agregado" in rendered[view]["md"]
 
 
 def test_telemetry_records_view_when_enabled(tmp_path, monkeypatch):
