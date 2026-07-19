@@ -64,6 +64,7 @@ NAVIGATION_LAYERS = (
         modules=(
             NavigationModule("satellite", "Evidencia satelital"),
             NavigationModule("confidence", "Confianza e incertidumbre"),
+            NavigationModule("provenance", "Proveniencia y linaje"),
         ),
     ),
     NavigationLayer(
