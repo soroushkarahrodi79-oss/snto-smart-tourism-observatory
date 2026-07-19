@@ -14,6 +14,7 @@ import streamlit as st
 from src.platform.enrichment import enrichment_summary
 from src.platform.provenance import data_status_badge
 from src.temporal import DataStatus
+from src.ui.asset_navigation import select_asset
 from src.ui.kpi_sections import decision_kpis
 from src.ui.render_widgets import _render_fichas_rapidas, render_kpi_grid
 
@@ -49,6 +50,12 @@ def render_tab_kpis(dashboard, ranked_assets, base_comps, calibration, _view) ->
                 f'<b>{_priority.name.split("—")[0].strip()}</b> ({_priority.region}) — '
                 f'{_act}{_cost_txt}</div></div>',
                 unsafe_allow_html=True,
+            )
+            st.button(
+                "Abrir ficha del activo prioritario",
+                key=f"asset-page-manager-priority-{_priority.asset_id}",
+                on_click=select_asset,
+                args=(st.session_state, _priority.asset_id),
             )
 
     render_kpi_grid(

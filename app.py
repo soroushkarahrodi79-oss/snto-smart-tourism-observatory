@@ -22,6 +22,12 @@ from src.socioeconomic.indicators import (
     jobs_at_risk as compute_jobs_at_risk,
 )
 from src.socioeconomic.loader import load_municipalities, snapshot_exists
+from src.ui.asset_detail import render_asset_page
+from src.ui.asset_navigation import (
+    clear_asset_selection,
+    find_asset,
+    selected_asset_id,
+)
 from src.ui.layout import (
     _TERRITORY_CONFIG,
     _VISIBLE_TERRITORIES,
@@ -185,6 +191,26 @@ if selected_key == "pnsg" and snapshot_exists():
             "svi": compute_svi(_socio_snapshot, _socio_risk),
             "jobs": compute_jobs_at_risk(_socio_snapshot, _socio_risk),
         }
+
+# ── Fase 6.5: el activo como página central ──────────────────────────────────
+# Con la opción de navegación 2.1-A no hay URL multipágina. El id seleccionado
+# en session_state actúa como ruta y sustituye la suite de módulos hasta volver.
+_asset_route_id = selected_asset_id(st.session_state)
+_selected_asset = find_asset(ranked_assets, _asset_route_id)
+if _asset_route_id is not None and _selected_asset is None:
+    clear_asset_selection(st.session_state)
+    st.warning(
+        "La ficha seleccionada ya no pertenece al territorio activo. "
+        "Se ha vuelto a la arquitectura general."
+    )
+elif _selected_asset is not None:
+    _comparison_by_asset = {item.asset_id: item for item in base_comps}
+    render_asset_page(
+        _selected_asset,
+        _comparison_by_asset.get(_selected_asset.asset_id),
+        calibration.get(_selected_asset.asset_id),
+    )
+    st.stop()
 
 # ── TAREA 2: Tira de 4 KPIs ejecutivos ───────────────────────────────────────
 _exec_kpis = _compute_exec_kpis(ranked_assets, base_budget, assets_by_id)

@@ -10,6 +10,7 @@ from __future__ import annotations
 import streamlit as st
 
 from src.platform.charts import build_portfolio_matrix
+from src.ui.asset_navigation import select_asset
 from src.ui.render_helpers import (
     _ALERT_META,
     _ALERT_SEVERITY,
@@ -66,6 +67,12 @@ def _render_action_first(assets: list, comps: list) -> None:
             f'EHS {a.ehs:.0f} · TPI {a.tpi:.0f}</div>'
             f'</div>',
             unsafe_allow_html=True,
+        )
+        st.button(
+            "Abrir ficha",
+            key=f"asset-page-action-{a.asset_id}",
+            on_click=select_asset,
+            args=(st.session_state, a.asset_id),
         )
 
 
@@ -154,6 +161,12 @@ def render_tab_portfolio(ranked_assets, base_comps, _view) -> None:
                 f'EHS {a.ehs:.0f} · TPI {a.tpi:.0f} · {a.region}</span>'
                 f'</div>',
                 unsafe_allow_html=True,
+            )
+            st.button(
+                "Abrir ficha",
+                key=f"asset-page-alert-{a.asset_id}",
+                on_click=select_asset,
+                args=(st.session_state, a.asset_id),
             )
 
 
