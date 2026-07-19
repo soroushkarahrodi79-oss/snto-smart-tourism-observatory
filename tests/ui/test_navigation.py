@@ -30,7 +30,7 @@ def test_every_legacy_module_has_exactly_one_layer_owner() -> None:
     module_keys = [
         module.key for layer in NAVIGATION_LAYERS for module in layer.modules
     ]
-    assert len(module_keys) == len(set(module_keys)) == 9
+    assert len(module_keys) == len(set(module_keys)) == 10
     assert set(module_keys) == {
         "panorama",
         "urgent_actions",
@@ -40,6 +40,7 @@ def test_every_legacy_module_has_exactly_one_layer_owner() -> None:
         "assets",
         "pressure",
         "satellite",
+        "confidence",
         "methodology",
     }
 
@@ -56,7 +57,10 @@ def test_module_order_matches_the_approved_option_a_mapping() -> None:
         "Catálogo de activos y sendas",
         "Presión y capacidad de carga",
     ]
-    assert module_tab_labels("evidenciar") == ["Evidencia satelital"]
+    assert module_tab_labels("evidenciar") == [
+        "Evidencia satelital",
+        "Confianza e incertidumbre",
+    ]
     assert module_tab_labels("gobernar") == ["Metodología y auditoría"]
 
 
