@@ -31,6 +31,26 @@ def test_every_view_has_renderable_fields():
     for mode in view_modes():
         v = get_view(mode)
         assert v.icon and v.label and v.audience and v.emphasis and v.banner
+        assert v.personas and v.home_layer and v.home_module and v.home_path
+
+
+def test_three_grouped_views_cover_the_six_v2_personas_once():
+    personas = [
+        persona
+        for mode in view_modes()
+        for persona in get_view(mode).personas
+    ]
+    assert len(personas) == len(set(personas)) == 6
+
+
+def test_each_view_declares_its_persona_home():
+    assert get_view(ViewMode.GESTOR).home_path == "Decidir → Panorama ejecutivo"
+    assert get_view(ViewMode.TECNICA).home_path == (
+        "Diagnosticar → Diagnóstico espacial"
+    )
+    assert get_view(ViewMode.TRIBUNAL).home_path == (
+        "Gobernar → Metodología y auditoría"
+    )
 
 
 def test_unknown_view_raises():
