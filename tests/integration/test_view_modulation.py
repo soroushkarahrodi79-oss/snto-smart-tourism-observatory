@@ -60,6 +60,7 @@ def _render(view_value: str) -> dict:
     return {
         "md": " ".join(m.value for m in at.markdown),
         "info": " ".join(i.value for i in at.info),
+        "warning": " ".join(w.value for w in at.warning),
         "fin": {
             f"{m.label}={m.value}" for m in at.metric
             if m.label in _FINANCIAL_LABELS
@@ -145,6 +146,13 @@ def test_budget_scenario_contract_is_visible_and_editable(rendered: dict):
         assert expected_sliders.items() <= rendered[view]["sliders"].items()
         assert "ESCENARIO SIMULADO" in rendered[view]["md"]
         assert "Riesgo evitado agregado" in rendered[view]["md"]
+
+
+def test_pressure_capacity_contract_keeps_causal_caveat(rendered: dict):
+    for view in ("tecnica", "gestor", "tribunal"):
+        assert "MODELO DE PLANIFICACIÓN" in rendered[view]["md"]
+        assert "TPI estacional estimado" in rendered[view]["md"]
+        assert "Correlación ≠ causa" in rendered[view]["warning"]
 
 
 def test_telemetry_records_view_when_enabled(tmp_path, monkeypatch):

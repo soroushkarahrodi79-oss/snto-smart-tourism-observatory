@@ -161,7 +161,8 @@ persistidos en Fase 5 (`ManagedAsset`, `Alert`, `Recommendation`,
 | 6.5 | Activo como página (implementa la decisión de §2.3) | Alto — nueva superficie de navegación | **§2.1, §2.3** |
 | 6.6 | Home pages por persona (implementa la decisión de §2.2) | Medio-Alto | **§2.2** |
 | 6.7a | **✅ Simulador de escenarios v2**: tres carteras anuales comparables (esencial / plan / refuerzo), supuestos editables de coste y eficacia, costes como horquilla redondeada, delta de riesgo evitado y composición por Tier en paleta índigo. Reutiliza el optimizador TIS/DCS existente y etiqueta todos los resultados como simulados. | Medio — `src/intervention/planning.py` + `src/ui/tabs/tab_simulator.py` | Ninguno |
-| 6.7b+ | Módulos P2/P3 restantes de la tabla de prioridad (spec §6): presión y capacidad de carga, confianza y decomposición DCS, proveniencia, generador de informes, configuración territorial | Variable, uno por PR | Depende de cada módulo |
+| 6.7b | **✅ Presión y capacidad de carga**: TPI estacional explícitamente estimado, capacidad operativa como horquilla condicionada por EHS/DCS, y atribución turismo-vs-clima en lenguaje de hipótesis SCM con aviso «correlación ≠ causa». Conserva la matriz territorial previa y corrige sus etiquetas para no presentar el proxy anual como aforo observado. | Medio — `src/platform/pressure_capacity.py` + `src/ui/tabs/tab_portfolio.py` | Ninguno |
+| 6.7c+ | Módulos P2/P3 restantes de la tabla de prioridad (spec §6): confianza y decomposición DCS, proveniencia, generador de informes, configuración territorial | Variable, uno por PR | Depende de cada módulo |
 
 Cada paso: rama desde `main`, tests, PR individual, **sin auto-merge**,
 verificación manual (`streamlit run app.py`) cuando toque `src/ui/` — mismo

@@ -60,8 +60,8 @@ def build_portfolio_matrix(assets: list) -> go.Figure:
 
     Axes
     ----
-    X — Tourist Pressure Index: visitor_capacity_annual normalised 0-100
-        against the territorial maximum (so the busiest asset = 100).
+    X — Tourist Pressure Proxy: estimated ``visitor_capacity_annual``
+        normalised 0-100 against the territorial maximum.
     Y — Ecological Risk: (100 - ehs), so higher Y = greater danger.
         Axis range [0, 100] with 0 = pristine, 100 = maximum degradation.
 
@@ -72,7 +72,7 @@ def build_portfolio_matrix(assets: list) -> go.Figure:
     --------------
     Colour  → tier  (1=red, 2=orange, 3=blue, 4=green)
     Size    → economic_importance (scaled to a readable pixel range)
-    Hover   → name, region, EHS, DCS, TPI, visitors/year
+    Hover   → name, region, EHS, DCS, TPI, estimated annual-volume proxy
 
     Args:
         assets: Ranked TerritorialAsset objects (tier and tpi must be set).
@@ -126,7 +126,7 @@ def build_portfolio_matrix(assets: list) -> go.Figure:
                 f"<b>Riesgo Ecológico</b>: {row['eco_risk']:.0f}/100<br>"
                 f"<b>DCS</b>: {row['dcs']:.0f}/100 &nbsp;·&nbsp; "
                 f"<b>TPI</b>: {row['tpi']}<br>"
-                f"<b>Visitantes/año</b>: {row['visitors']:,}<br>"
+                f"<b>Volumen anual estimado</b>: {row['visitors']:,}<br>"
                 f"<b>Importancia econ.</b>: {row['econ_imp']:.0%}"
             )
             for _, row in sub.iterrows()
@@ -194,7 +194,7 @@ def build_portfolio_matrix(assets: list) -> go.Figure:
             x=0.0, xanchor="left",
         ),
         xaxis=dict(
-            title="Índice de Presión Turística (Visitantes/año normalizado, 0-100)",
+            title="Proxy de presión turística (volumen estimado normalizado, 0-100)",
             range=[-3, 103],
             showgrid=True, gridcolor="rgba(180,190,200,0.3)",
             zeroline=False,
