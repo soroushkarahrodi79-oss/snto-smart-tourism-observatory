@@ -9,14 +9,23 @@ from __future__ import annotations
 
 import streamlit as st
 
-from src.intervention import allocate_tis_budget
+from src.intervention import BudgetScenarioAssumptions, build_budget_envelopes
+from src.platform import methodology as method
 
 
 def render_tab_simulator(base_comps, assets_by_id, base_budget, ranked_assets, _view) -> None:
     """Render the Simulador Financiero What-If tab (issue #27 extraction)."""
     import pandas as pd
+    import plotly.graph_objects as go
 
     st.subheader("Simulador Financiero — Mitigación de Impacto en Ecosistemas Vulnerables")
+    st.markdown(
+        method.scenario_badge(
+            "ESCENARIO SIMULADO",
+            "costes y efectos condicionados por supuestos editables",
+        ),
+        unsafe_allow_html=True,
+    )
     st.caption(
         "Ajusta el presupuesto público disponible y observa en tiempo real qué sendas "
         "entran o salen del plan de mitigación y cuánta capacidad de carga antrópica "
@@ -24,18 +33,104 @@ def render_tab_simulator(base_comps, assets_by_id, base_budget, ranked_assets, _
         "optimiza por TIS con verificación de evidencia (DCS Gate)."
     )
 
-    # ── Slider de presupuesto ─────────────────────────────────────────────────
-    sim_budget = st.slider(
-        "Presupuesto de Conservación Disponible (€)",
-        min_value=10_000,
-        max_value=300_000,
-        value=100_000,
-        step=10_000,
-        format="€%d",
-    )
+    # ── Supuestos editables y comparación de carteras ─────────────────────────
+    with st.expander("⚙️ Supuestos editables del escenario", expanded=True):
+        assumption_cols = st.columns(3)
+        with assumption_cols[0]:
+            sim_budget = st.slider(
+                "Presupuesto anual de referencia (€)",
+                min_value=20_000,
+                max_value=300_000,
+                value=100_000,
+                step=10_000,
+                format="€%d",
+            )
+        with assumption_cols[1]:
+            cost_uncertainty_pct = st.slider(
+                "Banda de coste (±%)",
+                min_value=0,
+                max_value=50,
+                value=20,
+                step=5,
+            )
+        with assumption_cols[2]:
+            effectiveness_pct = st.slider(
+                "Eficacia realizada (%)",
+                min_value=0,
+                max_value=100,
+                value=80,
+                step=5,
+            )
+        st.caption(
+            "La banda de coste es una horquilla de planificación, no un intervalo "
+            "estadístico. La eficacia modera el Δ de riesgo modelado; no modifica "
+            "datos observados ni la regla de priorización TIS/DCS."
+        )
 
-    # ── Recalcular asignación en tiempo real (sin caché) ──────────────────────
-    live_budget = allocate_tis_budget(base_comps, assets_by_id, sim_budget)
+    assumptions = BudgetScenarioAssumptions(
+        cost_uncertainty_pct=cost_uncertainty_pct,
+        effectiveness_pct=effectiveness_pct,
+    )
+    envelopes = build_budget_envelopes(
+        base_comps,
+        assets_by_id,
+        sim_budget,
+        assumptions,
+    )
+    live_plan = next(item for item in envelopes if item.code == "annual")
+    live_budget = live_plan.result
+
+    st.markdown("#### Comparación de carteras anuales")
+    envelope_cols = st.columns(3)
+    for col, envelope in zip(envelope_cols, envelopes, strict=True):
+        with col:
+            st.markdown(
+                '<div class="snto-decision-card" style="border-top:4px solid #56548a">'
+                f'<div class="snto-micro-label">{envelope.label} · SIMULADO</div>'
+                f'<div class="snto-decision-value">€{envelope.budget_eur:,}</div>'
+                f'<div class="snto-body-copy"><b>{envelope.funded_count}</b> activos · '
+                f'coste €{envelope.allocated_cost_low_eur:,}–'
+                f'€{envelope.allocated_cost_high_eur:,}<br>'
+                f'Riesgo evitado agregado: <b>{envelope.avoided_risk_delta:.2f}</b> '
+                '(ΣΔ risk_score)</div></div>',
+                unsafe_allow_html=True,
+            )
+
+    tier_rows = []
+    for envelope in envelopes:
+        for tier, count in envelope.funded_by_tier:
+            tier_rows.append(
+                {"Cartera": envelope.label, "Tier": f"Tier {tier}", "Activos": count}
+            )
+    tier_df = pd.DataFrame(tier_rows)
+    tier_fig = go.Figure()
+    tier_colors = {1: "#312e5c", 2: "#56548a", 3: "#a9adcb", 4: "#d6d9e8"}
+    for tier in range(1, 5):
+        subset = tier_df[tier_df["Tier"] == f"Tier {tier}"]
+        tier_fig.add_trace(
+            go.Bar(
+                x=subset["Cartera"],
+                y=subset["Activos"],
+                name=f"Tier {tier}",
+                marker_color=tier_colors[tier],
+                hovertemplate=(
+                    "%{x}<br>Tier "
+                    + str(tier)
+                    + ": %{y} activos<extra></extra>"
+                ),
+            )
+        )
+    tier_fig.update_layout(
+        barmode="stack",
+        title="Composición financiada por prioridad de inversión",
+        yaxis_title="Activos financiados",
+        legend=dict(orientation="h", y=1.08, x=0),
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+        height=310,
+        margin=dict(l=20, r=20, t=70, b=30),
+    )
+    st.plotly_chart(tier_fig, use_container_width=True)
 
     # Conjuntos de IDs financiados en el escenario base (100K) y en el live
     base_funded_ids = {item.asset_id for item in base_budget.funded_items}
@@ -130,7 +225,8 @@ def render_tab_simulator(base_comps, assets_by_id, base_budget, ranked_assets, _
     # ── KPIs secundarios ──────────────────────────────────────────────────────
     s_col1, s_col2, s_col3, s_col4 = st.columns(4)
     kpi_data = [
-        (s_col1, "Presupuesto Asignado",  f"€{live_budget.total_allocated_eur:,}",
+        (s_col1, "Coste estimado (rango)",
+         f"€{live_plan.allocated_cost_low_eur:,}–€{live_plan.allocated_cost_high_eur:,}",
          "#1565c0", "#e3f2fd"),
         (s_col2, "Presupuesto Restante",  f"€{live_budget.remaining_eur:,}",
          "#2e7d32" if live_budget.remaining_eur > 0 else "#c62828",
@@ -153,7 +249,6 @@ def render_tab_simulator(base_comps, assets_by_id, base_budget, ranked_assets, _
     st.write("")
 
     # ── Gráfico de asignación ─────────────────────────────────────────────────
-    import plotly.graph_objects as go
 
     # Construir DataFrame con todos los activos y su estado de financiación
     sim_rows = []
@@ -255,10 +350,32 @@ def render_tab_simulator(base_comps, assets_by_id, base_budget, ranked_assets, _
         )
 
         # Totales rápidos
-        t_col1, t_col2, t_col3 = st.columns(3)
+        t_col1, t_col2, t_col3, t_col4 = st.columns(4)
         with t_col1:
-            st.metric("Total asignado", f"€{live_budget.total_allocated_eur:,}")
+            st.metric(
+                "Coste de cartera",
+                (
+                    f"€{live_plan.allocated_cost_low_eur:,}–"
+                    f"€{live_plan.allocated_cost_high_eur:,}"
+                ),
+                help="Horquilla de planificación según el supuesto de coste editable.",
+            )
         with t_col2:
-            st.metric("Delta EHS portafolio", f"+{live_budget.portfolio_delta_ehs:.1f} pts")
+            st.metric(
+                "Delta EHS portafolio",
+                f"+{live_budget.portfolio_delta_ehs:.1f} pts",
+            )
         with t_col3:
-            st.metric("Delta visitantes", f"+{live_budget.portfolio_delta_visitors:,}")
+            st.metric(
+                "Riesgo evitado (simulado)",
+                f"{live_plan.avoided_risk_delta:.2f}",
+                help=(
+                    "Suma de reducciones de risk_score moderada por la eficacia "
+                    "asumida."
+                ),
+            )
+        with t_col4:
+            st.metric(
+                "Delta visitantes",
+                f"+{live_budget.portfolio_delta_visitors:,}",
+            )
