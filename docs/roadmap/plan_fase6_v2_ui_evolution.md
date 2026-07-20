@@ -1,5 +1,11 @@
 # Fase 6 — v2.0 role-based UI evolution (plan)
 
+> **Estado (2026-07-20): ✅ COMPLETA en código.** Todos los pasos de §4
+> (6.0–6.7f) están mergeados en `main` (PRs #75–#89); las tres decisiones de
+> §2 quedaron resueltas e implementadas por sus recomendaciones conservadoras.
+> Ver §7 para lo que queda fuera del alcance del plan (pase visual del
+> propietario y corte de release).
+
 ## 0. Qué NO es esta fase
 
 - No es una reescritura visual completa en un solo PR. Cada paso de §4 es un
@@ -90,6 +96,13 @@ inventar funcionalidad nueva de análisis.
 
 ## 2. Decisiones abiertas (requieren al propietario)
 
+> **Estado: las tres decisiones quedaron RESUELTAS e implementadas por sus
+> recomendaciones conservadoras.** 2.1 → opción A, tabs agrupadas por capa
+> (`src/ui/navigation.py`, PR #80). 2.2 → opción A, las 3 vistas absorben las
+> 6 personas (`ViewProfile` extendido con `home_layer`, PR #82). 2.3 → patrón
+> `st.session_state` compatible con 2.1-A (`src/ui/asset_detail.py`, PR #81).
+> El texto original se conserva a continuación como registro de la decisión.
+
 A diferencia de Fase 5, estas son decisiones de producto/UX, no de
 ingeniería — no las resuelvo por mi cuenta.
 
@@ -152,14 +165,14 @@ persistidos en Fase 5 (`ManagedAsset`, `Alert`, `Recommendation`,
 
 | Paso | Contenido | Riesgo | Bloqueado por |
 |---|---|---|---|
-| 6.0 | Este documento (docs-only) + corrección de numeración en `plan_fases_post_v1.2.md` | Ninguno | — |
-| 6.1 | Reglas del sistema de diseño (spec §7–9) aplicadas *in situ* a las tabs existentes: jerarquía tipográfica, precedencia de paleta, tarjetas de evidencia sin acento en Diagnosticar/Evidenciar. Sin reestructurar navegación. | Bajo — solo CSS/presentación, mismo patrón que `render_helpers.py` | Ninguno |
+| 6.0 | **✅** Este documento (docs-only) + corrección de numeración en `plan_fases_post_v1.2.md` | Ninguno | — |
+| 6.1 | **✅ (PR #78)** Reglas del sistema de diseño (spec §7–9) aplicadas *in situ* a las tabs existentes: jerarquía tipográfica, precedencia de paleta, tarjetas de evidencia sin acento en Diagnosticar/Evidenciar. Sin reestructurar navegación. | Bajo — solo CSS/presentación, mismo patrón que `render_helpers.py` | Ninguno |
 | 6.2a | **✅ Backend de triaje de alertas** (`alert_triage.py`: máquina de estados assign/escalate/dismiss-with-reason, auditada; `POST /api/v2/alerts/{id}/triage`; `UrgentAction` enriquecida con `confidence` del top recommendation y `field_verified`). **Sin cambio de esquema**: reutiliza `Alert.status`/`reason`, `Recommendation.confidence`, `FieldVerification`. Falsos positivos = dismiss con motivo. | Medio — `src/persistence` + `/api/v2/alerts` | Ninguno |
 | 6.2b | **✅ Wiring UI del triaje** en la pestaña «Acciones Urgentes»: botones Asignar/Escalar/Descartar (con input de motivo obligatorio para descartar), y muestra de `confianza N%` (sin decimales espurios, spec §8) + badge de verificación de campo. Escrituras in-process con actor `ui`, vía `triage_alert`. Cubierto por AppTest (controles presentes) + tests de servicio para el comportamiento. **Recomendable un vistazo visual del propietario** (`streamlit run app.py`, pestaña 9). | Medio — `src/ui/tabs/` | 6.2a |
-| 6.3 | Panorama de decisión ejecutivo: de 10 KPIs a 3–4 cifras de decisión + reubicación de las 6 restantes a Diagnosticar | Medio — toca `app.py`/`tab_kpis.py` | Ninguno |
-| 6.4 | Reagrupación de navegación en las 4 capas IA (implementa la decisión de §2.1) | Alto — toca `app.py` y la navegación completa | **§2.1** |
-| 6.5 | Activo como página (implementa la decisión de §2.3) | Alto — nueva superficie de navegación | **§2.1, §2.3** |
-| 6.6 | Home pages por persona (implementa la decisión de §2.2) | Medio-Alto | **§2.2** |
+| 6.3 | **✅ (PR #79)** Panorama de decisión ejecutivo: de 10 KPIs a 3–4 cifras de decisión + reubicación de las 6 restantes a Diagnosticar | Medio — toca `app.py`/`tab_kpis.py` | Ninguno |
+| 6.4 | **✅ (PR #80)** Reagrupación de navegación en las 4 capas IA (implementa la decisión de §2.1 → opción A, `src/ui/navigation.py`) | Alto — toca `app.py` y la navegación completa | ~~§2.1~~ resuelto |
+| 6.5 | **✅ (PR #81)** Activo como página (implementa la decisión de §2.3 → enrutado por `st.session_state`, `src/ui/asset_detail.py` + `asset_navigation.py`) | Alto — nueva superficie de navegación | ~~§2.1, §2.3~~ resueltos |
+| 6.6 | **✅ (PR #82)** Home pages por persona (implementa la decisión de §2.2 → opción A: las 3 vistas absorben las 6 personas, `ViewProfile.home_layer`) | Medio-Alto | ~~§2.2~~ resuelto |
 | 6.7a | **✅ Simulador de escenarios v2**: tres carteras anuales comparables (esencial / plan / refuerzo), supuestos editables de coste y eficacia, costes como horquilla redondeada, delta de riesgo evitado y composición por Tier en paleta índigo. Reutiliza el optimizador TIS/DCS existente y etiqueta todos los resultados como simulados. | Medio — `src/intervention/planning.py` + `src/ui/tabs/tab_simulator.py` | Ninguno |
 | 6.7b | **✅ Presión y capacidad de carga**: TPI estacional explícitamente estimado, capacidad operativa como horquilla condicionada por EHS/DCS, y atribución turismo-vs-clima en lenguaje de hipótesis SCM con aviso «correlación ≠ causa». Conserva la matriz territorial previa y corrige sus etiquetas para no presentar el proxy anual como aforo observado. | Medio — `src/platform/pressure_capacity.py` + `src/ui/tabs/tab_portfolio.py` | Ninguno |
 | 6.7c | **✅ Confianza e incertidumbre**: superficie DCS por activo con soporte para componentes exactos persistidos, decomposición honesta, tornado de sensibilidad estructural, recomendaciones para elevar confianza y mapa de brechas. Mientras el dashboard conserve solo el total DCS, muestra intervalos matemáticamente posibles y «propagación pendiente»; nunca reparte el total de forma heurística. | Medio — `src/platform/confidence_explain.py` + `src/ui/tabs/tab_confidence.py` | Ninguno |
@@ -192,8 +205,17 @@ UI). v3.0 (multi-parque enterprise, spec §11) queda fuera de este plan.
 
 ## 7. Próximos pasos
 
-1. Propietario: revisar y aprobar (o corregir) las recomendaciones de §2.
-2. Tras la aprobación de este documento: ejecutar 6.1 y 6.2 (sin bloqueo),
-   en PRs pequeños, mismo patrón que Fase 5.
-3. 6.3 en paralelo o inmediatamente después.
-4. 6.4+ solo tras resolver §2.1.
+> **Estado: Fase 6 COMPLETA en código (PRs #75–#89, todos los pasos 6.0–6.7f
+> mergeados).** Trabajo repartido entre dos agentes: Codex del propietario
+> (6.1, 6.3–6.6, 6.7a–d, ramas `codex/*`) y Claude Code (6.0, 6.2a/b, 6.7e,
+> 6.7f). El borrador 6.7e de Codex quedó fuera del remoto y fue supersedido
+> por el PR #89.
+
+Queda, ya fuera del alcance de este plan:
+
+1. **Pase visual del propietario** sobre las 4 capas × 3 vistas
+   (`streamlit run app.py` o el Container App tras reconstruir la imagen).
+2. Corte de la siguiente release cuando el propietario dé el visto bueno
+   (bump desde `1.6.0.dev0`, `scripts/sync_readme.py`, tag).
+3. Los frentes operativos del roadmap: campaña de validación de campo (#26)
+   y vigilancia del trigger de despliegue del API (ADR-012).
