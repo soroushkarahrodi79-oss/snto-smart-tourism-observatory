@@ -74,6 +74,7 @@ NAVIGATION_LAYERS = (
         question="¿Puede reconstruirse y auditarse la decisión?",
         modules=(
             NavigationModule("methodology", "Metodología y auditoría"),
+            NavigationModule("reports", "Informes y exportaciones"),
             NavigationModule("configuration", "Configuración territorial"),
         ),
     ),

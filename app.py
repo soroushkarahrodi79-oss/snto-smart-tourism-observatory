@@ -54,6 +54,7 @@ from src.ui.tabs.tab_kpis import render_tab_kpis
 from src.ui.tabs.tab_method import render_tab_method
 from src.ui.tabs.tab_portfolio import render_tab_portfolio
 from src.ui.tabs.tab_provenance import render_tab_provenance
+from src.ui.tabs.tab_reports import render_tab_reports
 from src.ui.tabs.tab_simulator import render_tab_simulator
 from src.ui.tabs.tab_socioeco import render_tab_socioeco
 from src.ui.tabs.tab_timeseries import render_tab_timeseries
@@ -305,6 +306,14 @@ for _layer, _layer_container in zip(_layer_order, _layer_tabs, strict=True):
                     )
                 elif _module.key == "methodology":
                     render_tab_method(_view)
+                elif _module.key == "reports":
+                    render_tab_reports(
+                        ranked_assets,
+                        selected_key,
+                        dashboard.territory_name,
+                        dashboard.report_date,
+                        _view,
+                    )
                 elif _module.key == "configuration":
                     render_tab_config(_view)
                 else:  # pragma: no cover - guarded by navigation contract tests
