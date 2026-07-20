@@ -6,7 +6,7 @@
 
 **Version:** 1.4.0 | **Date:** July 2026 | **Author:** Smart Natural Tourism Observatory Research Team
 
-> **Document scope:** this whitepaper tracks the latest stable methodological baseline (`v1.5.0`). The repository `main` branch may contain later development work that is not yet part of a stable release.
+> **Document scope:** this whitepaper tracks the latest stable methodological baseline (`v2.0.0`). The repository `main` branch may contain later development work that is not yet part of a stable release. Note: v2.0.0 is a modular-architecture, backend and role-based-UI release; the methodology described here is unchanged from the v1.3.0 statistical-rigor baseline.
 
 ---
 
@@ -479,4 +479,4 @@ consolidated assumptions/limits register in
 
 **Codebase Repository:** `snto-smart-tourism-observatory`
 **Primary Contact:** soroush.karahrodi79@gmail.com
-**Platform Version:** 1.4.0 (latest stable) | **Python:** ≥ 3.12 | **License:** Research Use
+**Platform Version:** 2.0.0 (latest stable) | **Python:** ≥ 3.12 | **License:** Research Use
