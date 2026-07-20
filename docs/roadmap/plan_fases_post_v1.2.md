@@ -236,9 +236,15 @@ Según `docs/roadmap/v2.0.md`, y **solo tras** integrar Fases 0–4:
 
 ## 7bis. Fase 6 — v2.0: evolución de UI por roles
 
+> **Estado (2026-07-20): ✅ COMPLETA en código** — todos los pasos 6.0–6.7f
+> mergeados (PRs #75–#89): 4 capas IA (Decidir/Diagnosticar/Evidenciar/
+> Gobernar), homes por audiencia, activo-como-página, triaje de alertas y los
+> seis módulos 6.7x. Queda el pase visual del propietario y el corte de la
+> siguiente release.
+
 Ver `docs/roadmap/plan_fase6_v2_ui_evolution.md` para el plan completo
-(estado real verificado, decisiones de producto abiertas para el
-propietario, y los pasos de implementación en PRs pequeños).
+(estado real verificado, las decisiones de producto ya resueltas, y los
+pasos de implementación en PRs pequeños).
 
 ---
 
