@@ -72,7 +72,10 @@ NAVIGATION_LAYERS = (
         label="Gobernar",
         icon="⚖️",
         question="¿Puede reconstruirse y auditarse la decisión?",
-        modules=(NavigationModule("methodology", "Metodología y auditoría"),),
+        modules=(
+            NavigationModule("methodology", "Metodología y auditoría"),
+            NavigationModule("configuration", "Configuración territorial"),
+        ),
     ),
 )
 

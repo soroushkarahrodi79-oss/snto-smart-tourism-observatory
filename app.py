@@ -47,6 +47,7 @@ from src.ui.render_widgets import (
     _render_live_alerts,
 )
 from src.ui.tabs.tab_assets import render_tab_assets
+from src.ui.tabs.tab_config import render_tab_config
 from src.ui.tabs.tab_confidence import render_tab_confidence
 from src.ui.tabs.tab_diagnostic import render_tab_diagnostic
 from src.ui.tabs.tab_kpis import render_tab_kpis
@@ -304,6 +305,8 @@ for _layer, _layer_container in zip(_layer_order, _layer_tabs, strict=True):
                     )
                 elif _module.key == "methodology":
                     render_tab_method(_view)
+                elif _module.key == "configuration":
+                    render_tab_config(_view)
                 else:  # pragma: no cover - guarded by navigation contract tests
                     raise ValueError(f"Unknown navigation module: {_module.key}")
 
