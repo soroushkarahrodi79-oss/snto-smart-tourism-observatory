@@ -82,8 +82,25 @@ from dataclasses import dataclass
 import numpy as np
 
 from src.assets.models import AssetObservation
+from src.platform.evidence import EvidenceClass
 from src.time_series.mann_kendall import mann_kendall_test
 from src.time_series.volatility import compute_deseasonalized_volatility
+
+
+def evidence_class_for_source(data_source: str) -> EvidenceClass:
+    """Evidence tier of an SCM result from its zone data source.
+
+    Observed multi-scale zones (real GEE export) → REAL; the α-decay
+    ``simulate_zones`` fallback → SIMULATED. The distinction is the whole point
+    of the v2.2 upgrade: attribution backed by observed zones must be
+    distinguishable from attribution backed by a simulation.
+    """
+    s = (data_source or "").lower()
+    if "simulat" in s:
+        return EvidenceClass.SIMULATED
+    if any(tag in s for tag in ("gee", "sentinel", "s2", "stac", "scm_real")):
+        return EvidenceClass.REAL
+    return EvidenceClass.SIMULATED
 
 # ── Zone radius definitions (metres) ─────────────────────────────────────
 
@@ -152,6 +169,10 @@ class SpatialCausalityResult:
     # Metadata
     n_observations: int
     data_source: str
+    # Provenance tier: REAL when zones are observed (multi-scale GEE), SIMULATED
+    # when derived by the α-decay fallback. Defaulted for back-compat with any
+    # caller that builds the result directly.
+    evidence_class: EvidenceClass = EvidenceClass.SIMULATED
 
 
 # ── Main analyser ─────────────────────────────────────────────────────────
@@ -279,6 +300,9 @@ class SpatialCausalityAnalyzer:
         mgmt = self._build_management(classification, confidence)
 
         n_obs = len(zone_observations["core"])
+        source = (
+            zone_observations["core"][0].data_source if n_obs > 0 else "unknown"
+        )
 
         return SpatialCausalityResult(
             asset_id=asset_id,
@@ -290,7 +314,8 @@ class SpatialCausalityAnalyzer:
             plain_language=plain,
             management_implication=mgmt,
             n_observations=n_obs,
-            data_source=zone_observations["core"][0].data_source if n_obs > 0 else "unknown",
+            data_source=source,
+            evidence_class=evidence_class_for_source(source),
         )
 
     # ------------------------------------------------------------------
