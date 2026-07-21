@@ -9,11 +9,11 @@ The documentation transforms approved multi-perspective reviews into durable pro
 ## Current State
 SNTO is framed as a potential decision-intelligence platform for protected natural tourism destinations, not as a generic GIS, dashboard, or academic observatory.
 
-The latest stable documentation baseline is `v1.5.0` (app modularization, audience views, and the Fase 5 persistent-backend foundations, running on Azure PostgreSQL in production since 2026-07-18). The repository `main` branch may carry a later development marker between releases.
+The latest stable documentation baseline is `v2.0.0` (the v2.0 milestone: modular architecture, the Fase 5 persistent-backend foundations running on Azure PostgreSQL in production since 2026-07-18, and the Fase 6 role-based UI evolution — four decision layers, per-audience homes, asset-as-a-page). The repository `main` branch may carry a later development marker between releases.
 
 ## Versioned publications
 
-- `WHITEPAPER_SNTO_Architecture_Blueprint.md` and its generated HTML track the latest stable methodological baseline (`v1.4.0`).
+- `WHITEPAPER_SNTO_Architecture_Blueprint.md` and its generated HTML track the latest stable methodological baseline (`v2.0.0`; the methodology itself is unchanged since the v1.3.0 statistical-rigor work).
 - `SNTO_Preprint_2026_Karahrodi.html` remains the archived preprint revision `v1.1.0`; update it only as a deliberate new scholarly revision accompanied by updated archival/DOI metadata.
 - `SNTO_Architecture_Infographic.html` remains the historical `v1.0.0` infographic rather than being presented as current platform status.
 

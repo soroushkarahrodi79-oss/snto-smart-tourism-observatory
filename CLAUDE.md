@@ -4,7 +4,7 @@ SNTO means Smart Natural Tourism Observatory. The active case study is Parque Na
 
 ## Current Status
 
-- v1.0.0 → v1.5.0 are all released and tagged in `main`. `main` is on `1.6.0.dev0` (a development marker, not a release): pyproject.toml / `src/_version` / CITATION.cff all read `1.6.0.dev0`, and the last stable tag is `v1.5.0` (2026-07-18).
+- v1.0.0 → v1.5.0 are all released and tagged. **`main` is on `2.0.0` — the v2.0 release is PREPARED but the `v2.0.0` tag + GitHub Release are still pending the owner** (tag pushes are blocked from the agent environment; the owner tags after the visual pass + image rebuild). pyproject.toml / `src/_version` / CITATION.cff all read `2.0.0`; the last *pushed* stable tag is still `v1.5.0` (2026-07-18) until the owner tags `v2.0.0`. v2.0.0 consummates the roadmap's v2.0 milestone: modular architecture (Fase 4, shipped in v1.5.0) + persistent backend (Fase 5, shipped in v1.5.0) + role-based UI evolution (Fase 6, new). After the owner tags, bump the dev marker (e.g. `2.1.0.dev0`) in a follow-up, mirroring the v1.5.0→1.6.0.dev0 flow.
 - v1.2.0 (OAPN multi-park expansion), v1.3.0 (statistical rigor), and v1.4.0 (decision integration: risk brief #12, GIS export #25, evidence separation #10, positioning #9, field-validation tooling #26) are merged. Only the manual GEE field-validation campaign for the pilot parks remains open work, not a code blocker.
 - **v1.5.0 consolidates Fase 4, #28, and Fase 5** (see below) into one tagged, published release (GitHub Release live at the `v1.5.0` tag).
 - **Fase 4 (`app.py` modularization, #27) is COMPLETE.** `app.py` went from ~3,170 lines to ~285 (composition/navigation only); the UI was extracted to `src/ui/`.
