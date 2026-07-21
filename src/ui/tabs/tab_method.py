@@ -64,7 +64,72 @@ def _render_evidence_legend() -> None:
     st.markdown(_head + _rows)
 
 
-def render_tab_method(_view) -> None:
+def _render_field_validation_status(ranked_assets) -> None:
+    """Show the honest satellite↔field agreement verdict (v2.5 gate).
+
+    Reads the real persisted FieldVerification rows and runs the built agreement
+    analysis. Until the owner's field campaign produces >=3 co-located plots this
+    shows "campaña pendiente" — never a fabricated verdict. Fails soft: if the
+    persistence layer is unreachable, the tab keeps rendering.
+    """
+    from src.ui.services.field_agreement import compute_field_agreement
+
+    ehs_by_id = {
+        a.asset_id: float(a.ehs)
+        for a in (ranked_assets or [])
+        if getattr(a, "asset_id", None) and getattr(a, "ehs", None) is not None
+    }
+    try:
+        summary = compute_field_agreement(ehs_by_id)
+    except Exception:  # persistence unavailable / not migrated → degrade gracefully
+        st.caption(
+            "🔬 **Validación satélite↔campo:** backend de persistencia no "
+            "inicializado todavía; la puerta científica se activará cuando la "
+            "campaña de campo registre plots (v2.5)."
+        )
+        return
+
+    with st.expander(
+        "🔬 Validación satélite↔campo · puerta científica (v2.5)",
+        expanded=False,
+    ):
+        report = summary.report
+        if report is None or report.n < 3:
+            st.warning(
+                "**Campaña de campo pendiente.** La concordancia satélite↔campo "
+                "(Spearman ρ + Cliff's δ) es la puerta que convierte SNTO de "
+                "«apoyo a la decisión» en «validado para el PNSG». Requiere ≥3 "
+                "plots co-localizados con medición real (penetrómetro / cobertura "
+                f"/ erosión). Plots reales registrados hasta ahora: "
+                f"**{summary.n_paired}**. Hasta entonces, la relación EHS↔"
+                "degradación **no es defendible** (ADR-003).",
+                icon="⏳",
+            )
+            return
+        verdict_icon = "✅" if summary.gate_passed else "⚠️"
+        _dir = "correcta" if report.direction_ok else "inesperada"
+        st.markdown(
+            f"{verdict_icon} **Concordancia satélite↔campo (datos reales):** "
+            f"Spearman ρ = **{report.spearman:.3f}** sobre **{report.n}** plots "
+            f"co-localizados · dirección {_dir}."
+        )
+        st.caption(f"Veredicto: {report.verdict}. Dato real de campo, no simulado.")
+        import pandas as pd
+        st.dataframe(
+            pd.DataFrame([
+                {
+                    "Activo": p.asset_name,
+                    "Degradación campo (0-100)": p.field_degradation,
+                    "Estrés satélite (100−EHS)": p.satellite_stress,
+                    "Fecha": p.verified_at[:10],
+                }
+                for p in summary.plots
+            ]),
+            use_container_width=True, hide_index=True,
+        )
+
+
+def render_tab_method(_view, ranked_assets=None) -> None:
     """Render the Fundamento / Trazabilidad tab, modulated by audience (#28, F10-4).
 
     * GESTOR (``simplified``): one-screen reliability summary; the dense detail
@@ -78,6 +143,10 @@ def render_tab_method(_view) -> None:
         "estima y qué se simula — con su fuente, su fórmula y su nivel de confianza. "
         "Anexo escrito en `docs/defensibilidad_academica.md`."
     )
+
+    # v2.5 — estado de la validación satélite↔campo (la puerta científica).
+    if _view.section(technical=True):
+        _render_field_validation_status(ranked_assets)
 
     if _view.section(simplified=True):
         method.render_executive_summary()

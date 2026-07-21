@@ -308,7 +308,7 @@ for _layer, _layer_container in zip(_layer_order, _layer_tabs, strict=True):
                         _view,
                     )
                 elif _module.key == "methodology":
-                    render_tab_method(_view)
+                    render_tab_method(_view, ranked_assets)
                 elif _module.key == "reports":
                     render_tab_reports(
                         ranked_assets,
