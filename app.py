@@ -50,6 +50,7 @@ from src.ui.tabs.tab_assets import render_tab_assets
 from src.ui.tabs.tab_config import render_tab_config
 from src.ui.tabs.tab_confidence import render_tab_confidence
 from src.ui.tabs.tab_diagnostic import render_tab_diagnostic
+from src.ui.tabs.tab_forecast import render_tab_forecast
 from src.ui.tabs.tab_kpis import render_tab_kpis
 from src.ui.tabs.tab_method import render_tab_method
 from src.ui.tabs.tab_portfolio import render_tab_portfolio
@@ -292,6 +293,8 @@ for _layer, _layer_container in zip(_layer_order, _layer_tabs, strict=True):
                     render_tab_assets(calibration, ranked_assets, _view)
                 elif _module.key == "pressure":
                     render_tab_portfolio(ranked_assets, base_comps, _view)
+                elif _module.key == "forecast":
+                    render_tab_forecast(ranked_assets, _view)
                 elif _module.key == "satellite":
                     render_tab_timeseries(ranked_assets, _view)
                 elif _module.key == "confidence":

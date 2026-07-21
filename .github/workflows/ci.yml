@@ -44,7 +44,8 @@ jobs:
             tests/ui tests/integration/test_urgent_actions_tab.py \
             src/socioeconomic src/reporting \
             src/forecasting tests/unit/test_forecasting_projection.py \
-            tests/unit/test_forecasting_seasonal.py
+            tests/unit/test_forecasting_seasonal.py \
+            src/ui/tabs/tab_forecast.py tests/unit/test_forecast_chart.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github
