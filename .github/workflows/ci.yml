@@ -41,7 +41,8 @@ jobs:
             tests/integration/test_api_v2_audit_log.py \
             tests/integration/test_api_v2_auth.py \
             src/ui/services src/ui/tabs/tab_urgent_actions.py \
-            tests/ui tests/integration/test_urgent_actions_tab.py
+            tests/ui tests/integration/test_urgent_actions_tab.py \
+            src/socioeconomic src/reporting
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github
@@ -57,7 +58,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-          python -m pip install pytest
+          python -m pip install pytest pytest-cov
       - name: Import smoke (core packages)
         run: |
           python -c "import src.temporal, src.analysis, src.metrics"
@@ -65,7 +66,60 @@ jobs:
           python -c "import src.config.logging_setup, src.config.run_context"
       - name: Syntax smoke (entry points)
         run: python -m py_compile app.py run_pipeline_a_timeseries.py calculate_delta_ehs.py
-      - name: Run test suite
-        run: python -m pytest -q
+      - name: Run test suite (coverage gate)
+        # Gate de cobertura (v2.1, plan_v3_roadmap.md): el total actual es ~83%;
+        # el umbral 80 bloquea regresiones grandes sin volver frágil el CI.
+        run: python -m pytest -q --cov=src --cov-report=term --cov-fail-under=80
       - name: Check README version in sync with pyproject.toml
         run: python scripts/sync_readme.py --check-version
+
+  typecheck:
+    # Report-only (misma filosofía que el ruff full-repo): el núcleo tipado
+    # tiene ~110 errores mypy --strict pendientes; se promociona a bloqueante
+    # cuando se salden (ítem "CI hardening" de v2.1, plan_v3_roadmap.md).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies + mypy
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install mypy
+      - name: mypy — typed core (report-only)
+        continue-on-error: true
+        run: python -m mypy src/persistence src/api/v2 src/config
+
+  postgres-integration:
+    # La suite de persistencia contra un Postgres real (el motor de producción
+    # desde el cutover ADR-011 §4bis), no solo SQLite en memoria.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: snto
+          POSTGRES_PASSWORD: snto
+          POSTGRES_DB: snto_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U snto"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+      - name: Persistence suite against real Postgres
+        env:
+          SNTO_TEST_DATABASE_URL: postgresql+psycopg2://snto:snto@localhost:5432/snto_test
+        run: python -m pytest tests/persistence -q
