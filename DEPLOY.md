@@ -3,6 +3,11 @@
 This deploys the **Streamlit dashboard** (`app.py`) to Azure Container Apps on an
 **Azure for Students** subscription, in **mock-data mode** (no database required).
 
+> **Operational runbooks** (owner-executed, step-by-step `az`):
+> [`docs/runbooks/`](docs/runbooks/README.md) — deploying the `/api/v2` HTTP
+> surface (`snto-api`, ADR-012) and moving secrets to Azure Key Vault via
+> managed identity.
+
 ## Why Container Apps, not an App Service "Web App"
 
 The dashboard is a container workload. App Service Free **F1** cannot run it
