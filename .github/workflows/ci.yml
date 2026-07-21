@@ -50,7 +50,8 @@ jobs:
             src/platform/lac_ros.py src/platform/pressure_capacity.py \
             tests/unit/test_lac_ros.py tests/unit/test_pressure_capacity.py \
             src/spatial_causality/zone_loader.py \
-            src/spatial_causality/__init__.py tests/unit/test_scm_real_zones.py
+            src/spatial_causality/__init__.py tests/unit/test_scm_real_zones.py \
+            src/socioeconomic/series.py tests/unit/test_socio_series.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github
