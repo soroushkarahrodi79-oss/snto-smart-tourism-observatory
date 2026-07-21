@@ -13,12 +13,15 @@ from src.forecasting.projection import (
     project_trend,
     threshold_crossing,
 )
+from src.forecasting.seasonal import SeasonalForecast, project_seasonal
 
 __all__ = [
     "FORECAST_EVIDENCE_CLASS",
     "Forecast",
+    "SeasonalForecast",
     "ThresholdCrossing",
     "ThresholdDirection",
+    "project_seasonal",
     "project_trend",
     "threshold_crossing",
 ]
