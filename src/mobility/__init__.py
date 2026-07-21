@@ -7,7 +7,11 @@ figure is evidence-labeled: raw inbound trips are ``REAL``; anything derived as
 a pressure input is ``CALIBRATED`` (a municipal-trip proxy, never trail
 footfall). See :mod:`src.mobility.models`.
 """
-from src.mobility.bridge import PressureSignal, inbound_pressure_by_ine
+from src.mobility.bridge import (
+    PressureSignal,
+    inbound_pressure_by_ine,
+    latest_period,
+)
 from src.mobility.loader import (
     ZoneRef,
     load_mobility,
@@ -27,6 +31,7 @@ __all__ = [
     "PressureSignal",
     "ZoneRef",
     "inbound_pressure_by_ine",
+    "latest_period",
     "load_mobility",
     "load_pnsg_zones",
     "mobility_snapshot_exists",
