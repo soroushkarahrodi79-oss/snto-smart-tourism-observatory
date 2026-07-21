@@ -13,13 +13,28 @@ build_portfolio_matrix(assets) → go.Figure
 build_time_series_chart(asset, n_months) → go.Figure
     Monthly NDVI / NDMI time series with climatically coherent simulation,
     anomaly Z-score detection and red shaded alert bands.
+
+build_forecast_chart(history_x, history_y, forecast_x, forecast) → go.Figure
+    Real historical series (solid) + a SIMULATED trend projection (dashed) with
+    its horizon-widening uncertainty band. Styled to read as a scenario, never
+    as observation (v2.2 evidence discipline).
 """
 from __future__ import annotations
 
 import math
+from typing import Protocol, Sequence
 
 import pandas as pd
 import plotly.graph_objects as go
+
+
+class _ForecastLike(Protocol):
+    """Minimal shape build_forecast_chart needs — keeps charts.py decoupled
+    from src.forecasting (a Forecast or SeasonalForecast satisfies this)."""
+
+    point: list[float]
+    lower: list[float]
+    upper: list[float]
 
 # ── Paleta de TIER — escala NEUTRA índigo→pizarra (mirrors map_layers.py) ─────
 # El TIER es prioridad de inversión (estrategia), NO riesgo táctico: por eso no
@@ -684,6 +699,113 @@ def build_real_trend_chart(asset_trend) -> go.Figure:
         ),
         plot_bgcolor="white",
         paper_bgcolor="white",
+        margin=dict(l=60, r=30, t=90, b=40),
+        hoverlabel=dict(bgcolor="#1b2d42", font_color="white", font_size=12),
+        height=380,
+    )
+    return fig
+
+
+# ── Forecast chart (v2.2 — projection, always SIMULATED) ─────────────────────
+# The projection is drawn dashed and purple (the SIMULATED evidence colour from
+# src/platform/evidence.py, #5B21B6), visually separated from the solid real
+# history — the chart must never let a scenario read as an observation.
+_SIM_COLOR = "#5B21B6"
+_SIM_FILL = "rgba(91, 33, 182, 0.14)"
+_HIST_COLOR = "#2e7d32"
+
+
+def build_forecast_chart(
+    history_x: Sequence[object],
+    history_y: Sequence[float],
+    forecast_x: Sequence[object],
+    forecast: _ForecastLike,
+    *,
+    y_title: str = "NDVI",
+    title: str = "",
+    threshold: float | None = None,
+) -> go.Figure:
+    """Real history + a SIMULATED projection band.
+
+    Args:
+        history_x / history_y: the real observed series (x labels + values).
+        forecast_x: x labels for the projected steps (len == forecast.horizon).
+        forecast: a ``src.forecasting.Forecast`` (or any object exposing
+            ``point``/``lower``/``upper`` lists and an ``evidence_class``).
+        y_title: y-axis label (e.g. "NDVI", "EHS").
+        title: chart title.
+        threshold: optional horizontal reference (e.g. a degradation floor).
+
+    The projection is deliberately dashed and purple (the SIMULATED colour) with
+    a shaded band, kept visually distinct from the solid real history.
+    """
+    fig = go.Figure()
+
+    # Upper then lower with fill='tonexty' paints the band between them.
+    fig.add_trace(go.Scatter(
+        x=list(forecast_x), y=list(forecast.upper),
+        mode="lines", line=dict(width=0),
+        hoverinfo="skip", showlegend=False,
+    ))
+    fig.add_trace(go.Scatter(
+        x=list(forecast_x), y=list(forecast.lower),
+        mode="lines", line=dict(width=0),
+        fill="tonexty", fillcolor=_SIM_FILL,
+        name="Banda de incertidumbre (escenario)",
+        hovertemplate="banda: %{y:.3f}<extra></extra>",
+    ))
+
+    # Real history — solid green markers+line.
+    fig.add_trace(go.Scatter(
+        x=list(history_x), y=list(history_y),
+        mode="lines+markers",
+        line=dict(color=_HIST_COLOR, width=2.5),
+        marker=dict(size=6, color=_HIST_COLOR),
+        name="Serie real observada",
+        hovertemplate="<b>real</b>: %{y:.3f}<br>%{x}<extra></extra>",
+    ))
+
+    # Bridge segment: last real point → first projected point (dashed).
+    if history_x and history_y and forecast_x and forecast.point:
+        fig.add_trace(go.Scatter(
+            x=[history_x[-1], forecast_x[0]],
+            y=[history_y[-1], forecast.point[0]],
+            mode="lines",
+            line=dict(color=_SIM_COLOR, width=2, dash="dash"),
+            hoverinfo="skip", showlegend=False,
+        ))
+
+    # Projection point path — dashed purple.
+    fig.add_trace(go.Scatter(
+        x=list(forecast_x), y=list(forecast.point),
+        mode="lines+markers",
+        line=dict(color=_SIM_COLOR, width=2, dash="dash"),
+        marker=dict(size=6, color=_SIM_COLOR, symbol="diamond"),
+        name="Proyección (escenario simulado)",
+        hovertemplate="<b>proyección</b>: %{y:.3f}<br>%{x}<extra></extra>",
+    ))
+
+    if threshold is not None:
+        fig.add_hline(
+            y=threshold, line_dash="dot", line_color="rgba(220,50,50,0.6)",
+            annotation_text=f"umbral {threshold:g}",
+            annotation_position="right",
+        )
+
+    fig.update_layout(
+        title=dict(
+            text=(
+                f"<b>{title}</b>" if title else "Proyección de tendencia"
+            ) + (
+                "<br><span style='color:#5B21B6;font-size:11px'>"
+                "🎛️ Escenario simulado — no es una observación</span>"
+            ),
+            font=dict(size=13, color="#0d1b2a"), x=0.0, xanchor="left",
+        ),
+        xaxis=dict(title="", showgrid=True, gridcolor="rgba(180,190,200,0.3)"),
+        yaxis=dict(title=y_title, showgrid=True, gridcolor="rgba(180,190,200,0.3)"),
+        plot_bgcolor="white", paper_bgcolor="white",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
         margin=dict(l=60, r=30, t=90, b=40),
         hoverlabel=dict(bgcolor="#1b2d42", font_color="white", font_size=12),
         height=380,

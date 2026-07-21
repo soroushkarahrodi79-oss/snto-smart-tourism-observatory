@@ -45,6 +45,7 @@ jobs:
             src/socioeconomic src/reporting \
             src/forecasting tests/unit/test_forecasting_projection.py \
             tests/unit/test_forecasting_seasonal.py \
+            src/ui/tabs/tab_forecast.py tests/unit/test_forecast_chart.py \
             src/mobility etl_mobility.py tests/unit/test_mobility.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true

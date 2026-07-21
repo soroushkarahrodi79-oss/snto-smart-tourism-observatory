@@ -54,6 +54,7 @@ NAVIGATION_LAYERS = (
             NavigationModule("spatial", "Diagnóstico espacial"),
             NavigationModule("assets", "Catálogo de activos y sendas"),
             NavigationModule("pressure", "Presión y capacidad de carga"),
+            NavigationModule("forecast", "Proyección de tendencia"),
         ),
     ),
     NavigationLayer(
