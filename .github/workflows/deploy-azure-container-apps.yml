@@ -36,10 +36,15 @@ name: Deploy to Azure Container Apps
 # Copia esos 3 valores como secrets del repo.
 
 on:
-  # Robustez: construir+subir en CADA push a main (sin depender de que termine CI;
-  # el encadenado workflow_run saltaba el job y la imagen se quedaba vieja).
-  # Actualizar la web = git push a main. CI sigue corriendo aparte como gate de calidad.
-  push:
+  # Gobernanza ADR-009: el deploy SOLO corre cuando CI concluye en verde sobre
+  # main (encadenado workflow_run). El intento anterior de encadenado fallaba
+  # porque no filtraba las ejecuciones de CI disparadas por pull_request y hacía
+  # checkout del HEAD por defecto en vez del SHA del run de CI; ambos se
+  # corrigen aquí (branches: [main] + condición de conclusión + DEPLOY_SHA).
+  # workflow_dispatch queda como vía manual de emergencia/rollback.
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch: {}
 
@@ -51,13 +56,24 @@ env:
   RESOURCE_GROUP: rg-snto-observatory-app
   APP_NAME: snto-observatory
   IMAGE_REPO: snto
+  # SHA que se construye/despliega: el del run de CI que disparó el encadenado
+  # (en workflow_run, github.sha apunta al HEAD de main en el momento del
+  # trigger, que puede no ser el commit validado por CI). En dispatch manual,
+  # el HEAD de la rama elegida.
+  DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Gate ADR-009: solo si CI concluyó en verde (o dispatch manual explícito).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     steps:
-      - name: Checkout
+      - name: Checkout (commit validado por CI)
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       # ── Build & push usando las credenciales admin de ACR (ya existentes) ────
       - name: Log in to ACR
@@ -69,8 +85,8 @@ jobs:
       - name: Build & push image
         run: |
           IMG="${{ secrets.ACR_LOGIN_SERVER }}/${IMAGE_REPO}"
-          docker build -t "${IMG}:${GITHUB_SHA::8}" -t "${IMG}:latest" .
-          docker push "${IMG}:${GITHUB_SHA::8}"
+          docker build -t "${IMG}:${DEPLOY_SHA::8}" -t "${IMG}:latest" .
+          docker push "${IMG}:${DEPLOY_SHA::8}"
           docker push "${IMG}:latest"
 
       # ── Roll de la Container App vía OIDC (sin secreto de service principal) ──
@@ -83,11 +99,11 @@ jobs:
 
       - name: Roll Container App to new image
         run: |
-          IMG="${{ secrets.ACR_LOGIN_SERVER }}/${IMAGE_REPO}:${GITHUB_SHA::8}"
+          IMG="${{ secrets.ACR_LOGIN_SERVER }}/${IMAGE_REPO}:${DEPLOY_SHA::8}"
           # --revision-suffix fuerza una revisión nueva aunque el tag no cambiara.
           az containerapp update -g "${RESOURCE_GROUP}" -n "${APP_NAME}" \
             --image "${IMG}" \
-            --revision-suffix "s${GITHUB_SHA::8}"
+            --revision-suffix "s${DEPLOY_SHA::8}"
           FQDN="$(az containerapp show -g "${RESOURCE_GROUP}" -n "${APP_NAME}" \
             --query properties.configuration.ingress.fqdn -o tsv)"
           echo "### ✅ Deployed: https://${FQDN}" >> "$GITHUB_STEP_SUMMARY"

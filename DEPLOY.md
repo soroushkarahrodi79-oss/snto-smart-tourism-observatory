@@ -38,19 +38,55 @@ This creates: resource group `rg-snto-observatory`, an ACR (Basic, ~US$5/mo),
 a Container Apps environment, and the app with external ingress on port 8501,
 scaled to zero, `USE_MOCK_DATA=true`.
 
-## Continuous deployment (GitHub Actions)
+## Continuous deployment (GitHub Actions) — CI-gated (ADR-009)
 
-After the one-time bootstrap, wire CI/CD so every push to `main` redeploys:
+Deploys are **gated on CI**: `.github/workflows/deploy-azure-container-apps.yml`
+triggers via `workflow_run` only when the `CI` workflow concludes **successfully
+on `main`**. A red CI blocks the deploy; nothing ships unvalidated. The workflow
+checks out and tags **the exact SHA that CI validated**
+(`github.event.workflow_run.head_sha`), not whatever `main` points to when the
+deploy starts.
 
-1. Create a deployment service principal:
-   ```bash
-   az ad sp create-for-rbac --name snto-deployer --role contributor \
-     --scopes /subscriptions/<SUB_ID>/resourceGroups/rg-snto-observatory --sdk-auth
-   ```
-2. In GitHub → **Settings ▸ Secrets and variables ▸ Actions**, add:
-   - `AZURE_CREDENTIALS` = the JSON from step 1
-   - `ACR_NAME` = your ACR name (printed by the bootstrap script)
-3. Push to `main`. `.github/workflows/deploy-azure-container-apps.yml` builds and rolls the app.
+Authentication is **OIDC + user-assigned managed identity (UAMI)** — the UCM
+tenant blocks `az ad sp create-for-rbac`, so there is no service-principal
+secret. The one-time UAMI/federated-credential bootstrap and the repo secrets
+(`ACR_*`, `AZURE_CLIENT_ID`/`AZURE_TENANT_ID`/`AZURE_SUBSCRIPTION_ID`) are
+documented in the header of the workflow file itself.
+
+A manual `workflow_dispatch` remains as the emergency path: it builds and
+deploys the HEAD of the chosen ref without waiting for a CI chain (use only for
+recovery; the normal path is merge → CI green → auto-deploy).
+
+## Rollback runbook
+
+Every deploy pushes an immutable image tag (`snto:<sha8>`) and creates a new
+Container App revision (`--revision-suffix s<sha8>`), so rolling back means
+pointing the app at a previous known-good image:
+
+```bash
+RG=rg-snto-observatory-app; APP=snto-observatory
+# 1. Find the previous good revision / image tag:
+az containerapp revision list -g $RG -n $APP \
+  --query "[].{rev:name, img:properties.template.containers[0].image, active:properties.active}" -o table
+# 2. Roll back to it (new revision from the old image; works in single-revision mode):
+az containerapp update -g $RG -n $APP \
+  --image acrsnto1781009309.azurecr.io/snto:<sha8-anterior> \
+  --revision-suffix "rb$(date +%s)"
+# 3. Verify:
+FQDN=$(az containerapp show -g $RG -n $APP --query properties.configuration.ingress.fqdn -o tsv)
+curl -s -o /dev/null -w '%{http_code}\n' "https://$FQDN/_stcore/health"   # expect 200
+```
+
+Notes:
+
+- Git history is untouched by a rollback — fix forward on `main`; the next
+  CI-green merge redeploys automatically.
+- **Secret changes don't propagate on their own** in Single-revision mode: after
+  updating a Container App secret, run
+  `az containerapp revision restart -g $RG -n $APP --revision <active>` (known
+  gotcha from the 2026-07-18 Postgres cutover).
+- DB rollback (unrelated to images): unset the five `SNTO_DB_*` env vars on the
+  app → automatic fallback to local SQLite (ADR-011 §4bis).
 
 ## ⚠️ Repo hygiene — purge `data/` from git history
 
