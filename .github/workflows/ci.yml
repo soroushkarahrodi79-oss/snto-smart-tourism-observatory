@@ -46,7 +46,9 @@ jobs:
             src/forecasting tests/unit/test_forecasting_projection.py \
             tests/unit/test_forecasting_seasonal.py \
             src/ui/tabs/tab_forecast.py tests/unit/test_forecast_chart.py \
-            src/mobility etl_mobility.py tests/unit/test_mobility.py
+            src/mobility etl_mobility.py tests/unit/test_mobility.py \
+            src/platform/lac_ros.py src/platform/pressure_capacity.py \
+            tests/unit/test_lac_ros.py tests/unit/test_pressure_capacity.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github

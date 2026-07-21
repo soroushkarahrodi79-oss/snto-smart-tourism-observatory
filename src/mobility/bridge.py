@@ -35,6 +35,12 @@ class PressureSignal:
     caveat: str
 
 
+def latest_period(snapshot=None) -> str | None:
+    """The snapshot's source period (matches the inbound_trips key), or None."""
+    snap = snapshot if snapshot is not None else load_mobility()
+    return (snap.source_period or None) if snap is not None else None
+
+
 def inbound_pressure_by_ine(
     year: str,
     snapshot=None,

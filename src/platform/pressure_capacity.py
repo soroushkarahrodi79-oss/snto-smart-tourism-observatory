@@ -6,11 +6,28 @@ estimated annual pressure proxy and derives a planning range, not a measured
 limit.  The range is conditioned by ecological health and widened when DCS is
 lower.  Seasonal TPI values are a visible scenario profile whose multipliers
 average to one; they must never be presented as observations.
+
+v2.2 adds a **LAC / ROS** layer (:mod:`src.platform.lac_ros`): each asset is
+classified along the Recreation Opportunity Spectrum, given a Limits of
+Acceptable Change standard on EHS, flagged against it, and given a
+capacity-at-standard threshold (a planning estimate). When the real MITMA
+mobility snapshot exists, the municipal inbound-trip figure is attached as
+**context** — never substituted for the asset pressure proxy, because a
+municipal trip count is not trail footfall (see ``src/mobility``).
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+
+from src.platform.lac_ros import (
+    ROSClass,
+    capacity_at_standard,
+    classify_ros,
+    lac_standard_ehs,
+    lac_status,
+    ros_label,
+)
 
 
 @dataclass(frozen=True)
@@ -40,6 +57,20 @@ class PressureCapacityProfile:
     scm_hypothesis: str
     seasonal: tuple[SeasonalPressurePoint, ...]
 
+    # ── LAC / ROS layer (v2.2) ────────────────────────────────────────────
+    ros_class: str = ROSClass.SEMI_PRIMITIVE.value
+    ros_label: str = ""
+    lac_standard_ehs: float = 0.0
+    lac_status: str = ""
+    # Pressure consistent with holding EHS at the LAC standard (planning
+    # estimate). None when undefined (near-pristine EHS).
+    capacity_at_standard: int | None = None
+    # Real MITMA municipal inbound mobility (mean daily trips) attached as
+    # CONTEXT, or None when the real snapshot has not been ingested. A municipal
+    # trip count is not trail footfall — never used as the asset proxy.
+    municipal_inbound_daily: float | None = None
+    pressure_source: str = "Curada (estimada)"
+
 
 _SEASON_MULTIPLIERS = (
     ("Invierno", 0.55),
@@ -64,16 +95,35 @@ _SCM_HYPOTHESES = {
 }
 
 
-def assess_pressure_capacity(assets: list) -> tuple[PressureCapacityProfile, ...]:
-    """Build planning profiles sorted by territorial priority (TPI)."""
-    profiles = [_assess_asset(asset) for asset in assets]
+def assess_pressure_capacity(
+    assets: list,
+    *,
+    municipal_pressure_by_region: dict[str, float] | None = None,
+) -> tuple[PressureCapacityProfile, ...]:
+    """Build LAC/ROS planning profiles sorted by territorial priority (TPI).
+
+    ``municipal_pressure_by_region`` (optional) maps an asset's ``region`` to the
+    real MITMA mean daily inbound trips for that municipality. When given, the
+    figure is attached as context (``municipal_inbound_daily``); it is never
+    used as the asset pressure proxy. ``None`` (the default, and the state until
+    the mobility ETL is run) preserves the pre-v2.2 behaviour exactly.
+    """
+    ctx = municipal_pressure_by_region or {}
+
+    def _ctx_for(asset: object) -> float | None:
+        region = getattr(asset, "region", None)
+        return ctx.get(region) if isinstance(region, str) else None
+
+    profiles = [_assess_asset(asset, _ctx_for(asset)) for asset in assets]
     profiles.sort(
         key=lambda item: -max(point.tpi for point in item.seasonal),
     )
     return tuple(profiles)
 
 
-def _assess_asset(asset) -> PressureCapacityProfile:
+def _assess_asset(
+    asset, municipal_inbound: float | None = None
+) -> PressureCapacityProfile:
     annual_proxy = max(0, int(asset.visitor_capacity_annual))
     dcs = max(0.0, min(100.0, float(asset.dcs)))
 
@@ -104,6 +154,17 @@ def _assess_asset(asset) -> PressureCapacityProfile:
     )
     scm_classification = asset.scm_classification or "MIXED"
 
+    # ── LAC / ROS layer ───────────────────────────────────────────────────
+    ehs = max(0.0, min(100.0, float(asset.ehs)))
+    ros = classify_ros(getattr(asset, "accessibility_score", None))
+    standard = lac_standard_ehs(ros)
+    threshold = capacity_at_standard(annual_proxy, ehs, standard)
+    source = (
+        "Movilidad MITMA (proxy municipal)"
+        if municipal_inbound is not None
+        else "Curada (estimada)"
+    )
+
     return PressureCapacityProfile(
         asset_id=asset.asset_id,
         asset_name=asset.name,
@@ -121,6 +182,13 @@ def _assess_asset(asset) -> PressureCapacityProfile:
             _SCM_HYPOTHESES["MIXED"],
         ),
         seasonal=seasonal,
+        ros_class=ros.value,
+        ros_label=ros_label(ros),
+        lac_standard_ehs=standard,
+        lac_status=lac_status(ehs, standard),
+        capacity_at_standard=threshold,
+        municipal_inbound_daily=municipal_inbound,
+        pressure_source=source,
     )
 
 

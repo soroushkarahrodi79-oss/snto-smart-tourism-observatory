@@ -9,9 +9,16 @@ from __future__ import annotations
 
 import streamlit as st
 
+from src.mobility import (
+    inbound_pressure_by_ine,
+    latest_period,
+    mobility_snapshot_exists,
+)
 from src.platform import methodology as method
 from src.platform.charts import build_portfolio_matrix
 from src.platform.pressure_capacity import assess_pressure_capacity
+from src.socioeconomic.loader import load_municipalities, snapshot_exists
+from src.socioeconomic.mapping import normalize_name
 from src.ui.asset_navigation import select_asset
 from src.ui.render_helpers import (
     _ALERT_META,
@@ -19,6 +26,33 @@ from src.ui.render_helpers import (
     _alert_chip,
     _tier_chip,
 )
+
+
+def _real_municipal_pressure(assets) -> dict[str, float] | None:
+    """Real MITMA municipal inbound trips keyed by asset region, or None.
+
+    Lights up automatically once ``etl_mobility.py`` has produced the snapshot
+    (and the socioeconomic name→INE crosswalk is present). Until then this
+    returns None and the capacity model uses the labeled curated estimate —
+    real and curated are never blurred.
+    """
+    if not (mobility_snapshot_exists() and snapshot_exists()):
+        return None
+    period = latest_period()
+    signals = inbound_pressure_by_ine(period) if period else None
+    if not signals:
+        return None
+    name_to_ine = load_municipalities().name_to_ine()
+    ctx: dict[str, float] = {}
+    for asset in assets:
+        region = getattr(asset, "region", None)
+        if not region:
+            continue
+        ine = name_to_ine.get(normalize_name(region))
+        signal = signals.get(ine) if ine else None
+        if signal is not None:
+            ctx[region] = signal.inbound_trips
+    return ctx or None
 
 
 # ── F10: vista "acción primero" para Gestor ──────────────────────────────────
@@ -84,14 +118,24 @@ def _render_pressure_capacity(assets: list) -> None:
     import pandas as pd
     import plotly.graph_objects as go
 
-    profiles = assess_pressure_capacity(assets)
+    municipal_ctx = _real_municipal_pressure(assets)
+    profiles = assess_pressure_capacity(
+        assets, municipal_pressure_by_region=municipal_ctx
+    )
     st.markdown(
         method.scenario_badge(
-            "MODELO DE PLANIFICACIÓN",
-            "perfil estacional y capacidad estimados; no aforos observados",
+            "MODELO DE PLANIFICACIÓN · LAC/ROS",
+            "capacidad como umbral de cambio aceptable (LAC) por clase de "
+            "oportunidad recreativa (ROS); estimación de planificación, no aforo",
         ),
         unsafe_allow_html=True,
     )
+    if municipal_ctx:
+        st.caption(
+            "🛰️ Contexto de movilidad **real** (MITMA) disponible para "
+            f"{len(municipal_ctx)} municipio(s): se muestra como presión "
+            "municipal, **no** como aforo de senda."
+        )
     st.warning(
         "**Correlación ≠ causa.** El SCM expresa hipótesis compatibles con la "
         "señal espacial, no atribución causal demostrada. Cualquier regulación "
@@ -156,6 +200,40 @@ def _render_pressure_capacity(assets: list) -> None:
         margin=dict(l=20, r=20, t=70, b=35),
     )
     st.plotly_chart(seasonal_fig, use_container_width=True)
+
+    st.markdown("#### Capacidad LAC/ROS · umbral de cambio aceptable")
+    st.caption(
+        "**ROS** (Clark & Stankey 1979) clasifica el entorno recreativo por su "
+        "accesibilidad; **LAC** (Stankey et al. 1985) fija un estándar mínimo de "
+        "salud ecológica (EHS) por clase — más estricto cuanto más primitivo — y "
+        "señala si el activo lo supera. La *capacidad al estándar* es la presión "
+        "compatible con mantener el EHS en su estándar: una estimación de "
+        "planificación (supuesto lineal desde estado prístino), no un aforo."
+    )
+    lac_rows = [
+        {
+            "Activo": profile.asset_name,
+            "Clase ROS": profile.ros_label,
+            "Estándar EHS (LAC)": profile.lac_standard_ehs,
+            "Estado LAC": profile.lac_status,
+            "Capacidad al estándar": profile.capacity_at_standard,
+            "Presión (origen)": profile.pressure_source,
+            "Movilidad municipal (viajes/día)": profile.municipal_inbound_daily,
+        }
+        for profile in profiles
+    ]
+    st.dataframe(
+        pd.DataFrame(lac_rows),
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Estándar EHS (LAC)": st.column_config.NumberColumn(format="%d"),
+            "Capacidad al estándar": st.column_config.NumberColumn(format="%d"),
+            "Movilidad municipal (viajes/día)": st.column_config.NumberColumn(
+                format="%d"
+            ),
+        },
+    )
 
     st.markdown("#### Horquilla de capacidad y presión anual")
     capacity_rows = [
