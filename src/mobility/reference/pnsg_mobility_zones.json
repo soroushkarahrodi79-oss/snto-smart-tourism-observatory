@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "description": "Real MITMA municipal-mobility zone <-> PNSG municipality crosswalk. Zone IDs and names are verbatim from https://movilidad-opendata.mitma.es/zonificacion/zonificacion_municipios/nombres_municipios.csv (pipe-delimited ID|name). For most municipalities the MITMA zone ID equals the INE municipal code; MITMA aggregates some small municipalities into multi-municipality zones, so a few PNSG municipalities do not appear as standalone zones and must be resolved from the MITMA zoning relation file when the ETL runs (marked resolved:false).",
+  "source": {
+    "name": "MITMA — Estudios de movilidad con Big Data (Open Data)",
+    "url": "https://opendata-movilidad.mitma.es/",
+    "zoning_file": "https://movilidad-opendata.mitma.es/zonificacion/zonificacion_municipios/nombres_municipios.csv",
+    "operators": ["Orange", "Telefónica", "Vodafone"],
+    "verified_at": "2026-07-21",
+    "legal_basis": "LOPDGDD 3/2018 — aggregated, anonymised mobile positioning"
+  },
+  "zones": [
+    {"mitma_zone_id": "28038", "ine_code": "28038", "name": "Cercedilla", "province": "Madrid", "resolved": true},
+    {"mitma_zone_id": "28093", "ine_code": "28093", "name": "Navacerrada", "province": "Madrid", "resolved": true},
+    {"mitma_zone_id": "28082", "ine_code": "28082", "name": "Manzanares el Real", "province": "Madrid", "resolved": true},
+    {"mitma_zone_id": "28085", "ine_code": "28085", "name": "Miraflores de la Sierra", "province": "Madrid", "resolved": true},
+    {"mitma_zone_id": null, "ine_code": "28120", "name": "Rascafría", "province": "Madrid", "resolved": false, "note": "Not a standalone MITMA zone (aggregated); resolve from relacion_ine_zonificacion at ETL time."},
+    {"mitma_zone_id": null, "ine_code": "28076", "name": "Lozoya", "province": "Madrid", "resolved": false, "note": "Aggregated MITMA zone; resolve at ETL time."}
+  ]
+}

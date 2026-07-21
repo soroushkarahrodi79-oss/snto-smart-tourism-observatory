@@ -1,11 +1,18 @@
 """
-SNTO ETL — Tourist Traffic Demand Layer
-=========================================
+SNTO ETL — Tourist Traffic Demand Layer  [MOCK — superseded for PNSG]
+=====================================================================
 Pilot Territory: Sierra del Rincón Biosphere Reserve, Madrid, Spain
 
 Adds `annual_visitors` (INTEGER) to production_hiking_trails and
 populates it with reproducible mock visitor counts as a proof-of-concept
 Demand Layer for the CETS Phase I dossier.
+
+⚠️ v2.2: this is the MOCK demand layer for the archived Sierra del Rincón
+pilot (random counts, `MOCK_SEED`). For the active PNSG territory it is
+superseded by the REAL visitor/mobility feed — see `etl_mobility.py` and
+`src/mobility/` (MITMA municipal-mobility open data). This script is retained
+only for the archived Rincón `production_hiking_trails` path; do not use its
+figures as real visitation.
 
 Run order:
   1. db_production_seeder.py
