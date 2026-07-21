@@ -12,6 +12,12 @@ import streamlit as st
 
 from src.platform import methodology as method
 from src.platform.views import ConfidenceDetail
+from src.socioeconomic.series import (
+    compute_svi_trends,
+    svi_history_available,
+)
+
+_SVI_TREND_ARROW = {"rising": "↗", "falling": "↘", "stable": "→"}
 
 
 def render_tab_socioeco(_socio, base_comps, ranked_assets, base_budget, _view) -> None:
@@ -129,6 +135,50 @@ def render_tab_socioeco(_socio, base_comps, ranked_assets, base_budget, _view) -
             "económica. Fuentes: ALMUDENA (hostelería, viviendas no principales, renta), "
             "INE Padrón (población, envejecimiento, despoblación)."
         )
+
+        # Tendencia SVI (v2.2): solo cuando hay >= 2 snapshots fechados.
+        if svi_history_available():
+            _trends = compute_svi_trends()
+            _trend_rows = [
+                {
+                    "Municipio": t.name,
+                    "Tendencia SVI": f"{_SVI_TREND_ARROW.get(t.direction, '→')} "
+                    f"{t.direction}",
+                    "Pendiente / periodo": t.slope_per_period,
+                    "Periodos": t.n_points,
+                }
+                for t in sorted(
+                    _trends.values(),
+                    key=lambda x: (x.slope_per_period or 0.0),
+                    reverse=True,
+                )
+                if t.status == "" and t.ine_code in _muni_ids
+            ]
+            if _trend_rows:
+                st.markdown("**Tendencia de vulnerabilidad (SVI socioeconómico)**")
+                st.dataframe(
+                    pd.DataFrame(_trend_rows),
+                    use_container_width=True, hide_index=True,
+                    column_config={
+                        "Pendiente / periodo": st.column_config.NumberColumn(
+                            format="%.2f"
+                        ),
+                        "Periodos": st.column_config.NumberColumn(format="%d"),
+                    },
+                )
+                st.caption(
+                    "Pendiente de Sen del SVI socioeconómico (dependencia + "
+                    "fragilidad, sin el término ambiental que ya tiene su propia "
+                    "serie satelital) sobre los snapshots INE/ALMUDENA fechados. "
+                    "Dato calibrado, no observación satelital."
+                )
+        else:
+            st.caption(
+                "📅 **Tendencia SVI:** un solo snapshot fechado (2026-06) — la "
+                "vulnerabilidad se muestra como estado, sin tendencia todavía. "
+                "Añade periodos re-ejecutando `etl_socioeconomic.py` a otra fecha "
+                "(`snapshot/history/`) para que el SVI gane serie temporal."
+            )
 
         if _view.confidence_detail == ConfidenceDetail.FULL:
             with st.expander("⚖️ Procedencia y límites declarados (vista auditoría)", expanded=False):
