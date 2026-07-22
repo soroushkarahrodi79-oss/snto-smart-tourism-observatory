@@ -4,7 +4,7 @@
 
 **Project:** Gobernanza Inteligente y Transición Regenerativa en Espacios Naturales Protegidos. Territorio principal: **Parque Nacional Sierra de Guadarrama** (Red de Parques Nacionales — OAPN). Marco de gobernanza de referencia: Carta Europea de Turismo Sostenible (CETS / EUROPARC), empleada como metodología. Piloto de calibración: Reserva de la Biosfera Sierra del Rincón.
 
-**Version:** 1.4.0 | **Date:** July 2026 | **Author:** Smart Natural Tourism Observatory Research Team
+**Version:** 2.0.0 | **Date:** July 2026 | **Author:** Smart Natural Tourism Observatory Research Team
 
 > **Document scope:** this whitepaper tracks the latest stable methodological baseline (`v2.0.0`). The repository `main` branch may contain later development work that is not yet part of a stable release. Note: v2.0.0 is a modular-architecture, backend and role-based-UI release; the methodology described here is unchanged from the v1.3.0 statistical-rigor baseline.
 
@@ -263,7 +263,7 @@ Where $L_m$ is trail length in metres, computed from PostGIS via `ST_Length(geom
 The Streamlit dashboard (`app.py`) provides an interactive geospatial decision-support interface for park managers and CETS evaluators:
 
 - **KPI Summary Cards:** Total trails analysed; critical trails requiring intervention; total restoration budget; maximum recorded tourist volume.
-- **Interactive Folium Map:** Trails colour-coded by health status (green: EHS ≤ 60; red: EHS > 60), centred on Sierra del Rincón (41.14°N, −3.52°E), with pop-up tooltips displaying all diagnostic attributes per trail.
+- **Interactive PyDeck (Deck.gl) Map:** Trails colour-coded by health status (green: EHS ≤ 60; red: EHS > 60), centred on Sierra del Rincón (41.14°N, −3.52°E), with pop-up tooltips displaying all diagnostic attributes per trail.
 - **Priority Intervention Table:** Top 10 trails sorted by descending priority score, with gradient-coloured EHS column (RdYlGn_r colormap) for rapid visual triage.
 - **Temporal Analysis Panel:** Delta EHS visualisation (Summer vs. Spring), identifying trails with accelerated seasonal degradation trajectories.
 
@@ -417,6 +417,8 @@ activation depends on declared data inputs, not on further method design:
 | Red OAPN replicability pilot (v1.2.0) | `scripts/gee_templates_oapn/`, `src/platform/satellite_trends.py` (multi-park) | ✅ 2/15 parks validated and live (Tablas de Daimiel, Monfragüe); 15 GEE templates ready; 12 further CSVs withheld pending bioma-specific mask QA |
 | Statistical rigor (v1.3.0) | `src/time_series/changepoint.py`, `src/calibration/ehs_sensitivity.py`, `src/validation/cross_sensor.py` | ✅ Pettitt change points, block-bootstrap EHS confidence intervals, Morris sensitivity and Sentinel-2/MODIS cross-sensor checks |
 | Decision integration and evidence governance (v1.4.0) | `src/reporting/risk_brief.py`, `src/reporting/gis_export.py`, `src/platform/evidence.py`, `src/validation/` | ✅ director-grade risk brief, GIS export, canonical evidence classes and decision gates, and field-campaign tooling; completed ground-truth campaign still pending |
+| Persistent backend & operational API (v1.5.0, ADR-011) | `src/persistence/`, `src/api/v2/` | ✅ SQLAlchemy 2.0 + Alembic, typed repositories, lifecycle state machines, audit trail, minimal API-key write-auth; `/api/v2` read+write (code + tests, not yet deployed as a service). Production on Azure PostgreSQL since 2026-07-18 |
+| Role-based UI evolution (v2.0.0, Fase 6) | `src/ui/navigation.py`, `app.py`, `src/ui/tabs/` | ✅ four IA decision layers (Decidir/Diagnosticar/Evidenciar/Gobernar), per-audience home, asset-as-a-page, alert triage; 14 analytical modules |
 | Temporal series scaffolding (declarative, separate) | `src/temporal/` | ✅ spec + Mann-Kendall validity gate + provenance manifest; ingestion into this gate still pending |
 | Data provenance & confidence surfacing | `src/platform/provenance.py` | ✅ real/calibrated/synthetic labels in dashboard |
 | Stratified baselines | `src/risk_engine/baselines.py` | ✅ framework; per-habitat/altitude needs a DEM |
@@ -455,8 +457,9 @@ consolidated assumptions/limits register in
 | Spatial Geometry | `shapely` | ≥ 2.0 | Buffer generation, geometry validation |
 | Database | PostgreSQL + PostGIS | 16 + 3.4 | Spatial queries, trail geometry storage |
 | Database Driver | `psycopg2-binary` | ≥ 2.9 | Python–PostgreSQL interface |
+| ORM & migrations | `sqlalchemy` + `alembic` | 2.0 / 1.13 | Persistence layer & schema migrations (Fase 5, ADR-011) |
 | Dashboard | `streamlit` | ≥ 1.35 | Interactive decision-support interface |
-| Web Map | `folium` | ≥ 0.16 | Geospatial visualisation layer |
+| Web Map | `pydeck` | ≥ 0.9 | Deck.gl WebGL map rendering (replaces `folium`) |
 | REST API | `fastapi` + `uvicorn` | ≥ 0.111 | Programmatic data access endpoints |
 | Numerical Computing | `numpy` | ≥ 1.26 | Array operations, index computation |
 | Statistical Testing | custom (`src/time_series/`) | — | Mann-Kendall, z-score anomaly, Sen's slope |
