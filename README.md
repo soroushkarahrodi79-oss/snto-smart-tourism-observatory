@@ -39,7 +39,7 @@ La mayoría de los espacios naturales protegidos gestionan el impacto del turism
 
 ![Dashboard ejecutivo SNTO](docs/screenshot-dashboard.png)
 
-_Captura previa a v2.0 (arquitectura de pestañas plana). La versión actual reorganiza la información en **4 capas de decisión** (Decidir · Diagnosticar · Evidenciar · Gobernar) sobre mapa **PyDeck (Deck.gl)**. Desplegado en Azure Container Apps (Sweden Central)._
+_Shell de 4 capas de decisión (Fase 6, v2.0) — Decidir · Diagnosticar · Evidenciar · **Gobernar**, aquí en la vista **Auditoría científica** sobre «Metodología y auditoría», con la puerta de validación satélite↔campo (v2.5) y el panel de alertas activas del PNSG. Desplegado en Azure Container Apps (Sweden Central)._
 
 </div>
 
