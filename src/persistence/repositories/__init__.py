@@ -11,8 +11,10 @@ from src.persistence.repositories.field_verification import (
 from src.persistence.repositories.intervention import InterventionRepository
 from src.persistence.repositories.managed_asset import ManagedAssetRepository
 from src.persistence.repositories.observation import ObservationRepository
+from src.persistence.repositories.organization import OrganizationRepository
 from src.persistence.repositories.recommendation import RecommendationRepository
 from src.persistence.repositories.territory import TerritoryRepository
+from src.persistence.repositories.user import UserRepository
 
 __all__ = [
     "Repository",
@@ -23,6 +25,8 @@ __all__ = [
     "InterventionRepository",
     "ManagedAssetRepository",
     "ObservationRepository",
+    "OrganizationRepository",
     "RecommendationRepository",
     "TerritoryRepository",
+    "UserRepository",
 ]

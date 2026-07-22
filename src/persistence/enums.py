@@ -50,3 +50,15 @@ class InterventionStatus(str, Enum):
     PLANNED = "planned"
     IN_PROGRESS = "in_progress"
     RESOLVED = "resolved"
+
+
+class UserRole(str, Enum):
+    """RBAC roles for the enterprise/multi-tenant layer (v3.0, ADR-002/005).
+
+    Ordered weakest→strongest by capability; the ranking lives in
+    ``src.persistence.services.authz`` so this stays a plain value vocabulary.
+    """
+    VIEWER = "viewer"    # read only
+    EDITOR = "editor"    # read + write (triage, field capture, interventions)
+    ADMIN = "admin"      # editor + manage territories/users within the org
+    OWNER = "owner"      # admin + cross-org / billing (reserved)
