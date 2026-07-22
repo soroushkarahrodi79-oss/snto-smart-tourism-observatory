@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import Float, String, func
+from sqlalchemy import Float, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.persistence.base import Base
@@ -16,6 +16,11 @@ class Territory(Base):
     slug: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(200))
     budget_eur: Mapped[float] = mapped_column(Float)
+    # v3.0 multi-tenancy: nullable so pre-tenancy rows (the pnsg default) stay
+    # valid and unowned until an Organization claims them (additive, ADR-005).
+    org_id: Mapped[int | None] = mapped_column(
+        ForeignKey("organizations.id"), nullable=True, index=True, default=None
+    )
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     def __repr__(self) -> str:  # pragma: no cover - debug aid only

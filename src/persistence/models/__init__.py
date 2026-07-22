@@ -17,8 +17,10 @@ from src.persistence.models.field_verification import FieldVerification
 from src.persistence.models.intervention import Intervention
 from src.persistence.models.managed_asset import ManagedAsset
 from src.persistence.models.observation import Observation
+from src.persistence.models.organization import Organization
 from src.persistence.models.recommendation import Recommendation
 from src.persistence.models.territory import Territory
+from src.persistence.models.user import User
 
 __all__ = [
     "Base",
@@ -29,6 +31,8 @@ __all__ = [
     "Intervention",
     "ManagedAsset",
     "Observation",
+    "Organization",
     "Recommendation",
     "Territory",
+    "User",
 ]
