@@ -129,6 +129,82 @@ def _render_field_validation_status(ranked_assets) -> None:
         )
 
 
+def _render_field_capture_form() -> None:
+    """Capture one real ground-truth plot into persistence (v2.5 gate, write side).
+
+    The write counterpart of the agreement status: it turns the field campaign's
+    plots into durable ``FieldVerification`` rows via the honest capture service.
+    Control plots and unregistered assets are reported, never fabricated. Shown
+    only in the audit view — the validation-campaign audience.
+    """
+    from src.ui.services.field_capture import CaptureStatus, capture_field_plot
+    from src.validation.field import FieldObservation
+
+    with st.expander("📋 Registrar parcela de campo (v2.5 · escritura)"):
+        st.caption(
+            "Registra una observación real de terreno como `FieldVerification` "
+            "persistente. Las parcelas de **control** y los activos no registrados "
+            "se informan, no se inventan. Las medidas no tomadas quedan vacías "
+            "(nunca cero)."
+        )
+        with st.form("field_capture", clear_on_submit=False):
+            c1, c2 = st.columns(2)
+            plot_id = c1.text_input("ID de parcela", placeholder="PNSG-P01")
+            asset_id = c2.text_input("ID de activo (externo)", placeholder="pnsg-nat-1")
+            c3, c4, c5 = st.columns(3)
+            lat = c3.number_input("Latitud", value=40.80, format="%.5f")
+            lon = c4.number_input("Longitud", value=-3.96, format="%.5f")
+            dist = c5.number_input("Distancia a senda (m)", value=1.0, min_value=0.0)
+            is_control = st.checkbox(
+                "Parcela de control (referencia de hábitat, no se persiste)"
+            )
+            c6, c7, c8 = st.columns(3)
+            soil = c6.number_input(
+                "Compactación (MPa)", value=None, min_value=0.0, step=0.1,
+                help="Penetrómetro; vacío = no medido",
+            )
+            veg = c7.number_input(
+                "Cobertura vegetal (%)", value=None, min_value=0.0, max_value=100.0,
+                help="Vacío = no medido",
+            )
+            erosion_label = c8.selectbox(
+                "Erosión",
+                ["sin dato", "0 · nula", "1 · leve", "2 · moderada", "3 · severa"],
+            )
+            c9, c10 = st.columns(2)
+            verifier = c9.text_input("Verificador/a", placeholder="Equipo PNSG")
+            observed = c10.date_input("Fecha de observación")
+            submitted = st.form_submit_button("Registrar parcela")
+
+        if not submitted:
+            return
+        if not plot_id or not verifier or (not asset_id and not is_control):
+            st.warning("Faltan campos obligatorios: parcela, verificador/a y activo.")
+            return
+        erosion = None if erosion_label == "sin dato" else int(erosion_label[0])
+        observation = FieldObservation(
+            plot_id=plot_id, lat=float(lat), lon=float(lon),
+            distance_to_trail_m=float(dist), is_control=is_control,
+            asset_id=asset_id or None,
+            soil_compaction_mpa=None if soil is None else float(soil),
+            veg_cover_pct=None if veg is None else float(veg),
+            erosion_class=erosion,
+            observed_at=observed.isoformat() if observed else None,
+        )
+        result = capture_field_plot(observation, verifier=verifier, actor="ui")
+        if result.status is CaptureStatus.PERSISTED:
+            _idx = (
+                f" · índice de degradación {result.field_degradation:.1f}/100"
+                if result.field_degradation is not None
+                else " · sin componentes medidos"
+            )
+            st.success(f"{result.message}{_idx}")
+        elif result.status is CaptureStatus.CONTROL_SKIPPED:
+            st.info(result.message)
+        else:  # ASSET_UNKNOWN / NO_BACKEND / ERROR
+            st.warning(result.message)
+
+
 def render_tab_method(_view, ranked_assets=None) -> None:
     """Render the Fundamento / Trazabilidad tab, modulated by audience (#28, F10-4).
 
@@ -147,6 +223,9 @@ def render_tab_method(_view, ranked_assets=None) -> None:
     # v2.5 — estado de la validación satélite↔campo (la puerta científica).
     if _view.section(technical=True):
         _render_field_validation_status(ranked_assets)
+    # v2.5 (escritura) — captura de parcelas de campo, solo audiencia de auditoría.
+    if _view.section(audit=True):
+        _render_field_capture_form()
 
     if _view.section(simplified=True):
         method.render_executive_summary()
