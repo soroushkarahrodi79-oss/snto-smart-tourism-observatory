@@ -29,6 +29,11 @@ MANAGED_ASSET_TRANSITIONED = "managed_asset.transitioned"
 INTERVENTION_CREATED = "intervention.created"
 INTERVENTION_TRANSITIONED = "intervention.transitioned"
 ALERT_TRIAGED = "alert.triaged"
+# v3.0 identity & multi-tenancy provisioning (ADR-002/005).
+ORGANIZATION_CREATED = "organization.created"
+USER_ADDED = "user.added"
+TERRITORY_REGISTERED = "territory.registered"
+TERRITORY_CLAIMED = "territory.claimed"
 
 
 def record(
