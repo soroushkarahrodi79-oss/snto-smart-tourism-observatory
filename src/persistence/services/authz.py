@@ -59,5 +59,16 @@ def can_write(user, territory) -> bool:
 
 
 def can_manage(user, territory) -> bool:
-    """Managing a territory/users (register, edit thresholds) needs ADMIN+."""
+    """Managing a territory (edit thresholds, claim) needs ADMIN+ in scope."""
     return in_scope(user, territory) and _rank(user) >= _RANK[UserRole.ADMIN]
+
+
+def can_administer_org(user, org_id: int) -> bool:
+    """Org-level admin (add users, register new territories) — ADMIN+ of that org.
+
+    Territory-independent: user management and creating a brand-new territory are
+    org-scoped actions, not tied to an existing territory row.
+    """
+    if not getattr(user, "is_active", False):
+        return False
+    return user.org_id == org_id and _rank(user) >= _RANK[UserRole.ADMIN]
