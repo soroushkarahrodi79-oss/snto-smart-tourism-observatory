@@ -12,6 +12,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from src.api.v2.authz_gate import authorize_territory_write
 from src.api.v2.deps import require_write_auth
 from src.api.v2.schemas import (
     InterventionCreate,
@@ -43,8 +44,10 @@ def create_intervention(
     db: Session = Depends(get_db),
     actor: str = Depends(require_write_auth),
 ) -> InterventionOut:
-    if ManagedAssetRepository(db).get(asset_id) is None:
+    _asset = ManagedAssetRepository(db).get(asset_id)
+    if _asset is None:
         raise HTTPException(status_code=404, detail="ManagedAsset not found")
+    authorize_territory_write(db, actor, _asset.territory_id)
     intervention = InterventionRepository(db).add(
         Intervention(
             asset_id=asset_id,
@@ -84,6 +87,10 @@ def transition_intervention_status(
     db: Session = Depends(get_db),
     actor: str = Depends(require_write_auth),
 ) -> InterventionOut:
+    _intervention = InterventionRepository(db).get(intervention_id)
+    if _intervention is None:
+        raise HTTPException(status_code=404, detail="Intervention not found")
+    authorize_territory_write(db, actor, _intervention.asset.territory_id)
     try:
         intervention = transition_intervention(
             db, intervention_id, body.to_status, actor=actor

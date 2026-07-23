@@ -40,6 +40,7 @@ jobs:
             tests/integration/test_api_v2_field_verifications.py \
             tests/integration/test_api_v2_audit_log.py \
             tests/integration/test_api_v2_auth.py \
+            tests/integration/test_api_v2_authz.py \
             src/ui/services src/ui/tabs/tab_urgent_actions.py \
             tests/ui tests/integration/test_urgent_actions_tab.py \
             src/socioeconomic src/reporting \
