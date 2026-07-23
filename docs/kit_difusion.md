@@ -1,8 +1,10 @@
 # Kit de difusión SNTO — textos listos para publicar
 
-Borradores para cada plataforma. Sustituye `[URL_DASHBOARD]`, `https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory` y `10.5281/zenodo.20818270` por los
-valores reales antes de publicar. Las cifras son las del Pipeline A real (PNSG, 2 escenas
-Sentinel-2). Mantén la honestidad metodológica: alerta temprana, no intervención formal.
+Borradores para cada plataforma. Sustituye `[URL_DASHBOARD]` por la URL real. El
+repositorio es `https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory`
+y el DOI conceptual permanente es `10.5281/zenodo.20818269`. Las cifras son las
+del Pipeline A real (PNSG, 2 escenas Sentinel-2). Mantén la honestidad
+metodológica: alerta temprana, no intervención formal.
 
 > **Dos pistas (lee [`PUBLICATION_STRATEGY.md`](PUBLICATION_STRATEGY.md) antes de publicar):**
 > el software se publica siguiendo las *releases de código*; la ciencia, siguiendo la
@@ -37,8 +39,8 @@ Sentinel-2). Mantén la honestidad metodológica: alerta temprana, no intervenci
 > Honestidad metodológica: con 2 escenas esto es **alerta temprana estacional**, no tendencia
 > plurianual. El propio sistema lo declara.
 >
-> Todo en abierto — código, 493 tests, dashboard en vivo y preprint con DOI:
-> 📄 Preprint (DOI): https://doi.org/10.5281/zenodo.20818270
+> Todo en abierto — código, 493 tests, dashboard en vivo y software citable con DOI:
+> 📄 Software (DOI permanente): https://doi.org/10.5281/zenodo.20818269
 > 🖥️ Dashboard: [URL_DASHBOARD]
 > 💻 GitHub: https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory
 >
@@ -124,8 +126,8 @@ España, MITERD, Copernicus EU.
 > Honest by design: with two Sentinel-2 scenes this is a **seasonal early-warning signal, not a
 > multi-year trend** — and the system states it.
 >
-> Open code, 493 tests, live dashboard, preprint with DOI:
-> 📄 https://doi.org/10.5281/zenodo.20818270 · 💻 GitHub · 🖥️ [URL_DASHBOARD]
+> Open code, 493 tests, live dashboard, and citable software:
+> 📄 https://doi.org/10.5281/zenodo.20818269 · 💻 GitHub · 🖥️ [URL_DASHBOARD]
 >
 > Feedback from the #RemoteSensing / #GIS community very welcome. cc @ESA @CopernicusEU
 >
@@ -160,7 +162,7 @@ España, MITERD, Copernicus EU.
    Código: https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory
 
 8. Investigación académica en la UCM (supervisión: Carmen Mínguez · Susana Ramírez García / REGENERA).
-   Preprint con DOI: https://doi.org/10.5281/zenodo.20818270
+   Software citable: https://doi.org/10.5281/zenodo.20818269
    Feedback de la comunidad #GIS #RemoteSensing muy bienvenido. cc @ESA_EO @CopernicusEU
 
 **Hashtags:** #GIS #RemoteSensing #Sentinel2 #OpenData #Spain #EcoTurismo
@@ -208,7 +210,7 @@ attribution, territorial intelligence, Spain, Sierra de Guadarrama, OAPN.
 
 - [x] Screenshot real del dashboard → `docs/screenshot-dashboard.png`
 - [x] `CITATION.cff` con DOI Zenodo
-- [x] DOI Zenodo 10.5281/zenodo.20818270 cableado (badge README, CITATION.cff, kit)
+- [x] DOI conceptual Zenodo 10.5281/zenodo.20818269 cableado (badge README, CITATION.cff, kit)
 - [x] Hugging Face Space desplegado → huggingface.co/spaces/soroushkararodi/snto-observatory
 - [x] Whitepaper HTML generado → `docs/SNTO_Whitepaper_2026_Karahrodi.html`
 - [x] Preprint académico generado → `docs/SNTO_Preprint_2026_Karahrodi.html`
@@ -264,5 +266,7 @@ attribution, territorial intelligence, Spain, Sierra de Guadarrama, OAPN.
 
 ### Zenodo / GitHub Release
 
-Notas y metadatos listos en [`releases/v2.0.0.md`](releases/v2.0.0.md). Archivar el tag
-`v2.0.0` como *New version* del registro Zenodo existente (Pista A).
+Notas y metadatos en [`releases/v2.0.0.md`](releases/v2.0.0.md). El tag
+`v2.0.0` ya está archivado con el DOI canónico
+[`10.5281/zenodo.21472647`](https://doi.org/10.5281/zenodo.21472647): no crear
+otra versión v2.0.0.

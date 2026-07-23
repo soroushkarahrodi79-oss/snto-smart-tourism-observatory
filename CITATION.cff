@@ -15,7 +15,7 @@ authors:
     email: soroush.karahrodi79@gmail.com
     affiliation: "Universidad Complutense de Madrid (UCM)"
     # orcid: "https://orcid.org/0000-0000-0000-0000"  # añadir si dispones de ORCID
-doi: "10.5281/zenodo.20818270"
+doi: "10.5281/zenodo.20818269"
 repository-code: "https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory"
 url: "https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory"
 # Licencia de uso académico/no-comercial: ver fichero LICENSE (no es un identificador SPDX estándar).
@@ -37,5 +37,5 @@ keywords:
   - geospatial
 identifiers:
   - type: doi
-    value: "10.5281/zenodo.20818270"
-    description: "DOI del release archivado en Zenodo"
+    value: "10.5281/zenodo.20818269"
+    description: "DOI conceptual permanente de todas las versiones en Zenodo"

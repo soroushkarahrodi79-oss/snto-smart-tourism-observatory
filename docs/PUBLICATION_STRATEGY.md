@@ -27,8 +27,10 @@ solución es separarlas.
 
 ## Qué SÍ se puede publicar ahora (Pista A)
 
-- **Archivo Zenodo de la release actual** (p. ej. v2.0.0) → DOI de versión bajo
-  el *concept DOI* existente (`10.5281/zenodo.20818270`). Tipo *Software*.
+- **Archivo Zenodo de una release nueva** → DOI de versión bajo el *concept DOI*
+  existente (`10.5281/zenodo.20818269`). Tipo *Software*. **v2.0.0 ya está
+  archivada** con el DOI canónico `10.5281/zenodo.21472647`: no volver a
+  publicarla.
 - **GitHub Release** con notas (ver `docs/releases/`).
 - **Posts de plataforma** (LinkedIn/X): hitos de ingeniería — arquitectura, nº
   de tests, despliegue, vistas por rol. **Sin cifras científicas nuevas.**
@@ -67,10 +69,13 @@ en "método validado para el PNSG". Ese es el momento de la Pista B.
 1. `pyproject.toml` tageado en el hito (semver).
 2. Notas de release en `docs/releases/vX.Y.Z.md` (qué cambió, con clases de
    evidencia intactas).
-3. Zenodo → *New version* → subir el `.zip` del tag → metadatos (bloque en las
+3. Comprobar en el historial del DOI conceptual que esa versión todavía no
+   existe. Si ya existe, detener el flujo: no crear un duplicado.
+4. Zenodo → *New version* → subir el `.zip` del tag → metadatos (bloque en las
    notas de release) → DOI de versión.
-4. `CITATION.cff` alineado con la versión archivada.
-5. Post de plataforma (opcional), solo hechos de ingeniería.
+5. `CITATION.cff` conserva el DOI conceptual permanente; el README puede añadir
+   además el DOI específico de la última release estable.
+6. Post de plataforma (opcional), solo hechos de ingeniería.
 
 ## Relación con otros documentos
 

@@ -1,0 +1,32 @@
+{
+  "title": "SNTO — Smart Nature Tourism Observatory",
+  "creators": [
+    {
+      "name": "Karahrodi, Soroush",
+      "affiliation": "Universidad Complutense de Madrid (UCM)"
+    }
+  ],
+  "keywords": [
+    "remote-sensing",
+    "sentinel-2",
+    "NDVI",
+    "NDMI",
+    "protected-areas",
+    "sustainable-tourism",
+    "ecotourism",
+    "territorial-intelligence",
+    "Spain",
+    "Sierra-de-Guadarrama",
+    "OAPN",
+    "streamlit",
+    "geospatial"
+  ],
+  "related_identifiers": [
+    {
+      "scheme": "url",
+      "identifier": "https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    }
+  ]
+}

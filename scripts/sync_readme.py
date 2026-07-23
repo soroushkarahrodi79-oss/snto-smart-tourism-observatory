@@ -46,7 +46,12 @@ def _get_test_count() -> int | None:
     return None
 
 
-def _apply_substitutions(text: str, version: str, count: int | None, today: date) -> str:
+def _apply_substitutions(
+    text: str,
+    version: str,
+    count: int | None,
+    today: date,
+) -> str:
     # 1. Badge de tests: tests-493%20passing-brightgreen
     if count is not None:
         text = re.sub(
@@ -71,12 +76,23 @@ def _apply_substitutions(text: str, version: str, count: int | None, today: date
             text,
         )
 
-    # 4. Pie de página: <sub>SNTO vX.Y.Z · Python ≥ 3.12 · N tests passing · mes año</sub>
-    count_part = str(count) if count is not None else r"\d+"
+    # 4. Pie de página: versión, Python, conteo de tests y fecha.
     mes = _MESES_ES[today.month - 1]
+    footer_pattern = (
+        r"<sub>SNTO v[\w.]+ · Python ≥ 3\.12 · "
+        r"(?P<count>\d+) tests passing · [^<]+</sub>"
+    )
+
+    def replace_footer(match: re.Match[str]) -> str:
+        count_part = str(count) if count is not None else match.group("count")
+        return (
+            f"<sub>SNTO v{version} · Python ≥ 3.12 · {count_part} tests passing "
+            f"· {mes} {today.year}</sub>"
+        )
+
     text = re.sub(
-        r"<sub>SNTO v[\w.]+ · Python ≥ 3\.12 · \d+ tests passing · [^<]+</sub>",
-        f"<sub>SNTO v{version} · Python ≥ 3.12 · {count_part} tests passing · {mes} {today.year}</sub>",
+        footer_pattern,
+        replace_footer,
         text,
     )
 
@@ -114,7 +130,10 @@ def main(argv: list[str] | None = None) -> int:
 
     README.write_text(updated, encoding="utf-8")
     mes = _MESES_ES[today.month - 1]
-    print(f"[sync_readme] README updated -> v{version}, {count} tests, {mes} {today.year}")
+    print(
+        f"[sync_readme] README updated -> "
+        f"v{version}, {count} tests, {mes} {today.year}"
+    )
     return 0
 
 
