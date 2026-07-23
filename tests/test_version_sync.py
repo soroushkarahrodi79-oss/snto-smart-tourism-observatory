@@ -9,6 +9,8 @@ from scripts.sync_readme import _apply_substitutions
 
 ROOT = Path(__file__).parent.parent
 ZENODO_CONCEPT_DOI = "10.5281/zenodo.20818269"
+ZENODO_V2_CANONICAL_DOI = "10.5281/zenodo.21472647"
+ZENODO_V2_RETIRED_DUPLICATE_DOI = "10.5281/zenodo.21512233"
 
 
 def test_readme_version_matches_pyproject() -> None:
@@ -37,8 +39,11 @@ def test_readme_and_citation_use_zenodo_concept_doi() -> None:
     citation = (ROOT / "CITATION.cff").read_text(encoding="utf-8")
 
     assert ZENODO_CONCEPT_DOI in readme
+    assert ZENODO_V2_CANONICAL_DOI in readme
     assert f'doi: "{ZENODO_CONCEPT_DOI}"' in citation
     assert f'value: "{ZENODO_CONCEPT_DOI}"' in citation
+    assert ZENODO_V2_RETIRED_DUPLICATE_DOI not in readme
+    assert ZENODO_V2_RETIRED_DUPLICATE_DOI not in citation
 
 
 def test_zenodo_metadata_is_release_agnostic() -> None:
