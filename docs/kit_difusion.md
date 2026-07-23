@@ -4,6 +4,13 @@ Borradores para cada plataforma. Sustituye `[URL_DASHBOARD]`, `https://github.co
 valores reales antes de publicar. Las cifras son las del Pipeline A real (PNSG, 2 escenas
 Sentinel-2). Mantén la honestidad metodológica: alerta temprana, no intervención formal.
 
+> **Dos pistas (lee [`PUBLICATION_STRATEGY.md`](PUBLICATION_STRATEGY.md) antes de publicar):**
+> el software se publica siguiendo las *releases de código*; la ciencia, siguiendo la
+> *evidencia*. Las secciones **§1–§4 son el lanzamiento v1.0.0** (registro histórico de lo
+> ya publicado, correcto y sin overclaiming). La sección **§6 es el hito de plataforma
+> v2.0** — **solo hechos de ingeniería** (arquitectura, tests, despliegue), **sin cifras
+> científicas nuevas** ni claims de validación (esos esperan a la campaña de campo #26).
+
 ---
 
 ## 1. LinkedIn — secuencia de lanzamiento (espaciar 5-7 días)
@@ -211,3 +218,51 @@ attribution, territorial intelligence, Spain, Sierra de Guadarrama, OAPN.
 - [ ] LinkedIn post 1 → (5-7 días) post 2 → post 3 (textos en §1 de este doc)
 - [x] Hilo en X/Twitter con imagen del mapa (textos en §2)
 - [ ] Dossier institucional → OAPN / EUROPARC (vía UCM) → `docs/dossier_institucional_OAPN.md`
+
+---
+
+## 6. Hito de plataforma v2.0 (Pista A — solo ingeniería, sin ciencia nueva)
+
+> Publicable **ahora**. Habla de **arquitectura/producto**, no de resultados científicos.
+> No repite las cifras del PNSG (46 senderos, causa, presupuesto): esas ya se contaron en el
+> lanzamiento v1.0.0 y no hay evidencia nueva. Acompaña con la captura del shell de 4 capas
+> (`docs/screenshot-dashboard.png`).
+
+### LinkedIn — post único "v2.0"
+
+> 🧭 Actualización mayor del **SNTO**: de un panel único a una **capa de decisión modular**.
+>
+> Cuando lo publiqué (TFM en la **UCM**) era un dashboard. Un año de desarrollo después,
+> **v2.0** reorganiza toda la herramienta alrededor de **cómo decide** quien gestiona un
+> parque, no de qué sabe medir el satélite:
+>
+> 🧭 **Cuatro capas de decisión** — Decidir · Diagnosticar · Evidenciar · Gobernar
+> 👥 **Vistas por rol** (gestor / técnico / auditoría), cada una con su nivel de detalle
+> 🗂️ **El activo como página**: cada sendero, su ficha, su evidencia y su trazabilidad
+> 🛠️ **Backend persistente** (SQLAlchemy + PostgreSQL en Azure), ciclo de vida de cada
+> alerta y **rastro de auditoría** de cada decisión
+> ✅ **900+ tests**, CI separado del deploy, todo en abierto
+>
+> Lo que **no** cambia, a propósito: la honestidad metodológica. La correlación satélite↔campo
+> sigue pendiente de una campaña de terreno — y el sistema lo declara. Nada de "validado" hasta
+> tenerla.
+>
+> 🖥️ Dashboard: [URL_DASHBOARD] · 💻 GitHub · 📄 Notas de release (v2.0.0)
+>
+> #DecisionIntelligence #RemoteSensing #ParquesNacionales #OpenScience #UCM
+
+**Imagen:** `docs/screenshot-dashboard.png` (shell de 4 capas, vista Auditoría).
+
+### X / Twitter — 2 tweets
+
+1. 🧭 SNTO v2.0: de dashboard a **capa de decisión modular**. Cuatro capas (Decidir ·
+   Diagnosticar · Evidenciar · Gobernar), vistas por rol, el activo como página, backend
+   persistente con auditoría. 900+ tests, abierto. [imagen shell 4 capas]
+
+2. Lo que NO cambió a propósito: la honestidad. La validación satélite↔campo sigue pendiente
+   de campaña de terreno y el sistema lo declara. Cero overclaiming. 💻 GitHub · 🖥️ [URL_DASHBOARD]
+
+### Zenodo / GitHub Release
+
+Notas y metadatos listos en [`releases/v2.0.0.md`](releases/v2.0.0.md). Archivar el tag
+`v2.0.0` como *New version* del registro Zenodo existente (Pista A).
