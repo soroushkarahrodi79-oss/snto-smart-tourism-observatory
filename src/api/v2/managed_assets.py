@@ -12,6 +12,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from src.api.v2.authz_gate import authorize_territory_write
 from src.api.v2.deps import require_write_auth
 from src.api.v2.schemas import (
     AlertListResponse,
@@ -110,6 +111,10 @@ def transition_asset(
     asset is absent, 409 if the transition is not allowed from the current
     state.
     """
+    _asset = ManagedAssetRepository(db).get(asset_id)
+    if _asset is None:
+        raise HTTPException(status_code=404, detail="ManagedAsset not found")
+    authorize_territory_write(db, actor, _asset.territory_id)
     try:
         asset = transition_managed_asset(db, asset_id, body.to_status, actor=actor)
     except ResourceNotFoundError:

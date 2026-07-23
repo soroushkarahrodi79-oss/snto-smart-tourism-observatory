@@ -12,6 +12,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from src.api.v2.authz_gate import authorize_territory_write
 from src.api.v2.deps import require_write_auth
 from src.api.v2.schemas import (
     FieldVerificationCreate,
@@ -57,8 +58,10 @@ def create_field_verification(
     db: Session = Depends(get_db),
     actor: str = Depends(require_write_auth),
 ) -> FieldVerificationOut:
-    if ManagedAssetRepository(db).get(asset_id) is None:
+    _asset = ManagedAssetRepository(db).get(asset_id)
+    if _asset is None:
         raise HTTPException(status_code=404, detail="ManagedAsset not found")
+    authorize_territory_write(db, actor, _asset.territory_id)
     verification = FieldVerificationRepository(db).add(
         FieldVerification(
             asset_id=asset_id,
