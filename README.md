@@ -376,12 +376,28 @@ Proyecto de investigación académica desarrollado en la **Universidad Compluten
 El código se distribuye para uso académico y de investigación con atribución. Ver [`LICENSE`](LICENSE). Los datos pertenecen a sus respectivos proveedores y conservan sus licencias (ver §11).
 
 ### Cómo citar
-
 **DOI permanente — todas las versiones (Zenodo):** [10.5281/zenodo.20818269](https://doi.org/10.5281/zenodo.20818269)
 
 **DOI de la release estable v2.0.0:** [10.5281/zenodo.21472647](https://doi.org/10.5281/zenodo.21472647)
 
 Fichero de cita: [`CITATION.cff`](CITATION.cff) · Contribuciones: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+
+---
+
+## Cliente móvil — fundación Fase 1
+
+`mobile/` contiene una aplicación nativa Expo SDK 57 para iOS y Android. La
+fundación implementa navegación tipada, estados de carga/error, tokens visuales,
+un contrato de repositorio y una costura HTTP exclusivamente `GET`.
+
+La Fase 1 **no consume datos de producción**: todas las pantallas usan fixtures
+locales marcados como `synthetic`, con fuente, fecha, estado de validación y
+limitaciones visibles. Tampoco incorpora autenticación, mapas, persistencia
+offline, recursos Azure, despliegues ni operaciones de escritura.
+
+Consulte [`mobile/README.md`](mobile/README.md) para ejecutar y validar el
+cliente, y [`ADR-013`](docs/decisions/ADR-013-mobile-client.md) para el límite
+arquitectónico aprobado.
 
 ---
 
