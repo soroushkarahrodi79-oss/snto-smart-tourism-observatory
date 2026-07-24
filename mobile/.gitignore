@@ -1,0 +1,14 @@
+node_modules/
+.expo/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+android/
+ios/
+
+# Root .gitignore excludes generic data/ directories; this one contains source.
+!src/data/
+!src/data/**
