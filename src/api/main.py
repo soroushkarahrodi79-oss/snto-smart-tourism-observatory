@@ -9,6 +9,7 @@ from src.api.v2 import audit_log as v2_audit_log
 from src.api.v2 import field_verifications as v2_field_verifications
 from src.api.v2 import interventions as v2_interventions
 from src.api.v2 import managed_assets as v2_managed_assets
+from src.api.v2 import territories as v2_territories
 
 
 def create_app() -> FastAPI:
@@ -27,6 +28,7 @@ def create_app() -> FastAPI:
     app.include_router(alerts.router, prefix="/alerts")
 
     # /api/v2 — persistence-backed, read-only in this step (Fase 5, ADR-011).
+    app.include_router(v2_territories.router, prefix="/api/v2/territories")
     app.include_router(
         v2_managed_assets.router, prefix="/api/v2/managed-assets"
     )

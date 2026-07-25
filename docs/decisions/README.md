@@ -26,6 +26,8 @@ ADR source material is the 2026 review archive.
 - [ADR-010: Use a Hybrid Documentation Repository Strategy](ADR-010.md)
 - [ADR-011: Concrete Persistent-Backend Architecture for v2.0 (Fase 5)](ADR-011.md)
 - [ADR-012: Deploying the /api/v2 HTTP Surface](ADR-012.md)
+- [ADR-013: Fundación del cliente móvil SNTO](ADR-013-mobile-client.md)
+- [ADR-014: Contrato de lectura /api/v2 para el cliente móvil (Fase 2)](ADR-014-mobile-read-api-contract.md)
 
 ## Recommendations
 Use ADRs for any future decision that changes architecture, product category, scientific claims, or institutional readiness.

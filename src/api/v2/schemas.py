@@ -43,6 +43,35 @@ class ManagedAssetOut(BaseModel):
     status: ManagedAssetStatus
     created_at: datetime
     updated_at: datetime
+    # Mobile Fase 2 read layer (v3.0): a rough map-pin coordinate — derived
+    # from geometry_geojson, never a fabricated point (src.api.v2.geometry).
+    latitude: float | None = None
+    longitude: float | None = None
+    # Freshness + evidence class of the most recent Observation, so a list
+    # view doesn't need one round-trip per asset. None when the asset has no
+    # observation yet — never defaulted to "now" or a guessed evidence class.
+    latest_observed_at: datetime | None = None
+    latest_evidence_class: str | None = None  # EvidenceClass.value
+
+
+class TerritorySummaryOut(BaseModel):
+    """Mobile-facing territory roll-up (Fase 2): exactly what a home screen needs.
+
+    Distinct from ``TerritoryOut`` (the plain ORM passthrough): this is a
+    purpose-built, computed summary so the mobile home screen needs one call,
+    not N. ``updated_at``/``evidence_class`` are None when the territory has no
+    managed assets or observations yet — never fabricated.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    territory_id: int
+    slug: str
+    name: str
+    asset_count: int
+    open_alert_count: int
+    updated_at: datetime | None
+    evidence_class: str | None  # EvidenceClass.value of the freshest observation
 
 
 class ObservationOut(BaseModel):
@@ -143,6 +172,11 @@ class AlertTriageRequest(BaseModel):
 class ManagedAssetListResponse(BaseModel):
     total: int
     assets: list[ManagedAssetOut]
+
+
+class TerritoryListResponse(BaseModel):
+    total: int
+    territories: list[TerritoryOut]
 
 
 class ObservationListResponse(BaseModel):

@@ -18,3 +18,12 @@ class ObservationRepository(Repository[Observation]):
                 .order_by(Observation.observed_at)
             )
         )
+
+    def get_latest_by_asset(self, asset_id: int) -> Observation | None:
+        """Most recent observation for one asset, or None if it has none yet."""
+        return self.session.scalars(
+            select(Observation)
+            .where(Observation.asset_id == asset_id)
+            .order_by(Observation.observed_at.desc())
+            .limit(1)
+        ).first()
