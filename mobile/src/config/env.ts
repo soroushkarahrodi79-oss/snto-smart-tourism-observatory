@@ -19,7 +19,13 @@ const rawEnvironmentSchema = z
 export interface MobileEnvironment {
   environment: z.infer<typeof environmentSchema>;
   apiBaseUrl: string;
-  usesMockData: true;
+  // Fase 2 (ADR-014): still defaults to the synthetic fixture repository.
+  // Only an explicit EXPO_PUBLIC_SNTO_USE_REMOTE_API=true opts into the real
+  // /api/v2 HTTP repository — setting apiBaseUrl alone is not enough, so a
+  // dev pointing at a local backend for other reasons doesn't silently start
+  // reading it here.
+  usesMockData: boolean;
+  territorySlug: string;
 }
 
 export function parseEnvironment(
@@ -36,14 +42,20 @@ export function parseEnvironment(
     throw new Error('EXPO_PUBLIC_SNTO_API_BASE_URL must use HTTPS outside local mode.');
   }
 
+  const territorySlug = parsedRaw.EXPO_PUBLIC_SNTO_TERRITORY_SLUG?.trim() || 'pnsg';
+  const usesMockData = parsedRaw.EXPO_PUBLIC_SNTO_USE_REMOTE_API !== 'true';
+
   return {
     environment,
     apiBaseUrl: url,
-    usesMockData: true,
+    usesMockData,
+    territorySlug,
   };
 }
 
 export const mobileEnvironment = parseEnvironment({
   EXPO_PUBLIC_SNTO_ENV: process.env.EXPO_PUBLIC_SNTO_ENV,
   EXPO_PUBLIC_SNTO_API_BASE_URL: process.env.EXPO_PUBLIC_SNTO_API_BASE_URL,
+  EXPO_PUBLIC_SNTO_TERRITORY_SLUG: process.env.EXPO_PUBLIC_SNTO_TERRITORY_SLUG,
+  EXPO_PUBLIC_SNTO_USE_REMOTE_API: process.env.EXPO_PUBLIC_SNTO_USE_REMOTE_API,
 });

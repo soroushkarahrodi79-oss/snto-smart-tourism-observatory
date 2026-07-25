@@ -3,18 +3,27 @@ import { StyleSheet, Text, View } from 'react-native';
 import { AppScreen } from '@/components/AppScreen';
 import { AsyncState } from '@/components/AsyncState';
 import { EvidencePanel } from '@/components/EvidencePanel';
-import { mobileMockRepository } from '@/data/mock/mobileMockRepository';
+import { mobileEnvironment } from '@/config/env';
+import { mobileRepository } from '@/data/repository';
 import { useRepositoryQuery } from '@/data/useRepositoryQuery';
 import { colors, radii, spacing, typography } from '@/theme/tokens';
 
 export default function HomeScreen() {
-  const query = useRepositoryQuery(mobileMockRepository.getHomeSummary);
+  const query = useRepositoryQuery(mobileRepository.getHomeSummary);
 
   return (
     <AppScreen
-      eyebrow="Fundación móvil · Fase 1"
+      eyebrow={
+        mobileEnvironment.usesMockData
+          ? 'Fundación móvil · Fase 1'
+          : 'SNTO Mobile · Fase 2 · datos reales'
+      }
       title="Observatorio en campo"
-      subtitle="Navegación y contratos locales con evidencia explícita. Sin conexión a producción."
+      subtitle={
+        mobileEnvironment.usesMockData
+          ? 'Navegación y contratos locales con evidencia explícita. Sin conexión a producción.'
+          : 'Datos reales de /api/v2, con evidencia y limitación declaradas por elemento.'
+      }
     >
       {query.status === 'loading' ? <AsyncState kind="loading" /> : null}
       {query.status === 'error' ? <AsyncState kind="error" /> : null}
@@ -23,17 +32,23 @@ export default function HomeScreen() {
           <View style={styles.hero}>
             <Text style={styles.territory}>{query.data.territoryName}</Text>
             <Text style={styles.disclaimer}>
-              Todos los valores de esta versión son sintéticos y no están validados en campo.
+              {mobileEnvironment.usesMockData
+                ? 'Todos los valores de esta versión son sintéticos y no están validados en campo.'
+                : 'Datos reales del backend SNTO. Ningún activo está validado en campo (campaña #26 pendiente).'}
             </Text>
           </View>
           <View style={styles.stats}>
             <View style={styles.stat}>
               <Text style={styles.statValue}>{query.data.assetCount}</Text>
-              <Text style={styles.statLabel}>activos demo</Text>
+              <Text style={styles.statLabel}>
+                {mobileEnvironment.usesMockData ? 'activos demo' : 'activos'}
+              </Text>
             </View>
             <View style={styles.stat}>
               <Text style={styles.statValue}>{query.data.openAlertCount}</Text>
-              <Text style={styles.statLabel}>alertas demo</Text>
+              <Text style={styles.statLabel}>
+                {mobileEnvironment.usesMockData ? 'alertas demo' : 'alertas abiertas'}
+              </Text>
             </View>
           </View>
           <EvidencePanel evidence={query.data.evidence} />

@@ -384,20 +384,26 @@ Fichero de cita: [`CITATION.cff`](CITATION.cff) · Contribuciones: [`CONTRIBUTIN
 
 ---
 
-## Cliente móvil — fundación Fase 1
+## Cliente móvil — Fase 1 + Fase 2
 
-`mobile/` contiene una aplicación nativa Expo SDK 57 para iOS y Android. La
-fundación implementa navegación tipada, estados de carga/error, tokens visuales,
-un contrato de repositorio y una costura HTTP exclusivamente `GET`.
+`mobile/` contiene una aplicación nativa Expo SDK 57 para iOS y Android.
+**Fase 1** (ADR-013) implementó navegación tipada, estados de carga/error,
+tokens visuales, el contrato de repositorio y una costura HTTP exclusivamente
+`GET`. **Fase 2** (ADR-014) añade un repositorio HTTP real (`MobileHttpRepository`)
+sobre el contrato de lectura de `/api/v2` (territorios, activos con centroide
+de mapa, alertas por territorio) — construido y probado contra `fetch`
+mockeado, **sin necesitar `/api/v2` desplegado**.
 
-La Fase 1 **no consume datos de producción**: todas las pantallas usan fixtures
-locales marcados como `synthetic`, con fuente, fecha, estado de validación y
-limitaciones visibles. Tampoco incorpora autenticación, mapas, persistencia
-offline, recursos Azure, despliegues ni operaciones de escritura.
+**Sigue por defecto en modo sintético**: todas las pantallas usan fixtures
+locales marcadas como `synthetic` salvo que se active explícitamente
+`EXPO_PUBLIC_SNTO_USE_REMOTE_API=true` — configurar solo la URL del API no
+basta. Ninguna pantalla incorpora todavía autenticación, mapas, persistencia
+offline, recursos Azure ni operaciones de escritura.
 
 Consulte [`mobile/README.md`](mobile/README.md) para ejecutar y validar el
-cliente, y [`ADR-013`](docs/decisions/ADR-013-mobile-client.md) para el límite
-arquitectónico aprobado.
+cliente, [`ADR-013`](docs/decisions/ADR-013-mobile-client.md) para el límite
+arquitectónico de Fase 1, y [`ADR-014`](docs/decisions/ADR-014-mobile-read-api-contract.md)
+para el contrato de lectura de Fase 2.
 
 ---
 

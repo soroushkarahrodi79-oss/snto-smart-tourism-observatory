@@ -10,6 +10,11 @@ export interface HomeSummary {
   evidence: EvidenceMetadata;
 }
 
+export interface AssetLocation {
+  latitude: number;
+  longitude: number;
+}
+
 export interface TourismAsset {
   id: string;
   name: string;
@@ -17,6 +22,10 @@ export interface TourismAsset {
   municipality: string;
   summary: string;
   evidence: EvidenceMetadata;
+  // Fase 2 (ADR-014): a rough map-pin centroid, or null when the backend
+  // couldn't derive one. No map SDK renders this yet (ADR-013 defers that
+  // as a separate licensing decision) — the data is available for when it does.
+  location: AssetLocation | null;
 }
 
 export interface ObservatoryAlert {

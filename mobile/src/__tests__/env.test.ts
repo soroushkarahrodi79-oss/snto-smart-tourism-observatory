@@ -6,7 +6,30 @@ describe('mobile environment parser', () => {
       environment: 'local',
       apiBaseUrl: 'http://127.0.0.1:8000',
       usesMockData: true,
+      territorySlug: 'pnsg',
     });
+  });
+
+  it('stays on mock data even when an API base URL is configured', () => {
+    // Fase 2 (ADR-014): configuring apiBaseUrl alone must not silently start
+    // reading real data — only the explicit opt-in flag does.
+    expect(
+      parseEnvironment({
+        EXPO_PUBLIC_SNTO_API_BASE_URL: 'https://api.example.test',
+      }).usesMockData,
+    ).toBe(true);
+  });
+
+  it('opts into the real API only with the explicit remote flag', () => {
+    expect(
+      parseEnvironment({ EXPO_PUBLIC_SNTO_USE_REMOTE_API: 'true' }).usesMockData,
+    ).toBe(false);
+  });
+
+  it('accepts a custom territory slug', () => {
+    expect(
+      parseEnvironment({ EXPO_PUBLIC_SNTO_TERRITORY_SLUG: 'monfrague' }).territorySlug,
+    ).toBe('monfrague');
   });
 
   it('requires HTTPS outside local mode', () => {

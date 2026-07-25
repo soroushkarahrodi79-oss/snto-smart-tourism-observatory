@@ -34,6 +34,7 @@ export const ASSET_FIXTURES: TourismAsset[] = [
     municipality: 'Municipio sintético Norte',
     summary: 'Activo ficticio para probar el detalle y la trazabilidad de evidencia.',
     evidence: syntheticEvidence('Activo inventado; no usar para planificación ni navegación.'),
+    location: null,
   },
   {
     id: 'asset-demo-02',
@@ -42,6 +43,7 @@ export const ASSET_FIXTURES: TourismAsset[] = [
     municipality: 'Municipio sintético Centro',
     summary: 'Recorrido ficticio incluido únicamente como fixture local.',
     evidence: syntheticEvidence('Trazado y estado no verificados en campo.'),
+    location: null,
   },
   {
     id: 'asset-demo-03',
@@ -50,6 +52,7 @@ export const ASSET_FIXTURES: TourismAsset[] = [
     municipality: 'Municipio sintético Sur',
     summary: 'Equipamiento ficticio para validar estados de lista.',
     evidence: syntheticEvidence('Ubicación, horarios y servicios no son datos reales.'),
+    location: null,
   },
 ];
 

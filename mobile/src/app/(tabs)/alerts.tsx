@@ -5,18 +5,23 @@ import { AppScreen } from '@/components/AppScreen';
 import { AsyncState } from '@/components/AsyncState';
 import { EvidenceBadge } from '@/components/EvidenceBadge';
 import { RecordCard } from '@/components/RecordCard';
-import { mobileMockRepository } from '@/data/mock/mobileMockRepository';
+import { mobileEnvironment } from '@/config/env';
+import { mobileRepository } from '@/data/repository';
 import { useRepositoryQuery } from '@/data/useRepositoryQuery';
 import { spacing } from '@/theme/tokens';
 
 export default function AlertsScreen() {
-  const query = useRepositoryQuery(mobileMockRepository.listAlerts);
+  const query = useRepositoryQuery(mobileRepository.listAlerts);
 
   return (
     <AppScreen
       eyebrow="Señales no operativas"
       title="Alertas"
-      subtitle="Ejemplos sintéticos. Ningún elemento constituye una restricción oficial."
+      subtitle={
+        mobileEnvironment.usesMockData
+          ? 'Ejemplos sintéticos. Ningún elemento constituye una restricción oficial.'
+          : 'Alertas reales del backend SNTO. Ningún elemento constituye una restricción oficial.'
+      }
     >
       {query.status === 'loading' ? <AsyncState kind="loading" /> : null}
       {query.status === 'error' ? <AsyncState kind="error" /> : null}
