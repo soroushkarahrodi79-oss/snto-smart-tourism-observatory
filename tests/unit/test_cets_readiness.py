@@ -13,6 +13,7 @@ The non-negotiables under test:
 """
 from __future__ import annotations
 
+from src.platform.evidence import EvidenceClass
 from src.reporting.cets_readiness import (
     Coverage,
     EvidenceSignals,
@@ -21,7 +22,6 @@ from src.reporting.cets_readiness import (
     render_cets_readiness_markdown,
     resolve_signals,
 )
-from src.temporal.manifest import DataStatus
 
 # Signals with nothing available — the honest floor.
 _NO_DATA = EvidenceSignals(
@@ -29,13 +29,15 @@ _NO_DATA = EvidenceSignals(
     mobility_real=False,
     socioeconomic_series=False,
     field_measured_plots=0,
+    scm_real_zones=0,
 )
-# Everything available, including measured field plots.
+# Everything available, including measured field plots and real SCM zones.
 _ALL_DATA = EvidenceSignals(
     satellite_real=True,
     mobility_real=True,
     socioeconomic_series=True,
     field_measured_plots=30,
+    scm_real_zones=12,
 )
 
 
@@ -57,10 +59,10 @@ def _all_rows(report: dict) -> list[dict]:
 def test_no_row_ever_reaches_a_validated_state_even_with_field_plots() -> None:
     """Measured plots raise evidence to REAL at most — never a validation claim."""
     report = _build(_ALL_DATA)
-    statuses = {r["data_status"] for r in _all_rows(report)}
-    # DataStatus has no "validated" tier by design; assert we stay inside it.
-    assert statuses <= {s.value for s in DataStatus}
-    assert DataStatus.REAL.value in statuses
+    statuses = {r["evidence_class"] for r in _all_rows(report)}
+    # EvidenceClass has no "validated" tier by design; assert we stay inside it.
+    assert statuses <= {s.value for s in EvidenceClass}
+    assert EvidenceClass.REAL.value in statuses
 
 
 def test_validation_caveat_is_always_present_regardless_of_signals() -> None:
@@ -73,7 +75,7 @@ def test_validation_caveat_is_always_present_regardless_of_signals() -> None:
 def test_field_row_is_missing_until_the_campaign_runs() -> None:
     report = _build(_NO_DATA)
     row = next(r for r in report["components"] if r["key"] == "plan_accion_validacion")
-    assert row["data_status"] == DataStatus.MISSING.value
+    assert row["evidence_class"] == EvidenceClass.MISSING.value
     assert "no se ha ejecutado" in row["evidence_note"]
 
 
@@ -112,7 +114,7 @@ def test_out_of_scope_rows_carry_no_fabricated_module_or_evidence() -> None:
         if row["coverage"] == Coverage.OUT_OF_SCOPE.value:
             assert row["snto_module"] == "—"
             assert row["indicator"] == "—"
-            assert row["data_status"] == DataStatus.MISSING.value
+            assert row["evidence_class"] == EvidenceClass.MISSING.value
 
 
 # ── Coverage is declared, evidence is computed ────────────────────────────────
@@ -125,8 +127,8 @@ def test_coverage_is_independent_of_data_availability() -> None:
 
 
 def test_evidence_class_does_shift_with_data_availability() -> None:
-    poor = {r["key"]: r["data_status"] for r in _all_rows(_build(_NO_DATA))}
-    rich = {r["key"]: r["data_status"] for r in _all_rows(_build(_ALL_DATA))}
+    poor = {r["key"]: r["evidence_class"] for r in _all_rows(_build(_NO_DATA))}
+    rich = {r["key"]: r["evidence_class"] for r in _all_rows(_build(_ALL_DATA))}
     assert poor != rich
 
 
@@ -135,7 +137,7 @@ def test_satellite_rows_are_missing_without_a_real_series() -> None:
     row = next(
         r for r in report["components"] if r["key"] == "diagnostico_conservacion"
     )
-    assert row["data_status"] == DataStatus.MISSING.value
+    assert row["evidence_class"] == EvidenceClass.MISSING.value
 
 
 def test_satellite_rows_are_real_with_a_committed_series() -> None:
@@ -143,7 +145,7 @@ def test_satellite_rows_are_real_with_a_committed_series() -> None:
     row = next(
         r for r in report["components"] if r["key"] == "diagnostico_conservacion"
     )
-    assert row["data_status"] == DataStatus.REAL.value
+    assert row["evidence_class"] == EvidenceClass.REAL.value
 
 
 def test_forecast_row_is_never_real() -> None:
@@ -153,13 +155,73 @@ def test_forecast_row_is_never_real() -> None:
         row = next(
             r for r in report["components"] if r["key"] == "estrategia_proyeccion"
         )
-        assert row["data_status"] != DataStatus.REAL.value
+        assert row["evidence_class"] != EvidenceClass.REAL.value
+
+
+# ── ADR-004: simulated must stay distinguishable from synthetic ──────────────
+
+def test_simulated_rows_are_simulated_not_synthetic() -> None:
+    """The whole reason this module uses EvidenceClass over DataStatus.
+
+    ``DataStatus`` has no SIMULATED tier, so a model-derived projection would
+    collapse into SYNTHETIC alongside demo mocks — the blurring ADR-004 forbids.
+    """
+    report = _build(_NO_DATA)
+    for key in ("estrategia_proyeccion", "diagnostico_atribucion"):
+        row = next(r for r in report["components"] if r["key"] == key)
+        assert row["evidence_class"] == EvidenceClass.SIMULATED.value, (
+            f"{key} must be 'simulated', never 'synthetic'"
+        )
+
+
+def test_scm_attribution_is_simulated_without_real_zones() -> None:
+    """Attribution must not inherit the trend series' REAL status.
+
+    The SCM runs its α-decay simulation unless real multi-scale zone exports
+    exist, so with a real satellite series but no zones the row stays SIMULATED.
+    """
+    signals = EvidenceSignals(
+        satellite_real=True,
+        mobility_real=False,
+        socioeconomic_series=False,
+        field_measured_plots=0,
+        scm_real_zones=0,
+    )
+    row = next(
+        r for r in _build(signals)["components"]
+        if r["key"] == "diagnostico_atribucion"
+    )
+    assert row["evidence_class"] == EvidenceClass.SIMULATED.value
+    assert "decaimiento α" in row["evidence_note"]
+
+
+def test_scm_attribution_becomes_real_once_zones_are_exported() -> None:
+    row = next(
+        r for r in _build(_ALL_DATA)["components"]
+        if r["key"] == "diagnostico_atribucion"
+    )
+    assert row["evidence_class"] == EvidenceClass.REAL.value
+
+
+def test_scm_zone_probe_counts_zero_for_a_missing_directory(tmp_path) -> None:
+    from src.reporting.cets_readiness import count_real_scm_zone_exports
+
+    assert count_real_scm_zone_exports(tmp_path / "nope") == 0
+
+
+def test_scm_zone_probe_counts_exports(tmp_path) -> None:
+    from src.reporting.cets_readiness import count_real_scm_zone_exports
+
+    (tmp_path / "a.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "b.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "ignored.txt").write_text("x", encoding="utf-8")
+    assert count_real_scm_zone_exports(tmp_path) == 2
 
 
 def test_curated_portfolio_rows_are_calibrated_never_real() -> None:
     report = _build(_ALL_DATA)
     row = next(r for r in report["components"] if r["key"] == "estrategia_priorizacion")
-    assert row["data_status"] == DataStatus.CALIBRATED.value
+    assert row["evidence_class"] == EvidenceClass.CALIBRATED.value
 
 
 def test_socioeconomic_degrades_to_calibrated_without_a_series() -> None:
@@ -168,7 +230,7 @@ def test_socioeconomic_degrades_to_calibrated_without_a_series() -> None:
     row = next(
         r for r in report["components"] if r["key"] == "diagnostico_socioeconomico"
     )
-    assert row["data_status"] == DataStatus.CALIBRATED.value
+    assert row["evidence_class"] == EvidenceClass.CALIBRATED.value
 
 
 # ── Structural integrity ─────────────────────────────────────────────────────
@@ -180,7 +242,7 @@ def test_summary_counts_agree_with_the_emitted_rows() -> None:
     for coverage, n in report["summary"]["by_coverage"].items():
         assert n == sum(1 for r in rows if r["coverage"] == coverage)
     for status, n in report["summary"]["by_evidence_class"].items():
-        assert n == sum(1 for r in rows if r["data_status"] == status)
+        assert n == sum(1 for r in rows if r["evidence_class"] == status)
 
 
 def test_all_ten_principles_are_present() -> None:
