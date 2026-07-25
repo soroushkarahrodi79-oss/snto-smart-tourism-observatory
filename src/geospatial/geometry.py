@@ -6,8 +6,7 @@ from typing import Optional
 
 import numpy as np
 from pyproj import Transformer
-from shapely.geometry import MultiLineString, Polygon, mapping, shape
-from shapely.ops import substring, unary_union
+from shapely.geometry import Polygon, shape
 
 from src.assets.models import GeometryType, TourismAsset
 

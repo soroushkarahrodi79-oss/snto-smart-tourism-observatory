@@ -255,7 +255,6 @@ class GEEAdapter(DataIngestionAdapter):
         SCL is the recommended masking approach for Sentinel-2 L2A.
         It supersedes the older QA60 bitmask which only covered high-confidence clouds.
         """
-        import ee
 
         scl = image.select(_BAND_SCL)
         mask = scl.neq(_SCL_BAD_VALUES[0])

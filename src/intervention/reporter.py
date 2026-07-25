@@ -49,7 +49,6 @@ from .models import (
     SCENARIO_LABELS,
     FEASIBILITY_NOT_RECOMMENDED, FEASIBILITY_MARGINAL,
 )
-from .impact import COST_RESTORATION, COST_MONITORING, COST_PROMOTION
 
 
 # ── Public entry point ─────────────────────────────────────────────────────

@@ -45,7 +45,7 @@ identical trend and residual components to within noise level.
 
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import numpy as np
 
