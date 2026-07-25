@@ -95,8 +95,38 @@ def compute_executive_dashboard(
 
 # ── KPI builders ───────────────────────────────────────────────────────────
 
+def _no_data_kpi(number: int, name: str, technical_basis: str) -> DashboardKPI:
+    """A KPI for a territory with no assets yet.
+
+    Declares the absence of data instead of fabricating a value. The three
+    KPIs that divide by the asset count (health, confidence rate, recovery)
+    would otherwise raise ``ZeroDivisionError`` on an empty portfolio; a naive
+    guard returning ``0`` would be worse than the crash -- a Territory Health of
+    ``0/100`` reads as *critically degraded* when the truth is *nothing measured
+    yet*. The status is neutral (BLUE / NO DATA), never RED.
+    """
+    return DashboardKPI(
+        number=number, name=name,
+        value="sin datos", status="BLUE", status_label="NO DATA",
+        what_it_means=(
+            "No hay activos registrados en este territorio todavía, por lo que "
+            "este indicador no puede calcularse. No es un valor bajo: es "
+            "ausencia de dato."
+        ),
+        recommended_action=(
+            "Registrar y evaluar activos para que el indicador tenga base."
+        ),
+        technical_basis=technical_basis,
+    )
+
+
 def _kpi_territory_health(assets: list) -> DashboardKPI:
     """KPI 1: Territory Health Index -- overall portfolio condition."""
+    if not assets:
+        return _no_data_kpi(
+            1, "Territory Health Index",
+            "Mean EHS across all monitored assets (Phase 1-4 outputs).",
+        )
     score = sum(a.ehs for a in assets) / len(assets)
     value = f"{score:.0f}/100"
 
@@ -264,6 +294,11 @@ def _kpi_investment_backlog(assets: list, comparisons: list) -> DashboardKPI:
 
 def _kpi_decision_confidence_rate(assets: list) -> DashboardKPI:
     """KPI 5: % of assets with sufficient evidence to act confidently."""
+    if not assets:
+        return _no_data_kpi(
+            5, "Decision Confidence Rate",
+            "Share of assets with DCS >= 65 (Phase 4 output).",
+        )
     n_confident = sum(1 for a in assets if a.dcs >= 65)
     pct = round(n_confident / len(assets) * 100)
     value = f"{pct}% ({n_confident}/{len(assets)} assets)"
@@ -423,12 +458,15 @@ def _kpi_budget_efficiency(budget_result, comparisons: list) -> DashboardKPI:
 
 def _kpi_recovery_progress(assets: list) -> DashboardKPI:
     """KPI 9: Assets on an improving trend."""
+    if not assets:
+        return _no_data_kpi(
+            9, "Recovery Progress",
+            "Mann-Kendall trend direction per asset (Phase 3 output).",
+        )
     improving = [a for a in assets if a.trend_direction == "increasing"]
     declining = [a for a in assets if a.trend_direction == "decreasing"]
     n_imp  = len(improving)
     n_dec  = len(declining)
-    n      = len(assets)
-    pct    = round(n_imp / n * 100)
     value  = f"{n_imp} improving, {n_dec} declining"
 
     if n_dec == 0:

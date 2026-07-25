@@ -8,7 +8,7 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 
 > SNTO **no reemplaza** a ArcGIS, Google Earth Engine, Sentinel Hub, Tableau ni Power BI: se sitúa **por encima** de las plataformas GIS, de observación de la Tierra y de BI, y traduce su señal en decisiones de conservación defendibles (riesgo de presión de visitantes, prioridad e inversión, con nivel de confianza).
 
-[![Tests](https://img.shields.io/badge/tests-1047%20passing-brightgreen)](#8-tests)
+[![Tests](https://img.shields.io/badge/tests-1059%20passing-brightgreen)](#8-tests)
 [![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue)](https://www.python.org/)
 [![CI](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml)
 [![Deploy](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml)
@@ -27,7 +27,7 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 
 La mayoría de los espacios naturales protegidos gestionan el impacto del turismo de forma **reactiva**: actúan cuando la degradación ya es visible. El SNTO transforma ese paradigma en **gobernanza regenerativa proactiva** — detecta el estrés ecológico desde el satélite antes de que sea irreversible, distingue si la causa es el uso turístico o el clima, y traduce cada hallazgo en una **prioridad de inversión con presupuesto y nivel de confianza**.
 
-> **Para evaluadores y revisores:** este repositorio es un proyecto de investigación académica de la **Universidad Complutense de Madrid (UCM)**: un observatorio que evalúa el estado de senderos y enclaves de turismo natural por teledetección satelital, detecta zonas de riesgo de degradación y prioriza la intervención con fórmulas financieras. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (218 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases, con capas de **andamiaje temporal (serie 2021–2026), trazabilidad/confianza del dato, baselines estratificados, incertidumbre del ranking y validación de campo**. **1047 tests, CI separado del deploy, dos pipelines arquitectónicamente desacoplados.** La gobernanza se alinea con los marcos europeos de reporte de espacios protegidos (Natura 2000 / EUROPARC / SISMOTUR), validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
+> **Para evaluadores y revisores:** este repositorio es un proyecto de investigación académica de la **Universidad Complutense de Madrid (UCM)**: un observatorio que evalúa el estado de senderos y enclaves de turismo natural por teledetección satelital, detecta zonas de riesgo de degradación y prioriza la intervención con fórmulas financieras. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (218 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases, con capas de **andamiaje temporal (serie 2021–2026), trazabilidad/confianza del dato, baselines estratificados, incertidumbre del ranking y validación de campo**. **1059 tests, CI separado del deploy, dos pipelines arquitectónicamente desacoplados.** La gobernanza se alinea con los marcos europeos de reporte de espacios protegidos (Natura 2000 / EUROPARC / SISMOTUR), validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
 
 > **Estado de versión:** [`v2.0.0`](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/releases/tag/v2.0.0) es la última release estable; `main` está en `v2.1.0.dev0` (marcador de desarrollo, no una release final). v2.0.0 consuma la visión v2.0 del roadmap (arquitectura modular + backend persistente + evolución de UI por roles). Se apoya en los cimientos ya publicados en v1.5.0 — la **modularización de `app.py`** (#27: de ~3.170 a ~285 líneas, UI extraída a `src/ui/`), las **vistas por audiencia** (#28: Técnica/Gestor/Auditoría con cifras financieras invariantes) y los **fundamentos del backend persistente** (Fase 5, ADR-011: persistencia SQLAlchemy+Alembic, API `/api/v2`, ciclo de vida, auditoría; producción sobre Azure PostgreSQL desde el cutover 2026-07-18) — y añade la **evolución de UI por roles** (Fase 6): la información se reorganiza en **cuatro capas de decisión** (Decidir · Diagnosticar · Evidenciar · Gobernar) con *home* por audiencia, el **activo como página**, triaje de alertas en «Acciones Urgentes», y los módulos de simulación, presión/capacidad, confianza, proveniencia, informes/exportaciones y configuración territorial. Ningún cambio relaja la separación de evidencia ni afirma validación de campo (campaña #26 aún pendiente). En `main` (sin nueva release estable todavía) ya han aterrizado además los primeros hitos post-v2.0: **v2.1** (activación y gobernanza — deploy gateado por CI, CI endurecido, `DataStatus` de la capa curada), **v2.2** (profundidad analítica — forecasting `SIMULATED` y capacidad LAC/ROS operativos; las vías de dato real —movilidad MITMA, zonas SCM, serie SVI— implementadas con puerta de disponibilidad pero **aún sin dato ingerido**), la **puerta de validación v2.5** (runner de concordancia y captura de parcelas; la campaña de campo sigue pendiente) y los primeros cimientos de **v3.0** (identidad y multi-tenancy, aprovisionamiento, registro territorial editable y autorización de escritura en `/api/v2`; SSO/Entra ID sigue pendiente).
 
@@ -91,7 +91,7 @@ _Shell de 4 capas de decisión (Fase 6, v2.0) — Decidir · Diagnosticar · Evi
 | **Cliente móvil** (`mobile/`, Expo + TypeScript) | PNSG | ✅ Fase 1 (ADR-013) shell nativo sobre fixtures sintéticas + Fase 2 (ADR-014) repositorio HTTP real sobre `/api/v2`; **por defecto en modo sintético** salvo `EXPO_PUBLIC_SNTO_USE_REMOTE_API=true`. CI propia, desacoplada de la de Python |
 | **Dashboard ejecutivo** | PNSG | ✅ Desplegado en Azure Container Apps (scale-to-zero); sirve el shell de 4 capas |
 | **CI/CD** | — | ✅ GitHub Actions → CI verde **gatea** el deploy → ACR build → roll Container App |
-| **Tests** | — | ✅ 1046 passing, 1 skipped, 0 regresiones (suite verde, ver §8) |
+| **Tests** | — | ✅ 1058 passing, 1 skipped, 0 regresiones (suite verde, ver §8) |
 
 El Pipeline A produce indicadores ambientales reales: el **PNSG** es el territorio principal del observatorio y la **Reserva de la Biosfera Sierra del Rincón** se conserva como piloto de calibración metodológica (valida el método sobre un segundo territorio con datos reales). El Pipeline B demuestra el sistema de gobernanza de extremo a extremo. Ambos pipelines están diseñados para integrarse cuando el Pipeline A disponga de series temporales multi-anuales reales. Desde v1.2.0, el método se ha replicado con éxito en un piloto de dos biomas contrastados de la **Red de Parques Nacionales (OAPN)** (Tablas de Daimiel, Monfragüe); el resto de la Red queda preparado como plantillas GEE para fases posteriores.
 
@@ -334,7 +334,7 @@ Secrets requeridos en GitHub (`Settings ▸ Secrets and variables ▸ Actions`):
 pytest --tb=short
 ```
 
-- **1046 passing, 1 skipped, 0 regresiones, suite verde** (1047 tests recogidos — el badge refleja el total recogido).
+- **1058 passing, 1 skipped, 0 regresiones, suite verde** (1059 tests recogidos — el badge refleja el total recogido).
 - **CI (`ci.yml`)** ejecuta además `ruff` bloqueante sobre los módulos mantenidos (F0–F7), `ruff` informativo sobre el resto (deuda de lint en reducción), import smoke y `py_compile` de los entry points.
 
 ---
@@ -441,5 +441,5 @@ para el contrato de lectura de Fase 2.
 ---
 
 <div align="center">
-<sub>SNTO v2.1.0.dev0 · Python ≥ 3.12 · 1047 tests passing · julio 2026</sub>
+<sub>SNTO v2.1.0.dev0 · Python ≥ 3.12 · 1059 tests passing · julio 2026</sub>
 </div>
