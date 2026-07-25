@@ -81,9 +81,12 @@ _Shell de 4 capas de decisión (Fase 6, v2.0) — Decidir · Diagnosticar · Evi
 | **v2.1 — Activación y gobernanza** (`main`, `2.1.0.dev0`) | — | ✅ deploy gateado por CI verde (ADR-009) + runbook de rollback, CI endurecido (cobertura, `mypy`, job Postgres real), `DataStatus` máquina-legible en la capa curada |
 | **v2.2 — Profundidad analítica** (`main`, dev) | PNSG | ✅ **forecasting** (proyección con banda de incertidumbre, siempre `SIMULATED`), feed **real de movilidad MITMA** sustituyendo el mock, capacidad de carga **LAC/ROS**, zonas SCM multiescala reales, serie temporal de vulnerabilidad SVI |
 | **v2.5 — Puerta de validación** (`main`, dev, en curso) | PNSG | 🟡 runner de concordancia satélite↔campo (Spearman / Cliff's δ) listo y con superficie de estado; **la campaña de campo (#26) sigue pendiente** — sin ella no se afirma validación |
+| **v3.0 — Identidad y multi-tenancy** (`main`, dev, parcial) | — | 🟡 modelos `Organization`/`User`/`UserRole`, política `authz.py`, servicio de aprovisionamiento `tenancy.py`, `Territory.org_id` (aditivo, nulable) y gate de autorización en los 5 endpoints de escritura de `/api/v2`. **Latente hasta que existan `User` reales** — el modelo actual de API-key compartida no cambia. SSO/Entra ID y geometría PostGIS pendientes |
+| **v3.0 — Benchmarking Red OAPN** (`main`, dev) | Red OAPN | ✅ roll-up comparativo entre parques (`src/benchmarking/oapn_rollup.py`) **solo sobre los 3 parques con serie de tendencia real comprometida** (PNSG, Monfragüe, Tablas de Daimiel); las 13 plantillas GEE sin validar se reportan como recuento pendiente, nunca agregadas a una cifra de red |
+| **Cliente móvil** (`mobile/`, Expo + TypeScript) | PNSG | ✅ Fase 1 (ADR-013) shell nativo sobre fixtures sintéticas + Fase 2 (ADR-014) repositorio HTTP real sobre `/api/v2`; **por defecto en modo sintético** salvo `EXPO_PUBLIC_SNTO_USE_REMOTE_API=true`. CI propia, desacoplada de la de Python |
 | **Dashboard ejecutivo** | PNSG | ✅ Desplegado en Azure Container Apps (scale-to-zero); sirve el shell de 4 capas |
 | **CI/CD** | — | ✅ GitHub Actions → CI verde **gatea** el deploy → ACR build → roll Container App |
-| **Tests** | — | ✅ 890 passing, 1 skipped, 0 regresiones (suite verde, ver §8) |
+| **Tests** | — | ✅ 954 passing, 1 skipped, 0 regresiones (suite verde, ver §8) |
 
 El Pipeline A produce indicadores ambientales reales: el **PNSG** es el territorio principal del observatorio y la **Reserva de la Biosfera Sierra del Rincón** se conserva como piloto de calibración metodológica (valida el método sobre un segundo territorio con datos reales). El Pipeline B demuestra el sistema de gobernanza de extremo a extremo. Ambos pipelines están diseñados para integrarse cuando el Pipeline A disponga de series temporales multi-anuales reales. Desde v1.2.0, el método se ha replicado con éxito en un piloto de dos biomas contrastados de la **Red de Parques Nacionales (OAPN)** (Tablas de Daimiel, Monfragüe); el resto de la Red queda preparado como plantillas GEE para fases posteriores.
 
@@ -171,6 +174,8 @@ class F,G,H,I,J dash;
 - **UI por roles en 4 capas** (Fase 6) — `src/ui/navigation.py`: Decidir · Diagnosticar · Evidenciar · Gobernar, con *home* por audiencia, activo-como-página y triaje de alertas (14 módulos).
 - **Forecasting** (v2.2) — `src/forecasting/`: proyección de tendencia con banda de incertidumbre y proyección estacional; **cada salida lleva `EvidenceClass.SIMULATED`** (nunca observación), y una superficie de "Proyección de tendencia" en *Diagnosticar*.
 - **Movilidad real + capacidad de carga** (v2.2) — `src/mobility/`: feed real **MITMA** de movilidad municipal como proxy de presión de visitantes (sustituye el mock), que alimenta un marco de capacidad **LAC/ROS** (`src/platform/pressure_capacity.py`).
+- **Identidad y multi-tenancy** (v3.0, parcial) — `src/persistence/` añade `Organization`/`User`/`UserRole`, una política de autorización pura (`services/authz.py`), aprovisionamiento de organizaciones y territorios (`services/tenancy.py`) y un gate de escritura en `/api/v2` (`api/v2/authz_gate.py`). Diseño **aditivo y latente**: sin filas `User` reales el comportamiento actual (API-key compartida, territorio `pnsg` sin propietario) no cambia. Ver [`ADR-002`](docs/decisions/ADR-002.md) / [`ADR-005`](docs/decisions/ADR-005.md).
+- **Benchmarking de la Red OAPN** (v3.0) — `src/benchmarking/oapn_rollup.py`: comparación entre parques construida **solo sobre los parques con tendencia real comprometida en disco** (PNSG, Monfragüe, Tablas de Daimiel). Las 13 plantillas GEE pendientes de QA por bioma se reportan como recuento explícito, **nunca agregadas a una cifra de red** — no se fabrica una señal que la evidencia no sostiene.
 - **Capa temporal Sentinel-2 real (v1.1.0, estadística corregida en v1.1.1)** — `src/platform/satellite_trends.py` + `clean_assets/timeseries/`: serie mensual NDVI/NDMI real 2021–2026 (GEE) para 21 activos reales del PNSG, con tendencia Mann-Kendall por activo surgida en el panel "Tendencias satelitales reales" (pestaña Series Temporales). El test corre sobre la serie **desestacionalizada** (descomposición armónica), con **corrección de empates**, **pendiente de Sen + IC 95%** y verificación de robustez frente a autocorrelación (**pre-whitening Yue-Pilon**). Ver [docs/nota_metodologica_temporalidad.md](docs/nota_metodologica_temporalidad.md).
 - **Andamiaje temporal declarativo** — `src/temporal/`: especificación declarativa de la serie (`PNSG_5Y` = 72 meses), **gate de validez Mann-Kendall** (qué inferencia sostiene cada profundidad: ΔEHS estacional vs tendencia) y **manifiesto de procedencia** por periodo — ruta de código separada de la capa anterior, aún sin activar con datos reales. Ver [docs/temporal_series_design.md](docs/temporal_series_design.md).
 - **Trazabilidad y confianza del dato** — `src/platform/provenance.py`: etiquetas visibles **dato real / calibrado / sintético**, fechas de escena reales, cobertura y *caveats* de confianza en el dashboard.
@@ -320,7 +325,7 @@ Secrets requeridos en GitHub (`Settings ▸ Secrets and variables ▸ Actions`):
 pytest --tb=short
 ```
 
-- **890 passing, 1 skipped, 0 regresiones, suite verde.**
+- **954 passing, 1 skipped, 0 regresiones, suite verde** (955 tests recogidos — el badge refleja el total recogido).
 - **CI (`ci.yml`)** ejecuta además `ruff` bloqueante sobre los módulos mantenidos (F0–F7), `ruff` informativo sobre el resto (deuda de lint en reducción), import smoke y `py_compile` de los entry points.
 
 ---
@@ -381,6 +386,19 @@ El código se distribuye para uso académico y de investigación con atribución
 **DOI de la release estable v2.0.0:** [10.5281/zenodo.21472647](https://doi.org/10.5281/zenodo.21472647)
 
 Fichero de cita: [`CITATION.cff`](CITATION.cff) · Contribuciones: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+
+### Qué se publica y cuándo
+
+La política de publicación es **de dos pistas** y está documentada en
+[`docs/PUBLICATION_STRATEGY.md`](docs/PUBLICATION_STRATEGY.md):
+
+- **Pista A — artefactos de software:** siguen a las releases de código y se
+  publican ya (Zenodo por tag, notas de release en
+  [`docs/releases/`](docs/releases/), material de difusión en
+  [`docs/kit_difusion.md`](docs/kit_difusion.md)).
+- **Pista B — afirmaciones científicas:** siguen a la **evidencia**, no al
+  código, y permanecen **congeladas hasta que la campaña de campo (#26) se
+  ejecute**. Ninguna publicación de Pista A afirma validación satélite↔campo.
 
 ---
 
