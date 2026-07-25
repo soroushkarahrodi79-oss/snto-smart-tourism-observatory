@@ -1,0 +1,2479 @@
+{
+  "components": {
+    "schemas": {
+      "AlertLevel": {
+        "enum": [
+          "CRITICAL_INTERVENTION",
+          "URGENT_MONITORING",
+          "PREVENTIVE_ACTION",
+          "NORMAL"
+        ],
+        "title": "AlertLevel",
+        "type": "string"
+      },
+      "AlertListResponse": {
+        "properties": {
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/src__api__v2__schemas__AlertOut"
+            },
+            "title": "Alerts",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "alerts"
+        ],
+        "title": "AlertListResponse",
+        "type": "object"
+      },
+      "AlertStatus": {
+        "enum": [
+          "open",
+          "assigned",
+          "escalated",
+          "dismissed"
+        ],
+        "title": "AlertStatus",
+        "type": "string"
+      },
+      "AlertTriageRequest": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "to_status": {
+            "$ref": "#/components/schemas/AlertStatus"
+          }
+        },
+        "required": [
+          "to_status"
+        ],
+        "title": "AlertTriageRequest",
+        "type": "object"
+      },
+      "AlertsResponse": {
+        "properties": {
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/src__api__schemas__AlertOut"
+            },
+            "title": "Alerts",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "alerts"
+        ],
+        "title": "AlertsResponse",
+        "type": "object"
+      },
+      "AssetType": {
+        "enum": [
+          "trail",
+          "viewpoint",
+          "recreational_area"
+        ],
+        "title": "AssetType",
+        "type": "string"
+      },
+      "AuditLogEntryOut": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "actor": {
+            "title": "Actor",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payload"
+          },
+          "subject_id": {
+            "title": "Subject Id",
+            "type": "integer"
+          },
+          "subject_type": {
+            "title": "Subject Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor",
+          "action",
+          "subject_type",
+          "subject_id",
+          "payload",
+          "created_at"
+        ],
+        "title": "AuditLogEntryOut",
+        "type": "object"
+      },
+      "AuditLogListResponse": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/AuditLogEntryOut"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "entries"
+        ],
+        "title": "AuditLogListResponse",
+        "type": "object"
+      },
+      "EvaluateAssetRequest": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "asset_type": {
+            "$ref": "#/components/schemas/AssetType"
+          },
+          "country": {
+            "default": "Spain",
+            "title": "Country",
+            "type": "string"
+          },
+          "elevation_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elevation M"
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/GeoJSONGeometry"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Metadata",
+            "type": "object"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "year": {
+            "default": 2024,
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "asset_id",
+          "name",
+          "asset_type",
+          "geometry",
+          "region"
+        ],
+        "title": "EvaluateAssetRequest",
+        "type": "object"
+      },
+      "EvaluateAssetResponse": {
+        "properties": {
+          "alert_level": {
+            "$ref": "#/components/schemas/AlertLevel"
+          },
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "components": {
+            "$ref": "#/components/schemas/RiskComponentsOut"
+          },
+          "computation_trace": {
+            "additionalProperties": true,
+            "title": "Computation Trace",
+            "type": "object"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "recommended_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Recommended Actions",
+            "type": "array"
+          },
+          "risk_score": {
+            "title": "Risk Score",
+            "type": "number"
+          },
+          "triggered_rules": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Triggered Rules",
+            "type": "array"
+          }
+        },
+        "required": [
+          "asset_id",
+          "name",
+          "risk_score",
+          "alert_level",
+          "components",
+          "recommended_actions",
+          "triggered_rules",
+          "computation_trace"
+        ],
+        "title": "EvaluateAssetResponse",
+        "type": "object"
+      },
+      "FieldVerificationCreate": {
+        "properties": {
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "photo_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Ref"
+          },
+          "result": {
+            "title": "Result",
+            "type": "string"
+          },
+          "verified_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified At"
+          },
+          "verifier": {
+            "title": "Verifier",
+            "type": "string"
+          }
+        },
+        "required": [
+          "method",
+          "verifier",
+          "result"
+        ],
+        "title": "FieldVerificationCreate",
+        "type": "object"
+      },
+      "FieldVerificationListResponse": {
+        "properties": {
+          "field_verifications": {
+            "items": {
+              "$ref": "#/components/schemas/FieldVerificationOut"
+            },
+            "title": "Field Verifications",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "field_verifications"
+        ],
+        "title": "FieldVerificationListResponse",
+        "type": "object"
+      },
+      "FieldVerificationOut": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "photo_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Ref"
+          },
+          "result": {
+            "title": "Result",
+            "type": "string"
+          },
+          "verified_at": {
+            "format": "date-time",
+            "title": "Verified At",
+            "type": "string"
+          },
+          "verifier": {
+            "title": "Verifier",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "asset_id",
+          "verified_at",
+          "method",
+          "verifier",
+          "result",
+          "photo_ref",
+          "notes"
+        ],
+        "title": "FieldVerificationOut",
+        "type": "object"
+      },
+      "GeoJSONGeometry": {
+        "properties": {
+          "coordinates": {
+            "items": {},
+            "title": "Coordinates",
+            "type": "array"
+          },
+          "type": {
+            "$ref": "#/components/schemas/GeometryType"
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "title": "GeoJSONGeometry",
+        "type": "object"
+      },
+      "GeometryType": {
+        "enum": [
+          "Point",
+          "LineString",
+          "Polygon"
+        ],
+        "title": "GeometryType",
+        "type": "string"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "InterventionCreate": {
+        "properties": {
+          "budget_eur": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Eur"
+          },
+          "recommendation_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommendation Id"
+          }
+        },
+        "title": "InterventionCreate",
+        "type": "object"
+      },
+      "InterventionOut": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "integer"
+          },
+          "budget_eur": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Eur"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "recommendation_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommendation Id"
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InterventionStatus"
+          }
+        },
+        "required": [
+          "id",
+          "asset_id",
+          "recommendation_id",
+          "status",
+          "budget_eur",
+          "started_at",
+          "resolved_at"
+        ],
+        "title": "InterventionOut",
+        "type": "object"
+      },
+      "InterventionStatus": {
+        "enum": [
+          "planned",
+          "in_progress",
+          "resolved"
+        ],
+        "title": "InterventionStatus",
+        "type": "string"
+      },
+      "InterventionTransitionRequest": {
+        "properties": {
+          "to_status": {
+            "$ref": "#/components/schemas/InterventionStatus"
+          }
+        },
+        "required": [
+          "to_status"
+        ],
+        "title": "InterventionTransitionRequest",
+        "type": "object"
+      },
+      "ManagedAssetListResponse": {
+        "properties": {
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/ManagedAssetOut"
+            },
+            "title": "Assets",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "assets"
+        ],
+        "title": "ManagedAssetListResponse",
+        "type": "object"
+      },
+      "ManagedAssetOut": {
+        "properties": {
+          "asset_type": {
+            "title": "Asset Type",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "external_asset_id": {
+            "title": "External Asset Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "latest_evidence_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Evidence Class"
+          },
+          "latest_observed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Observed At"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ManagedAssetStatus"
+          },
+          "territory_id": {
+            "title": "Territory Id",
+            "type": "integer"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "territory_id",
+          "external_asset_id",
+          "name",
+          "asset_type",
+          "region",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ManagedAssetOut",
+        "type": "object"
+      },
+      "ManagedAssetStatus": {
+        "description": "The managed-asset lifecycle (``ui-evolution-v2-spec.md`` §3).",
+        "enum": [
+          "detected",
+          "verified",
+          "assigned",
+          "funded",
+          "resolved",
+          "monitored"
+        ],
+        "title": "ManagedAssetStatus",
+        "type": "string"
+      },
+      "ManagedAssetTransitionRequest": {
+        "properties": {
+          "to_status": {
+            "$ref": "#/components/schemas/ManagedAssetStatus"
+          }
+        },
+        "required": [
+          "to_status"
+        ],
+        "title": "ManagedAssetTransitionRequest",
+        "type": "object"
+      },
+      "ObservationListResponse": {
+        "properties": {
+          "observations": {
+            "items": {
+              "$ref": "#/components/schemas/ObservationOut"
+            },
+            "title": "Observations",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "observations"
+        ],
+        "title": "ObservationListResponse",
+        "type": "object"
+      },
+      "ObservationOut": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "integer"
+          },
+          "ehs": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ehs"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "ndmi": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ndmi"
+          },
+          "ndvi": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ndvi"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "asset_id",
+          "observed_at",
+          "source",
+          "ehs",
+          "ndvi",
+          "ndmi"
+        ],
+        "title": "ObservationOut",
+        "type": "object"
+      },
+      "RankedAssetOut": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "normalized_score": {
+            "title": "Normalized Score",
+            "type": "number"
+          },
+          "percentile": {
+            "title": "Percentile",
+            "type": "number"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "risk_score": {
+            "title": "Risk Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "rank",
+          "asset_id",
+          "risk_score",
+          "normalized_score",
+          "percentile"
+        ],
+        "title": "RankedAssetOut",
+        "type": "object"
+      },
+      "RankingResponse": {
+        "properties": {
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/RankedAssetOut"
+            },
+            "title": "Assets",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "assets"
+        ],
+        "title": "RankingResponse",
+        "type": "object"
+      },
+      "RecommendationListResponse": {
+        "properties": {
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendationOut"
+            },
+            "title": "Recommendations",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "recommendations"
+        ],
+        "title": "RecommendationListResponse",
+        "type": "object"
+      },
+      "RecommendationOut": {
+        "properties": {
+          "action_label": {
+            "title": "Action Label",
+            "type": "string"
+          },
+          "alert_id": {
+            "title": "Alert Id",
+            "type": "integer"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "cost_eur_high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Eur High"
+          },
+          "cost_eur_low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Eur Low"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RecommendationStatus"
+          }
+        },
+        "required": [
+          "id",
+          "alert_id",
+          "action_label",
+          "cost_eur_low",
+          "cost_eur_high",
+          "confidence",
+          "owner",
+          "deadline",
+          "status"
+        ],
+        "title": "RecommendationOut",
+        "type": "object"
+      },
+      "RecommendationStatus": {
+        "enum": [
+          "pending",
+          "approved",
+          "rejected",
+          "done"
+        ],
+        "title": "RecommendationStatus",
+        "type": "string"
+      },
+      "RiskComponentsOut": {
+        "properties": {
+          "ecological_degradation": {
+            "title": "Ecological Degradation",
+            "type": "number"
+          },
+          "human_pressure_proxy": {
+            "title": "Human Pressure Proxy",
+            "type": "number"
+          },
+          "vulnerability_index": {
+            "title": "Vulnerability Index",
+            "type": "number"
+          }
+        },
+        "required": [
+          "ecological_degradation",
+          "human_pressure_proxy",
+          "vulnerability_index"
+        ],
+        "title": "RiskComponentsOut",
+        "type": "object"
+      },
+      "TerritoryListResponse": {
+        "properties": {
+          "territories": {
+            "items": {
+              "$ref": "#/components/schemas/TerritoryOut"
+            },
+            "title": "Territories",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "territories"
+        ],
+        "title": "TerritoryListResponse",
+        "type": "object"
+      },
+      "TerritoryOut": {
+        "properties": {
+          "budget_eur": {
+            "title": "Budget Eur",
+            "type": "number"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "budget_eur",
+          "created_at"
+        ],
+        "title": "TerritoryOut",
+        "type": "object"
+      },
+      "TerritorySummaryOut": {
+        "description": "Mobile-facing territory roll-up (Fase 2): exactly what a home screen needs.\n\nDistinct from ``TerritoryOut`` (the plain ORM passthrough): this is a\npurpose-built, computed summary so the mobile home screen needs one call,\nnot N. ``updated_at``/``evidence_class`` are None when the territory has no\nmanaged assets or observations yet — never fabricated.",
+        "properties": {
+          "asset_count": {
+            "title": "Asset Count",
+            "type": "integer"
+          },
+          "evidence_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Class"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "open_alert_count": {
+            "title": "Open Alert Count",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "territory_id": {
+            "title": "Territory Id",
+            "type": "integer"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "territory_id",
+          "slug",
+          "name",
+          "asset_count",
+          "open_alert_count",
+          "updated_at",
+          "evidence_class"
+        ],
+        "title": "TerritorySummaryOut",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "src__api__schemas__AlertOut": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "level": {
+            "$ref": "#/components/schemas/AlertLevel"
+          },
+          "recommended_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Recommended Actions",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "triggered_rules": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Triggered Rules",
+            "type": "array"
+          }
+        },
+        "required": [
+          "asset_id",
+          "level",
+          "score",
+          "triggered_rules",
+          "recommended_actions"
+        ],
+        "title": "AlertOut",
+        "type": "object"
+      },
+      "src__api__v2__schemas__AlertOut": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "risk_score": {
+            "title": "Risk Score",
+            "type": "number"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AlertStatus"
+          },
+          "triggered_rules": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Triggered Rules",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "asset_id",
+          "level",
+          "risk_score",
+          "triggered_rules",
+          "status",
+          "reason",
+          "created_at"
+        ],
+        "title": "AlertOut",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Decision-support system for evaluating natural tourism assets using satellite-derived environmental indicators.",
+    "title": "SNTO — Smart Natural Tourism Observatory",
+    "version": "2.1.0.dev0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/alerts/": {
+      "get": {
+        "description": "Return all alerts, optionally filtered by level.\nResults are sorted by descending score (most critical first).",
+        "operationId": "get_alerts_alerts__get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "level",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/AlertLevel"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Level"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Alerts",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/api/v2/alerts/": {
+      "get": {
+        "description": "Flat alert listing (mobile Fase 2, ADR-014 addendum).\n\nMirrors ``list_managed_assets``'s own filter precedent: ``territory_id``\nscopes to one territory (the join query — the actual point of this\nendpoint, since no per-asset round-trip scales to \"every alert a\nterritory has\"); without it, every alert is listed, optionally narrowed\nby ``status`` alone.",
+        "operationId": "list_alerts_api_v2_alerts__get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "territory_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Territory Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/AlertStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Alerts",
+        "tags": [
+          "alerts-v2"
+        ]
+      }
+    },
+    "/api/v2/alerts/{alert_id}": {
+      "get": {
+        "operationId": "get_alert_api_v2_alerts__alert_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "title": "Alert Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/src__api__v2__schemas__AlertOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Alert",
+        "tags": [
+          "alerts-v2"
+        ]
+      }
+    },
+    "/api/v2/alerts/{alert_id}/recommendations": {
+      "get": {
+        "operationId": "list_alert_recommendations_api_v2_alerts__alert_id__recommendations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "title": "Alert Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecommendationListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Alert Recommendations",
+        "tags": [
+          "alerts-v2"
+        ]
+      }
+    },
+    "/api/v2/alerts/{alert_id}/triage": {
+      "post": {
+        "description": "Triage an alert: assign / escalate / dismiss. Dismissing requires a reason\n(that is how a false positive is logged). Returns 404 if absent, 409 if the\ntransition is not allowed from the current status, 422 if dismissing with\nno reason.",
+        "operationId": "triage_api_v2_alerts__alert_id__triage_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "title": "Alert Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-api-key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-actor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Actor"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertTriageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/src__api__v2__schemas__AlertOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Triage",
+        "tags": [
+          "alerts-v2"
+        ]
+      }
+    },
+    "/api/v2/audit-log/": {
+      "get": {
+        "operationId": "list_audit_log_api_v2_audit_log__get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "subject_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subject_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditLogListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Audit Log",
+        "tags": [
+          "audit-log"
+        ]
+      }
+    },
+    "/api/v2/interventions/{intervention_id}": {
+      "get": {
+        "operationId": "get_intervention_api_v2_interventions__intervention_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "intervention_id",
+            "required": true,
+            "schema": {
+              "title": "Intervention Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterventionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Intervention",
+        "tags": [
+          "interventions"
+        ]
+      }
+    },
+    "/api/v2/interventions/{intervention_id}/transition": {
+      "post": {
+        "operationId": "transition_intervention_status_api_v2_interventions__intervention_id__transition_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "intervention_id",
+            "required": true,
+            "schema": {
+              "title": "Intervention Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-api-key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-actor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Actor"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InterventionTransitionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterventionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transition Intervention Status",
+        "tags": [
+          "interventions"
+        ]
+      }
+    },
+    "/api/v2/managed-assets/": {
+      "get": {
+        "operationId": "list_managed_assets_api_v2_managed_assets__get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "territory_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Territory Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ManagedAssetStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedAssetListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Managed Assets",
+        "tags": [
+          "managed-assets"
+        ]
+      }
+    },
+    "/api/v2/managed-assets/{asset_id}": {
+      "get": {
+        "operationId": "get_managed_asset_api_v2_managed_assets__asset_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "title": "Asset Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedAssetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Managed Asset",
+        "tags": [
+          "managed-assets"
+        ]
+      }
+    },
+    "/api/v2/managed-assets/{asset_id}/alerts": {
+      "get": {
+        "operationId": "list_asset_alerts_api_v2_managed_assets__asset_id__alerts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "title": "Asset Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Asset Alerts",
+        "tags": [
+          "managed-assets"
+        ]
+      }
+    },
+    "/api/v2/managed-assets/{asset_id}/field-verifications": {
+      "get": {
+        "operationId": "list_asset_field_verifications_api_v2_managed_assets__asset_id__field_verifications_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "title": "Asset Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldVerificationListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Asset Field Verifications",
+        "tags": [
+          "field-verifications"
+        ]
+      },
+      "post": {
+        "operationId": "create_field_verification_api_v2_managed_assets__asset_id__field_verifications_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "title": "Asset Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-api-key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-actor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Actor"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldVerificationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldVerificationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Field Verification",
+        "tags": [
+          "field-verifications"
+        ]
+      }
+    },
+    "/api/v2/managed-assets/{asset_id}/interventions": {
+      "post": {
+        "operationId": "create_intervention_api_v2_managed_assets__asset_id__interventions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "title": "Asset Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-api-key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-actor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Actor"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InterventionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterventionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Intervention",
+        "tags": [
+          "interventions"
+        ]
+      }
+    },
+    "/api/v2/managed-assets/{asset_id}/observations": {
+      "get": {
+        "operationId": "list_asset_observations_api_v2_managed_assets__asset_id__observations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "title": "Asset Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObservationListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Asset Observations",
+        "tags": [
+          "managed-assets"
+        ]
+      }
+    },
+    "/api/v2/managed-assets/{asset_id}/transition": {
+      "post": {
+        "description": "Advance a ManagedAsset along its lifecycle\n(detected→verified→assigned→funded→resolved→monitored). Returns 404 if the\nasset is absent, 409 if the transition is not allowed from the current\nstate.",
+        "operationId": "transition_asset_api_v2_managed_assets__asset_id__transition_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "title": "Asset Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-api-key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-actor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Actor"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagedAssetTransitionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedAssetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transition Asset",
+        "tags": [
+          "managed-assets"
+        ]
+      }
+    },
+    "/api/v2/territories/": {
+      "get": {
+        "operationId": "list_territories_api_v2_territories__get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerritoryListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Territories",
+        "tags": [
+          "territories"
+        ]
+      }
+    },
+    "/api/v2/territories/{territory_id}": {
+      "get": {
+        "operationId": "get_territory_api_v2_territories__territory_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "territory_id",
+            "required": true,
+            "schema": {
+              "title": "Territory Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerritoryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Territory",
+        "tags": [
+          "territories"
+        ]
+      }
+    },
+    "/api/v2/territories/{territory_id}/summary": {
+      "get": {
+        "operationId": "get_territory_summary_api_v2_territories__territory_id__summary_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "territory_id",
+            "required": true,
+            "schema": {
+              "title": "Territory Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerritorySummaryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Territory Summary",
+        "tags": [
+          "territories"
+        ]
+      }
+    },
+    "/evaluate_asset/": {
+      "post": {
+        "description": "Run the full SNTO pipeline for a single asset and return scored result.",
+        "operationId": "evaluate_asset_evaluate_asset__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateAssetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluateAssetResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Evaluate Asset",
+        "tags": [
+          "evaluation"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Health Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/ranking/": {
+      "get": {
+        "description": "Return all evaluated assets sorted by descending risk score.",
+        "operationId": "get_ranking_ranking__get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RankingResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Ranking",
+        "tags": [
+          "ranking"
+        ]
+      }
+    }
+  }
+}
