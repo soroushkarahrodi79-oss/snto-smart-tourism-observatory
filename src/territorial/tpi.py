@@ -98,7 +98,6 @@ from .models import (
     TPIComponents,
     TPIResult,
     TIER_LABELS,
-    TIER_DESCRIPTIONS,
 )
 
 

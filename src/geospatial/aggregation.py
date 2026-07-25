@@ -6,7 +6,7 @@ from typing import Optional
 
 import numpy as np
 from shapely.geometry import shape
-from shapely.ops import transform as shapely_transform
+from shapely.geometry.base import BaseGeometry
 
 from src.assets.models import GeometryType, SpatialStats, TourismAsset
 
@@ -19,7 +19,9 @@ POINT_BUFFER_M: int = 50
 _M_PER_DEG_LAT = 111_320.0
 
 
-def buffer_asset_geometry(asset: TourismAsset, buffer_m: Optional[int] = None) -> "Shapely geometry":
+def buffer_asset_geometry(
+    asset: TourismAsset, buffer_m: Optional[int] = None
+) -> BaseGeometry:
     """
     Return a Shapely geometry representing the aggregation footprint for an asset.
 

@@ -13,9 +13,8 @@ variability with inter-annual anomalies. This module performs the correct
 inter-annual comparison: July 2022 vs July 2019-2021.
 """
 
-import math
 import statistics
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from src.assets.models import AssetObservation
 

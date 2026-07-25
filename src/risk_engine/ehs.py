@@ -87,7 +87,6 @@ INTERPRETATION SCALE
     0-39: Critical  — severe, likely irreversible degradation
 """
 
-import math
 from dataclasses import dataclass
 
 from src.time_series.mann_kendall import MannKendallResult

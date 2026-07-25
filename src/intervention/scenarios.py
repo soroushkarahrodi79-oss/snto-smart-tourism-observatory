@@ -45,21 +45,20 @@ Tier 3 (stable)     : MONITORING ONLY
 """
 from __future__ import annotations
 
-import math
 from .models import (
     ScenarioResult, AssetScenarioComparison,
     CounterfactualYear, CounterfactualResult,
     TISBudgetItem, TISBudgetResult,
     SCENARIO_LABELS,
     NO_INTERVENTION, RESTORATION, MONITORING_ENHANCEMENT, PROMOTION, COMBINED,
-    FEASIBILITY_VIABLE, FEASIBILITY_NOT_RECOMMENDED,
+    FEASIBILITY_VIABLE,
 )
 from .impact import (
     compute_restoration_effect,
     compute_monitoring_effect,
     compute_promotion_effect,
     compute_tis,
-    COST_RESTORATION, COST_MONITORING, COST_PROMOTION, COST_PROMOTION_LITE,
+    COST_RESTORATION, COST_MONITORING,
 )
 
 
