@@ -58,7 +58,8 @@ jobs:
             src/ui/services/field_agreement.py tests/persistence/test_field_agreement.py \
             src/ui/tabs/tab_reports.py tests/unit/test_cets_readiness.py \
             tests/test_evidence_claims_sync.py tests/unit/test_prug_monitoring.py \
-            scripts/build_dossier.py tests/unit/test_institutional_dossier.py
+            scripts/build_dossier.py tests/unit/test_institutional_dossier.py \
+            scripts/export_openapi.py tests/unit/test_openapi_contract.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github
@@ -92,6 +93,10 @@ jobs:
         # El dossier sale a la Dirección del Parque y a EUROPARC: sus cifras no
         # pueden desviarse del sistema que describen (v3.0, productización).
         run: python scripts/build_dossier.py --check
+      - name: Check published OpenAPI contract matches the API
+        # Un socio integra contra docs/api/openapi.json: no puede describir una
+        # API que el código ya no implementa (ADR-008).
+        run: python scripts/export_openapi.py --check
 
   typecheck:
     # Report-only (misma filosofía que el ruff full-repo): el núcleo tipado
