@@ -5,14 +5,14 @@ import { StyleSheet, Text, View } from 'react-native';
 import { AppScreen } from '@/components/AppScreen';
 import { AsyncState } from '@/components/AsyncState';
 import { EvidencePanel } from '@/components/EvidencePanel';
-import { mobileMockRepository } from '@/data/mock/mobileMockRepository';
+import { mobileRepository } from '@/data/repository';
 import { useRepositoryQuery } from '@/data/useRepositoryQuery';
 import { colors, radii, spacing, typography } from '@/theme/tokens';
 
 export default function AlertDetailScreen() {
   const { alertId } = useLocalSearchParams<{ alertId: string }>();
   const loadAlert = useCallback(
-    () => mobileMockRepository.getAlert(alertId),
+    () => mobileRepository.getAlert(alertId),
     [alertId],
   );
   const query = useRepositoryQuery(loadAlert);

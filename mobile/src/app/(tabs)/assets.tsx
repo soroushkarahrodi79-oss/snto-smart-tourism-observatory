@@ -5,18 +5,23 @@ import { AppScreen } from '@/components/AppScreen';
 import { AsyncState } from '@/components/AsyncState';
 import { EvidenceBadge } from '@/components/EvidenceBadge';
 import { RecordCard } from '@/components/RecordCard';
-import { mobileMockRepository } from '@/data/mock/mobileMockRepository';
+import { mobileEnvironment } from '@/config/env';
+import { mobileRepository } from '@/data/repository';
 import { useRepositoryQuery } from '@/data/useRepositoryQuery';
 import { spacing } from '@/theme/tokens';
 
 export default function AssetsScreen() {
-  const query = useRepositoryQuery(mobileMockRepository.listAssets);
+  const query = useRepositoryQuery(mobileRepository.listAssets);
 
   return (
     <AppScreen
-      eyebrow="Catálogo local"
+      eyebrow="Catálogo"
       title="Activos"
-      subtitle="Fixtures sintéticos para validar listas, detalle y trazabilidad."
+      subtitle={
+        mobileEnvironment.usesMockData
+          ? 'Fixtures sintéticos para validar listas, detalle y trazabilidad.'
+          : 'Activos reales del backend SNTO, con evidencia y trazabilidad por elemento.'
+      }
     >
       {query.status === 'loading' ? <AsyncState kind="loading" /> : null}
       {query.status === 'error' ? <AsyncState kind="error" /> : null}

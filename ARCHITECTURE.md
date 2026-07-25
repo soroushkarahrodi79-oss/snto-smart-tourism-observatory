@@ -204,19 +204,21 @@ cadena completa.
 
 ## 6. Cliente móvil nativo
 
-La Fase 1 añade `mobile/` como cliente Expo SDK 57 independiente del proceso
-Python. Expo Router define cinco pestañas (`Inicio`, `Mapa`, `Activos`, `Alertas`
-y `Perfil`) y rutas de detalle para activos y alertas.
+`mobile/` es un cliente Expo SDK 57 independiente del proceso Python. Expo
+Router define cinco pestañas (`Inicio`, `Mapa`, `Activos`, `Alertas` y
+`Perfil`) y rutas de detalle para activos y alertas.
 
 ```text
 Pantallas Expo Router
         |
         v
-MobileRepository (contrato de lectura)
+mobileRepository (selector, @/data/repository.ts)
         |
-        +-- Phase 1: MobileMockRepository -> fixtures synthetic
+        +-- usesMockData=true (por defecto): MobileMockRepository -> fixtures synthetic
         |
-        `-- Futuro: adaptador HTTP GET -> /api/v2 (tras auth y despliegue)
+        `-- EXPO_PUBLIC_SNTO_USE_REMOTE_API=true: MobileHttpRepository
+                -> GET /api/v2/territories, /managed-assets, /alerts
+                -> mapeo DTO->dominio (@/data/http/mapping.ts), evidencia honesta
 ```
 
 La aplicación no reimplementa algoritmos científicos ni reglas de decisión.
@@ -225,6 +227,10 @@ valida respuestas con esquemas y no admite claves compartidas o secretos
 públicos. Las escrituras quedan bloqueadas hasta que exista identidad de usuario,
 autorización por roles, idempotencia y un contrato de auditoría aprobado.
 
-Los mapas, el almacenamiento offline y la integración con datos reales se
-aplazan expresamente. Véase
-[`ADR-013`](docs/decisions/ADR-013-mobile-client.md).
+**Fase 2 (ADR-014)** conecta el repositorio HTTP al contrato de lectura real de
+`/api/v2` — construido y probado contra `fetch` mockeado, sin necesitar el API
+desplegado. El modo sigue siendo sintético por defecto. Los mapas (elección de
+proveedor SDK), el almacenamiento offline y el despliegue de `/api/v2`
+(ADR-012) siguen aplazados expresamente. Véase
+[`ADR-013`](docs/decisions/ADR-013-mobile-client.md) y
+[`ADR-014`](docs/decisions/ADR-014-mobile-read-api-contract.md).

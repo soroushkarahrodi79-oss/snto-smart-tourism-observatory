@@ -5,20 +5,24 @@ import { StyleSheet, Text, View } from 'react-native';
 import { AppScreen } from '@/components/AppScreen';
 import { AsyncState } from '@/components/AsyncState';
 import { EvidencePanel } from '@/components/EvidencePanel';
-import { mobileMockRepository } from '@/data/mock/mobileMockRepository';
+import { mobileEnvironment } from '@/config/env';
+import { mobileRepository } from '@/data/repository';
 import { useRepositoryQuery } from '@/data/useRepositoryQuery';
 import { colors, radii, spacing, typography } from '@/theme/tokens';
 
 export default function AssetDetailScreen() {
   const { assetId } = useLocalSearchParams<{ assetId: string }>();
   const loadAsset = useCallback(
-    () => mobileMockRepository.getAsset(assetId),
+    () => mobileRepository.getAsset(assetId),
     [assetId],
   );
   const query = useRepositoryQuery(loadAsset);
 
   return (
-    <AppScreen eyebrow="Activo sintético" title="Detalle del activo">
+    <AppScreen
+      eyebrow={mobileEnvironment.usesMockData ? 'Activo sintético' : 'Activo SNTO'}
+      title="Detalle del activo"
+    >
       {query.status === 'loading' ? <AsyncState kind="loading" /> : null}
       {query.status === 'error' ? <AsyncState kind="error" /> : null}
       {query.status === 'success' && !query.data ? <AsyncState kind="empty" /> : null}
