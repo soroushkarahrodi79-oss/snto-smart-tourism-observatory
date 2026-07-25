@@ -30,10 +30,14 @@ only the second half is measurable. They are kept apart:
   the requirement at all (``CORE`` / ``PARTIAL`` / ``INSTRUMENTAL`` /
   ``OUT_OF_SCOPE``). Fixed in the tables below, traceable to the official
   Carta text; it does not change with data.
-* ``DataStatus`` — *computed* from live repository state (real Sentinel-2
-  trends on disk? a real MITMA snapshot? an SVI history? measured field
-  plots?), reusing the same vocabulary as the satellite manifest and the
-  curated territorial layer so the three evidence-tracking paths agree.
+* :class:`~src.platform.evidence.EvidenceClass` — *computed* from live
+  repository state (real Sentinel-2 trends on disk? a real MITMA snapshot? real
+  multi-scale SCM zones? an SVI history? measured field plots?). This is
+  ADR-004's canonical five-tier vocabulary, deliberately **not**
+  ``temporal.manifest.DataStatus``: that one has no ``SIMULATED`` tier, so it
+  would collapse a model-derived projection into ``SYNTHETIC`` alongside demo
+  mocks — exactly the blurring ADR-004 forbids. Use
+  ``evidence.from_data_status()`` if a ``DataStatus`` ever needs reconciling in.
 
 WHAT THIS REPORT REFUSES TO DO
 ==============================
@@ -59,7 +63,7 @@ from enum import Enum
 from pathlib import Path
 
 from src._version import __version__
-from src.temporal.manifest import DataStatus
+from src.platform.evidence import EvidenceClass
 
 _ROOT = Path(__file__).resolve().parents[2]
 _FIELD_CSV = (
@@ -88,7 +92,7 @@ _COVERAGE_LABELS: dict[Coverage, str] = {
 }
 
 # Evidence-signal keys. Each row declares which live signal backs it; the
-# resolver below maps the signal to a DataStatus for the requested territory.
+# resolver maps each signal to an EvidenceClass for the requested territory.
 # ``None`` means "no data backs this row at all" — an organisational or
 # out-of-scope requirement — which resolves to MISSING rather than pretending.
 SIGNAL_SATELLITE = "satellite_trends"
@@ -97,6 +101,12 @@ SIGNAL_SOCIOECONOMIC = "socioeconomic"
 SIGNAL_FIELD = "field_validation"
 SIGNAL_CURATED = "curated_portfolio"
 SIGNAL_FORECAST = "forecast"
+# Causal attribution is backed by multi-scale zones, *not* by the trend series:
+# without a real GEE zone export the SCM runs its α-decay simulation
+# (``src.spatial_causality.analyzer.evidence_class_for_source`` → SIMULATED).
+# Keeping this signal separate from SIGNAL_SATELLITE is what stops the report
+# from inheriting the trend series' REAL status for a simulated inference.
+SIGNAL_SCM_ZONES = "scm_zones"
 
 
 @dataclass(frozen=True)
@@ -135,7 +145,7 @@ _COMPONENTS: tuple[_Requirement, ...] = (
         indicator="Clasificación LOCALIZED / LANDSCAPE / MIXED (Spatial Impact "
                   "Gradient)",
         coverage=Coverage.CORE,
-        signal=SIGNAL_SATELLITE,
+        signal=SIGNAL_SCM_ZONES,
         note=(
             "Separa degradación por uso turístico de la climática — la pregunta "
             "que la Carta plantea y que un indicador agregado no responde."
@@ -382,7 +392,7 @@ class ReadinessRow:
     snto_module: str
     indicator: str
     coverage: Coverage
-    data_status: DataStatus
+    evidence_class: EvidenceClass
     evidence_note: str
     note: str
 
@@ -395,11 +405,20 @@ class EvidenceSignals:
     mobility_real: bool
     socioeconomic_series: bool
     field_measured_plots: int
+    # Real multi-scale GEE zone exports backing SCM causal attribution. Zero
+    # means the α-decay simulation is what actually runs, so attribution must
+    # not be reported as observed. Defaulted for callers predating this field.
+    scm_real_zones: int = 0
 
     @property
     def field_validated(self) -> bool:
         """True only if real measured field plots exist (campaign #26 ran)."""
         return self.field_measured_plots > 0
+
+    @property
+    def scm_zones_real(self) -> bool:
+        """True only if at least one real multi-scale zone export exists."""
+        return self.scm_real_zones > 0
 
 
 def resolve_signals(park: str) -> EvidenceSignals:
@@ -425,7 +444,22 @@ def resolve_signals(park: str) -> EvidenceSignals:
         mobility_real=mobility_snapshot_exists(),
         socioeconomic_series=svi_history_available(),
         field_measured_plots=count_measured_field_plots(),
+        scm_real_zones=count_real_scm_zone_exports(),
     )
+
+
+def count_real_scm_zone_exports(path: Path | None = None) -> int:
+    """Number of real multi-scale GEE zone exports on disk.
+
+    Mirrors ``src.spatial_causality.zone_loader``'s layout
+    (``zones/<asset_id>.json``). Zero — the state today — means SCM attribution
+    runs on the α-decay simulation, so the readiness report must classify it
+    ``SIMULATED`` rather than inherit the trend series' ``REAL``.
+    """
+    zones_dir = path or (_ROOT / "src/spatial_causality/zones")
+    if not zones_dir.is_dir():
+        return 0
+    return len(list(zones_dir.glob("*.json")))
 
 
 def count_measured_field_plots(path: Path | None = None) -> int:
@@ -450,7 +484,7 @@ def count_measured_field_plots(path: Path | None = None) -> int:
 
 def _status_for_signal(
     signal: str | None, signals: EvidenceSignals
-) -> tuple[DataStatus, str]:
+) -> tuple[EvidenceClass, str]:
     """Map a declared evidence signal to its live status plus a short reason.
 
     ``REAL`` is the ceiling: no branch returns a "validated" state, because the
@@ -460,61 +494,73 @@ def _status_for_signal(
     """
     if signal is None:
         return (
-            DataStatus.MISSING,
+            EvidenceClass.MISSING,
             "Sin fuente de dato: requisito organizativo o fuera de alcance.",
         )
     if signal == SIGNAL_SATELLITE:
         if signals.satellite_real:
             return (
-                DataStatus.REAL,
+                EvidenceClass.REAL,
                 "Serie Sentinel-2 real comprometida en disco para este territorio.",
             )
         return (
-            DataStatus.MISSING,
+            EvidenceClass.MISSING,
             "Sin serie de tendencia real para este territorio (plantilla GEE "
             "pendiente de validación por bioma).",
         )
     if signal == SIGNAL_MOBILITY:
         if signals.mobility_real:
             return (
-                DataStatus.REAL,
+                EvidenceClass.REAL,
                 "Snapshot de movilidad municipal MITMA real disponible.",
             )
-        return (DataStatus.MISSING, "Sin snapshot de movilidad real disponible.")
+        return (EvidenceClass.MISSING, "Sin snapshot de movilidad real disponible.")
     if signal == SIGNAL_SOCIOECONOMIC:
         if signals.socioeconomic_series:
             return (
-                DataStatus.REAL,
+                EvidenceClass.REAL,
                 "Serie socioeconómica municipal real (INE/ALMUDENA) con tendencia.",
             )
         return (
-            DataStatus.CALIBRATED,
+            EvidenceClass.CALIBRATED,
             "Solo snapshot socioeconómico curado, sin serie temporal.",
         )
     if signal == SIGNAL_FIELD:
         if signals.field_validated:
             return (
-                DataStatus.REAL,
+                EvidenceClass.REAL,
                 f"{signals.field_measured_plots} parcelas de campo con medición "
                 "real registrada; la concordancia debe calcularse aparte.",
             )
         return (
-            DataStatus.MISSING,
+            EvidenceClass.MISSING,
             "Plantilla de campo sin mediciones: la campaña #26 no se ha ejecutado.",
+        )
+    if signal == SIGNAL_SCM_ZONES:
+        if signals.scm_zones_real:
+            return (
+                EvidenceClass.REAL,
+                f"{signals.scm_real_zones} exportaciones de zonas multiescala "
+                "reales (GEE) respaldan la atribución causal.",
+            )
+        return (
+            EvidenceClass.SIMULATED,
+            "Sin exportaciones de zonas reales: la atribución causal se apoya "
+            "en la simulación de decaimiento α, no en zonas observadas.",
         )
     if signal == SIGNAL_FORECAST:
         return (
-            DataStatus.SYNTHETIC,
+            EvidenceClass.SIMULATED,
             "Proyección simulada por construcción; nunca observación.",
         )
     if signal == SIGNAL_CURATED:
         return (
-            DataStatus.CALIBRATED,
+            EvidenceClass.CALIBRATED,
             "Cartera curada por experto (aforo, importancia económica, "
             "accesibilidad): estimación de orden de magnitud.",
         )
     # Unknown signal key: fail honest rather than guess a status.
-    return (DataStatus.MISSING, f"Señal de evidencia no reconocida: {signal!r}.")
+    return (EvidenceClass.MISSING, f"Señal de evidencia no reconocida: {signal!r}.")
 
 
 def _build_rows(
@@ -530,7 +576,7 @@ def _build_rows(
                 snto_module=req.snto_module,
                 indicator=req.indicator,
                 coverage=req.coverage,
-                data_status=status,
+                evidence_class=status,
                 evidence_note=reason,
                 note=req.note,
             )
@@ -568,10 +614,10 @@ def build_cets_readiness(
     all_rows = components + principles
 
     coverage_counts: dict[str, int] = {c.value: 0 for c in Coverage}
-    status_counts: dict[str, int] = {s.value: 0 for s in DataStatus}
+    status_counts: dict[str, int] = {s.value: 0 for s in EvidenceClass}
     for row in all_rows:
         coverage_counts[row.coverage.value] += 1
-        status_counts[row.data_status.value] += 1
+        status_counts[row.evidence_class.value] += 1
 
     return {
         "metadata": {
@@ -600,6 +646,8 @@ def build_cets_readiness(
             "socioeconomic_series": signals.socioeconomic_series,
             "field_measured_plots": signals.field_measured_plots,
             "field_validated": signals.field_validated,
+            "scm_real_zones": signals.scm_real_zones,
+            "scm_zones_real": signals.scm_zones_real,
         },
         "summary": {
             "requirements_assessed": len(all_rows),
@@ -614,7 +662,7 @@ def build_cets_readiness(
 def _row_dict(row: ReadinessRow) -> dict:
     d = row.__dict__.copy()
     d["coverage"] = row.coverage.value
-    d["data_status"] = row.data_status.value
+    d["evidence_class"] = row.evidence_class.value
     return d
 
 
@@ -628,7 +676,7 @@ def _render_table(rows: list[dict]) -> list[str]:
     ]
     for r in rows:
         coverage = _COVERAGE_LABELS[Coverage(r["coverage"])]
-        status = r["data_status"]
+        status = r["evidence_class"]
         lines.append(
             f"| {r['title']} | {r['snto_module']} | {r['indicator']} | "
             f"{coverage} | `{status}` | {r['note']} |"
@@ -657,6 +705,12 @@ def render_cets_readiness_markdown(report: dict) -> str:
         f"- Serie satelital real (`{m['park_key']}`): "
         f"{'sí' if sig['satellite_real'] else 'no'}",
         f"- Movilidad real (MITMA): {'sí' if sig['mobility_real'] else 'no'}",
+        f"- Zonas SCM multiescala reales: {sig['scm_real_zones']}"
+        + (
+            ""
+            if sig["scm_zones_real"]
+            else " — la atribución causal usa la simulación α"
+        ),
         f"- Serie socioeconómica real: "
         f"{'sí' if sig['socioeconomic_series'] else 'no'}",
         f"- Parcelas de campo con medición: {sig['field_measured_plots']}"
