@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from src.api.v2.authz_gate import authorize_territory_write
 from src.api.v2.deps import require_write_auth
+from src.api.v2.geometry import centroid_of_geojson
 from src.api.v2.schemas import (
     AlertListResponse,
     AlertOut,
@@ -24,6 +25,7 @@ from src.api.v2.schemas import (
     ObservationOut,
 )
 from src.persistence.enums import ManagedAssetStatus
+from src.persistence.models.managed_asset import ManagedAsset
 from src.persistence.repositories import (
     AlertRepository,
     ManagedAssetRepository,
@@ -37,6 +39,24 @@ from src.persistence.services.lifecycle import (
 from src.persistence.session import get_db
 
 router = APIRouter(tags=["managed-assets"])
+
+
+def _to_out(asset: ManagedAsset, db: Session) -> ManagedAssetOut:
+    """Enrich the ORM passthrough with a map centroid + latest freshness/evidence.
+
+    Mobile Fase 2 read layer (v3.0): both degrade to None honestly — a
+    centroid the geometry can't yield, or an asset with no observation yet,
+    never becomes a fabricated coordinate or evidence class.
+    """
+    out = ManagedAssetOut.model_validate(asset)
+    centroid = centroid_of_geojson(asset.geometry_geojson)
+    if centroid is not None:
+        out.latitude, out.longitude = centroid
+    latest = ObservationRepository(db).get_latest_by_asset(asset.id)
+    if latest is not None:
+        out.latest_observed_at = latest.observed_at
+        out.latest_evidence_class = latest.source
+    return out
 
 
 @router.get("/", response_model=ManagedAssetListResponse)
@@ -56,7 +76,7 @@ def list_managed_assets(
         assets = repo.list(limit=limit, offset=offset)
     return ManagedAssetListResponse(
         total=len(assets),
-        assets=[ManagedAssetOut.model_validate(a) for a in assets],
+        assets=[_to_out(a, db) for a in assets],
     )
 
 
@@ -67,7 +87,7 @@ def get_managed_asset(
     asset = ManagedAssetRepository(db).get(asset_id)
     if asset is None:
         raise HTTPException(status_code=404, detail="ManagedAsset not found")
-    return ManagedAssetOut.model_validate(asset)
+    return _to_out(asset, db)
 
 
 @router.get(
