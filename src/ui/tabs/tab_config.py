@@ -272,3 +272,57 @@ def _render_tenancy_management() -> None:
                         result.message
                     )
                     st.rerun()
+
+    st.divider()
+    _render_oapn_benchmarking()
+
+
+def _render_oapn_benchmarking() -> None:
+    """Cross-park benchmark over parks with REAL satellite trend data (v3.0, A15).
+
+    Additive, separate from both sections above: it does not touch tenancy and
+    does not fold the 13 unvalidated OAPN templates into any number — it only
+    reports their count as pending context (ADR-004: never fabricate a
+    network-wide signal the evidence doesn't support).
+    """
+    import pandas as pd
+
+    from src.benchmarking.oapn_rollup import build_rollup
+
+    st.markdown("#### Benchmarking Red OAPN (v3.0)")
+    st.caption(
+        "Comparativa entre parques con **serie de tendencia satelital real** "
+        "(Sentinel-2, Mann-Kendall). Las plantillas GEE sin validar **no** "
+        "entran en esta comparativa — solo se cuentan como pendientes."
+    )
+
+    rollup = build_rollup()
+    cols = st.columns(3)
+    cols[0].metric("Parques con datos reales", rollup.n_parks_included)
+    cols[1].metric("Activos comparados", rollup.total_assets)
+    cols[2].metric(
+        "Plantillas OAPN pendientes de validar", rollup.n_parks_pending_validation
+    )
+
+    st.dataframe(
+        pd.DataFrame(
+            [
+                {
+                    "Parque": p.label,
+                    "Estado": p.validation_state.value if p.validation_state else "—",
+                    "Activos": p.n_assets,
+                    "% con degradación significativa": p.pct_degrading,
+                    "Mejorando": p.n_improving,
+                    "Estable": p.n_stable,
+                    "Peor año (más frecuente)": p.worst_year_global or "—",
+                }
+                for p in rollup.parks
+            ]
+        ),
+        use_container_width=True, hide_index=True,
+    )
+    st.caption(
+        "Fuente: `src/benchmarking/oapn_rollup.py` sobre "
+        "`src/platform/satellite_trends.py` (series Sentinel-2 reales "
+        "2021–2026 por parque). Sin validación de campo (#26) para ninguno."
+    )
