@@ -199,3 +199,32 @@ Phase 7  Plataforma estratégica
 
 Cada fase consume las salidas de la anterior; `run_phase7_report.py` orquesta la
 cadena completa.
+
+---
+
+## 6. Cliente móvil nativo
+
+La Fase 1 añade `mobile/` como cliente Expo SDK 57 independiente del proceso
+Python. Expo Router define cinco pestañas (`Inicio`, `Mapa`, `Activos`, `Alertas`
+y `Perfil`) y rutas de detalle para activos y alertas.
+
+```text
+Pantallas Expo Router
+        |
+        v
+MobileRepository (contrato de lectura)
+        |
+        +-- Phase 1: MobileMockRepository -> fixtures synthetic
+        |
+        `-- Futuro: adaptador HTTP GET -> /api/v2 (tras auth y despliegue)
+```
+
+La aplicación no reimplementa algoritmos científicos ni reglas de decisión.
+Esos cálculos permanecen en el backend. La costura HTTP móvil solo expone `GET`,
+valida respuestas con esquemas y no admite claves compartidas o secretos
+públicos. Las escrituras quedan bloqueadas hasta que exista identidad de usuario,
+autorización por roles, idempotencia y un contrato de auditoría aprobado.
+
+Los mapas, el almacenamiento offline y la integración con datos reales se
+aplazan expresamente. Véase
+[`ADR-013`](docs/decisions/ADR-013-mobile-client.md).
