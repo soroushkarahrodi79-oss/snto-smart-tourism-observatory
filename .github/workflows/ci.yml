@@ -59,7 +59,8 @@ jobs:
             src/ui/tabs/tab_reports.py tests/unit/test_cets_readiness.py \
             tests/test_evidence_claims_sync.py tests/unit/test_prug_monitoring.py \
             scripts/build_dossier.py tests/unit/test_institutional_dossier.py \
-            scripts/export_openapi.py tests/unit/test_openapi_contract.py
+            scripts/export_openapi.py tests/unit/test_openapi_contract.py \
+            tests/unit/test_pilot_package.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github

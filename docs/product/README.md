@@ -21,6 +21,7 @@ See [../reviews/2026/05-chief-product-officer.md](../reviews/2026/05-chief-produ
 - [Product Roadmap](product-roadmap.md)
 - [Future Features](future-features.md)
 - [Commercialization](commercialization.md)
+- [Pilot Package (A07) — procurement-ready](pilot-package.md)
 
 ## Recommendations
 Build around one core workflow: asset risk -> confidence -> action -> budget -> report.
