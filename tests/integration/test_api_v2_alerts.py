@@ -102,6 +102,32 @@ def test_get_alert_404(client: TestClient) -> None:
     assert resp.status_code == 404
 
 
+def test_list_alerts_by_territory(client: TestClient) -> None:
+    resp = client.get("/api/v2/alerts/?territory_id=1")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 1
+    assert body["alerts"][0]["level"] == "CRITICAL_INTERVENTION"
+
+
+def test_list_alerts_by_territory_with_status_filter(client: TestClient) -> None:
+    resp = client.get("/api/v2/alerts/?territory_id=1&status=dismissed")
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 0  # the seeded alert is still open
+
+
+def test_list_alerts_unscoped_territory_returns_none(client: TestClient) -> None:
+    resp = client.get("/api/v2/alerts/?territory_id=999")
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 0
+
+
+def test_list_alerts_without_filters_lists_everything(client: TestClient) -> None:
+    resp = client.get("/api/v2/alerts/")
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 1
+
+
 def test_list_alert_recommendations(client: TestClient) -> None:
     resp = client.get("/api/v2/alerts/1/recommendations")
     assert resp.status_code == 200

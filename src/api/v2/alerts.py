@@ -14,11 +14,13 @@ from sqlalchemy.orm import Session
 from src.api.v2.authz_gate import authorize_territory_write
 from src.api.v2.deps import require_write_auth
 from src.api.v2.schemas import (
+    AlertListResponse,
     AlertOut,
     AlertTriageRequest,
     RecommendationListResponse,
     RecommendationOut,
 )
+from src.persistence.enums import AlertStatus
 from src.persistence.repositories import (
     AlertRepository,
     RecommendationRepository,
@@ -31,6 +33,34 @@ from src.persistence.services.lifecycle import (
 from src.persistence.session import get_db
 
 router = APIRouter(tags=["alerts-v2"])
+
+
+@router.get("/", response_model=AlertListResponse)
+def list_alerts(
+    territory_id: int | None = None,
+    status: AlertStatus | None = None,
+    limit: int = 100,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+) -> AlertListResponse:
+    """Flat alert listing (mobile Fase 2, ADR-014 addendum).
+
+    Mirrors ``list_managed_assets``'s own filter precedent: ``territory_id``
+    scopes to one territory (the join query — the actual point of this
+    endpoint, since no per-asset round-trip scales to "every alert a
+    territory has"); without it, every alert is listed, optionally narrowed
+    by ``status`` alone.
+    """
+    repo = AlertRepository(db)
+    if territory_id is not None:
+        alerts = repo.list_by_territory(territory_id, status=status)
+    elif status is not None:
+        alerts = repo.list_by_status(status)
+    else:
+        alerts = repo.list(limit=limit, offset=offset)
+    return AlertListResponse(
+        total=len(alerts), alerts=[AlertOut.model_validate(a) for a in alerts]
+    )
 
 
 @router.get("/{alert_id}", response_model=AlertOut)
