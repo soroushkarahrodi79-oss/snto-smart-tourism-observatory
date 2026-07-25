@@ -1,6 +1,10 @@
 # SNTO — Observatorio de Inteligencia Territorial para el Parque Nacional Sierra de Guadarrama
 
-**Dossier institucional · 2 páginas · v1.0 (junio 2026)**
+**Dossier institucional · 2 páginas**
+
+> Las secciones §4, §5 y §6 se **generan** desde los datos vivos del observatorio
+> (`python scripts/build_dossier.py`); el resto es prosa editada a mano. CI
+> verifica que las cifras publicadas siguen coincidiendo con el sistema.
 
 Proyecto de investigación · Universidad Complutense de Madrid (UCM)
 Autor: Soroush Karahrodi · Supervisión: Carmen Mínguez · Susana Ramírez García (REGENERA)
@@ -40,10 +44,14 @@ los propios datos del organismo**.
 Análisis ejecutado con **dos escenas Sentinel-2 reales** (primavera 2026-04-10 + verano 2025-08-10,
 tile T30TVL) sobre **218 senderos** reconstruidos desde cartografía oficial:
 
-- **17 de 73 senderos** muestran deterioro estacional activo (ΔEHS de degradación).
-- Clasificación causal SCM: **27 localizados** (señal de uso) · **9 mixtos** · **37 a escala de paisaje** (señal climática).
-- **Presupuesto indicativo de intervención: ~205.000 €**, modulado por el factor causal de cada tramo.
+<!-- SNTO:AUTO:resultados -->
+- **46 de 218 senderos** muestran deterioro estacional activo (ΔEHS de degradación).
+- Clasificación causal SCM: **24 localizados** (señal de uso) · **29 mixtos** · **165 a escala de paisaje** (señal climática).
+- **Presupuesto indicativo de intervención: 1.435.721 €**, modulado por el factor causal de cada tramo.
+- Salud ecológica media en verano: **88.5/100** sobre 1.035 km analizados.
+- Zona PRUG de atención prioritaria (mayor protección con deterioro activo): **Zona de Uso Restringido**.
 - Cobertura socioeconómica: **34 municipios** del entorno del Parque.
+<!-- /SNTO:AUTO:resultados -->
 
 > **Honestidad metodológica:** con dos escenas se sostiene la señal estacional (ΔEHS), **no** una
 > tendencia plurianual (Mann-Kendall requiere serie larga). El sistema lo declara explícitamente y
@@ -52,19 +60,27 @@ tile T30TVL) sobre **218 senderos** reconstruidos desde cartografía oficial:
 
 ## 5. Madurez y rigor
 
-- **474 tests automatizados** (suite verde), CI/CD separado del despliegue.
-- Desplegado en la nube (Azure Container Apps), dashboard con tres vistas: técnica, gestor y
-  auditoría científica.
-- Etiquetado de procedencia visible en cada dato: **real / calibrado / sintético**.
+<!-- SNTO:AUTO:madurez -->
+- Suite de tests automatizados **verde** en cada cambio, con CI/CD separado del despliegue (el conteo vivo está en el README del repositorio).
+- Desplegado en la nube (Azure Container Apps), panel con cuatro capas de decisión y tres vistas por audiencia.
+- Etiquetado de procedencia visible en cada dato: **real / calibrado / simulado / sintético**.
+- Estado de las vías de dato real (comprobado en vivo): serie satelital sí · movilidad MITMA **aún no** · zonas SCM multiescala **aún no** · serie socioeconómica **aún no**.
+- Parcelas de campo con medición registrada: **0** — la campaña de validación (#26) sigue pendiente, por lo que **no se afirma validación de campo**.
 - Documentación completa: arquitectura, whitepaper, protocolo de validación de campo, límites técnicos.
+<!-- /SNTO:AUTO:madurez -->
 
 ## 6. Alineación con el marco de gestión
 
-El SNTO se diseña en sintonía con los marcos europeos de reporte de espacios protegidos
-(Natura 2000 / EUROPARC / SISMOTUR) y con la **Carta Europea de Turismo Sostenible (CETS)**: cubre de
-forma directa el **Principio 3** (protección del patrimonio natural) y el **Principio 10** (gestión de
-flujos de visitantes), y de forma instrumental los Principios 1 y 2 (cooperación y elaboración de la
-estrategia/plan de acción).
+<!-- SNTO:AUTO:marco -->
+El SNTO se diseña en sintonía con los marcos europeos de reporte de espacios protegidos (Natura 2000 / EUROPARC / SISMOTUR) y con la **Carta Europea de Turismo Sostenible (CETS)**. La cobertura declarada por principio, con la evidencia que la respalda hoy:
+
+- **Principio 3** (Proteger y potenciar el patrimonio natural y cultural): cubierto de forma directa.
+- **Principio 10** (Controlar y seguir los flujos de turistas): cubierto de forma parcial — sin dato real hoy.
+- **Principio 1** (Hacer partícipes a los implicados en el turismo): cubierto de forma instrumental — sobre dato calibrado.
+- **Principio 2** (Elaborar y aplicar una estrategia y un plan de acción): cubierto de forma parcial — sobre dato calibrado.
+
+La correspondencia completa con los componentes del dosier de la Fase I y los 10 principios —incluidos los que quedan **fuera del alcance** de un sistema de evidencia teledetectada— se genera desde el propio observatorio (módulo «Informes y exportaciones»).
+<!-- /SNTO:AUTO:marco -->
 
 ## 7. Qué pedimos / qué ofrecemos
 
@@ -73,7 +89,9 @@ estrategia/plan de acción).
 
 1. **Validar sobre el terreno** una muestra de los senderos señalados (campaña de campo ligera con
    penetrómetro/cobertura) que cierre la pseudo-validación.
-2. Explorar el acceso a **series Sentinel-2 plurianuales** para activar la detección de tendencias.
+2. Explorar el acceso a **datos reales de afluencia** (aforos de sendero, conteos de visitantes o
+   registros de uso público). Es hoy la brecha principal: la capacidad de carga y el seguimiento de
+   flujos se apoyan en una estimación curada, no en una medición.
 3. Evaluar su encaje como instrumento de apoyo al **seguimiento del PRUG** y a una eventual
    candidatura/renovación **CETS**.
 

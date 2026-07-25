@@ -57,7 +57,8 @@ jobs:
             src/socioeconomic/series.py tests/unit/test_socio_series.py \
             src/ui/services/field_agreement.py tests/persistence/test_field_agreement.py \
             src/ui/tabs/tab_reports.py tests/unit/test_cets_readiness.py \
-            tests/test_evidence_claims_sync.py tests/unit/test_prug_monitoring.py
+            tests/test_evidence_claims_sync.py tests/unit/test_prug_monitoring.py \
+            scripts/build_dossier.py tests/unit/test_institutional_dossier.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github
@@ -87,6 +88,10 @@ jobs:
         run: python -m pytest -q --cov=src --cov-report=term --cov-fail-under=80
       - name: Check README version in sync with pyproject.toml
         run: python scripts/sync_readme.py --check-version
+      - name: Check institutional dossier figures match live data
+        # El dossier sale a la Dirección del Parque y a EUROPARC: sus cifras no
+        # pueden desviarse del sistema que describen (v3.0, productización).
+        run: python scripts/build_dossier.py --check
 
   typecheck:
     # Report-only (misma filosofía que el ruff full-repo): el núcleo tipado
