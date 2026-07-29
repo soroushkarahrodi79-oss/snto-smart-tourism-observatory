@@ -30,6 +30,7 @@ The consolidated source is the 2026 review archive in [reviews/2026](reviews/202
 - [decisions](decisions/README.md)
 - [strategy](strategy/README.md)
 - [appendix](appendix/README.md)
+- [integrations/arcgis/experience-builder](integrations/arcgis/experience-builder/README.md) — ArcGIS Experience Builder architecture package (PNSG DEMO)
 
 ## Recommendations
 Use the folder READMEs for navigation. Use [../MASTER_STRATEGIC_INDEX.md](../MASTER_STRATEGIC_INDEX.md) for the full documentation architecture.

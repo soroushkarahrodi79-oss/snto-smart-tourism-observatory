@@ -1,0 +1,69 @@
+# SNTO · Registro de items ArcGIS — PLANTILLA DE EJEMPLO
+# =====================================================================
+# Fase 2A · SOLO PLACEHOLDERS. No contiene Item IDs reales, URLs reales,
+# credenciales, tokens, cookies ni secretos.
+#
+# Los Item IDs son IDENTIFICADORES, no credenciales. Aun así, NO se registran
+# valores reales hasta que el propietario lo apruebe explícitamente. Cuando se
+# aprueben, cópiese este archivo a un registro NO versionado (p. ej.
+# item-registry.local.yaml). Antes de crearlo, añádase ese nombre a .gitignore;
+# hoy no existe esa regla. Este archivo .example permanece con placeholders.
+#
+# NUNCA guardar aquí ni en el registro local: contraseñas, tokens de acceso,
+# API keys, client secrets, cookies de sesión.
+# =====================================================================
+
+meta:
+  demo_prefix: "SNTO_DEMO_"
+  mandatory_description: "Demostración académica; no usar para decisiones operativas"
+  status: "example-placeholders-only"
+  last_verified_at: "REQUIRES_HUMAN_INPUT"   # ISO date, p. ej. 2026-07-13
+
+organization:
+  organization_url: "REQUIRES_HUMAN_INPUT"     # p. ej. https://<org>.maps.arcgis.com
+  owner_username_or_role: "REQUIRES_HUMAN_INPUT"
+  continuity_owner_or_role: "REQUIRES_HUMAN_INPUT"
+  account_expiry_review_at: "REQUIRES_HUMAN_INPUT"
+  items_transferable: "REQUIRES_HUMAN_INPUT"
+  sharing_scope: "group_private"               # nunca "public" en el MVP
+
+group:
+  private_group_id: "REQUIRES_HUMAN_INPUT"
+  private_group_name: "SNTO — Validación de campo DEMO"
+
+assets_layer:
+  item_name: "SNTO_DEMO_PNSG_Assets"
+  assets_layer_item_id: "REQUIRES_HUMAN_INPUT"
+  assets_layer_service_url: "REQUIRES_HUMAN_INPUT"   # .../FeatureServer
+  assets_layer_index: 0
+  editable: false                              # capa de referencia, solo lectura
+  verified_published: true                     # confirmado 2026-07-13 (2 entidades)
+
+field_survey:
+  item_name: "SNTO_DEMO_PNSG_FieldValidation"
+  field_survey_item_id: "REQUIRES_HUMAN_INPUT"
+  xlsform_source: "arcgis/demo/pnsg/SNTO_DEMO_PNSG_FieldValidation.xlsx"
+
+field_service:
+  item_name: "SNTO_DEMO_PNSG_FieldObservations"
+  field_service_item_id: "REQUIRES_HUMAN_INPUT"
+  field_service_url: "REQUIRES_HUMAN_INPUT"    # .../FeatureServer
+  field_layer_index: 0
+  published: false                             # se publica en roadmap Fase 3
+  attachments_enabled: true                    # fotos por GlobalID/parentglobalid
+
+webmap:
+  item_name: "SNTO_DEMO_PNSG_FieldValidation_Map"
+  webmap_item_id: "REQUIRES_HUMAN_INPUT"
+  verified_saved: true                         # confirmado 2026-07-13
+
+experience_builder:
+  item_name: "SNTO_DEMO_PNSG_EspacioDecision"
+  experience_builder_item_id: "REQUIRES_HUMAN_INPUT"
+  status: "not_created_yet"
+
+deferred:
+  dashboard_item_id: "DEFERRED"               # fuera del MVP
+  storymap_item_id: "DEFERRED"                # fuera del MVP
+  prug_layer_item_id: "DEFERRED_PENDING_LICENSE"
+  boundary_layer_item_id: "DEFERRED_PENDING_LICENSE"
