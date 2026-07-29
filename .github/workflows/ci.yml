@@ -109,7 +109,10 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        # PostGIS image (not plain postgres:16) so the v3.0 spatial tests
+        # (ST_DWithin / ST_Intersects on managed_assets.geom) actually run
+        # instead of skipping. The migration CREATE EXTENSION postgis needs it.
+        image: postgis/postgis:16-3.4
         env:
           POSTGRES_USER: snto
           POSTGRES_PASSWORD: snto

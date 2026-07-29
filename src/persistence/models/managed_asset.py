@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from geoalchemy2 import Geometry
 from sqlalchemy import ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -28,10 +29,27 @@ class ManagedAsset(Base):
     name: Mapped[str] = mapped_column(String(200))
     asset_type: Mapped[str] = mapped_column(String(32))
     # Verbatim GeoJSON geometry (as src.assets.models.GeoJSONGeometry serializes
-    # it) — stored as text for SQLite/Postgres portability; PostGIS geometry
-    # columns are a Fase-5-later upgrade once a real Postgres target exists
-    # (ADR-011 §4bis), not a blocker for the SQLite-backed first cut.
+    # it). This stays the *canonical, portable* geometry: it round-trips
+    # unchanged on both SQLite (dev/tests) and Postgres.
     geometry_geojson: Mapped[str] = mapped_column(Text)
+    # Derived PostGIS mirror of ``geometry_geojson`` for in-DB spatial queries
+    # (v3.0). The *base* type is ``Text`` with a Postgres-only ``Geometry``
+    # variant: on Postgres the DDL is a real ``geometry(Geometry, 4326)`` column
+    # (GIST-indexed + backfilled from the GeoJSON by the migration); everywhere
+    # else it stays inert ``Text``. Keeping ``Text`` as the base (not the
+    # Geometry) is deliberate — GeoAlchemy2's global DDL listeners only fire for
+    # a base Geometry type, so this arrangement avoids the SpatiaLite calls that
+    # would otherwise break plain-SQLite ``create_all`` in dev/tests. Nullable:
+    # rows with absent/invalid GeoJSON (e.g. ``"{}"``) keep ``geom IS NULL`` —
+    # geometry is never fabricated. Spatial reads live in ManagedAssetRepository
+    # and only run on Postgres.
+    geom: Mapped[str | None] = mapped_column(
+        Text().with_variant(
+            Geometry(geometry_type="GEOMETRY", srid=4326, spatial_index=False),
+            "postgresql",
+        ),
+        nullable=True,
+    )
     region: Mapped[str] = mapped_column(String(200))
     status: Mapped[ManagedAssetStatus] = mapped_column(
         default=ManagedAssetStatus.DETECTED
