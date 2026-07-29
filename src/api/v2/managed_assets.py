@@ -49,7 +49,7 @@ def _to_out(asset: ManagedAsset, db: Session) -> ManagedAssetOut:
     never becomes a fabricated coordinate or evidence class.
     """
     out = ManagedAssetOut.model_validate(asset)
-    centroid = centroid_of_geojson(asset.geometry_geojson)
+    centroid = centroid_of_geojson(asset.geometry_geojson or "")
     if centroid is not None:
         out.latitude, out.longitude = centroid
     latest = ObservationRepository(db).get_latest_by_asset(asset.id)
