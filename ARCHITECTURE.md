@@ -199,3 +199,38 @@ Phase 7  Plataforma estratégica
 
 Cada fase consume las salidas de la anterior; `run_phase7_report.py` orquesta la
 cadena completa.
+
+---
+
+## 6. Cliente móvil nativo
+
+`mobile/` es un cliente Expo SDK 57 independiente del proceso Python. Expo
+Router define cinco pestañas (`Inicio`, `Mapa`, `Activos`, `Alertas` y
+`Perfil`) y rutas de detalle para activos y alertas.
+
+```text
+Pantallas Expo Router
+        |
+        v
+mobileRepository (selector, @/data/repository.ts)
+        |
+        +-- usesMockData=true (por defecto): MobileMockRepository -> fixtures synthetic
+        |
+        `-- EXPO_PUBLIC_SNTO_USE_REMOTE_API=true: MobileHttpRepository
+                -> GET /api/v2/territories, /managed-assets, /alerts
+                -> mapeo DTO->dominio (@/data/http/mapping.ts), evidencia honesta
+```
+
+La aplicación no reimplementa algoritmos científicos ni reglas de decisión.
+Esos cálculos permanecen en el backend. La costura HTTP móvil solo expone `GET`,
+valida respuestas con esquemas y no admite claves compartidas o secretos
+públicos. Las escrituras quedan bloqueadas hasta que exista identidad de usuario,
+autorización por roles, idempotencia y un contrato de auditoría aprobado.
+
+**Fase 2 (ADR-014)** conecta el repositorio HTTP al contrato de lectura real de
+`/api/v2` — construido y probado contra `fetch` mockeado, sin necesitar el API
+desplegado. El modo sigue siendo sintético por defecto. Los mapas (elección de
+proveedor SDK), el almacenamiento offline y el despliegue de `/api/v2`
+(ADR-012) siguen aplazados expresamente. Véase
+[`ADR-013`](docs/decisions/ADR-013-mobile-client.md) y
+[`ADR-014`](docs/decisions/ADR-014-mobile-read-api-contract.md).

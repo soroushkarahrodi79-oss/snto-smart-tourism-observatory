@@ -11,7 +11,7 @@ Outputs:
   - risk model impact analysis (how much does the bias shift the risk score?)
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np

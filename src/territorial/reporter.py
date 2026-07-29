@@ -37,7 +37,6 @@ from .models import (
     ReportSection,
     TerritorialReport,
     TIER_LABELS,
-    TIER_DESCRIPTIONS,
 )
 from .portfolio import tier_summary, ehs_distribution, scm_distribution, asset_type_breakdown
 

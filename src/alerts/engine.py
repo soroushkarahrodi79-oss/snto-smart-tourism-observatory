@@ -9,7 +9,7 @@ from src.config.constants import (
     ALERT_URGENT,
 )
 from src.risk_engine.scorer import RiskScore
-from src.time_series.trend import TrendResult, is_declining, is_rising
+from src.time_series.trend import TrendResult, is_declining
 
 
 class AlertLevel(str, Enum):

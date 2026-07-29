@@ -13,10 +13,20 @@ evidence-labelled artifacts a director or a GIS technician can take away:
    OAPN geometry + real Sentinel-2 trend + explicit ``evidence_level``), via
    ``src.reporting.gis_export`` — the same generator as
    ``scripts/export_gis.py``, for QGIS/ArcGIS.
+3. **Preparación de dosier CETS Fase I** (Markdown/JSON) — the CETS↔SNTO
+   correspondence with each requirement's *live* evidence class, via
+   ``src.reporting.cets_readiness``. A preparation aid for a Foro/Grupo de
+   Trabajo, explicitly **not** a candidacy dossier and never a validation claim.
+4. **Seguimiento del PRUG por zonas** (Markdown/JSON) — the real trail evidence
+   rolled up by official OAPN management zone, via
+   ``src.reporting.prug_monitoring``. Real Sentinel-2 signal on real
+   cartography, but a seasonal early warning, never a plan-compliance verdict.
 
-These are **two different asset sets** (the decision portfolio vs. the
-monitoring layer); the UI labels each with its own provenance so they are
-never conflated (project non-negotiable: do not blur evidence).
+The first two are **different asset sets** (the decision portfolio vs. the
+monitoring layer); the third and fourth are institutional-framework mappings
+(CETS accreditation, the park's own PRUG) over the real evidence. The UI labels
+each with its own provenance so they are never conflated (project
+non-negotiable: do not blur evidence).
 """
 from __future__ import annotations
 
@@ -113,6 +123,21 @@ def render_tab_reports(
     st.divider()
 
     # ── 2. Capa GIS (GeoJSON) del conjunto de monitorización real ─────────────
+    _render_gis_section(selected_key, _view)
+
+    st.divider()
+
+    # ── 3. Preparación de dosier CETS Fase I ──────────────────────────────────
+    _render_cets_section(selected_key, territory_name, report_date, _view)
+
+    st.divider()
+
+    # ── 4. Seguimiento del PRUG por zonas ─────────────────────────────────────
+    _render_prug_section(selected_key, report_date, _view)
+
+
+def _render_gis_section(selected_key: str, _view) -> None:
+    """Section 2: the real-trend monitoring layer, or an honest absence notice."""
     st.markdown("#### 2 · Capa GIS (GeoJSON)")
     fc = _load_gis_feature_collection(selected_key)
     if fc is None:
@@ -156,3 +181,140 @@ def render_tab_reports(
                 "y `provenance`. Sin tendencia → nulos explícitos, nunca un "
                 "valor inventado."
             )
+
+
+def _render_cets_section(
+    selected_key: str, territory_name: str, report_date: str, _view
+) -> None:
+    """Section 3: CETS Fase I readiness — a preparation aid, not a dossier.
+
+    Each requirement's evidence class is resolved from live repository state, so
+    this surface reports what the observatory *actually* holds today (e.g. a
+    pending field campaign shows as ``missing``, never as coverage).
+    """
+    from src.reporting.cets_readiness import (
+        build_cets_readiness,
+        render_cets_readiness_markdown,
+    )
+
+    st.markdown("#### 3 · Preparación de dosier CETS Fase I")
+    st.markdown(
+        '<span class="snto-evidence-badge">Marco institucional · evidencia '
+        "resuelta en vivo</span>",
+        unsafe_allow_html=True,
+    )
+    st.caption(
+        "Correspondencia entre los requisitos de la **Fase I de la CETS** "
+        "(EUROPARC) y los módulos del SNTO, con la clase de evidencia que "
+        "respalda cada uno **hoy**. Es material de preparación para un Foro / "
+        "Grupo de Trabajo: no es un dosier de candidatura y no acredita "
+        "cumplimiento."
+    )
+
+    report = build_cets_readiness(
+        territory_name=territory_name,
+        park=selected_key,
+        report_date=report_date,
+    )
+    summary = report["summary"]
+    signals = report["signals"]
+
+    cols = st.columns(3)
+    cols[0].metric("Requisitos evaluados", summary["requirements_assessed"])
+    cols[1].metric(
+        "Con evidencia real", summary["by_evidence_class"].get("real", 0)
+    )
+    cols[2].metric(
+        "Parcelas de campo medidas", signals["field_measured_plots"]
+    )
+    if not signals["field_validated"]:
+        st.warning(
+            "La campaña de validación de campo (#26) no se ha ejecutado: "
+            "ninguna fila puede declararse validada en campo.",
+            icon="⚠️",
+        )
+
+    cets_md = render_cets_readiness_markdown(report)
+    with st.expander(
+        "Vista previa de la correspondencia CETS",
+        expanded=_view.section(audit=True),
+    ):
+        st.markdown(cets_md)
+
+    _slug = territory_name.lower().replace(" ", "_")[:40]
+    st.download_button(
+        "⬇️ Descargar preparación CETS (.md)",
+        data=cets_md,
+        file_name=f"snto_cets_fase1_{_slug}_{report_date}.md",
+        mime="text/markdown",
+        use_container_width=True,
+    )
+    st.download_button(
+        "⬇️ Descargar preparación CETS (.json)",
+        data=json.dumps(report, ensure_ascii=False, indent=2),
+        file_name=f"snto_cets_fase1_{_slug}_{report_date}.json",
+        mime="application/json",
+        use_container_width=True,
+    )
+
+
+def _render_prug_section(selected_key: str, report_date: str, _view) -> None:
+    """Section 4: PRUG-zone monitoring roll-up over the real trail evidence.
+
+    Reports the park through its own management instrument (the PRUG
+    zonification), aggregating real Sentinel-2 signal per official OAPN zone.
+    Degrades honestly to an absence notice for a territory without zonification.
+    """
+    from src.reporting.prug_monitoring import (
+        build_prug_monitoring,
+        render_prug_monitoring_markdown,
+    )
+
+    st.markdown("#### 4 · Seguimiento del PRUG por zonas")
+    report = build_prug_monitoring(selected_key, report_date=report_date)
+
+    if not report.get("available"):
+        st.info(
+            "No hay seguimiento PRUG para este territorio: "
+            f"{report.get('reason', 'sin zonificación disponible')}"
+        )
+        return
+
+    st.markdown(
+        '<span class="snto-evidence-badge">Evidencia: real · zonificación OAPN '
+        "+ señal Sentinel-2</span>",
+        unsafe_allow_html=True,
+    )
+    st.caption(
+        "Cruza la **zonificación oficial PRUG** con el estado ambiental real de "
+        "cada senda. Alerta temprana estacional (ΔEHS de dos escenas), no una "
+        "tendencia plurianual ni un veredicto de cumplimiento del Plan; sin "
+        "validación de campo (#26)."
+    )
+
+    s = report["summary"]
+    cols = st.columns(3)
+    cols[0].metric("Zonas PRUG", s["n_zones"])
+    cols[1].metric("Sendas deteriorándose", s["n_degrading"])
+    cols[2].metric("Zona prioritaria", s["priority_zone"] or "—")
+
+    prug_md = render_prug_monitoring_markdown(report)
+    with st.expander(
+        "Vista previa del seguimiento PRUG", expanded=_view.section(audit=True)
+    ):
+        st.markdown(prug_md)
+
+    st.download_button(
+        "⬇️ Descargar seguimiento PRUG (.md)",
+        data=prug_md,
+        file_name=f"snto_prug_{selected_key}_{report_date}.md",
+        mime="text/markdown",
+        use_container_width=True,
+    )
+    st.download_button(
+        "⬇️ Descargar seguimiento PRUG (.json)",
+        data=json.dumps(report, ensure_ascii=False, indent=2),
+        file_name=f"snto_prug_{selected_key}_{report_date}.json",
+        mime="application/json",
+        use_container_width=True,
+    )
