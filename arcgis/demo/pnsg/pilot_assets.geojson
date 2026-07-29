@@ -1,0 +1,79 @@
+{
+  "type": "FeatureCollection",
+  "name": "SNTO_DEMO_PNSG_Assets",
+  "metadata": {
+    "purpose": "Demostración académica de validación de campo; no usar para decisiones operativas.",
+    "snto_version": "2.1.0.dev0",
+    "source_repository_commit": "6284091460e9271bb8c1c4dbf7ab9aa31ea48d45",
+    "prepared_at": "2026-07-13",
+    "data_observation_period": "2021-01-01/2026-06-01",
+    "publication_status": "private-group snapshot published 2026-07-13",
+    "sync_mode": "manual snapshot; not live",
+    "crs": "EPSG:4326",
+    "feature_count": 2
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.9251, 40.7405]
+      },
+      "properties": {
+        "asset_id": "pnsg_escalada_maliciosa_porrones",
+        "asset_name": "Escuela de escalada MALICIOSA-PORRONES",
+        "category": "escalada",
+        "stratum": "escalada-roquedo",
+        "original_geom_type": "POLYGON",
+        "trend": "decreasing",
+        "trend_significant": true,
+        "n_observations": 65,
+        "tau": -0.369,
+        "p_value": 0.0,
+        "sens_slope": -0.000371,
+        "sens_slope_ci_low": -0.000502,
+        "sens_slope_ci_high": -0.000229,
+        "confidence": "high",
+        "change_point_date": "2025-03-01",
+        "partial_years": "2026",
+        "evidence_class": "real",
+        "demo_status": "DEMO",
+        "source_version": "2.1.0.dev0",
+        "calculated_at": "2026-07-13",
+        "provenance": "Sentinel-2 L2A real 2021-2026; NDVI desestacionalizado; Mann-Kendall y pendiente de Sen con IC 95%.",
+        "decision_caveat": "Candidato a inspección; la causa y degradación deben verificarse en campo."
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.836133, 40.983965]
+      },
+      "properties": {
+        "asset_id": "pnsg_vuelo_libre_el_nevero",
+        "asset_name": "El Nevero",
+        "category": "vuelo_libre",
+        "stratum": "vuelo-libre-pastizal",
+        "original_geom_type": "POINT",
+        "trend": "increasing",
+        "trend_significant": true,
+        "n_observations": 60,
+        "tau": 0.225,
+        "p_value": 0.0113,
+        "sens_slope": 0.000775,
+        "sens_slope_ci_low": 0.000188,
+        "sens_slope_ci_high": 0.001322,
+        "confidence": "high",
+        "change_point_date": "2023-09-01",
+        "partial_years": "2026",
+        "evidence_class": "real",
+        "demo_status": "DEMO",
+        "source_version": "2.1.0.dev0",
+        "calculated_at": "2026-07-13",
+        "provenance": "Sentinel-2 L2A real 2021-2026; NDVI desestacionalizado; Mann-Kendall y pendiente de Sen con IC 95%.",
+        "decision_caveat": "Activo de contraste con tendencia favorable; mantener monitorización y verificar el estado en campo."
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+plot_id,asset_id,lat,lon,distance_to_trail_m,is_control,soil_compaction_mpa,veg_cover_pct,erosion_class,trail_width_m,visitor_count,photo_ref,stratum,observed_at,observer,gps_accuracy_m,qa_status,evidence_class,notes
+porrones_impact_1,pnsg_escalada_maliciosa_porrones,40.7405,-3.9251,0,false,,,,,,,escalada-roquedo,,,,planned,missing,Parcela prevista; sustituir la posición por GPS de campo.
+porrones_control_1,pnsg_escalada_maliciosa_porrones,40.7405,-3.9251,80,true,,,,,,,escalada-roquedo,,,,planned,missing,Control previsto a 80 m; la coordenada definitiva se captura en campo.
+nevero_impact_1,pnsg_vuelo_libre_el_nevero,40.983965,-3.836133,0,false,,,,,,,vuelo-libre-pastizal,,,,planned,missing,Parcela prevista; sustituir la posición por GPS de campo.
+nevero_control_1,pnsg_vuelo_libre_el_nevero,40.983965,-3.836133,80,true,,,,,,,vuelo-libre-pastizal,,,,planned,missing,Control previsto a 80 m; la coordenada definitiva se captura en campo.
