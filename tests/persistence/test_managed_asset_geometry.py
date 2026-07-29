@@ -405,6 +405,20 @@ def test_upgrade_downgrade_upgrade_cycle_preserves_canonical_geometry(
         migration_engine.dialect.name != "postgresql"
     )
 
+    with migration_engine.begin() as connection:
+        connection.execute(
+            text(
+                "UPDATE managed_assets SET geometry_geojson = NULL "
+                "WHERE external_asset_id = 'cycle-asset'"
+            )
+        )
+        assert connection.scalar(
+            text(
+                "SELECT geom IS NULL FROM managed_assets "
+                "WHERE external_asset_id = 'cycle-asset'"
+            )
+        )
+
     _downgrade_to_previous(migration_engine)
     assert "geom" not in {
         column["name"]
@@ -416,7 +430,7 @@ def test_upgrade_downgrade_upgrade_cycle_preserves_canonical_geometry(
                 "SELECT geometry_geojson FROM managed_assets "
                 "WHERE external_asset_id = 'cycle-asset'"
             )
-        ) == _NEAR
+        ) == "{}"
 
     _at_revision(migration_engine, "head")
     assert "geom" in {

@@ -161,15 +161,19 @@ def downgrade() -> None:
         op.execute(
             """
             DO $$
+            DECLARE
+                normalised_nulls bigint;
             BEGIN
-                IF EXISTS (
-                    SELECT 1
-                      FROM managed_assets
-                     WHERE geometry_geojson IS NULL
-                ) THEN
-                    RAISE EXCEPTION
-                        'cannot set geometry_geojson NOT NULL: NULL rows exist';
-                END IF;
+                SELECT count(*)
+                  INTO normalised_nulls
+                  FROM managed_assets
+                 WHERE geometry_geojson IS NULL;
+                UPDATE managed_assets
+                   SET geometry_geojson = '{}'
+                 WHERE geometry_geojson IS NULL;
+                RAISE NOTICE
+                    'managed_assets downgrade: NULL sources normalised to {}=%',
+                    normalised_nulls;
             END $$;
             """
         )
@@ -188,6 +192,13 @@ def downgrade() -> None:
             "ALTER COLUMN geometry_geojson SET NOT NULL"
         )
     else:
+        # The previous schema cannot represent SQL NULL. ``{}`` was its
+        # established missing-geometry sentinel and does not fabricate geometry.
+        op.execute(
+            "UPDATE managed_assets "
+            "SET geometry_geojson = '{}' "
+            "WHERE geometry_geojson IS NULL"
+        )
         with op.batch_alter_table("managed_assets") as batch:
             batch.drop_column("geom")
             batch.alter_column(
