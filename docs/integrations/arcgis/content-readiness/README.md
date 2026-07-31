@@ -1,0 +1,90 @@
+# Fase 3 — Evaluación preliminar de readiness basada en repositorio
+
+> **Título de estado:** *"Preliminary repository-based ArcGIS readiness
+> assessment — live verification pending"*.
+> Rama: `docs/arcgis-content-readiness` · Worktree aislado, creado desde
+> `origin/main` (`78eed77`). Documentación únicamente. **Ninguna** mutación en
+> ArcGIS Online se realizó ni se realizará en esta fase.
+
+## 1. Qué es y qué no es este documento
+
+Este paquete **no** es un resultado de inspección en vivo de ArcGIS Online.
+Es un análisis preliminar construido enteramente a partir de:
+
+1. lo que `docs/arcgis/field-validation-demo-roadmap.md` documentó como
+   verificado por el propietario el **2026-07-13**;
+2. la confirmación cualitativa del propietario en esta sesión
+   (2026-07-30: *"sigue todo existe"*);
+3. inferencias de cronología derivables del propio repositorio (fechas de
+   commit, contenido de archivos).
+
+**No sustituye** una inspección real de metadatos ArcGIS. Es el paso previo
+que identifica **qué falta verificar** antes de tomar cualquier decisión de
+reutilización, reconstrucción o construcción de la app Experience Builder.
+
+## 2. Qué completó y qué NO completó la Fase 3
+
+| Sub-fase | Estado |
+|---|---|
+| 3A — Preflight | ✅ Completada |
+| 3B — Registro local de items | ✅ Completada (archivo ignorado, sin valores reales) |
+| 3C — Puerta de input humano | ✅ Alcanzada; **no superada con metadatos reales** — solo confirmación cualitativa |
+| 3D — Inspección de solo lectura en ArcGIS | ❌ **No completada** — no hubo sesión ni metadatos reales |
+| 3E — Comparación de esquemas reales | ❌ **No completada** — solo análisis de riesgo derivado, sin dato real que comparar |
+| 3F — Matriz de brechas | ⚠️ Completada **con severidades limitadas a `VERIFICATION_REQUIRED`/`DERIVED_RISK`**, no brechas confirmadas |
+| 3G — Decisión reuse/recreate | ⚠️ Completada, pero **toda decisión formal es `UNKNOWN`**; solo hipótesis preliminares no vinculantes |
+| 3H — Disposición del Web Map | ⚠️ Completada como `UNKNOWN — NOT LIVE-VERIFIED` |
+| 3I — Disposición de Experience Builder | ⚠️ Completada como `PRELIMINARY_REPOSITORY_READY` / `LIVE_ARCGIS_READINESS_UNKNOWN` |
+| 3J — Plan de acción del propietario | ✅ Completada, con **A0 (recolección de metadatos)** como primera acción obligatoria y todo lo demás condicionado a ella |
+
+**Conclusión de alcance:** el paquete de documentación (README + 8 documentos)
+es un **entregable válido de Fase 3** en tanto que evaluación preliminar, pero
+**ninguna** conclusión sobre existencia, configuración o disposición real de
+un item ArcGIS debe tratarse como definitiva. Se requiere una **pasada de
+verificación en vivo suplementaria** antes de cualquier mutación en ArcGIS
+Online o construcción de Experience Builder.
+
+## 3. Terminología obligatoria usada en todo el paquete
+
+| Término | Significado |
+|---|---|
+| **HISTORICALLY_VERIFIED** | Respaldado por el roadmap del 2026-07-13 o por el paquete canónico. |
+| **QUALITATIVELY_CONFIRMED** | El propietario afirmó que el trabajo/los items siguen existiendo, sin identificar cada item ni aportar metadatos. |
+| **LIVE_VERIFIED** | Requiere Item ID, metadatos REST o inspección autenticada de solo lectura. **Ninguno está disponible hoy.** |
+| **DERIVED_RISK** | Riesgo plausible inferido de la cronología del repositorio, **no** prueba de deriva real en el estado en vivo. |
+| **UNKNOWN** | No puede decidirse sin metadatos ArcGIS. |
+
+## 4. Por qué "sigue todo existe" no resuelve la incertidumbre
+
+La confirmación del propietario es una afirmación **cualitativa y agregada**
+("todo existe"), no una identificación item por item con metadatos. No indica:
+
+- qué Item ID tiene cada elemento;
+- si el Survey123 feature service se llegó a publicar;
+- si existe ya un item de Experience Builder;
+- la configuración real (esquema, compartición, capacidades) de ningún item.
+
+Por tanto, este paquete **no afirma** que el feature service de Survey123 o la
+app Experience Builder **no** existan — solo que su existencia y estado son
+**UNKNOWN** sin metadatos o inspección adicionales.
+
+## 5. Documentos de este paquete
+
+| Documento | Contenido |
+|---|---|
+| [`item-inventory.md`](item-inventory.md) | Inventario por item, separando estado histórico de estado actual (UNKNOWN salvo confirmación explícita). |
+| [`schema-comparison.md`](schema-comparison.md) | Comparación contrato Git vs estado ArcGIS — todo el lado ArcGIS es UNKNOWN; riesgos marcados DERIVED_RISK. |
+| [`gap-matrix.md`](gap-matrix.md) | Matriz de brechas con severidades limitadas a `VERIFICATION_REQUIRED`/`DERIVED_RISK`/`INFORMATIONAL`. |
+| [`reuse-decision.md`](reuse-decision.md) | Decisión formal `UNKNOWN` en todos los items reales; hipótesis preliminares no vinculantes por separado. |
+| [`webmap-readiness.md`](webmap-readiness.md) | Clasificación `UNKNOWN — NOT LIVE-VERIFIED`. |
+| [`experience-builder-readiness.md`](experience-builder-readiness.md) | `PRELIMINARY_REPOSITORY_READY` / `LIVE_ARCGIS_READINESS_UNKNOWN` por página. |
+| [`owner-action-plan.md`](owner-action-plan.md) | A0 (recolección de metadatos) como acción obligatoria previa; todo lo demás condicionado. |
+| [`qa-checklist.md`](qa-checklist.md) | Checklist de validación de esta fase preliminar. |
+
+## 6. Próximo paso obligatorio (fuera de esta fase)
+
+Una pasada de verificación en vivo — el propietario aporta las URLs/Item IDs
+de `owner-action-plan.md` §A0, o habilita una inspección de solo lectura — es
+**condición previa** para: cerrar cualquier `UNKNOWN` de este paquete, asignar
+decisiones formales de reutilización, clasificar el Web Map, o iniciar la
+construcción de Experience Builder.
