@@ -1,4 +1,42 @@
-# Decisiones de reutilización — por item (preliminar)
+# Decisiones de reutilización — por item (preliminar + suplemento en vivo)
+
+## Actualización del suplemento de verificación anónima (2026-07-31)
+
+La verificación anónima confirmó **existencia** (OWNER_UI_VERIFIED /
+ANONYMOUS_REST_VERIFIED) y **bloqueo de acceso anónimo** de la organización, los
+dos FeatureServer y los items, pero **no** pudo leer sus esquemas ni verificar
+el alcance de compartición exacto (sin credenciales). Por tanto:
+
+- **Las decisiones formales siguen `UNKNOWN`** para todos los items ArcGIS
+  reales. La verificación de existencia **no** basta para una decisión de
+  reutilización: esa decisión depende del **esquema** (compatibilidad de
+  campos/dominios/geometría), que permanece `AUTHENTICATED_READ_REQUIRED`.
+- **Las hipótesis preliminares se refuerzan** (el item existe, no hay que
+  crearlo desde cero, y ninguna evidencia sugiere `RECREATE`), pero siguen
+  siendo **no vinculantes** hasta la lectura autenticada de esquema.
+- **Ninguna recreación se justifica** por indisponibilidad de metadatos.
+
+Estado formal tras el suplemento (sin cambios respecto a la regla anterior):
+
+| Item | Decisión formal | Hipótesis (reforzada, no vinculante) |
+|---|---|---|
+| Grupo privado | UNKNOWN | reuse candidate (existencia OWNER_UI_VERIFIED) |
+| `pilot_assets` layer | UNKNOWN | REUSE_WITH_CONFIGURATION (endpoint resuelve; esquema pendiente) |
+| Web Map | UNKNOWN | configuration candidate (existencia OWNER_UI_VERIFIED) |
+| Survey123 feature service | UNKNOWN | reuse candidate — endpoint **resuelve** (antes se dudaba); esquema pendiente |
+| Survey123 results view | UNKNOWN | reuse candidate (OWNER_UI_VERIFIED) |
+| Survey123 form view | UNKNOWN | reuse candidate (OWNER_UI_VERIFIED) |
+| Survey123 form (item) | UNKNOWN | reuse candidate (OWNER_UI_VERIFIED) |
+| Experience Builder | UNKNOWN | sin base — existencia AUTHENTICATED_READ_REQUIRED |
+
+**Cambio destacable:** el endpoint del feature service de Survey123 **resuelve**
+(ANONYMOUS_REST_VERIFIED), lo que retira la duda "no confirmado ni descartado"
+de la fase preliminar. Aun así, su decisión formal permanece `UNKNOWN` hasta
+verificar su esquema mediante lectura autenticada.
+
+---
+
+> Decisiones preliminares previas (históricas) conservadas abajo.
 
 > **Regla de esta corrección:** ningún item real recibe una decisión formal
 > distinta de `UNKNOWN` sin verificación en vivo. Donde es útil, se añade una

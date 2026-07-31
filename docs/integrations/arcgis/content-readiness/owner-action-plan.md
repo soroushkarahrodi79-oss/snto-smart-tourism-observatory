@@ -5,9 +5,50 @@
 > edición de capa, publicación de formulario o creación de item como acción
 > decidida antes de esa verificación.
 
-## A0 — Recolectar metadatos ArcGIS no-secretos (acción previa obligatoria)
+## A0 — Recolectar metadatos ArcGIS no-secretos — ✅ COMPLETADA (2026-07-31)
 
-Esta es la **primera y única acción no condicionada** de este plan. Ninguna
+El propietario aportó los Item IDs/URLs de los 8 items (registrados en el
+archivo ignorado `arcgis/demo/pnsg/item-registry.local.yaml`). La verificación
+**anónima de solo lectura** confirmó **existencia** (OWNER_UI_VERIFIED /
+ANONYMOUS_REST_VERIFIED) y **bloqueo de acceso anónimo** de la org y los dos
+FeatureServer. **No** verificó el alcance de compartición exacto ni la
+pertenencia al grupo. **Item de Experience Builder no aportado** (pendiente, A0b).
+
+## A0b — Aportar lectura autenticada del esquema (NUEVA acción previa obligatoria)
+
+La verificación anónima de solo lectura **no puede leer el esquema** porque los
+endpoints bloquean el acceso anónimo (`499 Token Required`) y este flujo no usa
+credenciales.
+Para desbloquear la comparación de esquemas y las decisiones formales, el
+propietario debe, **desde su propia sesión ya autenticada** (sin compartir
+tokens ni cookies con este flujo), realizar **una de estas dos opciones**:
+
+- **Opción 1 (recomendada, no-mutante):** abrir en su navegador y guardar como
+  archivo local (fuera de Git, o en el registro local) el JSON REST read-only
+  de cada recurso:
+  - `…/pilot_assets/FeatureServer?f=json` y `…/FeatureServer/0?f=json` (y cada
+    índice de capa/tabla que aparezca);
+  - `…/<survey123-feature-service>/FeatureServer?f=json` y cada `…/FeatureServer/<n>?f=json`;
+  - el `item/data` del Web Map (`?f=json`).
+  Luego facilitar esos JSON para su lectura. **No cambia compartición ni datos.**
+- **Opción 2:** habilitar una sesión de solo lectura supervisada para
+  inspección de metadatos (sin edición). El propietario decide.
+
+**No se recomienda cambiar la compartición a pública** para facilitar la
+lectura — eso reduciría el control de acceso actual (los endpoints probados hoy
+bloquean el acceso anónimo) y contradiría el objetivo de mantener la demo
+restringida.
+
+Esta es ahora la **acción previa obligatoria**. Ninguna fila de A/B/C se ejecuta
+antes de completar A0b.
+
+---
+
+> Texto histórico de A0 (preliminar) conservado abajo por trazabilidad.
+
+## A0 (histórico) — Recolectar metadatos ArcGIS no-secretos
+
+Esta era la primera acción no condicionada del plan preliminar. Ninguna
 otra fila de este documento puede ejecutarse antes de completarla.
 
 **Requerido del propietario (sin contraseñas, tokens ni cookies):**

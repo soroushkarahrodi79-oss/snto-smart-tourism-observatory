@@ -1,4 +1,32 @@
-# Disposición de Experience Builder por página (preliminar)
+# Disposición de Experience Builder por página (preliminar + suplemento en vivo)
+
+## Suplemento de verificación anónima (2026-07-31)
+
+- **Item de Experience Builder:** existencia **UNKNOWN**; estado
+  **AUTHENTICATED_READ_REQUIRED**. El propietario **no** lo aportó y el endpoint
+  de contenidos del grupo devuelve `403` anónimo. **No se afirma que exista ni
+  que no exista.**
+- **Fuentes de datos de las páginas:** los dos FeatureServer (activos y
+  Survey123) **resuelven** (ANONYMOUS_REST_VERIFIED) y sus items están
+  OWNER_UI_VERIFIED — esto **retira** el bloqueo previo de "el feature service
+  de Survey123 podría no existir" en la página *Evidenciar*. Sin embargo, sus
+  **esquemas** siguen `AUTHENTICATED_READ_REQUIRED`, así que la disposición de
+  fuente de datos para EB **sigue sin poder determinarse**.
+- **Clasificación global (sin cambio):** **`PRELIMINARY_REPOSITORY_READY`** +
+  **`LIVE_ARCGIS_READINESS_UNKNOWN`**. La existencia de las fuentes está
+  verificada; su idoneidad de esquema y la config del Web Map no.
+
+| Página | Fuente: existencia | Esquema fuente | EB item |
+|---|---|---|---|
+| Decidir | `pilot_assets` OWNER_UI + endpoint resuelve | AUTHENTICATED_READ_REQUIRED | UNKNOWN / AUTHENTICATED_READ_REQUIRED |
+| Diagnosticar | `pilot_assets` ídem | AUTHENTICATED_READ_REQUIRED | ídem |
+| Evidenciar | **Survey123 service: endpoint resuelve** | AUTHENTICATED_READ_REQUIRED | ídem |
+| Gobernar | Contenido en Git | N/A | ídem |
+| Asset Detail | Ambos: existencia verificada | AUTHENTICATED_READ_REQUIRED | ídem |
+
+---
+
+> Análisis preliminar por página (histórico) conservado abajo.
 
 > Basado en `page-blueprints.md` (Fase 2A). Para cada página se separan tres
 > ejes: **disposición en Git/contrato de datos** (verificable hoy),

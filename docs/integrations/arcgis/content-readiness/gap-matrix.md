@@ -1,4 +1,36 @@
-# Matriz de brechas — Fase 3 (preliminar)
+# Matriz de brechas — Fase 3 (preliminar + suplemento en vivo)
+
+## Actualización del suplemento de verificación anónima (2026-07-31)
+
+La verificación anónima **cerró parcialmente** la brecha BLOCKER anterior
+("no hay metadatos en vivo"): ahora los Item IDs/URLs están aportados
+(OWNER_UI_VERIFIED) y la **existencia** de la organización y de los dos
+FeatureServer está `ANONYMOUS_REST_VERIFIED`. Sin embargo, **surge un nuevo
+bloqueo de esquema**: los servicios bloquean el acceso anónimo y la lectura de
+su esquema requiere autenticación.
+
+| Item/dominio | Antes | Ahora (2026-07-31) | Severidad | Acción |
+|---|---|---|---|---|
+| Disponibilidad de Item IDs/URLs | BLOCKER (ausencia total) | **Resuelto** — aportados y registrados (local) | INFORMATIONAL | — |
+| Existencia de org + 2 FeatureServer | UNKNOWN | **ANONYMOUS_REST_VERIFIED** | INFORMATIONAL | — |
+| Existencia de items (Web Map, Survey123, pilot_assets) | UNKNOWN | **OWNER_UI_VERIFIED** | INFORMATIONAL | — |
+| Acceso anónimo a endpoints probados | UNKNOWN | **ANONYMOUS_ACCESS_BLOCKED** (positivo, solo esas rutas) | INFORMATIONAL | — |
+| Alcance de compartición exacto / pertenencia al grupo / permisos | UNKNOWN | AUTHENTICATED_READ_REQUIRED (no inferible de `403`/`499`) | HIGH | §A0b |
+| Esquema real de capas/tablas | HIGH/DERIVED_RISK | **AUTHENTICATED_READ_REQUIRED** (nuevo bloqueo) | **BLOCKER** (esquema) | §A0b: export REST autenticado read-only |
+| Config Web Map (capas/popups) | HIGH/VERIFICATION_REQUIRED | AUTHENTICATED_READ_REQUIRED | HIGH | §A0b |
+| Existencia de Experience Builder | HIGH/VERIFICATION_REQUIRED | UNKNOWN / AUTHENTICATED_READ_REQUIRED (no aportado; grupo→403) | HIGH | §A0b o aportar Item ID |
+| Continuidad de cuenta educativa | HIGH/VERIFICATION_REQUIRED | UNKNOWN (sin cambio) | HIGH | §A0 (owner) |
+
+**Enunciado del BLOCKER actual:** *"Los endpoints resuelven pero bloquean el
+acceso anónimo; la comparación de esquemas y la verificación del alcance de
+compartición exacto requieren una lectura autenticada (sin credenciales en este
+flujo). Las decisiones formales de reutilización siguen UNKNOWN y ningún esquema
+se marca LIVE_SCHEMA_VERIFIED."*
+
+---
+
+> Matriz preliminar previa (histórica) conservada abajo. Donde el suplemento
+> cambia el estado, prevalece el suplemento.
 
 > Severidades limitadas a lo que el estado de información actual justifica:
 > `VERIFICATION_REQUIRED`, `DERIVED_RISK`, `INFORMATIONAL`, y un único

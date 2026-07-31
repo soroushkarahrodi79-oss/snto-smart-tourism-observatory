@@ -1,8 +1,24 @@
-# Disposición del Web Map — `SNTO_DEMO_PNSG_FieldValidation_Map` (preliminar)
+# Disposición del Web Map — `SNTO_DEMO_PNSG_FieldValidation_Map`
 
-> Ninguna edición realizada. **Clasificación formal: `UNKNOWN — NOT
-> LIVE-VERIFIED`.** Se retiene un hallazgo preliminar basado en cronología del
-> repositorio, claramente marcado como hipótesis, no como hecho confirmado.
+> Ninguna edición realizada. **Clasificación formal tras el suplemento de
+> verificación anónima (2026-07-31): `UNKNOWN — AUTHENTICATED_READ_REQUIRED`.**
+
+## Suplemento de verificación anónima (2026-07-31)
+
+El Item ID del Web Map fue aportado por el propietario (OWNER_UI_VERIFIED;
+registrado en local). Lo verificado: existencia **OWNER_UI_VERIFIED** y acceso
+anónimo a metadatos de item **ANONYMOUS_ACCESS_BLOCKED** (endpoint → `403`). Lo
+**no** verificable sin sesión autenticada: capas operacionales, orden,
+simbología, popups, filtros, bookmarks, extent, basemap, y el alcance de
+compartición exacto (el `item/data` requiere token). Por tanto la clasificación
+**es `UNKNOWN — AUTHENTICATED_READ_REQUIRED`**: existe (OWNER_UI) y su endpoint
+bloquea acceso anónimo, pero su configuración interna no puede leerse. **No** se
+afirma su alcance de compartición exacto a partir de `403`.
+
+El `DERIVED_RISK` de cronología (reglas de `design-system.md` posteriores al
+guardado del mapa) **sigue sin confirmar ni descartar**.
+
+---
 
 ## Clasificación formal
 

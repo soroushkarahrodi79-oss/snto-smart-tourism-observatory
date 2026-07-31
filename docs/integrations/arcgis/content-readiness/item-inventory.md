@@ -1,10 +1,44 @@
-# Inventario de items ArcGIS — Fase 3 (preliminar)
+# Inventario de items ArcGIS — Fase 3 (preliminar + suplemento en vivo)
 
-> Cada item separa **estado histórico** (lo que el roadmap del 2026-07-13
-> verificó), **confirmación cualitativa** (lo que el propietario reafirmó el
-> 2026-07-30) y **estado en vivo** (lo que solo una inspección real
-> confirmaría — hoy `UNKNOWN` en todos los casos). Ningún Item ID es
-> fabricado. Ver `README.md` §3 para la terminología.
+> Cada item separa **estado histórico** (roadmap 2026-07-13), **confirmación
+> cualitativa** (propietario 2026-07-30), y **estado en vivo** (verificación
+> read-only 2026-07-31). Ningún Item ID es fabricado; los IDs reales viven en
+> el registro ignorado `arcgis/demo/pnsg/item-registry.local.yaml`.
+
+## Suplemento de verificación anónima (2026-07-31)
+
+Metadatos aportados por el propietario (OWNER_UI) + inspección REST/HTTP anónima
+(sin credenciales). Categorías: ver `README.md` §0. Tabla de estado:
+
+| Item | Existencia | Evidencia | Acceso anónimo | Configuración/esquema |
+|---|---|---|---|---|
+| Organización `ucmadrid.maps.arcgis.com` | **ANONYMOUS_REST_VERIFIED** | `sharing/rest/info` → AGOL real, `isTokenBasedSecurity:true` | info público | config admin → AUTHENTICATED_READ_REQUIRED |
+| Grupo privado | **OWNER_UI_VERIFIED** | ID aportado por owner | **ANONYMOUS_ACCESS_BLOCKED** (`403`) | owner, miembros, sharing exacto → AUTHENTICATED_READ_REQUIRED |
+| `pilot_assets` FeatureServer | **ANONYMOUS_REST_VERIFIED** (endpoint resuelve) | URL exacta → `499`; inexistente → `400` (calibrado) | **ANONYMOUS_ACCESS_BLOCKED** | índice de capa, esquema, geometría, CRS → AUTHENTICATED_READ_REQUIRED |
+| Survey123 FeatureServer | **ANONYMOUS_REST_VERIFIED** (endpoint resuelve) | URL exacta → `499 Token Required` | **ANONYMOUS_ACCESS_BLOCKED** | índices capa/tabla, 14 campos, dominios, adjuntos, editor tracking → AUTHENTICATED_READ_REQUIRED |
+| Survey123 form item | **OWNER_UI_VERIFIED** | ID aportado + `403` | **ANONYMOUS_ACCESS_BLOCKED** | AUTHENTICATED_READ_REQUIRED |
+| Survey123 results view | **OWNER_UI_VERIFIED** | ID aportado por owner | — | AUTHENTICATED_READ_REQUIRED |
+| Survey123 form view | **OWNER_UI_VERIFIED** | ID aportado por owner | — | AUTHENTICATED_READ_REQUIRED |
+| Web Map | **OWNER_UI_VERIFIED** | ID aportado + `403` | **ANONYMOUS_ACCESS_BLOCKED** | capas operacionales, popups, simbología → AUTHENTICATED_READ_REQUIRED |
+| pilot_assets item | **OWNER_UI_VERIFIED** | ID aportado + `403` | **ANONYMOUS_ACCESS_BLOCKED** | AUTHENTICATED_READ_REQUIRED |
+| Experience Builder | **UNKNOWN** | no aportado; contenidos de grupo → `403` | — | AUTHENTICATED_READ_REQUIRED (no se afirma existencia ni ausencia) |
+
+**Hallazgo de control de acceso (no de privacidad global):** los endpoints
+probados no exponen acceso anónimo — resultado positivo de control de acceso
+**para esas rutas**. **No** sustituye la verificación autenticada del alcance de
+compartición exacto, la pertenencia al grupo, el control de acceso basado en
+propiedad ni los permisos de item. **No** se afirma que todos los items sean
+privados a partir de `403`/`499`.
+
+**Hallazgo incidental (no es item nuestro):** el directorio público de
+servicios del host lista dos FeatureServer con prefijo `PNSG_` — posible
+cartografía OAPN/PRUG pública, **no** parte del set DEMO suministrado; sin
+verificar licencia/procedencia.
+
+---
+
+> Lo que sigue es el inventario preliminar previo (histórico), conservado. El
+> suplemento de arriba prevalece donde hubo verificación anónima.
 
 ## Organización ArcGIS UCM
 
