@@ -53,7 +53,8 @@ Detail**.
 | [`mutation-plan.md`](mutation-plan.md) | Plan maestro de mutación (3 lotes, puertas separadas). |
 | [`hardening-batch-a.md`](hardening-batch-a.md) | Batch A — hardening de bajo riesgo (✅ ejecutado). |
 | [`batch-a-execution-record.md`](batch-a-execution-record.md) | **Batch A — registro de ejecución** (`OWNER_EXECUTED_AND_VERIFIED`). |
-| [`webmap-batch-b.md`](webmap-batch-b.md) | Batch B — configuración del Web Map. |
+| [`webmap-batch-b.md`](webmap-batch-b.md) | Batch B — configuración del Web Map (✅ ejecutado). |
+| [`batch-b-execution-record.md`](batch-b-execution-record.md) | **Batch B — registro de ejecución** (`OWNER_EXECUTED_AND_VERIFIED`). |
 | [`experience-builder-batch-c.md`](experience-builder-batch-c.md) | Batch C — creación de la app. |
 | [`post-mutation-evidence-checklist.md`](post-mutation-evidence-checklist.md) | Evidencia a capturar tras cada lote. |
 | [`multiuser-qa-plan.md`](multiuser-qa-plan.md) | QA multiusuario (pendiente). |
