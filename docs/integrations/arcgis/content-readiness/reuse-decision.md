@@ -1,4 +1,36 @@
-# Decisiones de reutilización — por item (preliminar + suplemento en vivo)
+# Decisiones de reutilización — por item (preliminar → anónima → esquema autenticado)
+
+## Decisiones GOBERNANTES tras esquema autenticado (2026-08-01)
+
+Respaldadas por evidencia `OWNER_AUTHENTICATED_SCHEMA_VERIFIED`. Estas
+**reemplazan** los `UNKNOWN` formales previos para los items con esquema
+verificado; los aspectos de permisos/compartición siguen pendientes.
+
+| Item | Decisión formal (gobernante) | Notas |
+|---|---|---|
+| Grupo privado | **UNKNOWN** (config/permisos) | likely reuse candidate, no vinculante hasta inspección de permisos |
+| `pilot_assets` | **REUSE_WITH_CONFIGURATION_FOR_DEMO** | postura de producción: **MIGRATE_OR_RECREATE_BEFORE_PRODUCTION**; **no recrear ahora** |
+| Survey123 servicio principal | **REUSE_WITH_CONFIGURATION** | ninguna recreación justificada |
+| Survey123 form view | **REUSE_AS_IS_FOR_SURVEY123_CAPTURE** | rol de captura/actualización |
+| Survey123 results view | **REUSE_AS_IS_FOR_READ_ONLY_EVIDENCE** | fuente de evidencia preferida para EB; permisos de edición efectivos **pendientes** |
+| Web Map | **REUSE_WITH_CONFIGURATION** | faltan filtros y refinamiento de popups |
+| Survey123 form item | **REUSE_AS_IS** | solo para el flujo de captura académica actual; sujeto a revisión de item/compartición |
+| Experience Builder | **existencia UNKNOWN** | no aportado ni verificado; **no crear en esta tarea** |
+
+**Sin `RECREATE` inmediato para ningún item.** La única recreación contemplada
+es condicional y futura (`pilot_assets` → migrar/recrear **antes de
+producción**), nunca ahora.
+
+Justificación resumida: los esquemas están verificados y son aptos para el MVP
+académico; `pilot_assets` tiene un esquema de importación genérico (sin
+GlobalID, `asset_id` nullable, Web Mercator, sin dominios) que es frágil para un
+contrato de producción duradero pero suficiente para la demo; Survey123 tiene
+GlobalID, adjuntos, editor tracking y dominios clave; el Web Map ya trae las dos
+capas operacionales, simbología por evidencia/tendencia y popup con adjuntos.
+
+---
+
+> **Histórico (estado previo).** Debajo, la actualización anónima (2026-07-31).
 
 ## Actualización del suplemento de verificación anónima (2026-07-31)
 

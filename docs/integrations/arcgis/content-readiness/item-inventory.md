@@ -1,9 +1,35 @@
-# Inventario de items ArcGIS — Fase 3 (preliminar + suplemento en vivo)
+# Inventario de items ArcGIS — Fase 3 (preliminar → anónima → esquema autenticado)
 
-> Cada item separa **estado histórico** (roadmap 2026-07-13), **confirmación
-> cualitativa** (propietario 2026-07-30), y **estado en vivo** (verificación
-> read-only 2026-07-31). Ningún Item ID es fabricado; los IDs reales viven en
-> el registro ignorado `arcgis/demo/pnsg/item-registry.local.yaml`.
+> Marco temporal: **estado histórico** (roadmap 2026-07-13) → **anónimo**
+> (2026-07-31) → **esquema autenticado del propietario** (2026-08-01, gobernante).
+> Ningún Item ID es fabricado; los IDs/esquemas reales viven en el registro
+> ignorado `arcgis/demo/pnsg/item-registry.local.yaml`.
+
+## Suplemento de esquema autenticado (2026-08-01) — GOBERNANTE
+
+Evidencia `OWNER_AUTHENTICATED_SCHEMA_VERIFIED` aportada por el propietario
+(REST autenticada + Map Viewer). Prevalece sobre la tabla anónima de más abajo.
+
+| Item | Existencia | Esquema/config | Estado |
+|---|---|---|---|
+| Organización | ANONYMOUS_REST_VERIFIED | admin | AUTHENTICATED_READ_REQUIRED (sin cambio) |
+| Grupo privado | OWNER_UI_VERIFIED | permisos/miembros | UNKNOWN (pendiente) |
+| `pilot_assets` capa 0 `pilot_assets_points` | verificada | punto, WKID 102100, sin GlobalID, sin adjuntos, `asset_id` nullable, strings 4000, sin dominios | **OWNER_AUTHENTICATED_SCHEMA_VERIFIED** |
+| Survey123 servicio principal capa 0 | verificada | punto, EPSG 4326, `globalid`, adjuntos, editor tracking, dominios en `plot_id`/`erosion_class`/`evidence_class` | **OWNER_AUTHENTICATED_SCHEMA_VERIFIED** |
+| Survey123 form view | verificada | vista actualizable, punto, EPSG 4326, adjuntos | **OWNER_AUTHENTICATED_SCHEMA_VERIFIED** (rol: captura) |
+| Survey123 results view | verificada | vista, ops de consulta + adjuntos; root reporta *Is Updatable View* | **OWNER_AUTHENTICATED_SCHEMA_VERIFIED** (rol: evidencia read-oriented) |
+| Web Map | verificada (capas/leyenda/popup) | 2 capas operacionales, simbología por evidencia/tendencia, popup con adjuntos | **OWNER_AUTHENTICATED_SCHEMA_VERIFIED** (config parcial; faltan filtros/refinamiento) |
+| Survey123 form item | OWNER_UI_VERIFIED | item/sharing | AUTHENTICATED_READ_REQUIRED (pendiente) |
+| Experience Builder | **UNKNOWN** | — | no aportado; no se afirma existencia ni ausencia |
+
+**Pendiente (sin cambio):** compartición exacta de items, permisos/miembros del
+grupo, filtros ocultos/definition expressions, bookmarks/basemap, existencia de
+Experience Builder, continuidad de cuenta, permisos de edición efectivos por
+usuario. Detalle de campos/dominios/roles en `schema-comparison.md`.
+
+---
+
+> **Estado previo (histórico) — Suplemento de verificación anónima (2026-07-31).**
 
 ## Suplemento de verificación anónima (2026-07-31)
 

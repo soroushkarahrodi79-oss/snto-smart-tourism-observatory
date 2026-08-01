@@ -1,4 +1,32 @@
-# Plan de acción operado por el propietario — Fase 3 (preliminar)
+# Plan de acción operado por el propietario — Fase 3 (preliminar → anónima → esquema autenticado)
+
+> Ninguna acción de mutación se ejecuta. Estado de las puertas previas:
+> **A0 ✅ (metadatos), A0b ✅ (esquema autenticado)**. Nueva puerta pendiente:
+> **A0c (permisos/compartición)**.
+
+## Estado de progreso de puertas (2026-08-01)
+
+- **A0 — Recolectar metadatos ArcGIS no-secretos: ✅ COMPLETADA (2026-07-31).**
+- **A0b — Aportar lectura autenticada del esquema: ✅ COMPLETADA (2026-08-01).**
+  El propietario inspeccionó la REST autenticada (pilot_assets, servicio
+  Survey123, form/results views) y el Map Viewer, y aportó los esquemas exactos
+  (`OWNER_AUTHENTICATED_SCHEMA_VERIFIED`). Registrado en el registro local.
+- **A0c — Verificar permisos/compartición a nivel de item: ⏳ PENDIENTE.** Aún
+  desconocidos: compartición exacta de cada item, pertenencia/permisos del grupo,
+  permisos de edición efectivos por usuario, filtros ocultos/definition
+  expressions (item/data JSON del Web Map no aportado), bookmarks/basemap,
+  existencia de Experience Builder, continuidad de cuenta. Sin cambiar
+  compartición: aportar item/data JSON o una revisión supervisada de permisos.
+
+Ninguna acción de configuración (filtros, dominios, popups) ni de construcción
+de Experience Builder se ejecuta hasta completar A0c **y** recibir autorización
+explícita de mutación.
+
+---
+
+> **Histórico (estado previo).** Debajo, el plan preliminar/anónimo.
+
+## (Histórico) Plan preliminar
 
 > Ninguna acción se ejecuta en Fase 3. **Toda acción de las categorías A, B y
 > C está condicionada a completar primero A0.** No se prescribe ninguna

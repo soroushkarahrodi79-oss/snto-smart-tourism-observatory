@@ -1,4 +1,35 @@
-# Matriz de brechas — Fase 3 (preliminar + suplemento en vivo)
+# Matriz de brechas — Fase 3 (preliminar → anónima → esquema autenticado)
+
+## Actualización del suplemento de esquema autenticado (2026-08-01) — GOBERNANTE
+
+La evidencia autenticada del propietario **cierra el BLOCKER de esquema** de la
+fase anónima: los esquemas de `pilot_assets`, servicio principal Survey123, form
+view, results view y la configuración del Web Map (capas/leyenda/popup) están
+`OWNER_AUTHENTICATED_SCHEMA_VERIFIED`. Persisten brechas de **configuración** y
+de **permisos**, no de esquema.
+
+| Item/dominio | Estado previo | Ahora (2026-08-01) | Severidad | Acción |
+|---|---|---|---|---|
+| Esquema `pilot_assets` | BLOCKER (esquema) | **OWNER_AUTHENTICATED_SCHEMA_VERIFIED** — apto demo | MEDIUM | Config demo; migrar/recrear antes de producción |
+| Esquema Survey123 (servicio + vistas) | BLOCKER (esquema) | **OWNER_AUTHENTICATED_SCHEMA_VERIFIED** | LOW-MEDIUM | Config (dominios faltantes) |
+| Config Web Map (capas/leyenda/popup) | HIGH/UNKNOWN | **OWNER_AUTHENTICATED_SCHEMA_VERIFIED** (parcial) | MEDIUM | Filtros + refinamiento de popups (no ejecutar) |
+| Dominios `stratum`/`is_control`/`qa_status` | UNKNOWN | **AUSENTES (confirmado)** | LOW | Añadir dominios en fase de config |
+| GlobalID / relación pilot_assets↔obs | UNKNOWN | pilot_assets **sin GlobalID**; **sin relación formal** | MEDIUM | Unión lógica por `asset_id`; formalizar en producción |
+| CRS pilot_assets | DERIVED_RISK | **Web Mercator (confirmado)**, no WGS84 canónico | MEDIUM | Migrar/recrear antes de producción |
+| Compartición exacta / permisos de grupo / edición efectiva | UNKNOWN | **AUTHENTICATED_READ_REQUIRED** (aún) | HIGH | Verificación de permisos a nivel de item |
+| Filtros ocultos / definition expressions | UNKNOWN | no observados en Map Viewer; JSON no aportado | MEDIUM | Revisar item/data JSON |
+| Bookmarks / basemap | UNKNOWN | no aportados | LOW | Aportar si relevante |
+| Existencia de Experience Builder | UNKNOWN | **UNKNOWN** (sin cambio) | HIGH | Aportar Item ID o confirmar ausencia |
+| Continuidad de cuenta | UNKNOWN | **UNKNOWN** (sin cambio) | HIGH | §A0 (owner) |
+
+**Enunciado gobernante:** *"Esquema verificado por evidencia autenticada del
+propietario; las brechas restantes son de configuración (filtros, dominios,
+popups) y de permisos/compartición, no de esquema. Construcción de Experience
+Builder aún no autorizada."*
+
+---
+
+> **Histórico (estado previo).** Debajo, la actualización anónima (2026-07-31).
 
 ## Actualización del suplemento de verificación anónima (2026-07-31)
 

@@ -1,10 +1,10 @@
-# Fase 3 — Readiness de contenido ArcGIS (preliminar + suplemento de verificación anónima)
+# Fase 3 — Readiness de contenido ArcGIS (preliminar → anónima → esquema autenticado)
 
-> **Título de estado:** *"Suplemento de verificación anónima y de solo lectura
-> de existencia y acceso (2026-07-31)"*.
+> **Título de estado (actual, gobernante):** *"Verificación de esquema y Web Map
+> autenticada por evidencia del propietario (2026-08-01)"*.
 > Documentación únicamente. **Ninguna** mutación en ArcGIS Online se realizó.
 
-## 0. Categorías de evidencia (usadas en todo el suplemento)
+## 0. Categorías de evidencia
 
 - **OWNER_UI_VERIFIED** — el propietario identificó el item en su interfaz
   autenticada de ArcGIS Online o aportó su página de item exacta.
@@ -15,11 +15,58 @@
 - **AUTHENTICATED_READ_REQUIRED** — se requiere sesión autenticada de solo
   lectura o JSON exportado por el propietario para inspeccionar configuración o
   esquema.
-- **LIVE_SCHEMA_VERIFIED** — reservado para campos, dominios, capas, tablas,
-  relaciones y configuración realmente inspeccionados mediante metadatos
-  autenticados de solo lectura. **Nada califica actualmente.**
+- **OWNER_AUTHENTICATED_SCHEMA_VERIFIED** *(categoría gobernante de esta fase)* —
+  el propietario inspeccionó la REST autenticada o la interfaz autenticada de
+  ArcGIS Online y aportó los metadatos exactos de capa/servicio o capturas. Se
+  usa **solo** para los campos/configuración directamente respaldados por esa
+  evidencia.
+- **LIVE_SCHEMA_VERIFIED** — reservado para inspección autenticada realizada
+  **por este flujo** (no por el propietario). Sigue sin calificar nada.
 
-## 0.1 Suplemento de verificación anónima (2026-07-31) — resumen
+## 0.0 Suplemento de esquema autenticado (2026-08-01) — resumen gobernante
+
+El propietario inspeccionó las páginas REST autenticadas (pilot_assets, servicio
+principal Survey123, form view, results view) y el Web Map Viewer, y aportó los
+metadatos exactos. Marco temporal aplicado en todo el paquete: **estado previo →
+evidencia autenticada del propietario recibida → disposición gobernante actual**.
+
+- **pilot_assets (capa 0 `pilot_assets_points`):** OWNER_AUTHENTICATED_SCHEMA_VERIFIED.
+  Punto, WKID 102100 (Web Mercator), sin GlobalID, sin adjuntos, `asset_id`
+  nullable, strings de 4000, sin dominios visibles. Conserva el set de campos de
+  negocio canónico. → `REUSE_WITH_CONFIGURATION_FOR_DEMO`;
+  `MIGRATE_OR_RECREATE_BEFORE_PRODUCTION` (no recrear ahora).
+- **Servicio principal Survey123 (capa 0):** OWNER_AUTHENTICATED_SCHEMA_VERIFIED.
+  Punto, EPSG 4326, `globalid`, adjuntos, editor tracking, dominios en
+  `plot_id`/`erosion_class`/`evidence_class`; sin dominios en
+  `stratum`/`is_control`/`qa_status`; sin tablas relacionadas ni relación formal
+  con pilot_assets. → `REUSE_WITH_CONFIGURATION`.
+- **Form view:** `REUSE_AS_IS_FOR_SURVEY123_CAPTURE`.
+- **Results view:** `REUSE_AS_IS_FOR_READ_ONLY_EVIDENCE` (fuente de evidencia
+  preferida para Experience Builder; ops de capa orientadas a consulta; el root
+  reporta *Is Updatable View* → **no** se afirma solo-lectura absoluta para todo
+  usuario; permisos efectivos PENDIENTES).
+- **Web Map:** OWNER_AUTHENTICATED_SCHEMA_VERIFIED para capas operacionales,
+  leyenda y popup de observaciones. → `REUSE_WITH_CONFIGURATION` (faltan filtros
+  y refinamiento final de popups para el MVP).
+- **Experience Builder:** existencia **UNKNOWN** (no aportado).
+- **Veredicto global:** `READY_FOR_OWNER_OPERATED_EXPERIENCE_BUILDER_BUILD_WITH_CONFIGURATION`
+  — la construcción/mutación **aún no está autorizada**.
+
+**Sigue PENDIENTE (AUTHENTICATED_READ_REQUIRED / UNKNOWN):** compartición exacta
+de items, pertenencia/permisos del grupo, filtros ocultos o definition
+expressions, bookmarks y basemap, existencia de Experience Builder, continuidad
+de cuenta, y permisos de edición efectivos por usuario.
+
+Los Item IDs / URLs / esquemas verificados se registran **solo** en el archivo
+ignorado `arcgis/demo/pnsg/item-registry.local.yaml`.
+
+---
+
+> **Nota histórica.** Debajo se conserva el suplemento de verificación anónima
+> (2026-07-31) como *estado previo*. Donde el esquema autenticado (arriba) lo
+> actualiza, **prevalece el suplemento de 2026-08-01**.
+
+## 0.1 Suplemento de verificación anónima (2026-07-31) — estado previo (histórico)
 
 El propietario aportó los Item IDs / URLs no-secretos de los 8 items ArcGIS
 (organización, grupo, Web Map, formulario Survey123, feature service, results

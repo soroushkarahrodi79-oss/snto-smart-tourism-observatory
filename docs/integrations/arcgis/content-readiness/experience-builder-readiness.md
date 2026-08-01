@@ -1,4 +1,41 @@
-# Disposición de Experience Builder por página (preliminar + suplemento en vivo)
+# Disposición de Experience Builder (preliminar → anónima → esquema autenticado)
+
+## Veredicto GOBERNANTE (2026-08-01)
+
+> **`READY_FOR_OWNER_OPERATED_EXPERIENCE_BUILDER_BUILD_WITH_CONFIGURATION`** —
+> la construcción/mutación **aún no está autorizada**.
+
+Con la evidencia de esquema autenticada:
+
+- **Fuentes de datos listas (esquema) para el MVP académico:** `pilot_assets`
+  (capa 0) y el servicio Survey123 con sus vistas están
+  `OWNER_AUTHENTICATED_SCHEMA_VERIFIED`. La **results view** es la fuente de
+  evidencia read-oriented preferida.
+- **El Web Map requiere configuración** (filtros + refinamiento de popups) antes
+  de servir de base a las páginas — ver `webmap-readiness.md`.
+- **El item de Experience Builder sigue `UNKNOWN`** (no aportado); no se crea en
+  esta tarea.
+
+### Prerrequisitos de construcción de Experience Builder
+
+1. Verificación de permisos a nivel de item (compartición/edición efectiva) —
+   **pendiente**.
+2. Configuración del Web Map (filtros + popups) — **pendiente, no ejecutar aún**.
+3. Confirmar existencia del item de Experience Builder o decidir crearlo (fuera
+   de esta tarea).
+4. Autorización explícita de mutación/build del propietario.
+
+| Página | Fuente | Esquema | Config previa |
+|---|---|---|---|
+| Decidir | `pilot_assets` | OWNER_AUTHENTICATED_SCHEMA_VERIFIED | popups/filtros |
+| Diagnosticar | `pilot_assets` (+ PRUG diferido) | verificado | filtros Web Map |
+| Evidenciar | Survey123 **results view** | verificado | popups + adjuntos |
+| Gobernar | contenido en Git | N/A | — |
+| Asset Detail | pilot_assets + observaciones (unión por `asset_id`) | verificado | sin relación formal (unión lógica) |
+
+---
+
+> **Histórico (estado previo).** Debajo, el análisis anónimo (2026-07-31).
 
 ## Suplemento de verificación anónima (2026-07-31)
 

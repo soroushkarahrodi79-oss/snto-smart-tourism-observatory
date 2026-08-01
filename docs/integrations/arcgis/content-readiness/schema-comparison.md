@@ -1,14 +1,98 @@
 # Comparación de esquemas — contrato Git vs estado ArcGIS
 
+> **Estado gobernante (2026-08-01): DESBLOQUEADA por evidencia autenticada del
+> propietario.** El propietario inspeccionó la REST autenticada y aportó los
+> esquemas exactos; esta sección los compara con el contrato Git. Categoría:
+> `OWNER_AUTHENTICATED_SCHEMA_VERIFIED`. El estado previo anónimo (BLOQUEADA) se
+> conserva más abajo como histórico.
+
+## A. Comparación autenticada — `pilot_assets` (capa 0 `pilot_assets_points`)
+
+**Coincidencias confirmadas (`OWNER_AUTHENTICATED_SCHEMA_VERIFIED`):** capa de
+puntos; el set analítico de negocio del contrato Git está presente y preservado
+(`asset_id`, `asset_name`, `category`, `stratum`, `original_geom_type`, `trend`,
+`trend_significant`, `n_observations`, `tau`, `p_value`, `sens_slope`,
+`sens_slope_ci_low/high`, `confidence`, `change_point_date`, `partial_years`,
+`evidence_class`, `demo_status`, `source_version`, `provenance`,
+`decision_caveat`). Uso apto para la demo académica.
+
+**Debilidades confirmadas (esquema de importación genérico, frágil para un
+contrato de producción duradero):**
+
+| Aspecto | Contrato Git deseado | ArcGIS real verificado |
+|---|---|---|
+| CRS | EPSG:4326 (canónico) | **WKID 102100 / EPSG 3857 (Web Mercator)** |
+| Clave `asset_id` | estable/única | **nullable, sin restricción de unicidad** |
+| `GlobalID` | presente (relaciones/adjuntos) | **ausente** |
+| Adjuntos | — | **false** |
+| Longitud de strings | acotada por campo | **genérica 4000 en todos** |
+| Dominios categóricos | dominios en campos gobernados | **ninguno visible** |
+| OID | — | `ObjectId` (OID, no editable) |
+
+`editable=true` a nivel de campo **no** prueba que todo usuario pueda editar; la
+compartición e ítem-permisos exactos son una cuestión separada (pendiente).
+
+## B. Comparación autenticada — Survey123 (servicio principal, capa 0)
+
+**Coincidencias/fortalezas confirmadas (`OWNER_AUTHENTICATED_SCHEMA_VERIFIED`):**
+capa 0 `SNTO_DEMO_PNSG_FieldValidation`, geometría punto, **EPSG 4326**,
+`objectid` (OID) + **`globalid` (GlobalID)**, **adjuntos habilitados**, **editor
+tracking** (`CreationDate`/`Creator`/`EditDate`/`Editor`), `has views: true`. Los
+campos del flujo de validación documentado están presentes (`plot_id`,
+`asset_id`, `stratum`, `is_control`, `observed_at`, `observer`,
+`distance_to_trail_m`, `lat`, `lon`, `gps_accuracy_m`, `soil_compaction_mpa`,
+`veg_cover_pct`, `erosion_class`, `trail_width_m`, `visitor_count`, `notes`,
+`photo_ref`, `evidence_class`, `qa_status`, `survey_version`). **Dominios de
+valores codificados** presentes en `plot_id`, `erosion_class`, `evidence_class`.
+
+**Debilidades/brechas de configuración confirmadas:**
+
+- campos de negocio nullable a nivel de servicio;
+- **sin dominios visibles** para `stratum`, `is_control`, `qa_status`;
+- **sin tablas relacionadas** enumeradas; **sin relación formal** con
+  `pilot_assets` (la unión sigue siendo lógica por `asset_id` string, según
+  `data-contract.md` §6);
+- compartición exacta de item y permisos efectivos de edición: **pendientes**.
+
+## C. Vistas Survey123
+
+- **Form view** (capa 0, `Is View: true`, `Is Updatable View: true`, punto, EPSG
+  4326, adjuntos): rol de captura/actualización Survey123 →
+  `REUSE_AS_IS_FOR_SURVEY123_CAPTURE`. No usar como fuente de evidencia
+  read-only por defecto.
+- **Results view** (capa 0, vista, ops de capa orientadas a consulta —`Query`,
+  `Query Pivot/Top Features/Analytic/Bins`, `Query Attachments`— **sin `Add
+  Features` a nivel de capa**): fuente de evidencia read-oriented preferida para
+  Experience Builder → `REUSE_AS_IS_FOR_READ_ONLY_EVIDENCE`. **Cautela:** el root
+  reporta `Is Updatable View` y soporte de `Apply Edits`; **no** se afirma que la
+  vista sea solo-lectura garantizada para todo usuario — es preferida por sus
+  ops de capa orientadas a consulta; los permisos efectivos y la política de
+  edición de la vista requieren verificación de permisos a nivel de item.
+
+## D. Riesgo de deriva resuelto
+
+El `DERIVED_RISK` de deriva de metadata (capa publicada antes de la
+normalización de Fase 2B) queda **contextualizado**: la capa real usa Web
+Mercator y un esquema de importación genérico; los campos de negocio canónicos
+están presentes, pero la representación no coincide con el GeoJSON WGS84 canónico
+ni con los metadatos de snapshot enriquecidos de Fase 2B. Esto es un hallazgo de
+configuración confirmado, no ya una mera hipótesis.
+
+---
+
+> **Histórico (estado previo).** A continuación se conserva la sección anónima
+> (2026-07-31), cuando la comparación estaba BLOQUEADA.
+
+## Comparación anónima (2026-07-31) — histórico
+
 > **Estado tras el suplemento de verificación anónima (2026-07-31): la
-> comparación de esquemas sigue BLOQUEADA.** Los dos FeatureServer resuelven
+> comparación de esquemas seguía BLOQUEADA.** Los dos FeatureServer resuelven
 > (ANONYMOUS_REST_VERIFIED) pero bloquean el acceso anónimo
 > (ANONYMOUS_ACCESS_BLOCKED, `499 Token Required`), y la regla de "sin
-> credenciales" impide leer el esquema. Por tanto **ninguna** celda "Estado
-> ArcGIS real" pudo cerrarse; todas permanecen `AUTHENTICATED_READ_REQUIRED` y
-> **ningún campo se marca `LIVE_SCHEMA_VERIFIED`**. El contrato Git (lado
-> conocido) se describe con precisión abajo. Los riesgos de deriva siguen
-> etiquetados `DERIVED_RISK` (hipótesis por cronología, no comparación real).
+> credenciales" impedía leer el esquema. Por tanto **ninguna** celda "Estado
+> ArcGIS real" pudo cerrarse entonces; todas permanecían
+> `AUTHENTICATED_READ_REQUIRED`. Los riesgos de deriva se etiquetaban
+> `DERIVED_RISK`.
 
 ## Nota del suplemento anónimo (2026-07-31)
 
