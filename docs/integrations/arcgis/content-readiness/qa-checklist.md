@@ -17,8 +17,11 @@
 - [x] Experience Builder: existencia **UNKNOWN**; no se crea.
 - [x] Estados `UNKNOWN` previos conservados solo como histórico, no como
       gobernantes.
-- [x] Ningún Item ID / URL de servicio / esquema real en docs versionados; todo
-      en el registro local ignorado.
+- [x] Ningún Item ID real ni URL de servicio exacta en docs versionados: esos
+      permanecen únicamente en el registro local ignorado. La documentación
+      versionada **sí** conserva los hallazgos de esquema respaldados por
+      evidencia, sus limitaciones y las decisiones gobernantes (sin esos
+      identificadores ni URLs reales).
 - [x] Ninguna coordenada GPS sensible ni contenido de adjunto copiado a docs.
 - [x] `arcgis/demo/pnsg/item-registry.local.yaml` sigue ignorado y no staged.
 

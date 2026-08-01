@@ -2,8 +2,12 @@
 
 > Marco temporal: **estado histórico** (roadmap 2026-07-13) → **anónimo**
 > (2026-07-31) → **esquema autenticado del propietario** (2026-08-01, gobernante).
-> Ningún Item ID es fabricado; los IDs/esquemas reales viven en el registro
-> ignorado `arcgis/demo/pnsg/item-registry.local.yaml`.
+> Ningún Item ID es fabricado. Los Item IDs reales, las URLs exactas de servicio
+> y los metadatos locales detallados permanecen únicamente en el registro local
+> ignorado `arcgis/demo/pnsg/item-registry.local.yaml`. La documentación
+> versionada conserva los hallazgos de esquema respaldados por evidencia, sus
+> limitaciones y las decisiones gobernantes, sin incluir esos identificadores ni
+> URLs reales.
 
 ## Suplemento de esquema autenticado (2026-08-01) — GOBERNANTE
 

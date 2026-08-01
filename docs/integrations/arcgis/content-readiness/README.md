@@ -57,8 +57,11 @@ de items, pertenencia/permisos del grupo, filtros ocultos o definition
 expressions, bookmarks y basemap, existencia de Experience Builder, continuidad
 de cuenta, y permisos de edición efectivos por usuario.
 
-Los Item IDs / URLs / esquemas verificados se registran **solo** en el archivo
-ignorado `arcgis/demo/pnsg/item-registry.local.yaml`.
+Los Item IDs reales, las URLs exactas de servicio y los metadatos locales
+detallados permanecen únicamente en el registro local ignorado
+`arcgis/demo/pnsg/item-registry.local.yaml`. La documentación versionada
+conserva los hallazgos de esquema respaldados por evidencia, sus limitaciones y
+las decisiones gobernantes, sin incluir esos identificadores ni URLs reales.
 
 ---
 
