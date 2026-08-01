@@ -123,6 +123,20 @@ agreement result (pass *or* fail, stated honestly). Converts SNTO from
 
 ## v3.0 — Enterprise & Network  *(gated on v2.5)*
 
+> **Progress note (2026-08-01).** This table is the original v3.0 plan (authored
+> 2026-07-22) and is kept as-is for traceability; it is not a live status
+> tracker. Several rows have since shipped **in code** — writable territory
+> registry (#112), multi-park OAPN benchmarking (A15, #117), OpenAPI contract
+> (ADR-008, #128), institutional productization (CETS #123, PRUG #126, dossier
+> #127, A07 pilot package #129), and **PostGIS geometry (#133)**. **PostGIS is
+> implemented and tested in code only** — a derived, nullable `managed_assets.geom`
+> mirror with `ST_DWithin`/`ST_Intersects` queries and Alembic head
+> `b2c3d4e5f6a7` — but the migration is **not yet applied to the production
+> database** and no consumer calls the spatial queries. Identity/RBAC models
+> shipped (#109–#113) but **SSO/Entra ID is not done** and the model stays
+> dormant until real `User` rows exist. See `CLAUDE.md` for the canonical current
+> state.
+
 | Action | What | ADR / files |
 |---|---|---|
 | **Identity, RBAC & multi-tenancy** | `User`/`Role`/`Org` tables; **SSO/Entra ID** by swapping `require_write_auth`; enforce **row-level territory scoping**. | ADR-002/005; `src/persistence/models/`, `src/api/v2/deps.py` |

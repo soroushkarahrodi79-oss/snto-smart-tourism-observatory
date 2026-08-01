@@ -1,11 +1,32 @@
 # Hoja de ruta — demostración ArcGIS de validación de campo SNTO
 
-**Estado verificado:** Fases 0–2 completadas el 2026-07-13; Fase 3 preparada
-pero sin servicio Survey123 publicado ni campaña de campo ejecutada. La
-arquitectura Experience Builder de Fase 2A está documentada; la app todavía no
-se ha construido.
+**Estado verificado (2026-08-01):** el **servicio Survey123** (capa 0 + vista de
+formulario + vista de resultados) y la capa de activos `pilot_assets` **están
+publicados y verificados por el propietario** (verificación de esquema
+autenticada); los ítems y el Web Map **permanecen privados** (acceso anónimo
+correctamente bloqueado, `403`/`499`). **Batch A** (endurecimiento) y **Batch B**
+(configuración del Web Map) fueron **ejecutados y verificados por el propietario**
+en su sesión autenticada; Claude no realizó ninguna mutación en ArcGIS.
+La arquitectura de Experience Builder está documentada, pero **la app de
+Experience Builder todavía NO se ha creado** (**Batch C preparado pero NO
+autorizado ni ejecutado**, puerta `APPROVE EXPERIENCE BUILDER CREATION BATCH C`).
 
-**Ámbito:** demostración controlada sobre PNSG, no despliegue institucional.
+Separación estricta de estados (no confundir):
+
+- **Preparación ArcGIS** — hecha (capa de captura y operación).
+- **Captura real de campo** — **NO ejecutada**; no existen observaciones de campo
+  reales.
+- **Validación científica v2.5 (#26)** — **NO ejecutada**; no hay resultado
+  satélite↔campo publicado. Las parcelas de demostración no constituyen
+  validación científica.
+
+Pendiente adicional: **QA multiusuario** (el grupo privado tiene por ahora un
+único miembro, el propietario) y **continuidad/transferencia de la cuenta
+educativa**.
+
+**Ámbito:** demostración controlada sobre PNSG. ArcGIS es la capa de captura y
+operación, **no** el motor científico de SNTO, y esto **no** es un despliegue
+institucional.
 
 **Objetivo:** cerrar el ciclo `alerta satelital → observación de campo → validación → demostración` sin alterar el núcleo científico de SNTO.
 
