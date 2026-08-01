@@ -1,7 +1,12 @@
-# BATCH A — Hardening de bajo riesgo (preparado — NO ejecutar)
+# BATCH A — Hardening de bajo riesgo
 
-> Puerta de aprobación: **`APPROVE ARCGIS HARDENING BATCH A`**. Ninguna mutación
-> se ejecuta hasta esa aprobación explícita. Toggles de gobernanza reversibles.
+> **✅ EJECUTADO POR EL PROPIETARIO Y VERIFICADO (2026-08-01).**
+> `BATCH_A_STATUS: OWNER_EXECUTED_AND_VERIFIED` · EXECUTOR `OWNER_MANUAL_UI` ·
+> AUTHORIZATION `APPROVE ARCGIS HARDENING BATCH A` · `CLAUDE_DIRECT_ARCGIS_MUTATION: NONE`.
+> Estados aplicados y confirmados en
+> [`batch-a-execution-record.md`](batch-a-execution-record.md). La tabla de
+> abajo se conserva como el plan aprobado que se ejecutó; A1–A10 = aplicados
+> (protecciones ON; A7 export OFF; A8 aprobación pública OFF; A9/A10 OFF).
 
 ## Convenciones de ruta UI
 
