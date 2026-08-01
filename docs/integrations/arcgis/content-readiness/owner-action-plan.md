@@ -16,13 +16,17 @@
   app EB/Web Experience para esta demo. **Decisión:
   `CREATE_NEW_EXPERIENCE_BUILDER_APP`** (creación **no autorizada** aún). Plan
   operado por el propietario en `../experience-builder-build/`.
-- **A0c — Verificar permisos/compartición a nivel de item: ⏳ PENDIENTE.** Aún
-  desconocidos: compartición exacta de cada item, pertenencia/permisos del grupo,
-  permisos de edición efectivos por usuario, filtros ocultos/definition
-  expressions (item/data JSON del Web Map no aportado), bookmarks/basemap,
-  continuidad de cuenta. Sin cambiar compartición: aportar item/data JSON o una
-  revisión supervisada de permisos. Detalle en
-  `../experience-builder-build/permission-gate-a0c.md`.
+- **A0c — Verificar permisos/compartición a nivel de item: ✅ COMPLETADA
+  (2026-08-01).** El owner verificó los 7 items (`OWNER_UI_VERIFIED`): todos
+  compartidos solo con owner + grupo privado (no org-wide, no público). Estado:
+  `COMPLETED_FOR_OWNER_OPERATED_BUILD` · global
+  `READY_FOR_OWNER_OPERATED_EXPERIENCE_BUILDER_CREATION_WITH_APPROVED_HARDENING`.
+  Brechas de hardening (protección de borrado off en varios items; export activo
+  en results view; aprobación pública editable en form view) → plan en 3 lotes
+  (A/B/C, puertas separadas) en `../experience-builder-build/mutation-plan.md`.
+  **Ninguna mutación autorizada aún.** **Pendiente:** QA multiusuario (grupo con
+  1 miembro) y continuidad de cuenta. Resultados:
+  `../experience-builder-build/a0c-verification-results.md`.
 
 Ninguna acción de configuración (filtros, dominios, popups) ni de construcción
 de Experience Builder se ejecuta hasta completar A0c **y** recibir autorización

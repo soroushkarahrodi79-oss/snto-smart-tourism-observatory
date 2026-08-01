@@ -1,9 +1,14 @@
 # A0c — Verificación de permisos de item (puerta previa obligatoria)
 
-> El propietario verifica cada punto en la UI de ArcGIS Online. **No** se afirma
-> aquí ningún permiso no verificado: todas las celdas de estado real quedan como
-> `PENDING_OWNER_UI` hasta que el propietario las confirme. Ningún cambio de
-> compartición se realiza en esta fase.
+> **✅ COMPLETADA (2026-08-01) para el build operado por el owner.** El
+> propietario verificó los estados en la UI de ArcGIS Online
+> (`OWNER_UI_VERIFIED`). Resultados en
+> [`a0c-verification-results.md`](a0c-verification-results.md); plan de mutación
+> en [`mutation-plan.md`](mutation-plan.md). **Ninguna mutación autorizada aún;**
+> QA multiusuario y continuidad de cuenta **pendientes**.
+>
+> El checklist original (abajo) se conserva como referencia de qué se debía
+> verificar.
 
 ## Objetivo del MVP (estado requerido)
 

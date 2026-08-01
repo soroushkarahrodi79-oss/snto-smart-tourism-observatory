@@ -12,6 +12,16 @@
 > construcción operado por el propietario está en
 > [`../experience-builder-build/README.md`](../experience-builder-build/README.md).
 
+## A0c COMPLETADA (2026-08-01, Fase 4B)
+
+> **`A0c_PERMISSION_VERIFICATION: COMPLETED_FOR_OWNER_OPERATED_BUILD`** ·
+> global `READY_FOR_OWNER_OPERATED_EXPERIENCE_BUILDER_CREATION_WITH_APPROVED_HARDENING`.
+> El owner verificó los permisos/compartición de los 7 items
+> (`../experience-builder-build/a0c-verification-results.md`). **Ninguna
+> mutación autorizada aún**; plan en 3 lotes (A/B/C, puertas separadas) en
+> `../experience-builder-build/mutation-plan.md`. **Pendiente:** QA multiusuario
+> (grupo con 1 miembro) y continuidad de cuenta.
+
 ## Veredicto GOBERNANTE (2026-08-01)
 
 > **`READY_FOR_OWNER_OPERATED_EXPERIENCE_BUILDER_BUILD_WITH_CONFIGURATION`** —

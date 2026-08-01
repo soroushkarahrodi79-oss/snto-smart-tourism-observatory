@@ -49,6 +49,22 @@ Detail**.
 | [`credit-and-cost.md`](credit-and-cost.md) | Revisión de créditos y coste. |
 | [`owner-ui-checklist.md`](owner-ui-checklist.md) | Checklist de ejecución en la UI (futuro). |
 | [`qa-and-acceptance.md`](qa-and-acceptance.md) | QA y criterios de aceptación. |
+| [`a0c-verification-results.md`](a0c-verification-results.md) | **A0c** — estados de item verificados (OWNER_UI_VERIFIED). |
+| [`mutation-plan.md`](mutation-plan.md) | Plan maestro de mutación (3 lotes, puertas separadas). |
+| [`hardening-batch-a.md`](hardening-batch-a.md) | Batch A — hardening de bajo riesgo. |
+| [`webmap-batch-b.md`](webmap-batch-b.md) | Batch B — configuración del Web Map. |
+| [`experience-builder-batch-c.md`](experience-builder-batch-c.md) | Batch C — creación de la app. |
+| [`post-mutation-evidence-checklist.md`](post-mutation-evidence-checklist.md) | Evidencia a capturar tras cada lote. |
+| [`multiuser-qa-plan.md`](multiuser-qa-plan.md) | QA multiusuario (pendiente). |
+
+## 4b. Estado A0c (2026-08-01, Fase 4B)
+
+**`A0c_PERMISSION_VERIFICATION: COMPLETED_FOR_OWNER_OPERATED_BUILD`** ·
+global `READY_FOR_OWNER_OPERATED_EXPERIENCE_BUILDER_CREATION_WITH_APPROVED_HARDENING`.
+**Ninguna mutación autorizada aún.** QA multiusuario y continuidad de cuenta
+**pendientes** (grupo con 1 solo miembro: el owner). Puertas separadas:
+`APPROVE ARCGIS HARDENING BATCH A` · `APPROVE WEB MAP CONFIGURATION BATCH B` ·
+`APPROVE EXPERIENCE BUILDER CREATION BATCH C`.
 
 ## 5. Reglas de integridad (heredadas)
 
