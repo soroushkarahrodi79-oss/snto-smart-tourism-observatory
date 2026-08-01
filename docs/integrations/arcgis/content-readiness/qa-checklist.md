@@ -1,4 +1,33 @@
-# QA checklist — Fase 3 (preliminar + suplemento en vivo)
+# QA checklist — Fase 3 (preliminar → anónima → esquema autenticado)
+
+## Suplemento de esquema autenticado (2026-08-01) — verificación de disciplina
+
+- [x] Ninguna llamada a ArcGIS ni mutación en esta tarea; el esquema proviene
+      de la inspección autenticada **del propietario**, no de este flujo.
+- [x] `OWNER_AUTHENTICATED_SCHEMA_VERIFIED` se aplica **solo** a campos/config
+      directamente respaldados por la evidencia aportada.
+- [x] `LIVE_SCHEMA_VERIFIED` sigue sin usarse (reservado a inspección por este
+      flujo, que no ocurrió).
+- [x] No se afirma que la results view sea solo-lectura absoluta para todo
+      usuario (root reporta *Is Updatable View*; permisos efectivos pendientes).
+- [x] No se afirman permisos de usuario a partir de operaciones soportadas ni de
+      `editable=true`; compartición/permisos siguen `AUTHENTICATED_READ_REQUIRED`.
+- [x] `pilot_assets` no se recomienda recrear ahora (solo migrar/recrear antes de
+      producción).
+- [x] Experience Builder: existencia **UNKNOWN**; no se crea.
+- [x] Estados `UNKNOWN` previos conservados solo como histórico, no como
+      gobernantes.
+- [x] Ningún Item ID real ni URL de servicio exacta en docs versionados: esos
+      permanecen únicamente en el registro local ignorado. La documentación
+      versionada **sí** conserva los hallazgos de esquema respaldados por
+      evidencia, sus limitaciones y las decisiones gobernantes (sin esos
+      identificadores ni URLs reales).
+- [x] Ninguna coordenada GPS sensible ni contenido de adjunto copiado a docs.
+- [x] `arcgis/demo/pnsg/item-registry.local.yaml` sigue ignorado y no staged.
+
+---
+
+> **Histórico.** Debajo, la disciplina del suplemento anónimo (2026-07-31).
 
 ## Suplemento de verificación anónima (2026-07-31) — verificación de disciplina
 

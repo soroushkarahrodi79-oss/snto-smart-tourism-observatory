@@ -1,7 +1,49 @@
 # Disposición del Web Map — `SNTO_DEMO_PNSG_FieldValidation_Map`
 
-> Ninguna edición realizada. **Clasificación formal tras el suplemento de
-> verificación anónima (2026-07-31): `UNKNOWN — AUTHENTICATED_READ_REQUIRED`.**
+> Ninguna edición realizada. **Clasificación formal GOBERNANTE (2026-08-01):
+> `REUSE_WITH_CONFIGURATION`** — respaldada por capturas autenticadas del Map
+> Viewer (`OWNER_AUTHENTICATED_SCHEMA_VERIFIED`).
+
+## Suplemento de esquema autenticado (2026-08-01) — GOBERNANTE
+
+Capturas autenticadas del propietario confirman:
+
+- **Capas operacionales (orden visible):** 1) `Observaciones de campo · DEMO`,
+  2) `pilot_assets`. No se mostró ninguna tabla en el panel Tables.
+- **Simbología `Observaciones de campo · DEMO`** por clase de evidencia: *Real ·
+  observación de campo* / *Faltante · registro incompleto* / *Sintética · prueba
+  de escritorio* / *Otro*.
+- **Simbología `pilot_assets`** por tendencia: *decreasing* / *increasing* / *Otro*.
+- **Popup de observaciones** habilitado: título + lista de campos + sección de
+  adjuntos «Evidencia fotográfica» + resumen de última edición.
+- **Filtros:** *no se observó ningún filtro de Web Map configurado por el usuario
+  en la inspección autenticada del Map Viewer* (no se afirma la ausencia de
+  definition expressions ocultas; no se aportó el item/data JSON del Web Map).
+
+**Clasificación: `REUSE_WITH_CONFIGURATION`.** Ambas capas operacionales
+requeridas están presentes; existe simbología por evidencia y por tendencia; el
+popup de observaciones con adjuntos está configurado; **ninguna recreación
+justificada**. Faltan, para el MVP de Experience Builder: **filtros** y
+**refinamiento final de popups**.
+
+**No aportado / pendiente:** item JSON, data JSON, bookmarks, detalles de
+basemap, captura del popup de Asset Detail.
+
+### Configuración futura recomendada (NO ejecutar — no se modifica el Web Map)
+
+- **Filtros:** `asset_id`, `evidence_class`, `qa_status`, `observed_at`,
+  opcionalmente `plot_id`.
+- **Popup de observaciones (campos):** `plot_id`, `asset_id`, `observed_at`,
+  `evidence_class`, `qa_status`, `soil_compaction_mpa`, `veg_cover_pct`,
+  `erosion_class`, `visitor_count`, `notes`, adjuntos.
+- **Popup de pilot_assets (campos):** `asset_name`, `category`, `stratum`,
+  `trend`, `trend_significant`, `confidence`, `n_observations`, `evidence_class`,
+  `demo_status`, `decision_caveat`, `provenance`.
+
+---
+
+> **Histórico (estado previo).** Debajo, la clasificación anónima
+> (`UNKNOWN — AUTHENTICATED_READ_REQUIRED`, 2026-07-31).
 
 ## Suplemento de verificación anónima (2026-07-31)
 
