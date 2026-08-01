@@ -24,13 +24,21 @@
   Brechas de hardening (protección de borrado off en varios items; export activo
   en results view; aprobación pública editable en form view) → plan en 3 lotes
   (A/B/C, puertas separadas) en `../experience-builder-build/mutation-plan.md`.
-  **Ninguna mutación autorizada aún.** **Pendiente:** QA multiusuario (grupo con
-  1 miembro) y continuidad de cuenta. Resultados:
-  `../experience-builder-build/a0c-verification-results.md`.
+  **Pendiente:** QA multiusuario (grupo con 1 miembro) y continuidad de cuenta.
+  Resultados: `../experience-builder-build/a0c-verification-results.md`.
+- **Batch A — Hardening de bajo riesgo: ✅ `OWNER_EXECUTED_AND_VERIFIED`
+  (2026-08-01).** Ejecutado por el propietario en su sesión autenticada
+  (`OWNER_MANUAL_UI`); `CLAUDE_DIRECT_ARCGIS_MUTATION: NONE`. A1–A6 protección de
+  borrado ON; A7 export de results view OFF; A8 aprobación pública del form view
+  OFF; A9 Save As OFF; A10 búsqueda por dirección OFF. Invariantes confirmados
+  (edición off, form privado/add-only, búsqueda por capa off, compartición y
+  pilot_assets sin cambios). Registro:
+  `../experience-builder-build/batch-a-execution-record.md`.
+- **Batch B / Batch C: pendientes** de `APPROVE WEB MAP CONFIGURATION BATCH B` y
+  `APPROVE EXPERIENCE BUILDER CREATION BATCH C` respectivamente (no autorizados).
 
-Ninguna acción de configuración (filtros, dominios, popups) ni de construcción
-de Experience Builder se ejecuta hasta completar A0c **y** recibir autorización
-explícita de mutación.
+Ninguna configuración del Web Map (Batch B) ni construcción de Experience
+Builder (Batch C) se ejecuta sin su aprobación explícita separada.
 
 ---
 

@@ -17,11 +17,19 @@ exacta de la UI de ArcGIS · toggle/campo exacto · resultado esperado · riesgo
 rollback · implicación de coste/crédito · evidencia a capturar tras el cambio ·
 bloqueante/opcional.
 
+## Estado de ejecución
+
+- **Batch A: ✅ `OWNER_EXECUTED_AND_VERIFIED` (2026-08-01)** — ejecutado por el
+  propietario (`OWNER_MANUAL_UI`); Claude no mutó ArcGIS. Ver
+  [`batch-a-execution-record.md`](batch-a-execution-record.md).
+- **Batch B:** pendiente de `APPROVE WEB MAP CONFIGURATION BATCH B` (no autorizado).
+- **Batch C:** pendiente de `APPROVE EXPERIENCE BUILDER CREATION BATCH C` (no autorizado).
+
 ## Resumen de lotes
 
 | Lote | Alcance | Riesgo | Precondición |
 |---|---|---|---|
-| **A — Hardening de bajo riesgo** | protección de borrado; export de results view; aprobación pública del form view; Save As y búsqueda por dirección del Web Map | Bajo (toggles de gobernanza, reversibles) | A0c completado |
+| **A — Hardening de bajo riesgo** ✅ ejecutado | protección de borrado; export de results view; aprobación pública del form view; Save As y búsqueda por dirección del Web Map | Bajo (toggles de gobernanza, reversibles) | A0c completado |
 | **B — Configuración del Web Map** | popups; filtros; visibilidad/orden; sin definition expressions restrictivas permanentes salvo justificación | Bajo-medio | Batch A aprobado |
 | **C — Creación de Experience Builder** | crear app; fuentes; páginas; widgets; interacciones; compartición privada; protección de borrado de la app | Medio (crea un item nuevo, no destructivo) | Batch B aprobado |
 
