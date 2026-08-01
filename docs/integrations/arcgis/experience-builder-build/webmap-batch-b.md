@@ -1,8 +1,12 @@
-# BATCH B — Configuración del Web Map (preparado — NO ejecutar)
+# BATCH B — Configuración del Web Map
 
-> Puerta de aprobación: **`APPROVE WEB MAP CONFIGURATION BATCH B`**. Requiere
-> Batch A aprobado. **Antes de ejecutar:** guardar copia/ajustes del Web Map
-> (rollback). Ninguna edición se realiza en esta fase.
+> **✅ EJECUTADO POR EL PROPIETARIO Y VERIFICADO (2026-08-01).**
+> `BATCH_B_STATUS: OWNER_EXECUTED_AND_VERIFIED` · EXECUTOR `OWNER_MANUAL_UI` ·
+> AUTHORIZATION `APPROVE WEB MAP CONFIGURATION BATCH B` · `CLAUDE_DIRECT_ARCGIS_MUTATION: NONE`.
+> Backup privado del Web Map creado; B1/B2 popups configurados y guardados; B3
+> sin filtros restrictivos; B4 orden/visibilidad/simbología preservados.
+> Detalle en [`batch-b-execution-record.md`](batch-b-execution-record.md). La
+> tabla de abajo se conserva como el plan aprobado que se ejecutó.
 
 ## Mutaciones
 

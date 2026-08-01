@@ -22,7 +22,10 @@ bloqueante/opcional.
 - **Batch A: ✅ `OWNER_EXECUTED_AND_VERIFIED` (2026-08-01)** — ejecutado por el
   propietario (`OWNER_MANUAL_UI`); Claude no mutó ArcGIS. Ver
   [`batch-a-execution-record.md`](batch-a-execution-record.md).
-- **Batch B:** pendiente de `APPROVE WEB MAP CONFIGURATION BATCH B` (no autorizado).
+- **Batch B: ✅ `OWNER_EXECUTED_AND_VERIFIED` (2026-08-01)** — ejecutado por el
+  propietario (`OWNER_MANUAL_UI`); Claude no mutó ArcGIS. Backup privado creado;
+  popups B1/B2 guardados; B3 sin filtros; B4 preservado. Ver
+  [`batch-b-execution-record.md`](batch-b-execution-record.md).
 - **Batch C:** pendiente de `APPROVE EXPERIENCE BUILDER CREATION BATCH C` (no autorizado).
 
 ## Resumen de lotes

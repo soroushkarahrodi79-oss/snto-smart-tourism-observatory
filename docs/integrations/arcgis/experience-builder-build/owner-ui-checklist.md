@@ -13,9 +13,11 @@ QA multiusuario (`multiuser-qa-plan.md`) y continuidad de cuenta: **pendientes**
 Las puertas 1–7 de abajo se mantienen como guía de detalle dentro de esos lotes.
 
 **Batch A: ✅ `OWNER_EXECUTED_AND_VERIFIED` (2026-08-01)** — ejecutado por el
-propietario (`OWNER_MANUAL_UI`); ver `batch-a-execution-record.md`. **Batch B**
-(configuración del Web Map, Puertas 1–2) y **Batch C** (creación de la app,
-Puertas 3–7): **pendientes** de su aprobación separada.
+propietario (`OWNER_MANUAL_UI`); ver `batch-a-execution-record.md`.
+**Batch B: ✅ `OWNER_EXECUTED_AND_VERIFIED` (2026-08-01)** — backup privado +
+popups B1/B2 + B3 sin filtros + B4 preservado; ver `batch-b-execution-record.md`.
+**Batch C** (creación de la app, Puertas 3–7): **pendiente** de
+`APPROVE EXPERIENCE BUILDER CREATION BATCH C`.
 
 ## Puerta 1 — Copia de seguridad y registro previo
 1. Guardar una copia del Web Map (si la UI lo permite).

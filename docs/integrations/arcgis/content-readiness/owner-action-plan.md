@@ -34,10 +34,19 @@
   (edición off, form privado/add-only, búsqueda por capa off, compartición y
   pilot_assets sin cambios). Registro:
   `../experience-builder-build/batch-a-execution-record.md`.
-- **Batch B / Batch C: pendientes** de `APPROVE WEB MAP CONFIGURATION BATCH B` y
-  `APPROVE EXPERIENCE BUILDER CREATION BATCH C` respectivamente (no autorizados).
+- **Batch B — Configuración del Web Map: ✅ `OWNER_EXECUTED_AND_VERIFIED`
+  (2026-08-01).** Ejecutado por el propietario (`OWNER_MANUAL_UI`);
+  `CLAUDE_DIRECT_ARCGIS_MUTATION: NONE`. Backup privado del Web Map creado
+  (referencia solo en el registro local ignorado); popups B1 (observaciones) y
+  B2 (pilot_assets) configurados y guardados con campos técnicos ocultos y nulos
+  no como 0, sin Arcade; B3 sin filtros restrictivos; B4 orden/visibilidad/
+  simbología preservados. Invariantes: original privado, compartición sin
+  cambios, capas alojadas sin duplicar, esquema/datos sin cambios. Registro:
+  `../experience-builder-build/batch-b-execution-record.md`.
+- **Batch C: pendiente** de `APPROVE EXPERIENCE BUILDER CREATION BATCH C`
+  (no autorizado).
 
-Ninguna configuración del Web Map (Batch B) ni construcción de Experience
+Ninguna construcción de Experience
 Builder (Batch C) se ejecuta sin su aprobación explícita separada.
 
 ---
