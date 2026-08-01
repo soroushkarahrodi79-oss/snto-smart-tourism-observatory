@@ -3,6 +3,16 @@
 > Compartir la app **no** concede automáticamente acceso a todas las fuentes de
 > datos: cada item dependiente debe compartirse consistentemente.
 
+## Estado verificado por A0c (2026-08-01, OWNER_UI_VERIFIED)
+
+Todos los items (grupo, pilot_assets, servicio Survey123, form view, results
+view, form item, Web Map) están **compartidos con owner + grupo privado SNTO;
+NO org-wide; NO público** — coincide con el modelo propuesto abajo. Brechas de
+hardening detectadas (protección de borrado off en varios items; export activo
+en results view; aprobación de compartición pública editable activa en form
+view) se abordan en `hardening-batch-a.md`. El grupo tiene **1 solo miembro (el
+owner)** → QA multiusuario pendiente (`multiuser-qa-plan.md`).
+
 ## Modelo propuesto
 
 | Item | Compartición propuesta |

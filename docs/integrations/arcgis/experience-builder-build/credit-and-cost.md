@@ -22,6 +22,11 @@
   existentes).
 - Comprobar el saldo/política de créditos de la organización antes de crear la
   app, y registrar cualquier consumo observado.
+- **Búsqueda por dirección del Web Map (A0c):** está **activada**; puede depender
+  del locator/créditos de la organización. Recomendación por defecto: **desactivar**
+  (Batch A, A10) porque la demo usa activos piloto conocidos y no necesita
+  geocoding. **Sin afirmación categórica de coste** — la política real es de la
+  organización.
 
 ## Pendiente (owner/institución)
 

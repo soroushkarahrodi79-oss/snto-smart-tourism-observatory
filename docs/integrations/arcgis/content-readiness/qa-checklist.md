@@ -17,6 +17,9 @@
 - [x] Experience Builder: existencia **`DOES_NOT_EXIST — OWNER_UI_VERIFIED`**
       (verificado por el propietario, 2026-08-01); decisión
       `CREATE_NEW_EXPERIENCE_BUILDER_APP`; creación no autorizada; no se crea.
+- [x] A0c permisos: `COMPLETED_FOR_OWNER_OPERATED_BUILD` (OWNER_UI_VERIFIED);
+      plan de mutación en 3 lotes con puertas separadas; ninguna mutación
+      autorizada; QA multiusuario y continuidad de cuenta pendientes.
 - [x] Estados `UNKNOWN` previos conservados solo como histórico, no como
       gobernantes.
 - [x] Ningún Item ID real ni URL de servicio exacta en docs versionados: esos

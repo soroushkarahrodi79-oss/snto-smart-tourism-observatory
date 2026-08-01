@@ -43,6 +43,13 @@
 - [ ] Sin herramientas de análisis/geocoding/routing/servicios premium usados.
 - [ ] Sello snapshot/fecha visible; nada descrito como «en vivo».
 - [ ] Aviso de continuidad de cuenta educativa presente.
+- [ ] Protección de borrado activada en todos los items DEMO tras Batch A/C.
+
+## 7b. QA multiusuario (PENDIENTE — bloqueante para audiencia ampliada)
+- [ ] Existe una segunda cuenta UCM no-owner en el grupo privado.
+- [ ] El usuario no-owner ve la app y sus fuentes; **no** puede editar
+      `pilot_assets` ni la results view; captura add-only sin ver existentes.
+- [ ] Nada visible fuera del grupo. Ver `multiuser-qa-plan.md`.
 
 ## 8. Reversibilidad
 - [ ] Copia/ajustes del Web Map registrados antes de configurar.

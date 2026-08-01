@@ -3,9 +3,14 @@
 > **No ejecutar.** Secuencia futura, gobernada por puertas de aprobación. Cada
 > bloque termina en una puerta explícita del propietario.
 
-## Puerta 0 — A0c (permisos) ✅ requerida antes de todo
-Completar `permission-gate-a0c.md`. **Puerta:** todas las filas bloqueantes en
-estado requerido + continuidad de cuenta registrada.
+## Puerta 0 — A0c (permisos) ✅ COMPLETADA (2026-08-01)
+Verificada por el owner (`a0c-verification-results.md`). La ejecución de las
+puertas siguientes se reorganiza en **tres lotes con aprobaciones separadas**:
+`hardening-batch-a.md` (`APPROVE ARCGIS HARDENING BATCH A`) →
+`webmap-batch-b.md` (`APPROVE WEB MAP CONFIGURATION BATCH B`) →
+`experience-builder-batch-c.md` (`APPROVE EXPERIENCE BUILDER CREATION BATCH C`).
+QA multiusuario (`multiuser-qa-plan.md`) y continuidad de cuenta: **pendientes**.
+Las puertas 1–7 de abajo se mantienen como guía de detalle dentro de esos lotes.
 
 ## Puerta 1 — Copia de seguridad y registro previo
 1. Guardar una copia del Web Map (si la UI lo permite).
