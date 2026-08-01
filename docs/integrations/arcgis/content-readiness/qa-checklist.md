@@ -14,7 +14,9 @@
       `editable=true`; compartición/permisos siguen `AUTHENTICATED_READ_REQUIRED`.
 - [x] `pilot_assets` no se recomienda recrear ahora (solo migrar/recrear antes de
       producción).
-- [x] Experience Builder: existencia **UNKNOWN**; no se crea.
+- [x] Experience Builder: existencia **`DOES_NOT_EXIST — OWNER_UI_VERIFIED`**
+      (verificado por el propietario, 2026-08-01); decisión
+      `CREATE_NEW_EXPERIENCE_BUILDER_APP`; creación no autorizada; no se crea.
 - [x] Estados `UNKNOWN` previos conservados solo como histórico, no como
       gobernantes.
 - [x] Ningún Item ID real ni URL de servicio exacta en docs versionados: esos

@@ -11,12 +11,18 @@
   El propietario inspeccionó la REST autenticada (pilot_assets, servicio
   Survey123, form/results views) y el Map Viewer, y aportó los esquemas exactos
   (`OWNER_AUTHENTICATED_SCHEMA_VERIFIED`). Registrado en el registro local.
+- **Experience Builder — existencia (Fase 4, 2026-08-01): `DOES_NOT_EXIST —
+  OWNER_UI_VERIFIED`.** El propietario verificó ArcGIS Online Content: no existe
+  app EB/Web Experience para esta demo. **Decisión:
+  `CREATE_NEW_EXPERIENCE_BUILDER_APP`** (creación **no autorizada** aún). Plan
+  operado por el propietario en `../experience-builder-build/`.
 - **A0c — Verificar permisos/compartición a nivel de item: ⏳ PENDIENTE.** Aún
   desconocidos: compartición exacta de cada item, pertenencia/permisos del grupo,
   permisos de edición efectivos por usuario, filtros ocultos/definition
   expressions (item/data JSON del Web Map no aportado), bookmarks/basemap,
-  existencia de Experience Builder, continuidad de cuenta. Sin cambiar
-  compartición: aportar item/data JSON o una revisión supervisada de permisos.
+  continuidad de cuenta. Sin cambiar compartición: aportar item/data JSON o una
+  revisión supervisada de permisos. Detalle en
+  `../experience-builder-build/permission-gate-a0c.md`.
 
 Ninguna acción de configuración (filtros, dominios, popups) ni de construcción
 de Experience Builder se ejecuta hasta completar A0c **y** recibir autorización
