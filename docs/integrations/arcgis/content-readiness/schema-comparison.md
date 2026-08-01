@@ -1,10 +1,31 @@
-# Comparación de esquemas — contrato Git vs estado ArcGIS (preliminar)
+# Comparación de esquemas — contrato Git vs estado ArcGIS
 
-> **Sin inspección en vivo, no existe ninguna comparación real posible en el
-> lado ArcGIS.** Este documento describe con precisión el contrato Git (lado
-> conocido) y marca el lado ArcGIS como `UNKNOWN` en todos los casos. Los
-> riesgos de deriva se etiquetan explícitamente `DERIVED_RISK` — una hipótesis
-> plausible por cronología, **no** una comparación de esquemas reales.
+> **Estado tras el suplemento de verificación anónima (2026-07-31): la
+> comparación de esquemas sigue BLOQUEADA.** Los dos FeatureServer resuelven
+> (ANONYMOUS_REST_VERIFIED) pero bloquean el acceso anónimo
+> (ANONYMOUS_ACCESS_BLOCKED, `499 Token Required`), y la regla de "sin
+> credenciales" impide leer el esquema. Por tanto **ninguna** celda "Estado
+> ArcGIS real" pudo cerrarse; todas permanecen `AUTHENTICATED_READ_REQUIRED` y
+> **ningún campo se marca `LIVE_SCHEMA_VERIFIED`**. El contrato Git (lado
+> conocido) se describe con precisión abajo. Los riesgos de deriva siguen
+> etiquetados `DERIVED_RISK` (hipótesis por cronología, no comparación real).
+
+## Nota del suplemento anónimo (2026-07-31)
+
+Lo verificado sin token: **resolución del endpoint y bloqueo de acceso anónimo**
+de ambos servicios (ver `item-inventory.md`). Lo NO verificable sin token:
+campos, tipos, nulabilidad, dominios, `GlobalID`/`parentglobalid`, geometría,
+CRS, índices de capa/tabla, adjuntos, editor tracking, relaciones. En las tablas
+siguientes, cada `UNKNOWN` del lado ArcGIS se reclasifica como
+**`AUTHENTICATED_READ_REQUIRED`** (el endpoint resuelve pero su esquema requiere
+lectura autenticada), salvo donde ya se indica lo contrario.
+
+Para desbloquear: el propietario aporta una **exportación read-only del JSON
+REST** de cada servicio/capa (`.../FeatureServer?f=json`, `.../0?f=json`, etc.)
+generada desde su sesión ya autenticada, o habilita una sesión de solo lectura
+(ver `owner-action-plan.md` §A0b). No se solicita cambiar la compartición.
+
+---
 
 ## 1. Capa de activos (`SNTO_DEMO_PNSG_Assets`)
 

@@ -1,10 +1,73 @@
-# Fase 3 — Evaluación preliminar de readiness basada en repositorio
+# Fase 3 — Readiness de contenido ArcGIS (preliminar + suplemento de verificación anónima)
 
-> **Título de estado:** *"Preliminary repository-based ArcGIS readiness
-> assessment — live verification pending"*.
-> Rama: `docs/arcgis-content-readiness` · Worktree aislado, creado desde
-> `origin/main` (`78eed77`). Documentación únicamente. **Ninguna** mutación en
-> ArcGIS Online se realizó ni se realizará en esta fase.
+> **Título de estado:** *"Suplemento de verificación anónima y de solo lectura
+> de existencia y acceso (2026-07-31)"*.
+> Documentación únicamente. **Ninguna** mutación en ArcGIS Online se realizó.
+
+## 0. Categorías de evidencia (usadas en todo el suplemento)
+
+- **OWNER_UI_VERIFIED** — el propietario identificó el item en su interfaz
+  autenticada de ArcGIS Online o aportó su página de item exacta.
+- **ANONYMOUS_REST_VERIFIED** — el endpoint REST exacto resolvió y devolvió una
+  respuesta ArcGIS con sentido (p. ej. `499 Token Required`), no `400 Invalid URL`.
+- **ANONYMOUS_ACCESS_BLOCKED** — el endpoint aportado no permite acceso anónimo
+  a metadatos/datos.
+- **AUTHENTICATED_READ_REQUIRED** — se requiere sesión autenticada de solo
+  lectura o JSON exportado por el propietario para inspeccionar configuración o
+  esquema.
+- **LIVE_SCHEMA_VERIFIED** — reservado para campos, dominios, capas, tablas,
+  relaciones y configuración realmente inspeccionados mediante metadatos
+  autenticados de solo lectura. **Nada califica actualmente.**
+
+## 0.1 Suplemento de verificación anónima (2026-07-31) — resumen
+
+El propietario aportó los Item IDs / URLs no-secretos de los 8 items ArcGIS
+(organización, grupo, Web Map, formulario Survey123, feature service, results
+view, form view, `pilot_assets`). Se realizó una verificación **anónima,
+estrictamente read-only y sin credenciales** vía REST/HTTP. Este trabajo **no**
+es una inspección autenticada completa: solo comprobó **existencia** (por UI del
+propietario y por resolución REST) y **bloqueo de acceso anónimo**.
+
+- **Organización `ucmadrid.maps.arcgis.com`:** existencia **ANONYMOUS_REST_VERIFIED**
+  (endpoint `sharing/rest/info`, `isTokenBasedSecurity:true`); configuración
+  administrativa **AUTHENTICATED_READ_REQUIRED**.
+- **`pilot_assets` y Survey123 FeatureServer:** resolución de endpoint
+  **ANONYMOUS_REST_VERIFIED** (URL exacta → `499 Token Required`; inexistente →
+  `400 Invalid URL`, calibrado); acceso anónimo **ANONYMOUS_ACCESS_BLOCKED**;
+  esquemas/capas/tablas/config **AUTHENTICATED_READ_REQUIRED**.
+- **Web Map, formulario Survey123, results view, form view, item de
+  pilot_assets:** existencia/título/tipo **OWNER_UI_VERIFIED**; acceso anónimo
+  a metadatos de item **ANONYMOUS_ACCESS_BLOCKED**; configuración interna
+  **AUTHENTICATED_READ_REQUIRED**.
+- **Grupo privado:** existencia **OWNER_UI_VERIFIED**; endpoint anónimo
+  **ANONYMOUS_ACCESS_BLOCKED**; owner, miembros, alcance de compartición exacto
+  **AUTHENTICATED_READ_REQUIRED**.
+- **Experience Builder:** no aportado; contenidos del grupo → `403`. Existencia
+  **UNKNOWN**; estado **AUTHENTICATED_READ_REQUIRED** (no se afirma existencia
+  ni ausencia).
+
+**Hallazgo de control de acceso (no de privacidad global):** los endpoints
+probados **no exponen acceso anónimo**. Es un resultado positivo de control de
+acceso **para esas rutas**, pero **no** sustituye la verificación autenticada
+del alcance de compartición exacto, la pertenencia al grupo, el control de
+acceso basado en propiedad ni los permisos de item. **No** se afirma que todos
+los items sean privados a partir de `403`/`499`.
+
+Los Item IDs y URLs REST reales se registran **solo** en el archivo ignorado
+`arcgis/demo/pnsg/item-registry.local.yaml`; **no** aparecen en esta
+documentación versionada.
+
+**Conclusión del suplemento:** existencia y bloqueo de acceso anónimo quedan
+verificados en las categorías anteriores; la comparación de esquemas y la
+disposición real siguen requiriendo **una lectura autenticada**
+(`owner-action-plan.md` §A0b). Las decisiones formales de reutilización **siguen
+`UNKNOWN`** y ningún esquema se marca `LIVE_SCHEMA_VERIFIED`.
+
+---
+
+> Historial: la evaluación preliminar basada en repositorio se fusionó vía PR
+> #136 (squash `3c6f9c8`). Lo que sigue conserva ese análisis; el suplemento de
+> arriba actualiza lo que la verificación anónima pudo (y no pudo) confirmar.
 
 ## 1. Qué es y qué no es este documento
 

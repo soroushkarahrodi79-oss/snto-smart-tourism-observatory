@@ -1,4 +1,30 @@
-# QA checklist — Fase 3 preliminar (content readiness)
+# QA checklist — Fase 3 (preliminar + suplemento en vivo)
+
+## Suplemento de verificación anónima (2026-07-31) — verificación de disciplina
+
+- [x] Todas las llamadas a ArcGIS fueron **anónimas y read-only** (solo
+      `GET ...?f=json`); ningún endpoint administrativo ni de mutación.
+- [x] No se usó ni solicitó ninguna credencial, token, cookie ni sesión.
+- [x] Ningún item de ArcGIS fue creado, editado, publicado, compartido ni
+      eliminado; ningún envío Survey123.
+- [x] Cada afirmación `ANONYMOUS_REST_VERIFIED` cita su evidencia REST/HTTP
+      (org: `sharing/rest/info`; servicios: `499 Token Required` vs
+      `400 Invalid URL` calibrado). La existencia por UI del propietario se
+      marca `OWNER_UI_VERIFIED`.
+- [x] Ningún campo/esquema se marca `LIVE_SCHEMA_VERIFIED`; todo esquema queda
+      `AUTHENTICATED_READ_REQUIRED`.
+- [x] No se afirma "verificación en vivo" completa ni el alcance de
+      compartición exacto a partir de `403`/`499`.
+- [x] Ninguna decisión formal de reutilización cambió a un valor distinto de
+      `UNKNOWN`.
+- [x] Ninguna recreación se recomienda por indisponibilidad de metadatos.
+- [x] Experience Builder no se declara existente ni inexistente
+      (existencia `UNKNOWN`; estado `AUTHENTICATED_READ_REQUIRED`).
+- [x] Los Item IDs/URLs reales están **solo** en el registro local ignorado;
+      **no** en la documentación versionada.
+- [x] `arcgis/demo/pnsg/item-registry.local.yaml` sigue ignorado y no staged.
+
+---
 
 > Verificación de que esta fase se mantuvo de solo lectura, sin fabricación
 > de datos, y sin decisiones formales no respaldadas por metadatos reales.
