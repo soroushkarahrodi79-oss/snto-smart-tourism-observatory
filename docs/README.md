@@ -30,6 +30,9 @@ The consolidated source is the 2026 review archive in [reviews/2026](reviews/202
 - [decisions](decisions/README.md)
 - [strategy](strategy/README.md)
 - [appendix](appendix/README.md)
+- [integrations/arcgis/experience-builder](integrations/arcgis/experience-builder/README.md) — ArcGIS Experience Builder architecture package (PNSG DEMO)
+- [arcgis/field-validation-demo-roadmap](arcgis/field-validation-demo-roadmap.md) — flujo operativo de captura de campo PNSG DEMO
+- [ArcGIS PNSG canonical source package](../arcgis/demo/pnsg/README.md) — CSV, GeoJSON, XLSForm y procedencia reproducibles
 
 ## Recommendations
 Use the folder READMEs for navigation. Use [../MASTER_STRATEGIC_INDEX.md](../MASTER_STRATEGIC_INDEX.md) for the full documentation architecture.

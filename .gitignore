@@ -72,3 +72,26 @@ clean_assets/gis_export/
 # --- Validación de campo: outputs generados (la plantilla sí se versiona) ---
 clean_assets/field_validation/*
 !clean_assets/field_validation/*_template.csv
+
+# --- ArcGIS DEMO: registros locales y metadatos de cuenta -----------------
+arcgis/demo/pnsg/item-registry.local.yaml
+docs/integrations/arcgis/experience-builder/item-registry.local.yaml
+
+# --- ArcGIS DEMO: outputs reproducibles y exportaciones privadas ----------
+outputs/arcgis-field-validation-demo/
+arcgis/demo/pnsg/field-submissions/
+arcgis/demo/pnsg/survey123-exports/
+arcgis/demo/pnsg/private-exports/
+arcgis/demo/pnsg/raw-field-exports/
+
+# --- ArcGIS DEMO: adjuntos, fotos, paquetes offline y cachés --------------
+arcgis/demo/pnsg/attachments/
+arcgis/demo/pnsg/photos/
+arcgis/demo/pnsg/offline/
+arcgis/demo/pnsg/.arcgis-cache/
+arcgis/demo/pnsg/*.mmpk
+arcgis/demo/pnsg/*.tpkx
+arcgis/demo/pnsg/*.vtpk
+
+# --- Office: bloqueos temporales; el XLSForm canónico sí se versiona ------
+~$*.xlsx
