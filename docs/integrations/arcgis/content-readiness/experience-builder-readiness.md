@@ -1,4 +1,16 @@
-# Disposición de Experience Builder (preliminar → anónima → esquema autenticado)
+# Disposición de Experience Builder (preliminar → anónima → esquema autenticado → existencia)
+
+## Existencia GOBERNANTE (2026-08-01, Fase 4)
+
+> **Experience Builder — existencia: `DOES_NOT_EXIST — OWNER_UI_VERIFIED`.** El
+> propietario verificó ArcGIS Online Content y confirmó que **no existe** app de
+> Experience Builder ni Web Experience / Experiencia web para esta demo SNTO.
+> **Decisión:** `CREATE_NEW_EXPERIENCE_BUILDER_APP`. **La creación NO está
+> autorizada aún** (tras A0c + aprobación explícita de mutación).
+>
+> Esto **reemplaza** el `UNKNOWN` previo sobre la existencia. El plan de
+> construcción operado por el propietario está en
+> [`../experience-builder-build/README.md`](../experience-builder-build/README.md).
 
 ## Veredicto GOBERNANTE (2026-08-01)
 
