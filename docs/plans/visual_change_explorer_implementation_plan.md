@@ -12,10 +12,14 @@ recorded here per the "docs follow reality" rule:
 
 - **Dependencies pinned** (backlog step 1): `earthengine-api>=1.4,<2.0` and
   `streamlit-image-comparison>=0.0.4,<0.1` added to `requirements.txt`.
-- **No Dockerfile change was needed.** Verified with
-  `pip install --only-binary=:all: --dry-run` for both packages: earthengine-api
-  (1.7.37) and all its transitive deps, and streamlit-image-comparison (0.0.4),
-  resolve to wheels, so the existing `--only-binary=:all:` constraint holds.
+- **No Dockerfile change was needed — dependency *resolution* verified, not an
+  image build.** `pip install --only-binary=:all: --dry-run -r requirements.txt`
+  run under **Python 3.12** (matching the `python:3.12-slim` base) resolves the
+  *entire* requirements set — including earthengine-api (1.7.37) and
+  streamlit-image-comparison (0.0.4) with all transitive deps — to wheels, exit 0,
+  no source builds or conflicts, so the existing `--only-binary=:all:` constraint
+  holds. An actual `docker build` was **not** run (no Docker daemon available in
+  the verification environment); only wheel-resolution compatibility is claimed.
 - **Feature flag:** `Settings.snto_enable_change_explorer: bool = False`
   (env `SNTO_ENABLE_CHANGE_EXPLORER`, added to `.env.example`). Reuses the
   existing pydantic-settings model; no parallel config.
@@ -33,14 +37,27 @@ recorded here per the "docs follow reality" rule:
   app-facing `get_change_explorer_client(settings)` enforces the flag + config;
   `cached_earth_engine_client()` is the only `st.cache_resource` touch-point and
   degrades to a plain delegate when Streamlit is absent. `reset_earth_engine_state()`
-  added for tests/credential rotation.
+  clears both the process guard **and** the Streamlit memo.
+- **Service-account contract (corrected in the verification pass):** verified
+  against the real `ee._helpers.ServiceAccountCredentials(email=None,
+  key_file=None, key_data=None)` — `email` is optional and *ignored* for a JSON
+  key. So the adapter's historical `email=""` is forwarded to the SDK as its
+  documented `None` default (avoids a blank issuer on a legacy PEM key), and a
+  **service-account email with no key file is now rejected** as a config error
+  instead of silently downgrading to personal auth. A key file *without* an email
+  remains valid (JSON keys self-identify) — this is the adapter's path.
+- **Global-per-process honesty:** the Earth Engine client is a process-global
+  singleton; the guard tracks a *single* last-initialised credential set (A→B→A
+  re-initialises correctly, a failed init is never recorded as initialised). The
+  module documents this rather than pretending isolated multi-project support.
 - **`GEEAdapter._initialize` refactored** to delegate to
-  `initialize_earth_engine` (service-account/personal modes preserved; behaviour
-  unchanged; existing adapter tests stay green). Masking/collection/index logic
-  was **not** moved (deferred to later steps, per scope).
+  `initialize_earth_engine` (personal + JSON-service-account modes preserved;
+  existing adapter tests stay green). Masking/collection/index logic was **not**
+  moved (deferred to later steps, per scope).
 - **CI:** `src/integrations` + `tests/unit/test_earth_engine_client.py` added to
-  the blocking ruff allow-list. New package coverage 99%; full suite green,
-  total coverage ~83.7%.
+  the blocking ruff allow-list. New package coverage ~96%; full suite green,
+  total coverage ~83.7%. Foundation CI (commit `d4483c1`) passed all four jobs
+  (lint / typecheck / test / postgres-integration).
 - **Not implemented (out of scope):** any collection builder, cloud-filter
   control, SCL refactor, composite/NDVI/diff logic, `getThumbURL`/
   `getVideoThumbURL`, GIF, swipe UI, new tab, or navigation registration.

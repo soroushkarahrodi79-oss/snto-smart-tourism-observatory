@@ -95,12 +95,32 @@ class TestInitializeEarthEngine:
             service_account="svc@snto.iam.gserviceaccount.com",
             key_file="/secret/key.json",
         )
+        # Email + key forwarded as SDK keywords (verified against the real
+        # ee._helpers.ServiceAccountCredentials signature).
         mock_ee.ServiceAccountCredentials.assert_called_once_with(
-            "svc@snto.iam.gserviceaccount.com", "/secret/key.json"
+            email="svc@snto.iam.gserviceaccount.com", key_file="/secret/key.json"
         )
         mock_ee.Initialize.assert_called_once_with(
             credentials="fake-creds", project="snto-test"
         )
+
+    def test_json_key_without_email_passes_none(self, mock_ee: MagicMock):
+        # A JSON key carries its own client_email; the SDK ignores `email`. We
+        # forward None (its documented default), never an empty-string issuer.
+        initialize_earth_engine("snto-test", key_file="/secret/key.json")
+        mock_ee.ServiceAccountCredentials.assert_called_once_with(
+            email=None, key_file="/secret/key.json"
+        )
+
+    def test_service_account_without_key_file_is_config_error(self, mock_ee: MagicMock):
+        # Email set but no key file: reject clearly instead of silently using
+        # personal auth and ignoring the operator's intent.
+        with pytest.raises(EarthEngineConfigError):
+            initialize_earth_engine(
+                "snto-test", service_account="svc@x.iam", key_file=""
+            )
+        mock_ee.Initialize.assert_not_called()
+        mock_ee.ServiceAccountCredentials.assert_not_called()
 
     def test_missing_project_raises_config_error(self, mock_ee: MagicMock):
         with pytest.raises(EarthEngineConfigError):
@@ -116,6 +136,26 @@ class TestInitializeEarthEngine:
     def test_reinitializes_after_state_reset(self, mock_ee: MagicMock):
         initialize_earth_engine("snto-test")
         reset_earth_engine_state()
+        initialize_earth_engine("snto-test")
+        assert mock_ee.Initialize.call_count == 2
+
+    def test_switching_credential_sets_reinitializes(self, mock_ee: MagicMock):
+        # A → B → A must re-init each time it switches: the single-slot guard
+        # never wrongly skips because EE is global (one active context at a time).
+        initialize_earth_engine("proj-a")
+        initialize_earth_engine("proj-b")
+        initialize_earth_engine("proj-a")
+        assert mock_ee.Initialize.call_count == 3
+        # Same set twice in a row is still a no-op.
+        initialize_earth_engine("proj-a")
+        assert mock_ee.Initialize.call_count == 3
+
+    def test_failed_init_is_not_recorded_as_initialized(self, mock_ee: MagicMock):
+        mock_ee.Initialize.side_effect = RuntimeError("backend down")
+        with pytest.raises(EarthEngineUnavailableError):
+            initialize_earth_engine("snto-test")
+        # A failed init must NOT mark the set initialised — a retry must re-attempt.
+        mock_ee.Initialize.side_effect = None
         initialize_earth_engine("snto-test")
         assert mock_ee.Initialize.call_count == 2
 
@@ -150,16 +190,38 @@ class TestGetChangeExplorerClient:
 # ── Safe exception mapping ────────────────────────────────────────────────────
 
 class TestExceptionMapping:
-    def test_quota_maps_to_quota_error(self):
-        mapped = map_ee_exception(RuntimeError("Quota exceeded for this project"))
-        assert isinstance(mapped, EarthEngineQuotaError)
+    # Representative real-world EE / Google API messages -> expected category.
+    @pytest.mark.parametrize(
+        "message, expected",
+        [
+            # Quota / rate limiting
+            ("Quota exceeded for quota metric 'EECU'", EarthEngineQuotaError),
+            ("User rate limit exceeded.", EarthEngineQuotaError),
+            ("429 Too Many Requests", EarthEngineQuotaError),
+            # Authentication / permission / project registration
+            ("Unauthorized", EarthEngineAuthError),
+            ("403 Caller does not have permission", EarthEngineAuthError),
+            ("Invalid credentials provided", EarthEngineAuthError),
+            ("Request had invalid authentication credentials", EarthEngineAuthError),
+            # Transient / generic availability failures
+            ("Connection reset by peer", EarthEngineUnavailableError),
+            ("SSL: CERTIFICATE_VERIFY_FAILED", EarthEngineUnavailableError),
+            ("Computation timed out", EarthEngineUnavailableError),
+            ("Internal server error", EarthEngineUnavailableError),
+        ],
+    )
+    def test_classification(self, message: str, expected: type):
+        assert isinstance(map_ee_exception(RuntimeError(message)), expected)
 
-    def test_auth_maps_to_auth_error(self):
-        mapped = map_ee_exception(RuntimeError("403 permission denied"))
-        assert isinstance(mapped, EarthEngineAuthError)
+    def test_auth_message_is_not_misclassified_as_quota(self):
+        # An auth failure must never come back as a quota error.
+        for msg in ("403 Forbidden", "unauthenticated request", "permission denied"):
+            mapped = map_ee_exception(RuntimeError(msg))
+            assert not isinstance(mapped, EarthEngineQuotaError)
 
-    def test_unknown_maps_to_unavailable(self):
-        mapped = map_ee_exception(RuntimeError("backend hiccup"))
+    def test_bare_rate_does_not_trigger_quota(self):
+        # "rate" alone (e.g. a data-rate note) must not be read as rate-limiting.
+        mapped = map_ee_exception(RuntimeError("sample rate mismatch in asset"))
         assert isinstance(mapped, EarthEngineUnavailableError)
 
     def test_all_mapped_are_earth_engine_errors(self):
@@ -229,9 +291,10 @@ class TestGeeAdapterUsesSharedInit:
 
         adapter = GEEAdapter(project_id="snto-test", key_file="/secret/key.json")
         adapter._initialize()
-        # Preserves the previous email="" positional behaviour (service_account="").
+        # The adapter has no service-account email field; the JSON key carries its
+        # own client_email, so email is forwarded as None (the SDK default).
         mock_ee.ServiceAccountCredentials.assert_called_once_with(
-            "", "/secret/key.json"
+            email=None, key_file="/secret/key.json"
         )
         mock_ee.Initialize.assert_called_once_with(
             credentials="fake-creds", project="snto-test"
@@ -253,4 +316,37 @@ class TestMissingSdk:
             initialize_earth_engine("snto-test")
         # Still a RuntimeError subclass — preserves the adapter's old contract.
         assert issubclass(EarthEngineUnavailableError, RuntimeError)
+        reset_earth_engine_state()
+
+
+# ── Streamlit cache boundary ──────────────────────────────────────────────────
+
+class TestCachedAccessor:
+    def test_importable_without_streamlit_runtime(self):
+        # The cached accessor is built at import (Streamlit is a declared dep) but
+        # nothing here requires a *run context*; it is a plain callable.
+        assert callable(ee_client.cached_earth_engine_client)
+
+    def test_disabled_state_not_cached_as_success(
+        self, mock_ee: MagicMock, monkeypatch: pytest.MonkeyPatch
+    ):
+        # Deterministic start: clear guard + Streamlit memo.
+        reset_earth_engine_state()
+
+        # 1) Disabled global settings -> the accessor raises (not a cached client).
+        monkeypatch.setattr(
+            ee_client,
+            "_default_settings",
+            Settings(snto_enable_change_explorer=False, gee_project_id="snto-test"),
+        )
+        with pytest.raises(EarthEngineDisabledError):
+            ee_client.cached_earth_engine_client()
+        mock_ee.Initialize.assert_not_called()
+
+        # 2) Enable: the earlier failure must NOT have been memoised as success.
+        monkeypatch.setattr(ee_client, "_default_settings", _enabled_settings())
+        client = ee_client.cached_earth_engine_client()
+        assert client.project_id == "snto-test"
+
+        # Leave no cached success behind for other tests.
         reset_earth_engine_state()
