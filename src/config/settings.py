@@ -35,6 +35,14 @@ class Settings(BaseSettings):
     # nunca se gatea. SSO/Entra ID queda diferido (swap aditivo, ver ADR-011).
     snto_api_key: str = ""
 
+    # ── Visual Change Explorer (ADR-015) ─────────────────────────────────────
+    # Feature flag for the in-process Earth Engine Visual Change Explorer.
+    # Falso por defecto -> el explorador queda desactivado y su punto de entrada
+    # lanza EarthEngineDisabledError sin tocar Earth Engine. Poner a true (env
+    # SNTO_ENABLE_CHANGE_EXPLORER=true) lo habilita; requiere además las
+    # credenciales GEE_* (ver .env.example y docs/GEE_setup_timebox.md).
+    snto_enable_change_explorer: bool = False
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
     @property

@@ -1,9 +1,49 @@
 # Implementation Plan — Visual Change Explorer
 
-- **Status:** Planning (no code implemented; no deps installed; nothing committed)
-- **Date:** 2026-08-02
+- **Status:** In progress — **Foundation (backlog steps 1–2) implemented.**
+- **Date:** 2026-08-02 (foundation landed 2026-08-02)
 - **Companions:** `docs/audits/visual_change_feature_audit.md`,
   `docs/decisions/ADR-015-earth-engine-change-explorer.md`
+
+## 0. Foundation status (implemented) — how it differs from the proposal
+
+The shared Earth Engine foundation is in place. Deltas from the audit/ADR draft,
+recorded here per the "docs follow reality" rule:
+
+- **Dependencies pinned** (backlog step 1): `earthengine-api>=1.4,<2.0` and
+  `streamlit-image-comparison>=0.0.4,<0.1` added to `requirements.txt`.
+- **No Dockerfile change was needed.** Verified with
+  `pip install --only-binary=:all: --dry-run` for both packages: earthengine-api
+  (1.7.37) and all its transitive deps, and streamlit-image-comparison (0.0.4),
+  resolve to wheels, so the existing `--only-binary=:all:` constraint holds.
+- **Feature flag:** `Settings.snto_enable_change_explorer: bool = False`
+  (env `SNTO_ENABLE_CHANGE_EXPLORER`, added to `.env.example`). Reuses the
+  existing pydantic-settings model; no parallel config.
+- **`src/integrations/earth_engine/`** created: `client.py`, `errors.py`,
+  `__init__.py`.
+- **Error hierarchy** (vs. the draft's ad-hoc names): a single
+  `EarthEngineError(RuntimeError)` base — subclassing `RuntimeError` **on
+  purpose** to preserve `GEEAdapter`'s documented "raises RuntimeError" contract
+  — with `EarthEngineDisabledError`, `EarthEngineConfigError`,
+  `EarthEngineAuthError`, `EarthEngineUnavailableError`, `EarthEngineQuotaError`,
+  plus a credential-safe `map_ee_exception()` classifier.
+- **Init path:** low-level `initialize_earth_engine(project_id, *,
+  service_account, key_file)` is framework-free and idempotent via a
+  process-wide, lock-guarded key `(project_id, service_account, key_file)`;
+  app-facing `get_change_explorer_client(settings)` enforces the flag + config;
+  `cached_earth_engine_client()` is the only `st.cache_resource` touch-point and
+  degrades to a plain delegate when Streamlit is absent. `reset_earth_engine_state()`
+  added for tests/credential rotation.
+- **`GEEAdapter._initialize` refactored** to delegate to
+  `initialize_earth_engine` (service-account/personal modes preserved; behaviour
+  unchanged; existing adapter tests stay green). Masking/collection/index logic
+  was **not** moved (deferred to later steps, per scope).
+- **CI:** `src/integrations` + `tests/unit/test_earth_engine_client.py` added to
+  the blocking ruff allow-list. New package coverage 99%; full suite green,
+  total coverage ~83.7%.
+- **Not implemented (out of scope):** any collection builder, cloud-filter
+  control, SCL refactor, composite/NDVI/diff logic, `getThumbURL`/
+  `getVideoThumbURL`, GIF, swipe UI, new tab, or navigation registration.
 
 ## 1. Goal & MVP scope
 
@@ -170,10 +210,12 @@ step with the adapter's tests green).
 
 0. **(Prep)** Owner decisions in ADR-015 §"Open decisions"; obtain EE
    project/service account; confirm in-process (ADR-012) placement.
-1. Add deps (`earthengine-api`, `streamlit-image-comparison`) + `Settings` flag +
-   `.env.example` entry. Verify Docker build.
-2. `src/integrations/earth_engine/client.py` — cached init singleton + `errors.py`;
-   unit test offline incl. missing-creds fallback.
+1. ✅ **Done.** Add deps (`earthengine-api`, `streamlit-image-comparison`) +
+   `Settings` flag + `.env.example` entry. Docker verified wheel-compatible (no
+   change).
+2. ✅ **Done.** `src/integrations/earth_engine/client.py` — cached init singleton
+   + `errors.py`; offline unit tests incl. disabled/missing-config/quota mapping;
+   `GEEAdapter` now delegates to it.
 3. Refactor shared masking/index helpers into
    `earth_engine/collections.py`; point `gee_adapter.py` at them (adapter tests
    stay green).

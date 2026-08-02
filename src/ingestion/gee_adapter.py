@@ -396,23 +396,14 @@ class GEEAdapter(DataIngestionAdapter):
     def _initialize(self) -> None:
         if self._initialized:
             return
-        try:
-            import ee
-        except ImportError as exc:
-            raise RuntimeError(
-                "earthengine-api is not installed. "
-                "Run: pip install earthengine-api"
-            ) from exc
+        # Delegate to the shared, idempotent foundation (ADR-015) so ee.Initialize
+        # happens at most once per process/credential set. Behaviour is preserved:
+        # service-account mode when key_file is set, personal auth otherwise. A
+        # missing earthengine-api still surfaces as a RuntimeError subclass
+        # (EarthEngineUnavailableError). This adapter carries no separate
+        # service-account email, matching the previous email="" call.
+        from src.integrations.earth_engine.client import initialize_earth_engine
 
-        if self.key_file:
-            credentials = ee.ServiceAccountCredentials(
-                email="",
-                key_file=self.key_file,
-            )
-            ee.Initialize(credentials=credentials, project=self.project_id)
-        else:
-            # Personal auth — requires prior `earthengine authenticate` call
-            ee.Initialize(project=self.project_id)
-
+        initialize_earth_engine(self.project_id, key_file=self.key_file)
         self._initialized = True
         logger.info("GEE initialized. Project: %s", self.project_id)

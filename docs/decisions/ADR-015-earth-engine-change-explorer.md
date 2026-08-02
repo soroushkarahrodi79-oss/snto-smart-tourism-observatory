@@ -1,6 +1,9 @@
 # ADR-015 — Earth Engine Visual Change Explorer (before/after swipe + animated GIF)
 
-- **Status:** Proposed (architecture only; no implementation in this change)
+- **Status:** Accepted — foundation implemented (fixed decisions confirmed; see
+  the plan's "Foundation status" for what shipped and how it differs from the
+  draft). The `errors.py` base subclasses `RuntimeError` to preserve the existing
+  adapter contract; the MVP composites/rendering/GIF/UI remain unbuilt.
 - **Date:** 2026-08-02
 - **Deciders:** Owner (pending)
 - **Related:** ADR-011 (persistence), ADR-012 (`/api/v2` deploy gate), ADR-003
