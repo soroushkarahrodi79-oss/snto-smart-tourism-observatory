@@ -47,6 +47,7 @@ from src.ui.render_widgets import (
     _render_live_alerts,
 )
 from src.ui.tabs.tab_assets import render_tab_assets
+from src.ui.tabs.tab_change_explorer import render_tab_change_explorer
 from src.ui.tabs.tab_config import render_tab_config
 from src.ui.tabs.tab_confidence import render_tab_confidence
 from src.ui.tabs.tab_diagnostic import render_tab_diagnostic
@@ -297,6 +298,8 @@ for _layer, _layer_container in zip(_layer_order, _layer_tabs, strict=True):
                     render_tab_forecast(ranked_assets, _view)
                 elif _module.key == "satellite":
                     render_tab_timeseries(ranked_assets, _view)
+                elif _module.key == "change_explorer":
+                    render_tab_change_explorer(_view)
                 elif _module.key == "confidence":
                     render_tab_confidence(ranked_assets, _view)
                 elif _module.key == "provenance":

@@ -64,7 +64,11 @@ jobs:
             src/integrations tests/unit/test_earth_engine_client.py \
             tests/unit/test_change_collections.py tests/unit/test_change_composites.py \
             tests/unit/test_change_quality.py tests/unit/test_change_models.py \
-            tests/unit/test_change_render.py
+            tests/unit/test_change_render.py \
+            src/services src/ui/tabs/tab_change_explorer.py \
+            tests/unit/test_change_explorer_service.py \
+            tests/unit/test_change_explorer_cache.py \
+            tests/ui/test_change_explorer_tab.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github

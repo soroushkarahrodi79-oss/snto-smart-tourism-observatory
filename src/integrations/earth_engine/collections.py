@@ -134,3 +134,27 @@ def build_sentinel2_collection(
         .filter(ee.Filter.lte("CLOUDY_PIXEL_PERCENTAGE", max_cloud_percentage))
         .map(mask_scl)
     )
+
+
+def bbox_to_ee_rectangle(
+    ee_module: Any,
+    bbox_wgs84: tuple[float, float, float, float],
+) -> Any:
+    """Convert an SNTO ``(W, S, E, N)`` WGS-84 bbox to an ``ee.Geometry.Rectangle``.
+
+    The single, narrow place bbox coordinates become an EE geometry. SNTO stores
+    bounding boxes as ``(west, south, east, north)`` (see
+    ``src/config/territories.py``); ``ee.Geometry.Rectangle`` expects
+    ``[xMin, yMin, xMax, yMax]`` = ``[west, south, east, north]`` — the order is
+    preserved explicitly here and validated (``west < east``, ``south < north``).
+    ``geodesic=False`` keeps planar lon/lat edges, matching the stored bbox.
+    """
+    west, south, east, north = bbox_wgs84
+    if not (west < east and south < north):
+        raise ValueError(
+            "invalid bbox (expected west < east and south < north): "
+            f"{bbox_wgs84!r}"
+        )
+    return ee_module.Geometry.Rectangle(
+        [west, south, east, north], proj=None, geodesic=False
+    )

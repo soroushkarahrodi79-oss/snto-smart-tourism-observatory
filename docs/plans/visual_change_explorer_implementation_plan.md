@@ -1,10 +1,86 @@
 # Implementation Plan — Visual Change Explorer
 
-- **Status:** In progress — **Foundation + Analysis/Static-PNG core (backlog
-  steps 1–7) implemented.** Service orchestration, GIF and UI not started.
+- **Status:** In progress — **Foundation + Analysis/Static-PNG core + Service
+  orchestration + Swipe UI (backlog steps 1–8, 10) implemented.** GIF (step 9)
+  and live verification (step 12) not started.
 - **Date:** 2026-08-02 (foundation landed 2026-08-02)
 - **Companions:** `docs/audits/visual_change_feature_audit.md`,
   `docs/decisions/ADR-015-earth-engine-change-explorer.md`
+
+## 0c. Service orchestration + Swipe UI (implemented)
+
+The first complete user-facing vertical slice. **No** GIF, tiles, pan/zoom or API.
+
+- **Files.** `src/services/change_explorer_service.py`,
+  `src/ui/tabs/tab_change_explorer.py`; registered via `src/ui/navigation.py`
+  (new `change_explorer` module in the Evidenciar layer) + one dispatch line in
+  `app.py` (composition only — no domain/EE logic there).
+- **Service public interface.** `run_change_explorer(request, *,
+  app_settings=None, territory_resolver=None) -> ChangeExplorerResult` (pure,
+  testable) and `cached_run_change_explorer(request)` (the `st.cache_data`
+  boundary) + `clear_change_explorer_cache()`. Models:
+  `ChangeExplorerRequest`, `RenderedArtifact`, `ChangeExplorerResult`,
+  `ResultStatus` — all frozen, no EE object, no secrets.
+- **Territory → EE geometry.** The UI lists only registered territories with a
+  usable `bbox_wgs84` (`usable_territories`); the bbox becomes an
+  `ee.Geometry.Rectangle` in **one** helper
+  (`collections.bbox_to_ee_rectangle`), preserving `(W, S, E, N)` order
+  explicitly. Unknown ids raise a clear `ValueError`.
+- **Evaluation boundary.** Exactly **one combined `getInfo` per window** — an
+  `ee.Dictionary` of scene count, mean scene cloud, valid-pixel count (one
+  `reduceRegion`) and AOI pixel count — evaluated in the service, never in
+  dataclasses/builders/UI, never at import. dNDVI reuses the two NDVI composites
+  (no extra collection build). No fabricated URLs for no-data windows.
+- **dNDVI.** Always computed from the same two collections (`after − before`),
+  shown as a static PNG with the fixed diverging legend and an explicit
+  *observational, not causal / not field-validated* note.
+- **Caching.** Cache key = `request.cache_key(bbox)` (territory, bbox, both
+  EE-exclusive windows, product, cloud, dimensions, dataset id, composite &
+  visualisation versions) — no credentials, no URLs, no Settings, no EE objects.
+  `TTL = 600 s`, deliberately conservative because the EE signed-thumbnail URL
+  lifetime is **not guaranteed by the API**; the UI degrades gracefully if a
+  cached URL has expired. Analysis runs only on explicit form submit; exceptions
+  are never cached as successes.
+- **UI.** One `st.form` (territory, product True-Colour/NDVI, before/after
+  dates, scene-cloud %, dimensions, *Analizar cambios*); draggable swipe via
+  `streamlit-image-comparison` (`in_memory=True`, signed URL never shown as
+  text); separate before/after quality panels distinguishing *scene cloud*
+  (`CLOUDY_PIXEL_PERCENTAGE`) from *SCL AOI valid-pixel coverage*; evidence label
+  "Observación real Sentinel-2 … no validada en campo". Feature-flag gated (a
+  disabled state when `SNTO_ENABLE_CHANGE_EXPLORER=false`); all EE errors mapped
+  to safe, actionable Spanish messages with no traceback/URL leakage; a failed
+  submit never leaves a stale result labelled as current.
+
+## Manual live smoke test (not yet run — no live verification claimed)
+
+This procedure is documented for later manual execution; **CI never runs it** and
+the feature is **not** live-verified until it has actually been performed.
+
+1. **Credentials & flag** (local dev):
+   - `earthengine authenticate` (personal) *or* set `GEE_KEY_FILE` to a
+     service-account JSON and `GEE_SERVICE_ACCOUNT` to its email;
+   - set `GEE_PROJECT_ID=<your-ee-project>`;
+   - set `SNTO_ENABLE_CHANGE_EXPLORER=true`;
+   - `pip install -r requirements.txt` (brings `earthengine-api`,
+     `streamlit-image-comparison`).
+2. **Launch:** `streamlit run app.py` → open **Evidenciar → Explorador de cambio
+   visual**.
+3. **AOI:** pick **Parque Nacional Sierra de Guadarrama** (small, registered bbox).
+4. **Windows known to contain S2 scenes:** ANTES `2023-07-01 → 2023-08-31`,
+   DESPUÉS `2024-07-01 → 2024-08-31`; cloud ≤ 20 %; dimensions 512; product NDVI.
+5. **Run:** press *Analizar cambios*.
+6. **Expected visible outputs:** a draggable before/after NDVI swipe, a static
+   dNDVI PNG with the diverging legend, and two quality panels with non-zero
+   scene counts and a valid-pixel coverage ≥ 30 %.
+7. **Confirm alignment:** drag the divider fully left/right — the two panels must
+   register pixel-for-pixel (same extent, same size, same NDVI 0–0.9 stretch).
+8. **Confirm quality metadata:** the *scene cloud %* (per-granule) and the *AOI
+   valid-pixel coverage %* (SCL-derived) are shown as **separate** numbers.
+9. **Product switch:** re-run with product **Color real** — the swipe shows true
+   colour while the dNDVI layer remains (computed from the same collections).
+10. **Disable/clear afterward:** set `SNTO_ENABLE_CHANGE_EXPLORER=false` (the tab
+    shows the disabled state); in dev you may also call
+    `clear_change_explorer_cache()` to drop cached results.
 
 ## 0b. Analysis + static PNG rendering core (implemented)
 
@@ -299,10 +375,11 @@ step with the adapter's tests green).
 6. ✅ **Done.** `analysis/change_detection/quality.py` — valid-pixel/cloud/scene
    metadata (single reduceRegion; pure assembler).
 7. ✅ **Done.** `analysis/change_detection/difference.py` — dNDVI band.
-8. `src/services/change_explorer_service.py` — orchestrate + cache + typed errors;
-   unit test cache key & error mapping. **(next task — not started)**
-9. `render.py` GIF path (`getVideoThumbURL`) wired through the service.
-10. `src/ui/tabs/tab_change_explorer.py` — AOI picker, date ranges, cloud slider,
+8. ✅ **Done.** `src/services/change_explorer_service.py` — orchestrate + cache +
+   typed errors; request/result models; service, cache and UI tests.
+9. `render.py` GIF path (`getVideoThumbURL`) wired through the service. **(next
+   task — not started; explicitly deferred)**
+10. ✅ **Done.** `src/ui/tabs/tab_change_explorer.py` — AOI picker, date ranges, cloud slider,
     index toggle, swipe, GIF, metadata; register in `src/ui/navigation.py`.
 11. UI/navigation test; degraded-state test; docs sync; keep coverage ≥80 %.
 12. (Optional) live-EE smoke test (gated); (phase 2) tiles/custom Leaflet.
