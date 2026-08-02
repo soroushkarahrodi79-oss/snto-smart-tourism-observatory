@@ -1,9 +1,65 @@
 # Implementation Plan — Visual Change Explorer
 
-- **Status:** In progress — **Foundation (backlog steps 1–2) implemented.**
+- **Status:** In progress — **Foundation + Analysis/Static-PNG core (backlog
+  steps 1–7) implemented.** Service orchestration, GIF and UI not started.
 - **Date:** 2026-08-02 (foundation landed 2026-08-02)
 - **Companions:** `docs/audits/visual_change_feature_audit.md`,
   `docs/decisions/ADR-015-earth-engine-change-explorer.md`
+
+## 0b. Analysis + static PNG rendering core (implemented)
+
+The next backend slice is in place — **no** service orchestration, UI, GIF, map
+tiles or API. What shipped and the methodological decisions locked in:
+
+- **Files.** `src/integrations/earth_engine/{collections,palettes,render}.py` and
+  `src/analysis/change_detection/{__init__,models,composites,difference,quality}.py`.
+- **Shared Sentinel-2 refactor (one source of truth).** Collection id, band
+  names, SR scale, SCL bad-class list, the SCL pixel mask, the NDVI definition
+  and the minimum-valid-pixel convention (0.30) now live in
+  `earth_engine/collections.py`. `GEEAdapter` imports them (private aliases),
+  delegates masking to `collections.mask_scl` and NDVI to `collections.add_ndvi`,
+  and no longer carries its own SCL list/band constant or NDVI formula. Adapter
+  behaviour is unchanged (NDVI is scale-invariant); its tests stay green.
+- **Collection builder.** `build_sentinel2_collection(*, ee_module, geometry,
+  start_date, end_date, max_cloud_percentage)` → `COPERNICUS/S2_SR_HARMONIZED`,
+  `filterBounds`, `filterDate` (**end-exclusive**), `CLOUDY_PIXEL_PERCENTAGE`
+  scene pre-filter, `mask_scl` pixel mask; retains all bands; **no `getInfo`**.
+- **Date-window semantics.** `DateWindow` (frozen, `datetime.date` only —
+  `datetime` rejected, timezone-free, never reads "today"). User dates are
+  **inclusive** by default; the inclusive→**EE-exclusive** end conversion happens
+  in exactly one place (`ee_end_date` = `end + 1 day`). Reversed/empty windows
+  raise; same-day inclusive is valid (one day).
+- **Cloud scene-filter vs SCL pixel-mask (kept distinct).**
+  `CLOUDY_PIXEL_PERCENTAGE` is whole-**scene** metadata used only as a
+  user-controlled scene pre-filter and surfaced as `mean_scene_cloud_pct`. The
+  **SCL** mask is per-**pixel**; valid-pixel coverage within the AOI is a
+  separate `valid_pixel_fraction`. `QualityMetadata` never conflates them.
+- **NDVI composite methodology.** `ndvi_composite` = **median of per-scene
+  NDVI** (mask → per-scene NDVI → `median`), *not* `NDVI(median reflectance)`.
+  Documented and tested at the EE-operation-order level.
+- **dNDVI.** `ndvi_difference` = `after_ndvi − before_ndvi`, band `dNDVI`. Sign
+  convention: **negative = NDVI decrease, positive = NDVI increase**. No causal /
+  tourism-impact claim; no severity thresholds this phase.
+- **Quality metadata.** Scene count (`collection.size()`), mean scene cloud
+  (`aggregate_mean`), valid-pixel count (**one** `reduceRegion(count)` on NDVI;
+  `scale=10`, `maxPixels=1e8`, `bestEffort=False`, `tileScale=1` — all explicit),
+  AOI pixel count via `area ÷ scale²` (no second reduceRegion); `evaluate_quality`
+  is a pure assembler emitting `no_scenes` / `insufficient_valid_pixels` warnings
+  against the SNTO 0.30 minimum.
+- **Rendering.** `get_thumbnail_url(*, image, region, visualization, dimensions,
+  image_format="png")` → EE `getThumbURL` only. Dimensions bounded [16, 2048],
+  PNG-only, region explicit, EE errors mapped via the foundation typed errors,
+  signed URLs never logged, no download, **no caching**, no `getMapId`/GIF.
+- **Alignment contract.** `build_thumbnail_params` is a pure function of
+  (region, dimensions, visualisation, format) and **independent of the image**;
+  before/after render with the *same* region, dimensions and fixed-range
+  `Visualization`, so panels are never independently auto-stretched.
+- **Visualisation.** Centralised `palettes.py`: `TRUE_COLOUR` (B4/B3/B2, 0–3000
+  DN), `NDVI` (0.0–0.9 brown→green), `DNDVI` (symmetric ±0.4 diverging, neutral
+  at zero) — documented, display-only, no severity categories.
+- **Still deferred (unchanged):** service orchestration, caching, `getMapId`/XYZ
+  tiles, GIF/`getVideoThumbURL`, `streamlit-image-comparison`, Streamlit tab,
+  navigation, AOI UI, API endpoints.
 
 ## 0. Foundation status (implemented) — how it differs from the proposal
 
@@ -233,17 +289,18 @@ step with the adapter's tests green).
 2. ✅ **Done.** `src/integrations/earth_engine/client.py` — cached init singleton
    + `errors.py`; offline unit tests incl. disabled/missing-config/quota mapping;
    `GEEAdapter` now delegates to it.
-3. Refactor shared masking/index helpers into
-   `earth_engine/collections.py`; point `gee_adapter.py` at them (adapter tests
-   stay green).
-4. `earth_engine/render.py` + `palettes.py` — `getThumbURL` PNG for a given
-   composite + vis params (true-colour, NDVI, dNDVI).
-5. `analysis/change_detection/composites.py` + `models.py` — median true-colour &
-   NDVI composites per window; unit tests (mocked ee).
-6. `analysis/change_detection/quality.py` — valid-pixel/cloud/scene metadata.
-7. `analysis/change_detection/difference.py` — NDVI-difference band.
+3. ✅ **Done.** Refactor shared masking/index helpers into
+   `earth_engine/collections.py`; `gee_adapter.py` consumes them (adapter tests
+   green).
+4. ✅ **Done.** `earth_engine/render.py` + `palettes.py` — `getThumbURL` PNG +
+   vis params (true-colour, NDVI, dNDVI); alignment contract.
+5. ✅ **Done.** `analysis/change_detection/composites.py` + `models.py` — median
+   true-colour & NDVI composites; offline tests.
+6. ✅ **Done.** `analysis/change_detection/quality.py` — valid-pixel/cloud/scene
+   metadata (single reduceRegion; pure assembler).
+7. ✅ **Done.** `analysis/change_detection/difference.py` — dNDVI band.
 8. `src/services/change_explorer_service.py` — orchestrate + cache + typed errors;
-   unit test cache key & error mapping.
+   unit test cache key & error mapping. **(next task — not started)**
 9. `render.py` GIF path (`getVideoThumbURL`) wired through the service.
 10. `src/ui/tabs/tab_change_explorer.py` — AOI picker, date ranges, cloud slider,
     index toggle, swipe, GIF, metadata; register in `src/ui/navigation.py`.
