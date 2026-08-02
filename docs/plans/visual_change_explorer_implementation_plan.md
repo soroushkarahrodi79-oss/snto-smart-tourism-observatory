@@ -1,11 +1,66 @@
 # Implementation Plan — Visual Change Explorer
 
 - **Status:** In progress — **Foundation + Analysis/Static-PNG core + Service
-  orchestration + Swipe UI (backlog steps 1–8, 10) implemented.** GIF (step 9)
-  and live verification (step 12) not started.
+  orchestration + Swipe UI (backlog steps 1–8, 10) implemented; manual +
+  gated-live smoke-test harness added (step 12).** **Live status: `NOT LIVE
+  VERIFIED — no Earth Engine credentials in the environment`** (see §0d). GIF
+  (step 9) not started.
 - **Date:** 2026-08-02 (foundation landed 2026-08-02)
 - **Companions:** `docs/audits/visual_change_feature_audit.md`,
   `docs/decisions/ADR-015-earth-engine-change-explorer.md`
+
+## 0d. Live verification
+
+**Status: `NOT LIVE VERIFIED — no Earth Engine credentials available in the
+execution environment`** (GEE_PROJECT_ID / GEE_SERVICE_ACCOUNT / GEE_KEY_FILE and
+personal EE credentials all ABSENT). A successful real round trip could not be
+performed; no smoke-test success is claimed or fabricated.
+
+- **Date / environment:** 2026-08-02, sandboxed remote execution environment
+  (local-development-equivalent; not production).
+- **Auth mode:** none available — no personal auth, no service-account config,
+  no project id. The real `ee.Initialize` was reached and failed as expected.
+- **Earth Engine API:** `earthengine-api` 1.7.37, Python 3.11.15,
+  `streamlit` 1.56.0, `streamlit-image-comparison` 0.0.4.
+- **Environment defect repaired (not a code defect):** `import ee` initially
+  crashed with a `pyo3`/`_cffi_backend` panic from a broken system `cryptography`
+  build; reinstalling a working `cffi` wheel fixed it. `cffi` is a transitive
+  dependency that installs correctly from a clean `pip install -r requirements.txt`,
+  so **no `requirements.txt` change is warranted** — this was a pre-broken
+  sandbox, documented here as an ops gotcha only.
+- **Prepared / verified without credentials:**
+  - imports: `ee`, `streamlit`, `streamlit_image_comparison` all import cleanly
+    after the `cffi` fix; the service + client import cleanly.
+  - the real `ee.Initialize(project=…)` (no creds) raises `ee.EEException`
+    ("Please authorize…") **non-interactively** (no hang, no `ee.Authenticate()`
+    triggered by the app) and the foundation maps it to `EarthEngineAuthError` —
+    the app-level error-classification path is confirmed against the real SDK.
+  - **real SDK call-contract check (by introspection, 1.7.37):** every call the
+    code makes matches the actual signature —
+    `ee.Geometry.Rectangle(coords, proj=, geodesic=)`,
+    `Image.reduceRegion(reducer=, geometry=, scale=, maxPixels=, bestEffort=, tileScale=)`,
+    `Image.getThumbURL(params)`, `Image.normalizedDifference(bandNames)`,
+    `ImageCollection.aggregate_mean(property)`, `Geometry.area(maxError=)`,
+    `ee.Filter.lte(name, value)`, `ee.Dictionary(...)`. **No signature-level
+    defect found; no speculative code changes made.**
+- **Pass/fail (live):** initialization ❌ (no creds) · metadata `getInfo` ⏭️ not
+  reached · PNG `getThumbURL` ⏭️ not reached · swipe ⏭️ · dNDVI ⏭️ · cache ✅
+  (offline hit/miss/no-cache-on-exception tests) · error states ✅ (real-SDK
+  auth failure + config/quota/unavailable mapping).
+- **Durations:** only import + the failing `ee.Initialize` were reached
+  (sub-second to fail); no metadata/thumbnail timings available.
+- **Manual smoke script:** `scripts/smoke_test_change_explorer_live.py` exercised
+  end to end in its non-credential paths — refuses without `--confirm-live-ee`
+  (exit 2), reports flag-off as CONFIG (exit 5), and reaching the real
+  `ee.Initialize` without creds reports AUTH (exit 6) — all with **no URLs or
+  secrets printed**.
+- **Remaining limitation:** everything after a successful `ee.Initialize`
+  (geometry execution, S2 filtering, SCL masking, NDVI, composites, quality
+  `getInfo`, `getThumbURL`, image-byte loading in the swipe, dNDVI rendering,
+  before/after visual alignment, TTL behaviour) is **unverified live** and must
+  be confirmed by running the manual smoke test / gated live test in an
+  environment with real Earth Engine credentials (see §"Manual live smoke test"
+  and `tests/live/test_change_explorer_live.py`).
 
 ## 0c. Service orchestration + Swipe UI (implemented)
 

@@ -11,6 +11,9 @@ dependencies = []
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = [
+    "live_ee: makes real Earth Engine calls; skipped unless opted in (manual only, never in blocking CI)",
+]
 
 [tool.ruff]
 target-version = "py312"

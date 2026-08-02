@@ -68,7 +68,9 @@ jobs:
             src/services src/ui/tabs/tab_change_explorer.py \
             tests/unit/test_change_explorer_service.py \
             tests/unit/test_change_explorer_cache.py \
-            tests/ui/test_change_explorer_tab.py
+            tests/ui/test_change_explorer_tab.py \
+            scripts/smoke_test_change_explorer_live.py \
+            tests/live tests/unit/test_smoke_script.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github
