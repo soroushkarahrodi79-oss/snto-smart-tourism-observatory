@@ -124,15 +124,38 @@ future audit does not mistake it for drift.
 
 ---
 
+## Owner decisions after audit
+
+Following review of the Phase 0 baseline, the owner has settled five of the
+scientific open questions below (Q-01 through Q-05). These decisions are
+binding for Phase 0.5 planning (`PHASE_1_RECOMMENDATIONS.md`). They are
+recorded here as a distinct section — additive to the original findings —
+rather than silently edited into Part 1/2 above, so the baseline continues to
+show what was genuinely uncertain *at audit time*, with this section showing
+what changed after review.
+
+| Question | Decision | Where it is applied |
+|---|---|---|
+| **Q-01** — fixture evidence class | The `fixtures.py` assets are **`SYNTHETIC`**, not `CALIBRATED`. | `DATA_SOURCE_INVENTORY.md` D-07; `REMOVAL_CANDIDATES.md` R-08; `PHASE_1_RECOMMENDATIONS.md` PR 0.5.5. Under `platform/evidence.py`'s gating matrix, `SYNTHETIC` authorizes **no** decision use (monitoring, prioritization, intervention, or public reporting) — a stricter consequence than `CALIBRATED` would have carried. |
+| **Q-02** — KPI 7 causal language | **Suspend immediately.** Do not wait for real SCM zones to be ingested. | `KPI_INVENTORY.md` K-14; `SCIENTIFIC_CLAIMS_REGISTER.md` C-01/C-02; `REMOVAL_CANDIDATES.md` R-01; `PHASE_1_RECOMMENDATIONS.md` PR 0.5.1. This is Phase 0.5 work, not deferred pending data. |
+| **Q-03** — Aug-2025/Apr-2026 scene pair | The pair **cannot support** seasonal, trend, recovery, deterioration, or causal claims of any kind. | `SYSTEM_BASELINE.md` §3; `MAP_INVENTORY.md` M-03; `KPI_INVENTORY.md` K-02; `SCIENTIFIC_CLAIMS_REGISTER.md` C-12. Every surface presenting ΔEHS must describe it only as a dated two-scene comparison. |
+| **Q-04** — SCM decision thresholds | Classified as **`EXPERIMENTAL_HEURISTIC`** — an operating rule the system runs on today, locally unvalidated, until its basis is documented and tested. Not `arbitrary`: the repository does not demonstrate deliberate, methodless value selection, only the absence of a citation. | `KPI_INVENTORY.md` K-03 and its Reading Key vocabulary. |
+| **Q-05** — TIS visitor-uplift coefficients | **Illustrative scenario assumptions only.** May not be presented as observed efficiency or as a forecast effect. | `KPI_INVENTORY.md` K-06, K-15; `SCIENTIFIC_CLAIMS_REGISTER.md` C-10. |
+
+Q-06 through Q-21 (and Y-01 through Y-07) remain open below, unchanged by this
+review.
+
+---
+
 ## Part 3 — Open questions for the owner
 
 **Scientific**
 
-1. **Q-01** What is the intended evidence class of the `fixtures.py` assets — `CALIBRATED` or `SYNTHETIC`? (Determines what `evidence.supports()` lets them back.)
-2. **Q-02** Should KPI 7's causal language be suspended now, or held until real SCM zones are ingested? A `zones/` export is a documented, zero-code-change path.
-3. **Q-03** Are the two Sentinel-2 scenes (Aug 2025 / Apr 2026) an acceptable basis for any "seasonal deterioration" claim, given the year gap and the S2A/S2B change? Should `src/validation/cross_sensor.py` be wired into the ΔEHS path?
-4. **Q-04** Where do the SCM decision thresholds (0.07 / 0.15 / 0.85 / 0.70) come from? The α coefficients are cited; these are not.
-5. **Q-05** What is the source of the TIS visitor-uplift coefficients (25 % / 15 % / 8 % / 5 %)?
+1. **Q-01** What is the intended evidence class of the `fixtures.py` assets — `CALIBRATED` or `SYNTHETIC`? (Determines what `evidence.supports()` lets them back.) — ✅ **RESOLVED after audit: `SYNTHETIC`.** See "Owner decisions after audit" above.
+2. **Q-02** Should KPI 7's causal language be suspended now, or held until real SCM zones are ingested? A `zones/` export is a documented, zero-code-change path. — ✅ **RESOLVED after audit: suspend immediately.** See "Owner decisions after audit" above.
+3. **Q-03** Are the two Sentinel-2 scenes (Aug 2025 / Apr 2026) an acceptable basis for any "seasonal deterioration" claim, given the year gap and the S2A/S2B change? Should `src/validation/cross_sensor.py` be wired into the ΔEHS path? — ✅ **RESOLVED after audit: no, the pair cannot support any seasonal/trend/recovery/causal claim.** Whether `cross_sensor.py` gets wired in remains open — see "Owner decisions after audit" above.
+4. **Q-04** Where do the SCM decision thresholds (0.07 / 0.15 / 0.85 / 0.70) come from? The α coefficients are cited; these are not. — ✅ **RESOLVED after audit: classified `EXPERIMENTAL_HEURISTIC`, locally unvalidated.** See "Owner decisions after audit" above.
+5. **Q-05** What is the source of the TIS visitor-uplift coefficients (25 % / 15 % / 8 % / 5 %)? — ✅ **RESOLVED after audit: illustrative scenario assumptions only, not an observed or forecast effect.** See "Owner decisions after audit" above.
 6. **Q-06** Should `capacity_at_standard` be restricted to assets the SCM classifies as LOCALIZED_IMPACT, given that it attributes all EHS deficit to visitors?
 7. **Q-07** What is the source of the "340 % sobre la capacidad de carga" claim for Laguna de Peñalara?
 

@@ -22,6 +22,29 @@
 cross-year (2025 vs 2026), and 8-month separation for a delta labelled
 "seasonal".
 
+**Correction — the fix is not "collapse to `MISSING`".** The failure-behaviour
+row above documents a genuine defect (an unconditional REAL badge with no
+raster-presence check), but the correct remedy distinguishes four things the
+current code conflates into one boolean, rather than substituting one
+unconditional state (`REAL`) for another (`MISSING`):
+
+1. **Derived output availability** — `data/outputs/pnsg/pipeline_a_results.geojson`
+   is itself **committed to git** and can be genuinely present and
+   REAL-derived independent of whether the raw rasters are on disk.
+2. **Raw-source availability** — are the `.SAFE` products present locally?
+   Today: no, on any fresh clone.
+3. **Provenance completeness** — can the acquisition dates/sensors be
+   re-derived from the raw source? Today: no, without the rasters.
+4. **Reproducibility** — could a fresh clone regenerate the derived output
+   from scratch? Today: no.
+
+A committed derived GeoJSON remaining available while its raw source cannot be
+locally inspected is a normal, honest state for a versioned research artifact
+— not the same as having no evidence. The recommended degraded state is:
+*"Derived from real Sentinel-2 observations; raw source scenes unavailable in
+this environment; provenance incomplete and not locally reproducible."* Full
+recommendation: `PHASE_1_RECOMMENDATIONS.md` PR 0.5.2.
+
 ## D-02 · Sentinel-2 — multi-year time series (GEE Code Editor)
 
 | Field | Value |
@@ -132,8 +155,17 @@ ecological narratives are real and plausible; the numeric fields (`ehs`,
 `risk_score`, `dcs`, `mk_p_value`, `scm_classification`, `scm_confidence`,
 `visitor_capacity_annual`, `economic_importance`, `accessibility_score`) are
 authored constants. This is legitimate demo data — it is **not** "real", and
-under ADR-004 it should carry `SYNTHETIC` or `CALIBRATED`, never an unqualified
+under ADR-004 it should carry an explicit evidence class, never an unqualified
 "reales".
+
+**Owner decision applied (Q-01):** the resolved class is **`SYNTHETIC`**, not
+`CALIBRATED`. Under `platform/evidence.py`'s gating matrix, `SYNTHETIC`
+authorizes no decision use at all (monitoring, prioritization, intervention, or
+public reporting) — the stricter of the two candidates. See
+`CONTRADICTIONS_AND_OPEN_QUESTIONS.md` "Owner decisions after audit" and
+`PHASE_1_RECOMMENDATIONS.md` PR 0.5.5, which also proposes (documentation-only)
+attaching machine-readable evidence metadata to each fixture asset so this
+classification is checkable in code, not just in a docstring.
 
 ## D-08 · Field observations (#26)
 

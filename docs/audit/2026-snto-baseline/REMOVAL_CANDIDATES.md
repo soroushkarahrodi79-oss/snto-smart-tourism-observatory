@@ -17,12 +17,13 @@ strong, one unknown remains), **Low** (needs an owner decision first).
 |---|---|
 | **Component** | `what_it_means` / `recommended_action` literals in `_kpi_*` functions, especially `_kpi_human_pressure_alerts` (`dashboard.py:380-417`) and the "2022 drought" line in `src/decision_confidence/assessor.py:467-471` |
 | **Reason** | They assert measured, confirmed causal attribution of ecological damage to visitors from fixture constants and a simulation. See `SCIENTIFIC_CLAIMS_REGISTER.md` C-01, C-02, C-03. |
-| **Evidence** | `resolve_signals('pnsg')['scm_real_zones'] == 0`; `src/spatial_causality/zones/` absent; `scm_classification` is a literal at `fixtures.py:448`; no visitor measurement exists anywhere in the system |
+| **Evidence** | `resolve_signals('pnsg')['scm_real_zones'] == 0`; `src/spatial_causality/zones/` absent; `scm_classification` is a literal at `fixtures.py:448`; no operational visitor measurement is currently ingested or used by the live decision layer (the MITMA mobility pathway exists in code — `etl_mobility.py`, an honest `mobility_snapshot_exists()` gate — but its snapshot is absent; see `DATA_SOURCE_INVENTORY.md` D-06) |
 | **Affected users** | Gestor persona (the KPI strip is their home surface); any external reader of the exported executive brief |
 | **Dependencies** | `tab_kpis.py`, `kpi_sections.py`, `render_widgets.py`; `tests/unit/test_dashboard_kpis_empty.py` tests the empty case only |
-| **Replacement** | Move claims out of computation into a reviewable claim layer keyed on `EvidenceClass`. A CALIBRATED or SIMULATED input must not be able to emit "measurable"/"confirmed"/"caused by". The gating machinery already exists (`evidence.supports`). |
+| **Replacement** | Move claims out of computation into a reviewable claim layer. The correct gate is not "`EvidenceClass == REAL`" alone — it is REAL evidence **+** a validated method **+** a supported attribution **+** independent verification (`PHASE_1_RECOMMENDATIONS.md` PR 0.5.1); no current SNTO indicator clears all four, so no indicator may emit "measurable"/"confirmed"/"caused by" today, regardless of its evidence class. |
 | **Risk of removal** | **Low.** Text-only; numbers unchanged; no downstream computation reads these strings. |
 | **Confidence** | **High** |
+| **Owner decision applied (Q-02)** | Suspend immediately — this is Phase 0.5 work (`PHASE_1_RECOMMENDATIONS.md` PR 0.5.1), not deferred pending real SCM zones. |
 
 ## R-02 · Spectral map mode (M-02)
 
@@ -111,7 +112,7 @@ strong, one unknown remains), **Low** (needs an owner decision first).
 | **Evidence** | `DATA_SOURCE_INVENTORY.md` D-07; `SCIENTIFIC_CLAIMS_REGISTER.md` C-04 |
 | **Affected users** | **all** — this is the primary data path |
 | **Dependencies** | `load_dashboard` → `enrich_assets_with_satellite` → `rank_assets` → `compare_scenarios` → `allocate_tis_budget` → `compute_executive_dashboard` → 10 KPIs → every Decidir surface. Dozens of tests. |
-| **Replacement** | **This is a Phase 2+ inversion, not a removal.** The 218 real trails already carry EHS, ΔEHS, SCM, PRUG zone and budget — the same fields the fixtures supply. The migration is: build `TerritorialAsset` instances from `pipeline_a_results.geojson`, keep the fixtures behind an explicit `SNTO_DEMO_DATA=1` flag for demos, and mark every field the real data cannot supply (`economic_importance`, `accessibility_score`, `visitor_capacity_annual`) as `MISSING` rather than substituting a constant. |
+| **Replacement** | **This is a later-phase inversion, not a removal — not Phase 0.5.** It falls under the Phase 1 "Ecosystem State" pillar (`PHASE_1_RECOMMENDATIONS.md`, scope only, not designed there either) once Phase 0.5 lands; no phase beyond that has been named or scoped by the owner. The 218 real trails already carry EHS, ΔEHS, SCM, PRUG zone and budget — the same fields the fixtures supply. A possible migration shape: build `TerritorialAsset` instances from `pipeline_a_results.geojson`, keep the fixtures behind an explicit `SNTO_DEMO_DATA=1` flag for demos, and mark every field the real data cannot supply (`economic_importance`, `accessibility_score`, `visitor_capacity_annual`) as `MISSING` rather than substituting a constant. This shape is illustrative, not a committed design. |
 | **Risk of removal** | **Very high if done bluntly** — it would change every number on the dashboard at once. Must be staged, with before/after comparison published. |
 | **Confidence** | **High** on the diagnosis; the sequencing is an owner decision. |
 

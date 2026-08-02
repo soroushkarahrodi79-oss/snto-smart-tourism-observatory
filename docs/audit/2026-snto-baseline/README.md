@@ -10,9 +10,17 @@ produce it.
 
 ## Scope and method
 
-- **Branch:** `audit/2026-baseline-phase0` (cut from `docs/v3-status-sync-rebuild`).
+- **Branch audited:** `audit/2026-baseline-phase0` (cut from `docs/v3-status-sync-rebuild`).
 - **Date of audit:** 2026-08-02.
-- **Repository commit at audit time:** `ed25d0a`.
+- **Repository commit at audit time:** `ed25d0a`. This is the state every
+  finding below was derived from and verified against.
+- **Published via:** [PR #143](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/pull/143),
+  on a clean branch (`audit/2026-baseline-phase0-pr`) containing only these 12
+  documents, cut from `main` and later rebased onto `main` after `main`
+  advanced. The rebase gives the published commit a different SHA than
+  `ed25d0a`; the audit's findings and the repository state they describe are
+  unchanged by the rebase — only the branch's parent commit moved. **The audit
+  was not re-performed on, or against, the PR's rebased commit.**
 - **Method:** direct reading of entry points, `src/`, `tests/`, workflows,
   configuration and dependency manifests, plus **runtime probing** of the
   evidence gates (`resolve_signals`, `snapshot_provenance`, `detect_scene_dates`)
@@ -37,7 +45,7 @@ see [`CONTRADICTIONS_AND_OPEN_QUESTIONS.md`](CONTRADICTIONS_AND_OPEN_QUESTIONS.m
 | [`TEST_BASELINE.md`](TEST_BASELINE.md) | Commands run, results, coverage, skips, untested critical paths, reproducibility problems. |
 | [`REMOVAL_CANDIDATES.md`](REMOVAL_CANDIDATES.md) | Candidates with evidence, dependencies, migration path, risk and confidence. **Nothing was deleted.** |
 | [`CONTRADICTIONS_AND_OPEN_QUESTIONS.md`](CONTRADICTIONS_AND_OPEN_QUESTIONS.md) | Doc↔code disagreements and questions only the owner can settle. |
-| [`PHASE_1_RECOMMENDATIONS.md`](PHASE_1_RECOMMENDATIONS.md) | Proposed Phase 1 scope with acceptance criteria. Not implemented. |
+| [`PHASE_1_RECOMMENDATIONS.md`](PHASE_1_RECOMMENDATIONS.md) | Filename preserved from the original audit deliverable; content now documents the **Phase 0.5 — Integrity Stabilization** plan (five corrective PRs + four integrity items) with acceptance criteria, plus a scope-only note on the later Phase 1 scientific/product contract. Neither phase is implemented. |
 
 ## The three things a reader should take away
 
@@ -69,4 +77,4 @@ see [`CONTRADICTIONS_AND_OPEN_QUESTIONS.md`](CONTRADICTIONS_AND_OPEN_QUESTIONS.m
 - No repair of the one failing test.
 - No formatting, refactoring, renaming, or deletion.
 - No production-dependency changes.
-- No architecture proposals beyond the Phase 1 scope note.
+- No architecture proposals beyond the Phase 0.5 / Phase 1 scope notes.

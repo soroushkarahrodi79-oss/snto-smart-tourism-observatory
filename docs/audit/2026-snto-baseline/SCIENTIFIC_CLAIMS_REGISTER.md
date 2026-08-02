@@ -22,9 +22,10 @@ what it cites was audited.
 
 - **Where:** `src/platform/dashboard.py:392-402` (KPI 7 "Human Pressure Alerts"), rendered in *Decidir → Panorama ejecutivo*.
 - **Backing:** `scm_classification == "LOCALIZED_IMPACT"` — a hard-coded fixture string on the live path; and where computed, an α-decay **simulation** (`src/spatial_causality/zones/` does not exist, `scm_real_zones == 0`).
-- **What is actually measured:** nothing about visitors. No counter, no MITMA snapshot, no field observation exists in the system.
+- **What is actually measured:** no operational visitor measurement is currently ingested or used by the live decision layer. No counter or field observation feeds any indicator. The MITMA mobility ingestion pathway exists in code (`etl_mobility.py`, a committed zone crosswalk, an honest `mobility_snapshot_exists()` gate) — its snapshot is what is absent — and even once ingested a municipal inbound-trip figure attaches only as context, never as trail footfall (`DATA_SOURCE_INVENTORY.md` D-06).
 - **Consequence:** the KPI recommends *"seasonal closures"* and *"visitor quotas or guided-only access"*.
 - **Classification: MISLEADING.** The words "measurable" and "confirmed" are unsupported at every link in the chain.
+- **Owner decision applied (Q-02):** suspend this text **immediately** — Phase 0.5 work, not conditional on real SCM zones landing first. See `CONTRADICTIONS_AND_OPEN_QUESTIONS.md` "Owner decisions after audit."
 
 ### C-02 · "No sites are currently flagged for visitor-driven damage. Environmental changes appear to be **driven by natural climate variability**."
 
@@ -36,13 +37,14 @@ what it cites was audited.
 
 - **Where:** `src/decision_confidence/assessor.py:467-471`, emitted whenever `model_stability < 8`.
 - **Backing:** none. The sentence is a literal, independent of the asset, the years covered, or whether 2022 is in the series at all.
-- **Classification: CONTRADICTED BY IMPLEMENTATION.** A fabricated causal attribution presented as a data-derived uncertainty factor. This is a one-line fix and should be Phase 1 work.
+- **Classification: CONTRADICTED BY IMPLEMENTATION.** A fabricated causal attribution presented as a data-derived uncertainty factor. This is a one-line fix and should be **Phase 0.5** work (`PHASE_1_RECOMMENDATIONS.md` PR 0.5.1).
 
 ### C-04 · "20 activos **reales** de la Reserva de la Biosfera Sierra del Rincón"
 
 - **Where:** `src/territorial/fixtures.py:20`; the PNSG twin at `:429` says "8 activos representativos".
 - **Backing:** the same docstrings state *"Distribución de tiers calibrada contra el motor TPI"* and annotate each asset with the TPI arithmetic that produces its target tier (`# TPI ≈ 95 | CU=40(CRITICAL) + ES=20.5 …`, `# Activadores garantizados`).
 - **Classification: CONTRADICTED BY IMPLEMENTATION.** The numeric fields are authored backwards from a desired output distribution. Calling them "reales" is precisely the blurring ADR-004 forbids, inside the module that feeds every headline KPI.
+- **Owner decision applied (Q-01):** the correct class is **`SYNTHETIC`**, not `CALIBRATED`. See `CONTRADICTIONS_AND_OPEN_QUESTIONS.md` "Owner decisions after audit" and `PHASE_1_RECOMMENDATIONS.md` PR 0.5.5.
 
 ### C-05 · "Color = gradiente espectral **NDVI/NDMI**"
 
@@ -82,6 +84,7 @@ what it cites was audited.
 - **Where:** `src/platform/dashboard.py:428-436` (KPI 8); model in `src/intervention/impact.py`.
 - **Backing:** modelled intervention effects with uncited coefficients, notably "excellent assets attract **25 % more** visitors with promotion" (`impact.py:252`).
 - **Classification: OVERSTATED.** A benefit-per-euro verdict derived from unsourced elasticity constants.
+- **Owner decision applied (Q-05):** the visitor-uplift coefficients are **illustrative scenario assumptions only** and may not be presented as observed efficiency or a forecast effect. See `CONTRADICTIONS_AND_OPEN_QUESTIONS.md` "Owner decisions after audit."
 
 ### C-11 · `capacity_at_standard` — the visitor quota implied by a linear EHS model
 
@@ -95,6 +98,7 @@ what it cites was audited.
 - **Where:** `src/ui/tabs/tab_diagnostic.py:102-103`, `:332-334`; `prug_monitoring`.
 - **Backing:** two scenes, **2025-08-10** and **2026-04-10** — 8 months apart, two calendar years, **two different satellites** (S2A/S2B), in the reverse of the implied spring→summer order.
 - **Classification: OVERSTATED / needs methodological review.** A defensible two-date difference is framed as a within-season deterioration signal, with no acquisition dates on screen and no cross-sensor control (despite `src/validation/cross_sensor.py` existing).
+- **Owner decision applied (Q-03):** this scene pair **cannot support** a seasonal, trend, recovery, deterioration, or causal claim of any kind. The only defensible description is a **mean two-date health difference under the current sign convention** — not interpretable as a seasonal or longitudinal result. See `CONTRADICTIONS_AND_OPEN_QUESTIONS.md` "Owner decisions after audit."
 
 ### C-13 · "🛰️ Dato satelital real. Observación directa Sentinel-2 L2A."
 
@@ -151,7 +155,7 @@ what it cites was audited.
 ### C-22 · SCM scientific basis
 
 - **Where:** `src/spatial_causality/analyzer.py:12-31`, citing Marion & Leung 2001, Pickering et al. 2011, Sims et al. 2014.
-- **Classification: PLAUSIBLE BUT UNVALIDATED.** The *principle* (climate acts uniformly, trampling produces a spatial gradient) is sound and properly cited. What is unvalidated is (a) the decision thresholds 0.07/0.15/0.85/0.70, which carry no citation, and (b) the simulation standing in for observed zones.
+- **Classification: PLAUSIBLE BUT UNVALIDATED.** The *principle* (climate acts uniformly, trampling produces a spatial gradient) is sound and properly cited. What is unvalidated is (a) the decision thresholds 0.07/0.15/0.85/0.70, classified `EXPERIMENTAL_HEURISTIC` per owner decision Q-04 — an operating rule the classifier runs on today, locally unvalidated until its basis is documented and tested, and (b) the simulation standing in for observed zones.
 
 ### C-23 · CETS readiness and PRUG monitoring framing
 

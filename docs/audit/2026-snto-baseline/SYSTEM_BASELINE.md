@@ -11,6 +11,7 @@
 | Version marker | `2.1.0.dev0` | `pyproject.toml:7` |
 | Last stable tag | `v2.0.0` | `CLAUDE.md` |
 | Branch audited | `audit/2026-baseline-phase0` from `docs/v3-status-sync-rebuild` @ `ed25d0a` | `git log` |
+| Published via | [PR #143](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/pull/143) on `audit/2026-baseline-phase0-pr`, a clean branch cut from `main` and rebased onto `main` after publication began — a different commit SHA than `ed25d0a`, same document content. The audit itself was performed once, at `ed25d0a`; it was not re-run against the rebased commit. | `gh pr view 143` |
 | Test result | 1083 passed, 1 failed, 8 skipped | local run, see `TEST_BASELINE.md` |
 | Coverage | 84 % of `src` (gate: 80 %) | `pytest --cov=src`, `.github/workflows/ci.yml:90` |
 
@@ -62,16 +63,29 @@ proportion is only visible in a caption.
 converted to health convention by `real_trails._summary_to_health`):
 
 - 218 trails, 1 035.1 km
-- mean summer health **88.5 / 100** (range 28.0 – 100.0)
-- mean ΔEHS **+5.2** health points (i.e. *improving* spring→summer on average)
-- 46 trails deteriorating
+- mean health at the second scene **88.5 / 100** (range 28.0 – 100.0)
+- mean two-date health difference **+5.2** health points under the current
+  sign convention — **not interpretable as a seasonal or longitudinal
+  result** (owner decision, Q-03; see `CONTRADICTIONS_AND_OPEN_QUESTIONS.md`
+  "Owner decisions after audit" and §3 below)
+- 46 trails showing a negative two-date difference under that convention
 - SCM: 165 landscape-driven, 29 mixed, **24 localized**
 - indicative budget € 1 435 721
 
 The curated portfolio, by contrast, is authored to a target tier distribution:
 "*Distribución de tiers calibrada contra el motor TPI*", "*Activadores
-garantizados*" (`src/territorial/fixtures.py:24-33`). The two datasets tell
-materially different stories about the park's condition.
+garantizados*" (`src/territorial/fixtures.py:24-33`).
+
+**Correction — these two means are not directly comparable, and their gap is
+not evidence of a factual disagreement.** The fixture-portfolio mean (≈ 55
+across the 8 curated assets, `KPI_INVENTORY.md` K-08) and the real-trail mean
+above differ on every axis that would make a comparison valid: unit of
+analysis (8 curated assets vs. 218 real trails), formula (the multi-year
+5-component composite risk model vs. the 2-scene percentile-deficit model,
+`KPI_INVENTORY.md` K-01), and temporal record. The correct statement is: **two
+non-equivalent metrics share the same EHS name and scale, creating semantic
+incompatibility in the product** — not "the datasets disagree," which implies
+two comparable measurements of the same thing producing different answers.
 
 ## 3. Satellite evidence depth — the hard constraint
 
@@ -97,6 +111,13 @@ Three consequences the system does not currently state:
    Pipeline A ΔEHS path does not use it.
 3. The trend gate correctly refuses Mann-Kendall on 2 scenes and the UI says so.
    That gate works.
+
+**Owner decision (Q-03):** this scene pair cannot support any seasonal, trend,
+recovery, deterioration, or causal claim. The only defensible description of
+the resulting figure is a **mean two-date health difference under the current
+sign convention** — every UI and report surface presenting it should say so,
+with both dates and both sensor IDs on screen, and drop the spring/summer
+framing entirely until same-year, same-sensor paired scenes exist.
 
 Separately, the multi-year Mann-Kendall series shown in *Evidencia satelital*
 comes from a **different** source — a GEE Code Editor export under
