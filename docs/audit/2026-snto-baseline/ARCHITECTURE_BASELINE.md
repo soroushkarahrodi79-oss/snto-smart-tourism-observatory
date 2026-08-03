@@ -74,7 +74,7 @@ Total: ~10 371 statements measured by coverage, across ~210 Python modules.
 | `src/platform/` is a grab-bag | 27 modules spanning KPI computation, map rendering, chart building, provenance, playbooks, stakeholder models, maturity scoring, value modelling | No coherent responsibility; the name conveys nothing; new work has no obvious home. |
 | Presentation logic inside `platform/` | `map_layers.py` (660 lines, Deck.gl), `charts.py` (713 lines, Plotly) | Rendering concerns sit below the UI layer; `src/ui/` imports *up* into `platform` for view construction. |
 | Narrative text embedded in computation | `platform/dashboard.py` (564 lines) mixes KPI arithmetic with Spanish/English management prose and recommended actions | Cannot change a claim without editing computation; cannot unit-test the claim separately from the number. See `SCIENTIFIC_CLAIMS_REGISTER.md`. |
-| Fixture data inside a domain package | `src/territorial/fixtures.py` (561 lines of hard-coded assets) is imported by `src/ui/layout.py:17` at dashboard load | Demo data is on the production path, not behind a flag. |
+| Fixture data inside a domain package | `src/territorial/fixtures.py` (561 lines of hard-coded assets) is imported by `src/ui/layout.py:17` at dashboard load | Demo data is on the production path, not behind a flag — and per the Q-01 owner decision it is **`SYNTHETIC`**, a class the gating matrix permits for no decision use at all. |
 | Root-level scripts import into tests | `tests/unit/test_operational_ehs.py` imports `calculate_delta_ehs`; `tests/unit/test_tis_causal_budget.py` imports `tis_engine` | Both root modules call `load_dotenv()` at import → process-wide env mutation → test-order-dependent failure (`TEST_BASELINE.md`). |
 
 ## 4. Duplication
@@ -170,7 +170,7 @@ reporting `DataStatus.REAL` (`src/platform/provenance.py:129`).
 
 | # | Bottleneck | Why it blocks modernization |
 |---|---|---|
-| B-1 | Decision layer rooted in `fixtures.py` | Every KPI, tier, budget and alert traces to hand-authored constants. No amount of real-data ingestion changes the headline numbers until this is inverted. |
+| B-1 | Decision layer rooted in `fixtures.py` | Every KPI, tier, budget and alert traces to hand-authored constants classified **`SYNTHETIC`** (Q-01). No amount of real-data ingestion changes the headline numbers until this is inverted. |
 | B-2 | `platform/` has no responsibility boundary | Nowhere obvious to put new decision-support logic; rendering, computation and narrative all coexist. |
 | B-3 | Narrative claims compiled into KPI computation | Cannot correct a scientific overclaim without touching arithmetic; cannot A/B a claim; cannot review claims as a set. |
 | B-4 | Two territory registries + hard-coded report date | Blocks genuine multi-territory operation and makes "as of" dates untrustworthy. |

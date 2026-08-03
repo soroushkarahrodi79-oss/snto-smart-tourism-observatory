@@ -3,7 +3,13 @@
 ## Reading key
 
 - **Evidence** — the class of the *inputs on the live PNSG dashboard*, not the
-  class the formula could support with better data.
+  class the formula could support with better data. **Post-audit
+  reclassification (Q-01):** indicators fed by `src/territorial/fixtures.py`
+  were **initially classified as `CALIBRATED` during the audit**; the **owner
+  decision after audit is `SYNTHETIC`**, and that decision governs Phase 0.5
+  and later work. This is a change in how the audit classifies the data — no
+  machine-readable evidence field existed on fixture assets at audit time, and
+  none exists today (Phase 0.5 item I-5 makes it so).
 - **Threshold origin** — vocabulary revised after owner review (see
   `CONTRADICTIONS_AND_OPEN_QUESTIONS.md` "Owner decisions after audit", Q-04).
   The original two-tier `literature` / `expert` / `arbitrary` scheme collapsed
@@ -50,7 +56,7 @@
 | Unit | dimensionless 0–100 |
 | Domain | vegetation condition of a trail buffer / asset footprint |
 | Source | Sentinel-2 L2A B04/B08/B11 (real path); hard-coded literal (fixture path) |
-| Evidence | **REAL** for the 218 trails; **CALIBRATED** for the 8 dashboard assets |
+| Evidence | **REAL** for the 218 trails (Pipeline A path); **SYNTHETIC** for the 8 dashboard assets (fixture path — initially classified as CALIBRATED during the audit; owner decision after audit: SYNTHETIC, Q-01) |
 | Threshold origin | `expert` — weights cited to Pellizzaro 2007, Lloret 2012, Fernández-Manso 2016; `_BASELINE_NDVI = 0.55`, `_MAX_TREND_SLOPE = 0.005`, `_MAX_RESIDUAL_FRACTION = 0.20` are stated constants without per-constant citation |
 | Uncertainty | none propagated into the score itself |
 | Claim | "Salud Ecológica"; interpretation bands Excellent→Critical |
@@ -69,7 +75,7 @@ same quantity**. Nothing in the UI distinguishes them.
 | Formula | `ΔEHS = health_spring − health_summer` (field names are the code's own; see caveat below) |
 | Unit | EHS points |
 | Evidence | REAL |
-| Threshold origin | sign convention only (`< 0` = deterioration under the current two scenes) |
+| Threshold origin | sign convention only (`< 0` = **negative two-date health difference under the current sign convention** — per Q-03 this may *not* be read as deterioration) |
 | Uncertainty | none |
 | Claim | "deterioro estival"; "Sendas en deterioro: 46" |
 | **Owner decision applied (Q-03)** | The Aug-2025 / Apr-2026 scene pair **cannot support** a seasonal, trend, recovery, deterioration, or causal claim of any kind. This section's original title ("seasonal delta") asserted the audit's own seasonal framing rather than describing what the data supports; it is corrected here. The correct description is: **mean two-date health difference under the current sign convention** — not interpretable as a seasonal or longitudinal result. |
@@ -99,7 +105,7 @@ same quantity**. Nothing in the UI distinguishes them.
 | Code | `src/decision_confidence/assessor.py` |
 | Formula | `DCS = DQ(0-25) + TR(0-25) + SC(0-20) + MS(0-15) + SS(0-15)` |
 | Unit | 0–100 |
-| Evidence | **CALIBRATED** on the dashboard — `dcs` is a literal field on every fixture asset (e.g. `dcs=79.0`), not computed at render time |
+| Evidence | **SYNTHETIC** on the dashboard (Q-01) — `dcs` is a literal field on every fixture asset (e.g. `dcs=79.0`), not computed at render time. A *confidence* score that is itself a synthetic constant is the sharpest case in this inventory. |
 | Threshold origin | `UNDOCUMENTED_ORIGIN` — the 25/25/20/15/15 budget, the 80/60/40 classification bands, and the sub-score divisors (`/0.5`, `/0.25`, `/2.0`, `/0.30`) carry no citation; the module docstring gives a thorough design rationale for *why* each dimension matters, just not for the specific numbers, so this is undocumented origin rather than demonstrated arbitrariness |
 | Uncertainty | it *is* the uncertainty instrument; has none of its own |
 | Claim | "act with full confidence" / "NOT YET" |
@@ -114,7 +120,7 @@ same quantity**. Nothing in the UI distinguishes them.
 | Formula | `TPI = ConditionUrgency(0-40) + EvidenceStrength(0-25) + StrategicValue(0-20) + CausalityClarity(0-15)` |
 | Sub-formulas | `ES = 25·DCS/100`; `SV = 20·(0.40·visitor_norm + 0.35·economic_importance + 0.25·accessibility)`; `CC` from a 9-entry (SCM class × confidence) lookup |
 | Unit | 0–100 |
-| Evidence | CALIBRATED (all four inputs are fixture literals) |
+| Evidence | **SYNTHETIC** (Q-01) — all four inputs are fixture literals |
 | Threshold origin | **`DECLARED_POLICY`** — the 40/25/20/15 budget, the urgency factors (0.70, 0.20, 1.12, 0.38…), the CC lookup values (15/12/10/8/6/5/4/3), and the tier cut-points (75, 0.35, 55, 45, 38, 50, 38) have no cited empirical basis, but the module docstring frames them as a deliberate editorial design (see Recommendation) — treated here as owned policy, not an empirical claim in need of a citation |
 | Uncertainty | none |
 | Claim | ranking of "where to allocate attention first" |
@@ -154,16 +160,16 @@ same quantity**. Nothing in the UI distinguishes them.
 
 | # | KPI | Formula (`technical_basis`) | Unit | Thresholds | Evidence | Recommendation |
 |---|---|---|---|---|---|---|
-| K-08 | **Territory Health Index** | mean EHS across assets | 0–100 | 75 / 60 / 45 | CALIBRATED | **Retain**, re-source to the 218 real trails. **Correction:** the fixture-portfolio mean (≈ 55) and the real-trail mean (88.5) are **not directly comparable** — different unit of analysis (8 curated assets vs. 218 real trails), different formula (multi-year composite risk model vs. 2-scene percentile deficit, see K-01), and different temporal record. This is not a case of "the datasets disagree": **two non-equivalent metrics share the same EHS name and scale, creating semantic incompatibility in the product.** The raw means are reported for reference only, not as evidence of a factual disagreement between two comparable measurements. |
-| K-09 | **Assets Requiring Action** | count Tier 1, Tier 2 | count | ≥3 urgent → RED | CALIBRATED | Retain. |
-| K-10 | **Visitor Capacity at Risk** | Σ `visitor_capacity_annual` for Tier 1+2 | "visitors/yr" | 40 % / 20 % | **CALIBRATED, mislabelled** | **Redesign.** Renders as `"X,XXX visitors/yr (NN%)"` and the narrative says *"X annual visitors … are visiting sites in deteriorating condition"*. The input is a hand-written *capacity* constant, not a visitor count. Rename the unit or drop the KPI. |
+| K-08 | **Territory Health Index** | mean EHS across assets | 0–100 | 75 / 60 / 45 | **SYNTHETIC** (Q-01) | **Retain**, re-source to the 218 real trails. **Correction:** the fixture-portfolio mean (≈ 55) and the real-trail mean (88.5) are **not directly comparable** — different unit of analysis (8 curated assets vs. 218 real trails), different formula (multi-year composite risk model vs. 2-scene percentile deficit, see K-01), and different temporal record. This is not a case of "the datasets disagree": **two non-equivalent metrics share the same EHS name and scale, creating semantic incompatibility in the product.** The raw means are reported for reference only, not as evidence of a factual disagreement between two comparable measurements. |
+| K-09 | **Assets Requiring Action** | count Tier 1, Tier 2 | count | ≥3 urgent → RED | **SYNTHETIC** (Q-01) | Retain. |
+| K-10 | **Visitor Capacity at Risk** | Σ `visitor_capacity_annual` for Tier 1+2 | "visitors/yr" | 40 % / 20 % | **SYNTHETIC, mislabelled** (Q-01) | **Redesign.** Renders as `"X,XXX visitors/yr (NN%)"` and the narrative says *"X annual visitors … are visiting sites in deteriorating condition"*. The input is a hand-written *capacity* constant, not a visitor count. Rename the unit or drop the KPI. |
 | K-11 | **Conservation Investment Backlog** | Σ best-scenario cost for Tier 1+2 | € | — | SIMULATED | **Redesign** — euro-precise output from constant inputs. Show a range. |
-| K-12 | **Decision Confidence Rate** | % assets with DCS ≥ 65 | % | 65 | CALIBRATED | Retain; note DCS is itself a fixture literal (K-04). |
-| K-13 | **Promotion Pipeline** | count Tier 4 | count | — | CALIBRATED | Retain. |
-| K-14 | **Human Pressure Alerts** | count(`scm_classification == LOCALIZED_IMPACT` **and** tier ∈ {1,2}) | count | ≥3 / ≥1 | **SIMULATED** | 🔴 **Suspend.** See below. |
-| K-15 | **Budget Efficiency Index** | budget-weighted portfolio TIS | 0–100 | 12 / 7 | SIMULATED | **Redesign** — see K-06. |
-| K-16 | **Recovery Progress** | Mann-Kendall trend direction per asset | count | — | CALIBRATED (`trend_direction` is a fixture literal) | Retain, re-source. |
-| K-17 | **Evidence Coverage Gap** | count DCS < 55 | count | 55 | CALIBRATED | Retain — the most honest of the ten. |
+| K-12 | **Decision Confidence Rate** | % assets with DCS ≥ 65 | % | 65 | **SYNTHETIC** (Q-01) | Retain; note DCS is itself a fixture literal (K-04). |
+| K-13 | **Promotion Pipeline** | count Tier 4 | count | — | **SYNTHETIC** (Q-01) | Retain. |
+| K-14 | **Human Pressure Alerts** | count(`scm_classification == LOCALIZED_IMPACT` **and** tier ∈ {1,2}) | count | ≥3 / ≥1 | **SYNTHETIC on the live path** (the `scm_classification` string is a fixture literal, Q-01); **SIMULATED on the computed fallback path** (α-decay `simulate_zones`, used when the SCM is actually run and `zones/` is absent) | 🔴 **Suspend.** Neither class licenses the claim; see below. |
+| K-15 | **Budget Efficiency Index** | budget-weighted portfolio TIS | 0–100 | 12 / 7 | **MIXED**: SIMULATED intervention model × **SYNTHETIC** fixture inputs (Q-01) | **Redesign** — see K-06. |
+| K-16 | **Recovery Progress** | Mann-Kendall trend direction per asset | count | — | **SYNTHETIC** (Q-01) — `trend_direction` is a fixture literal | Retain, re-source. Note the KPI name asserts *recovery*, which Q-03 forbids reading into the two-scene record; the fixture literal is a separate problem from the naming. |
+| K-17 | **Evidence Coverage Gap** | count DCS < 55 | count | 55 | **SYNTHETIC** (Q-01) | Retain — the most honest of the ten in *intent*, though it too counts synthetic DCS literals. |
 
 ### 🔴 K-14 in detail — the highest-risk indicator in the product
 
@@ -179,11 +185,17 @@ Recommended action: *"Consider seasonal closures"* / *"visitor quotas or
 guided-only access"* — i.e. it recommends restricting public access to a
 national park.
 
-The chain behind "measurable" and "confirmed" is:
-`scm_classification` (a **hard-coded string** on the fixture asset, e.g.
-`scm_classification="LOCALIZED_IMPACT"` at `fixtures.py:448`) — and where it *is*
-computed, it comes from zones **simulated** by α-decay from the geographic
-`human_pressure` proxy, because `src/spatial_causality/zones/` does not exist.
+The chain behind "measurable" and "confirmed" has **two distinct paths, neither
+of which supports the claim**:
+
+- **Live dashboard path — `SYNTHETIC` (Q-01).** `scm_classification` is a
+  **hard-coded string** on the fixture asset, e.g.
+  `scm_classification="LOCALIZED_IMPACT"` at `fixtures.py:448`. Under the
+  gating matrix `SYNTHETIC` authorizes no decision use whatsoever.
+- **Computed fallback path — `SIMULATED`.** Where the SCM actually runs, it
+  derives zones by α-decay from the geographic `human_pressure` proxy, because
+  `src/spatial_causality/zones/` does not exist. `SIMULATED` likewise
+  authorizes nothing.
 
 **No operational visitor measurement is currently ingested or used by the live
 decision layer.** No turnstile, no counter, no field observation feeds any
@@ -222,7 +234,7 @@ substitute for it.
 | K-24 | **Priority bands** (0/30/45/60/75) | `platform/real_trails.py:56` | `UNSOURCED_IN_REPOSITORY`, cross-referenced to `constants.py` | Retain; unify with the EHS legend bands (three inconsistent labellings exist). |
 | K-25 | **`priority_index` = (100 − salud) × peso PRUG** | `reporting/prug_monitoring.py` | protection weights from OAPN zonification | **Retain.** Real cartography × real signal, framed as early warning. Well done. |
 | K-26 | **Evidence badges** (🛰️/📐/🎛️/🧪/—) + gating matrix | `platform/evidence.py` | declared editorial policy | **Retain — this is the asset to build on.** |
-| K-27 | **SVI** — Social Vulnerability Index | `socioeconomic/indicators.py` | INE/ALMUDENA real inputs × fixture asset risk | **Redesign** — the real-data half is genuine; the join multiplies it by calibrated exposure, which the tab does not disclose. |
+| K-27 | **SVI** — Social Vulnerability Index | `socioeconomic/indicators.py` | **MIXED: REAL socioeconomic data × SYNTHETIC fixture exposure** (Q-01) | **Redesign** — the real-data half is genuine; the join multiplies it by **synthetic fixture** exposure, which the tab does not disclose. The product of a real factor and a synthetic factor is not real. |
 | K-28 | **Jobs at risk** | `socioeconomic/indicators.jobs_at_risk` | hospitality affiliates × environmental exposure | Retain — `app.py:233-238` already captions it correctly as real-data-backed, distinguishing it from the visitor proxy. |
 | K-29 | **DCS quality gate** (`DCS_MIN_DQ_FOR_ACTION`, `DCS_MIN_TR_FOR_ACTION`) | `assessor.py:248` | `src/config/constants.py` | **Retain.** Downgrades HIGH→MODERATE when foundational data is weak — a genuine safeguard. |
 
@@ -233,7 +245,7 @@ substitute for it.
 | Flag | Indicators |
 |---|---|
 | **Causal overclaiming** | K-14 (visitor damage "confirmed"), K-03 (SCM cause from simulation), K-04 (hard-coded "2022 drought" attribution), K-19 (capacity assumes visitor-caused deficit) |
-| **Hidden synthetic/simulated data** | K-04, K-05, K-14 (fixture literals rendered as computed); K-03, K-06 (simulation presented without the label at the point of display) |
+| **Hidden synthetic/simulated data** | K-04, K-05, K-14 (fixture literals rendered as computed); K-03, K-06 (simulation presented without the label at the point of display). **After Q-01, every fixture-fed indicator (K-01 fixture path, K-04, K-05, K-08–K-14, K-16, K-17, and the exposure half of K-27) is `SYNTHETIC`** — a class the gating matrix permits for *no* decision use, while these indicators currently drive tiering, budget and alerting. |
 | **Unclear or wrong units** | K-10 ("visitors/yr" from a capacity constant), K-15 (TIS as "efficiency") |
 | **Unsupported thresholds** | K-03 (`EXPERIMENTAL_HEURISTIC`), K-04 (`UNDOCUMENTED_ORIGIN`), K-05/K-18/K-21/K-22 (`DECLARED_POLICY`), K-06 (`DECLARED_POLICY` for weights, illustrative scenario assumption for the visitor-uplift rates), K-20/K-24 (`UNSOURCED_IN_REPOSITORY`) — none is empirically cited; see the Reading Key for what each label does and does not claim |
 | **No uncertainty** | K-01, K-02, K-05, K-06, and all 10 dashboard KPIs |

@@ -42,7 +42,7 @@ no architecture change, no removals. Rationale:
 3. Fixing reproducibility first means the numbers any later phase compares are
    stable.
 
-## Proposed Phase 0.5 scope — five corrective PRs + four integrity items
+## Proposed Phase 0.5 scope — five corrective PRs + five integrity items
 
 ### PR 0.5.1 · Remove unsupported causal language
 
@@ -58,8 +58,8 @@ no architecture change, no removals. Rationale:
 - `src/ui/tabs/tab_diagnostic.py:440` — qualify "sin datos sintéticos" to exclude
   the SCM column.
 - `src/platform/map_layers.py:733` and `tab_diagnostic.py:144` — state that the
-  colour encodes EHS (which may be calibrated or synthetic), not a spectral
-  measurement.
+  colour encodes EHS, which on the fixture path is a **synthetic constant**
+  (Q-01) and not a spectral measurement.
 - No restrictive management action (seasonal closure, visitor quota, guided-only
   access, or equivalent) may be emitted from evidence that is `SIMULATED`,
   `SYNTHETIC`, unvalidated, or attribution-unsupported — i.e. the same four-part
@@ -288,37 +288,24 @@ scoped to implement a settled decision.
 - The `SYNTHETIC` classification is stated once, in `fixtures.py`, and
   referenced from `docs/methodology/evidence-classes.md`.
 
-**Beyond this PR — not implemented here.** A docstring correction is
-necessary but not sufficient: it is not machine-checkable, and nothing stops a
-future contributor from reintroducing a real/synthetic conflation by editing
-the description without editing the (nonexistent) evidence field. Phase 0.5
-should be understood to *point toward* — without designing or implementing
-here — attaching machine-readable evidence metadata directly to each fixture
-asset, for example:
+**A docstring correction alone does not close this item.** It is not
+machine-checkable, and nothing stops a future contributor from reintroducing a
+real/synthetic conflation by editing a description without touching the
+(currently nonexistent) evidence field. **Phase 0.5 must therefore also
+complete item I-5 below** — the two together are the fixture-reclassification
+workstream, and Phase 0.5 is not done when only the comments have changed.
 
-```yaml
-evidence_class: SYNTHETIC
-demo_only: true
-operational_decision_support: false
-scientific_validation_support: false
-```
-
-This would let `evidence.supports()` and the PR 0.5.1 claims-lint check the
-classification programmatically instead of depending on a comment staying
-accurate. The exact schema, its storage (a `TerritorialAsset` field vs. a
-sidecar file), and its wiring are implementation design for the PR that
-actually does this work — not decided in this document.
-
-**Risk:** Low for the docstring correction (text-only). The metadata-field
-extension is out of scope for this PR; its risk is unassessed until proposed.
+**Risk:** Low for the docstring correction (text-only). The machine-readable
+metadata work is scoped as I-5.
 
 ---
 
 ## Phase 0.5 scope — additional integrity items (from audit findings)
 
 These are already-audited, already-characterised defects that belong in Phase
-0.5 alongside the five PRs above. They are listed here to keep the plan
-complete; none is designed or implemented in this document.
+0.5 alongside the five PRs above — **ten Phase 0.5 items in total**. They are
+listed here to keep the plan complete; none is designed or implemented in this
+document.
 
 | Item | Audited finding | What Phase 0.5 must correct |
 |---|---|---|
@@ -326,6 +313,7 @@ complete; none is designed or implemented in this document.
 | **I-2** · Stale AI handoff document | `CONTRADICTIONS_AND_OPEN_QUESTIONS.md` X-01, Q-16 | `docs/ai-context/CLAUDE_CODE_HANDOFF_2026.md` describes a `2,890`-line `app.py` that no longer exists and PR states that resolved long ago. Either mark it historical with an unmistakable stale-document warning banner (a dated header a reader cannot miss on opening the file) or retire it in favour of `CLAUDE.md` + `MASTER_STRATEGIC_INDEX.md`. |
 | **I-3** · "Live" indicator and report date | `SYSTEM_BASELINE.md` bottlenecks §6.3–4, `SCIENTIFIC_CLAIMS_REGISTER.md` C-14/C-15, Q-10 | The 60-second autorefresh + pulsing "live" indicator asserts a live feed over data that only changes on a manual offline pipeline run; remove it, or qualify it so it cannot be read as a live feed. The hard-coded `REPORT_DATE = "2026-06-12"` should be replaced with a truthful data/publication-date strategy (e.g. the actual pipeline run date, or an explicit "as of" label sourced from `run_context.json`). |
 | **I-4** · SCM attribution separated from real measurement at display | `CONTRADICTIONS_AND_OPEN_QUESTIONS.md` X-06, `SCIENTIFIC_CLAIMS_REGISTER.md` C-16, `MAP_INVENTORY.md` M-03 flags | The real-trails table and map tooltip present real EHS/ΔEHS alongside a `Causa (SCM)` value that is currently simulated, with no visual or textual distinction between the two evidence classes at the point of display. **Visually and semantically separate** them — distinct styling *and* distinct wording — so a reader cannot mistake the simulated cause for a measurement of equal standing to the real trail data next to it. |
+| **I-5** · **Machine-readable fixture evidence class** | Q-01 owner decision; `DATA_SOURCE_INVENTORY.md` D-07; `KPI_INVENTORY.md` reading key; PR 0.5.5 above | **Required Phase 0.5 outcome: *fixture evidence class is machine-readable and enforced at decision/display gates.*** A docstring is not enough (PR 0.5.5). The audit does not choose the schema; the implementing PR's acceptance criteria must require all four of: (a) **each fixture asset resolves to `EvidenceClass.SYNTHETIC`**; (b) **the classification is accessible programmatically** (not only as prose), so `evidence.supports()` and the PR 0.5.1 claims-lint can read it; (c) **synthetic fixture values cannot authorize monitoring, prioritisation, intervention or public-reporting claims** under the current gating policy; (d) **tests prevent accidental regression** to `REAL` or `CALIBRATED` treatment. Storage (a `TerritorialAsset` field vs. a sidecar) and exact field names are implementation design for that PR — **not decided here, and not implemented in this audit PR.** |
 
 ---
 
@@ -351,14 +339,20 @@ complete; none is designed or implemented in this document.
 
 ## Suggested definition of done for Phase 0.5
 
-1. All nine Phase 0.5 items (five PRs + four integrity items) merged, each
+1. All **ten Phase 0.5 items** (five PRs + five integrity items) merged, each
    reviewed independently, none mixing docs with code.
 2. `python -m pytest -q` green on a developer machine with a populated `.env`,
-   and no credential value appears in its output.
+   and no credential value or database connection string appears in its output.
 3. Coverage still ≥ 80 %.
 4. A re-run of `SCIENTIFIC_CLAIMS_REGISTER.md` shows zero claims classified
    **Misleading** or **Contradicted by implementation** in Tier 1.
-5. `docs/audit/2026-snto-baseline/` updated with a short "Phase 0.5 delta" note
+5. **Fixture evidence class is machine-readable and enforced at
+   decision/display gates** (I-5) — each fixture asset resolves to
+   `EvidenceClass.SYNTHETIC` programmatically, synthetic values cannot
+   authorize monitoring, prioritisation, intervention or public-reporting
+   claims, and tests prevent regression to `REAL`/`CALIBRATED` treatment.
+   Docstrings alone do not satisfy this criterion.
+6. `docs/audit/2026-snto-baseline/` updated with a short "Phase 0.5 delta" note
    rather than rewritten — the baseline stays a historical record.
 
 ---

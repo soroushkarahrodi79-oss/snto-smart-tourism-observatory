@@ -41,14 +41,21 @@ The handoff document describes "Pipeline A" (real geospatial) and "Pipeline B"
 (territorial intelligence demo). **That split is still live, and it is the
 central structural fact of the system.**
 
-| | Pipeline A (real) | Pipeline B (curated/demo) |
+| | Pipeline A (**real geospatial/spectral core, mixed derived outputs**) | Pipeline B (curated/demo — **SYNTHETIC**, Q-01) |
 |---|---|---|
 | Unit of analysis | 218 real OAPN trails | 8 hand-written PNSG assets |
 | Source | `data/outputs/pnsg/pipeline_a_results.geojson` (tracked in git) | `src/territorial/fixtures.py:427` `build_pnsg_territory()` |
-| Geometry | true OAPN cartography | municipality centroid + hash jitter, unless matched to a real trail |
-| EHS | computed from Sentinel-2 NDVI/NDMI percentiles | hard-coded literal (e.g. `ehs=35.0`) |
-| SCM / DCS / trend | computed or absent | hard-coded literal (`scm_confidence="HIGH"`, `dcs=79.0`, `mk_p_value=0.006`) |
+| Geometry | true OAPN cartography — **real** | municipality centroid + hash jitter, unless matched to a real trail — **synthetic** |
+| EHS | computed from Sentinel-2 NDVI/NDMI percentiles — **real-derived** | hard-coded literal (e.g. `ehs=35.0`) — **synthetic** |
+| SCM | **SIMULATED** (α-decay fallback; `zones/` absent) | hard-coded literal (`scm_confidence="HIGH"`) — **synthetic** |
+| DCS / trend | not computed on this path | hard-coded literal (`dcs=79.0`, `mk_p_value=0.006`) — **synthetic** |
+| Budget | **derived / modelled**, not observed | derived from synthetic inputs |
 | Where it surfaces | lower half of *Diagnosticar → Diagnóstico espacial*; PRUG report; GIS export | **the entire Decidir layer**: 10 KPIs, tiers, budget, alerts, simulator, socio-economic |
+
+**Pipeline A is not uniformly real.** Its geospatial and spectral core is
+genuinely real-derived; its causal attribution is simulated and its budget is
+modelled. Describing the whole pipeline as "the real one" — as the handoff
+document and parts of the UI do — overstates two of its four output families.
 
 The bridge between them is `src/platform/enrichment.py::enrich_assets_with_satellite`,
 a deliberately **one-directional, conservative override**: real satellite EHS
@@ -59,18 +66,20 @@ and documented. The consequence is not: the headline decision layer is
 predominantly curated judgement, upgraded in a minority of cases, and the
 proportion is only visible in a caption.
 
-**Measured reality of the real layer** (`data/outputs/pnsg/pipeline_a_summary.json`,
-converted to health convention by `real_trails._summary_to_health`):
+**Outputs of the Pipeline A layer, by component evidence class**
+(`data/outputs/pnsg/pipeline_a_summary.json`, converted to health convention by
+`real_trails._summary_to_health`). These are **not uniformly measurements** —
+the block below was originally headed "Measured reality of the real layer,"
+which incorrectly placed a simulated distribution and a modelled budget under a
+measurement heading:
 
-- 218 trails, 1 035.1 km
-- mean health at the second scene **88.5 / 100** (range 28.0 – 100.0)
-- mean two-date health difference **+5.2** health points under the current
-  sign convention — **not interpretable as a seasonal or longitudinal
-  result** (owner decision, Q-03; see `CONTRADICTIONS_AND_OPEN_QUESTIONS.md`
-  "Owner decisions after audit" and §3 below)
-- 46 trails showing a negative two-date difference under that convention
-- SCM: 165 landscape-driven, 29 mixed, **24 localized**
-- indicative budget € 1 435 721
+| Component | Value | Evidence class |
+|---|---|---|
+| Trails and geometry | 218 trails, 1 035.1 km | **Real cartography** (official OAPN) |
+| Health at the second scene | mean **88.5 / 100** (range 28.0 – 100.0) | **Real-derived** from Sentinel-2 |
+| Two-date health difference | mean **+5.2** points; 46 trails negative | **Real-derived, but temporally non-comparable** — the Aug-2025/Apr-2026 pair spans two years and two sensors, so this is *not* interpretable as seasonal, longitudinal, deterioration or recovery (Q-03) |
+| SCM distribution | 165 landscape-driven, 29 mixed, 24 localized | **SIMULATED** — a property of the α-decay fallback, not a measured finding about the park (`src/spatial_causality/zones/` absent) |
+| Indicative budget | € 1 435 721 | **Derived / modelled**, not observed — `length × cost/m × EHS × SCM factor`, and its SCM factor inherits the simulation above |
 
 The curated portfolio, by contrast, is authored to a target tier distribution:
 "*Distribución de tiers calibrada contra el motor TPI*", "*Activadores

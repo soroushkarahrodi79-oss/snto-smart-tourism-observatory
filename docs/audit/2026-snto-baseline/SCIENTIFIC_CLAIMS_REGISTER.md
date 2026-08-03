@@ -50,7 +50,7 @@ what it cites was audited.
 
 - **Where:** map tooltip `src/platform/map_layers.py:733`; tab caption `src/ui/tabs/tab_diagnostic.py:144` ("Reproduce el contraste espectral NDVI/NDMI a lo largo del corredor del sendero").
 - **Backing:** the colour encodes `asset.ehs`, which for non-overridden fixture assets is a hand-written constant. The module's own docstring says "**simulating** the NDVI/NDMI spectral signature" (`map_layers.py:666`) — the UI drops "simulating".
-- **Classification: MISLEADING.** Presents a calibrated constant as a spectral measurement, along a synthetic corridor.
+- **Classification: MISLEADING.** Presents a **synthetic fixture constant** (Q-01 — initially classified as CALIBRATED during the audit; owner decision after audit: SYNTHETIC) as a spectral measurement, along a synthetic corridor.
 
 ---
 

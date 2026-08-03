@@ -26,7 +26,7 @@ sets `crs="EPSG:4326"` explicitly (`gis_export.py:161`). No CRS bug found.
 | Analytical transformation | `tier` from TPI classification → indigo→slate 4-step palette (`TIER_COLORS`) |
 | Legend / units | Sidebar + in-tab: "TIER I–IV, prioridad de inversión". Deliberately **non-traffic-light** — a good, explicit design decision (`map_layers.py:76-78`) |
 | Management question | "Where should investment be prioritised?" |
-| Evidence status | **MIXED** — attribute colour is CALIBRATED (fixture TPI), geometry is REAL for the matched subset and **SYNTHETIC** for the rest |
+| Evidence status | **MIXED** — attribute colour is **SYNTHETIC** (fixture TPI; initially classified as CALIBRATED during the audit, owner decision after audit: SYNTHETIC, Q-01); geometry is REAL for the subset matched to a Pipeline A trail and **SYNTHETIC** for the rest |
 | Uncertainty communication | Per-feature tooltip carries `geom_note` ("≈ Posición aproximada (centroide municipal)" vs "📍 Traza cartográfica real"); a caption states the real/approx split (`tab_diagnostic.py:157-162`, `:240-244`) |
 | Classification | **Operational-looking, partly illustrative. Candidate for redesign, not removal.** |
 
@@ -67,7 +67,7 @@ sets `crs="EPSG:4326"` explicitly (`gis_export.py:161`). No CRS bug found.
 | Analytical transformation | `asset.ehs` → continuous RdYlGn ramp (`_SPECTRAL_RAMP`, ColorBrewer 5-class, 6 anchors) |
 | Legend / units | In-tab 6-band legend, EHS 0–100 |
 | Management question | "Which assets are in worst ecological condition?" |
-| Evidence status | **MIXED**, skewed CALIBRATED — EHS is the fixture literal unless the conservative satellite override fired |
+| Evidence status | **MIXED, generally SYNTHETIC on the fixture path** — EHS is a synthetic fixture literal (Q-01) unless the conservative satellite override replaced it with a real-derived value; geometry carries M-01's real/synthetic split |
 | Uncertainty communication | Same `geom_note` tooltip; caption explains the ramp |
 | Classification | **Misleading in its current labelling. Candidate for redesign.** |
 
@@ -105,14 +105,23 @@ sets `crs="EPSG:4326"` explicitly (`gis_export.py:161`). No CRS bug found.
 | CRS | EPSG:4326 |
 | Analytical transformation | stress → health (`metrics.semantics.stress_to_health`, health = 100 − stress) → RdYlGn ramp (`real_trails._health_to_rgba`) |
 | Legend / units | In-tab 6-band EHS legend + "Sin dato" grey; tooltip carries EHS verano, ΔEHS, SCM cause, PRUG zone, budget |
-| Management question | "Which real trails are degrading, and where, weighted by protection level?" |
-| Evidence status | **REAL** |
-| Uncertainty communication | Strongest in the product: evidence badge, scene dates, trend-gate statement ("Mann-Kendall NO aplicable"), coverage fraction, and a view-modulated confidence caveat ("señal de alerta temprana, no veredicto de intervención formal") |
-| Classification | **Operational and analytical. Retain and promote.** |
+| Management question | **"Where do the current two-scene health differences occur, and how do they intersect protected-management zones?"** — corrected from the original *"Which real trails are degrading, and where, weighted by protection level?"*, which presumes a longitudinal reading the two-scene record cannot support (Q-03). |
+| Evidence status | **MIXED** — component-level, not uniformly REAL:<br/>· **real trail geometry** (official OAPN cartography)<br/>· **real-derived two-scene spectral health values** (Sentinel-2 NDVI/NDMI over a 50 m buffer, scene-percentile anchored)<br/>· **SIMULATED SCM attribution** (`Causa (SCM)` in tooltip and table — α-decay fallback; `src/spatial_causality/zones/` absent, `scm_real_zones == 0`)<br/>· **derived/illustrative management budget** (modelled `length × cost/m × EHS × SCM factor` — not an observed or committed cost) |
+| Uncertainty communication | Strongest in the product for the *spectral* component: evidence badge, scene dates, trend-gate statement ("Mann-Kendall NO aplicable"), coverage fraction, and a view-modulated confidence caveat. **But it does not distinguish the simulated SCM attribution or the modelled budget from the real measurements beside them** (Phase 0.5 item I-4). |
+| Classification | **Operational and analytical for its real components. Retain and promote — with component-level labelling.** |
 
 ### Flags
 
-- 🔴 **Temporal comparability of ΔEHS is not stated.** The "seasonal" delta is
+- 🔴 **Owner decision (Q-03) — the map may show a two-date difference but may
+  not name it.** This surface may render a negative or positive two-date health
+  difference, but it **may not call that difference degradation, deterioration,
+  recovery, seasonality, or a trend.** The permitted description is a *mean
+  two-date health difference under the current sign convention*. Every
+  narrative element on this surface that implies otherwise — the
+  `n_degrading` KPI ("Sendas en deterioro"), the ΔEHS column help text, the
+  `prug_monitoring` roll-up wording — is out of compliance with that decision
+  until rewritten.
+- 🔴 **Temporal comparability of ΔEHS is not stated.** The delta is
   `health_spring − health_summer` where spring = **April 2026** and summer =
   **August 2025**. The two scenes are 8 months apart, span **two calendar
   years**, and are ordered opposite to the "spring → summer deterioration"
@@ -122,16 +131,21 @@ sets `crs="EPSG:4326"` explicitly (`gis_export.py:161`). No CRS bug found.
 - 🔴 **Cross-sensor comparison is not controlled.** S2**A** vs S2**B** are
   different instruments. The repository owns `src/validation/cross_sensor.py`;
   the Pipeline A ΔEHS path does not use it.
-- 🟠 **No climatic control.** A spring-vs-summer vegetation-index difference in
-  a Mediterranean mountain system is dominated by phenology and interannual
-  precipitation. The SCM tries to separate landscape from localized forcing —
-  and in fact classifies **165 of 218 trails as LANDSCAPE_DRIVEN** — but the map
-  colour itself carries no climatic normalisation.
+- 🟠 **No climatic control.** A two-date vegetation-index difference across
+  different seasons *and* different years in a Mediterranean mountain system is
+  dominated by phenology and interannual precipitation. The SCM attempts to
+  separate landscape from localized forcing — its **simulated** output assigns
+  165 of 218 trails to LANDSCAPE_DRIVEN — but that distribution is **a property
+  of the α-decay simulation, not a measured finding about the park**, and the
+  map colour itself carries no climatic normalisation.
 - 🟡 **Legend caption slightly overstates.** *"Color = NDVI/NDMI real del píxel
   sobre el buffer de 50 m"* (`tab_diagnostic.py:373`) — the colour encodes a
   derived composite index anchored on scene percentiles, not a pixel value.
-- 🟢 The layer *"NO usa datos curados"* claim (`tab_diagnostic.py:250`) is
-  **accurate and verified**.
+- 🟡 The layer *"NO usa datos curados"* claim (`tab_diagnostic.py:250`) is
+  **accurate for the geometry and spectral values** — those genuinely bypass
+  the fixture portfolio — **but not for the whole surface**: the `Causa (SCM)`
+  field is simulated and the budget is modelled. "Not curated" is true; "all
+  real" is not. See also `SCIENTIFIC_CLAIMS_REGISTER.md` C-16.
 
 ---
 
@@ -182,15 +196,17 @@ None. No `HeatmapLayer`, `HexagonLayer`, or kernel-density surface exists.
 
 ### Simulated or fallback data presented as observed
 
-- M-02's *"gradiente espectral NDVI/NDMI"* tooltip over calibrated EHS — **yes**.
+- M-02's *"gradiente espectral NDVI/NDMI"* tooltip over **synthetic fixture EHS
+  constants** (Q-01) — **yes**.
 - M-01/M-02 synthetic geometry — disclosed in tooltip, **but only in tooltip**.
 - M-03's SCM cause label over simulated zones — **yes**, undisclosed at the map.
 
 ### Duplication
 
 M-01 and M-02 are the same map twice. M-01/M-02 and M-03 answer overlapping
-questions ("where is degradation?") over two different asset universes in the
-same tab.
+questions ("where is the worst ecological condition?") over two different asset
+universes — and two non-equivalent EHS metrics sharing one name and scale
+(`KPI_INVENTORY.md` K-01, K-08) — in the same tab.
 
 ### Maps that do not support a clear user decision
 

@@ -39,9 +39,15 @@ not updated. **Not resolved here.**
 - ADR-004 and `CLAUDE.md` both forbid blurring real/calibrated/synthetic.
 
 The place names and ecological narratives are genuine; the numeric fields are
-authored to hit target tiers. **Question:** which class does the owner intend —
-`CALIBRATED` (expert elicitation) or `SYNTHETIC` (demo)? The answer changes what
-`evidence.supports()` permits these assets to back.
+authored to hit target tiers. **Question (as posed at audit time):** which class
+does the owner intend — `CALIBRATED` (expert elicitation) or `SYNTHETIC` (demo)?
+The answer changes what `evidence.supports()` permits these assets to back.
+
+✅ **Resolved after audit: `SYNTHETIC`** (Q-01). Initially classified as
+CALIBRATED during the audit; owner decision after audit: SYNTHETIC. That
+decision governs Phase 0.5 and later work, and has been propagated through the
+feature, map, KPI, claims, data-source and removal-candidate inventories. See
+"Owner decisions after audit" below.
 
 ### X-04 · Map determinism docstrings vs `hash()` behaviour
 

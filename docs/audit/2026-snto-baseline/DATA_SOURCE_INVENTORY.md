@@ -124,8 +124,14 @@ defensible.
 | Failure behaviour | `tab_portfolio._real_municipal_pressure` returns `None`; capacity uses the curated proxy; `pressure_source` stays `"Curada (estimada)"` |
 | Semantic caveat (already documented) | a municipal inbound-trip count is **not** trail footfall; when ingested it attaches as **context only** (`pressure_capacity.py:14-16`) |
 
-This is the only pathway in the system toward an actual visitor-pressure
-measurement, and it is not connected.
+This is the only **prepared pathway toward an operational mobility-derived
+visitor-context signal**, and it is not connected. It is deliberately *not*
+described as a pathway to a visitor-pressure measurement: **municipal inbound
+trips are not trail footfall**, and they cannot independently validate
+trail-level visitor pressure. Even fully ingested, this feed would attach as
+context beside the asset pressure proxy, never replace it
+(`pressure_capacity.py:14-16`). A trail-level visitor measurement would require
+a different instrument entirely — counters, or the #26 field campaign.
 
 ## D-07 · Curated territorial fixtures
 

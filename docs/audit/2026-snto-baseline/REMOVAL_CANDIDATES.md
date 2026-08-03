@@ -30,11 +30,11 @@ strong, one unknown remains), **Low** (needs an owner decision first).
 | | |
 |---|---|
 | **Component** | `map_layers.build_pydeck_deck_spectral` + `_assets_to_geojson_spectral` (`map_layers.py:662-783`); the radio option and legend in `tab_diagnostic.py:117-231` |
-| **Reason** | Duplicates M-01's geometry exactly with one attribute swapped; labels calibrated constants as "gradiente espectral NDVI/NDMI"; answers a question the real-trail map (M-03) answers better with real geometry and real spectra. |
+| **Reason** | Duplicates M-01's geometry exactly with one attribute swapped; labels **synthetic fixture constants** (Q-01) as "gradiente espectral NDVI/NDMI"; answers a question the real-trail map (M-03) answers better with real geometry and real-derived spectral values. |
 | **Evidence** | `MAP_INVENTORY.md` M-02; `map_layers.py:733` vs the module's own "simulating" docstring at `:666` |
 | **Affected users** | Técnica and Auditoría personas — this is their *default* map mode (`tab_diagnostic.py:116`) |
 | **Dependencies** | `src/platform/__init__.py:35,67` exports; the map-mode radio; spectral legend block; `tests/` reference to `build_pydeck_deck_spectral` |
-| **Replacement** | Promote M-03 (real trails) to the top of the tab and make it the technical default. If a spectral view over the curated portfolio is still wanted, it must be relabelled to state that colour encodes EHS (which may be calibrated), not a spectral measurement. |
+| **Replacement** | Promote M-03 (real trails) to the top of the tab and make it the technical default — noting M-03 is itself component-level `MIXED`, not uniformly real (`MAP_INVENTORY.md` M-03). If a spectral view over the curated portfolio is still wanted, it must be relabelled to state that colour encodes EHS, which on the fixture path is a **synthetic constant** (Q-01), not a spectral measurement. |
 | **Risk of removal** | **Medium** — removes the default view for two of three personas; needs the M-03 promotion to land first. |
 | **Confidence** | **Medium** |
 

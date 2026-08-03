@@ -51,19 +51,22 @@ see [`CONTRADICTIONS_AND_OPEN_QUESTIONS.md`](CONTRADICTIONS_AND_OPEN_QUESTIONS.m
 
 1. **The dashboard shows two parallel realities in the same screens.** The
    executive portfolio (KPIs, tiers, budget, alerts) is computed from **8
-   hard-coded PNSG fixture assets** (`src/territorial/fixtures.py`), while the
-   real Sentinel-2 evidence covers **218 real trails**
-   (`data/outputs/pnsg/pipeline_a_results.geojson`). The two sets are labelled,
-   but they are not reconciled, and the headline indicators come from the
-   fixtures.
+   hard-coded PNSG fixture assets** (`src/territorial/fixtures.py`) — classified
+   **`SYNTHETIC`** by the Q-01 owner decision, a class the project's own gating
+   matrix permits for *no* decision use — while the Pipeline A layer covers
+   **218 real trails** (`data/outputs/pnsg/pipeline_a_results.geojson`). The two
+   sets are labelled, but they are not reconciled, the headline indicators come
+   from the fixtures, and the two carry non-equivalent EHS metrics sharing one
+   name and scale.
 
 2. **Sentinel-2 is not, and cannot be, a visitor-pressure measurement — but at
    least one KPI states that it is.** `Human Pressure Alerts` (KPI 7) reports
    "sites experiencing measurable environmental damage caused by visitor
    pressure" and "confirmed visitor-driven environmental damage" from an SCM
-   classification that is either a fixture constant or an α-decay **simulation**
-   (`src/spatial_causality/zones/` does not exist). This is the single
-   highest-risk claim in the product.
+   classification that is a **`SYNTHETIC`** fixture constant on the live path,
+   or an α-decay **`SIMULATED`** fallback where the SCM actually runs
+   (`src/spatial_causality/zones/` does not exist). Neither class authorizes the
+   claim. This is the single highest-risk claim in the product.
 
 3. **The evidence-class machinery is genuinely good and should be preserved.**
    `src/platform/evidence.py`, the forecasting evidence guard, the LAC/ROS
