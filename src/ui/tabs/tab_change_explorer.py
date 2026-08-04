@@ -27,6 +27,19 @@ from src.integrations.earth_engine.errors import (
     EarthEngineUnavailableError,
 )
 from src.integrations.earth_engine.palettes import DNDVI
+from src.services.change_animation_service import (
+    DEFAULT_ANIMATION_DIMENSIONS,
+    DEFAULT_ANIMATION_FPS,
+    DEFAULT_MAX_FRAME_COUNT,
+    AnimatedArtifact,
+    ChangeAnimationRequest,
+    GifDownloadError,
+    GifInvalidError,
+    GifTimeoutError,
+    GifTooLargeError,
+    InsufficientUsableFramesError,
+    cached_run_change_animation,
+)
 from src.services.change_explorer_service import (
     ChangeExplorerRequest,
     ResultStatus,
@@ -37,6 +50,13 @@ from src.services.change_explorer_service import (
 logger = logging.getLogger(__name__)
 
 SESSION_KEY = "snto_change_explorer_result"
+ANIMATION_SESSION_KEY = "snto_change_animation_result"
+ANIMATION_SIGNATURE_KEY = "snto_change_animation_signature"
+
+# Frame-cap choices offered in the UI (a subset of the service's hard bounds).
+_MAX_FRAME_OPTIONS = (4, 6, 8, 10, 12)
+_ANIMATION_DIMENSION_OPTIONS = (256, 384)
+_FPS_OPTIONS = (1, 2, 3)
 
 _PRODUCT_LABELS = {
     CompositeKind.TRUE_COLOUR: "Color real (RGB)",
@@ -262,6 +282,12 @@ def _render_result(result: object) -> None:
     _render_quality(r)
     st.caption(f"🛰️ {r.evidence_label}")
 
+    # The temporal GIF is an *optional*, explicitly-triggered extra shown only
+    # below a successful swipe (never on NO_DATA / no-swipe). It never runs on
+    # this rerun — only when its own separate form is submitted.
+    if r.status is not ResultStatus.NO_DATA and r.has_swipe:
+        _render_animation_section(r)
+
 
 def _render_side_by_side(r: object, width: int) -> None:
     """Reliable fallback: before/after as two static images (no URL text shown)."""
@@ -363,3 +389,241 @@ def _render_quality(r: object) -> None:
         "La *nubosidad de escena* (metadato por granulo) y la *cobertura de "
         "píxeles válidos en el AOI* (derivada de SCL) son medidas distintas."
     )
+
+
+# ── Temporal GIF (🎞️) — optional, explicit, synchronous ────────────────────────
+
+def _analysis_signature(r: object) -> tuple[object, ...]:
+    """Identity of the *main* analysis a stored GIF belongs to.
+
+    If the comparison is re-run for a different territory/product/window, a GIF
+    generated for the previous analysis is no longer compatible and is dropped
+    (never relabelled as belonging to the new result).
+    """
+    return (
+        r.request.territory_id,
+        r.product.value,
+        r.request.before.start.isoformat(),
+        r.request.before.end.isoformat(),
+        r.request.after.start.isoformat(),
+        r.request.after.end.isoformat(),
+    )
+
+
+def _animation_defaults(r: object) -> tuple[_dt.date, _dt.date]:
+    """Default GIF span: earliest window start → latest window end (past only)."""
+    start = min(r.request.before.start, r.request.after.start)
+    end = max(r.request.before.end, r.request.after.end)
+    return start, end
+
+
+def _render_animation_section(r: object) -> None:
+    st.divider()
+    st.markdown("### 🎞️ Animación temporal")
+    st.caption(
+        "Genera **bajo demanda** un GIF de composiciones medianas Sentinel-2 a lo "
+        "largo del periodo (mismo producto que la comparación). Es un extra "
+        "**explícito y acotado**: no se ejecuta al cargar la página ni al mover los "
+        "controles, sólo al pulsar *Generar GIF temporal*."
+    )
+
+    # A stored GIF from a *different* main analysis must not be shown here.
+    signature = _analysis_signature(r)
+    if st.session_state.get(ANIMATION_SIGNATURE_KEY) != signature:
+        st.session_state.pop(ANIMATION_SESSION_KEY, None)
+        st.session_state[ANIMATION_SIGNATURE_KEY] = signature
+
+    default_start, default_end = _animation_defaults(r)
+    today = _dt.date.today()
+    with st.form("change_animation_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            st.date_input(
+                "Inicio del periodo", value=default_start,
+                max_value=today, key="ca_start",
+            )
+        with col2:
+            st.date_input(
+                "Fin del periodo", value=default_end,
+                max_value=today, key="ca_end",
+            )
+        col3, col4, col5 = st.columns(3)
+        with col3:
+            st.selectbox(
+                "Fotogramas máx.", options=_MAX_FRAME_OPTIONS,
+                index=_MAX_FRAME_OPTIONS.index(DEFAULT_MAX_FRAME_COUNT),
+                key="ca_max_frames",
+            )
+        with col4:
+            st.selectbox(
+                "Dimensiones (px)", options=_ANIMATION_DIMENSION_OPTIONS,
+                index=_ANIMATION_DIMENSION_OPTIONS.index(
+                    DEFAULT_ANIMATION_DIMENSIONS
+                ),
+                key="ca_dimensions",
+            )
+        with col5:
+            st.selectbox(
+                "FPS", options=_FPS_OPTIONS,
+                index=_FPS_OPTIONS.index(DEFAULT_ANIMATION_FPS),
+                key="ca_fps",
+            )
+        st.caption(
+            "Cada fotograma es una composición **mediana** de una subventana "
+            "temporal, con idéntico AOI, proyección y rango de visualización. "
+            "Span máx. 24 meses · 2–12 fotogramas."
+        )
+        generate = st.form_submit_button("Generar GIF temporal", type="primary")
+
+    if generate:
+        _handle_animation_submit(r, signature)
+
+    artifact = st.session_state.get(ANIMATION_SESSION_KEY)
+    if artifact is not None:
+        _render_animation_result(artifact)
+
+
+def _handle_animation_submit(r: object, signature: tuple[object, ...]) -> None:
+    ss = st.session_state
+    # 1) Build/validate the request BEFORE any Earth Engine call. A failed GIF
+    #    must never clear the swipe result (only the GIF session key is touched).
+    try:
+        request = ChangeAnimationRequest(
+            territory_id=r.request.territory_id,
+            product=r.product,
+            start=ss["ca_start"],
+            end=ss["ca_end"],
+            max_cloud_pct=float(r.request.max_cloud_pct),
+            dimensions=int(ss["ca_dimensions"]),
+            max_frame_count=int(ss["ca_max_frames"]),
+            frames_per_second=int(ss["ca_fps"]),
+        )
+    except (ValueError, TypeError) as exc:
+        st.error(f"Revisa los parámetros de la animación: {exc}", icon="⚠️")
+        return
+
+    logger.info(
+        "change_animation UI: submit territory=%s product=%s dims=%s frames=%s fps=%s",
+        request.territory_id, request.product.value, request.dimensions,
+        request.max_frame_count, request.frames_per_second,
+    )
+    try:
+        with st.spinner(
+            "Generando el GIF temporal en Earth Engine… "
+            "(compone varias ventanas; puede tardar)"
+        ):
+            artifact = cached_run_change_animation(request)
+    except EarthEngineDisabledError:
+        st.info("El explorador está desactivado por configuración.", icon="🔒")
+        return
+    except EarthEngineConfigError:
+        st.error(
+            "Earth Engine no está configurado (falta `GEE_PROJECT_ID` o la clave "
+            "de servicio). Es un problema de configuración, no de tus datos.",
+            icon="🛠️",
+        )
+        return
+    except EarthEngineAuthError:
+        st.error(
+            "Fallo de autenticación / permisos con Earth Engine al generar el GIF.",
+            icon="🔑",
+        )
+        return
+    except EarthEngineQuotaError:
+        st.warning(
+            "Earth Engine ha rechazado la generación del GIF por cuota o límite de "
+            "tasa. Inténtalo de nuevo en unos minutos.",
+            icon="⏳",
+        )
+        return
+    except EarthEngineUnavailableError:
+        st.error(
+            "Earth Engine no está disponible en este momento (infraestructura). "
+            "Inténtalo más tarde.",
+            icon="📡",
+        )
+        return
+    except InsufficientUsableFramesError:
+        st.warning(
+            "Menos de dos fotogramas con escenas Sentinel-2 útiles en el periodo. "
+            "Amplía el rango o sube el umbral de nubosidad.",
+            icon="🌥️",
+        )
+        return
+    except GifTimeoutError:
+        st.warning(
+            "Se agotó el tiempo al descargar el GIF generado. Inténtalo de nuevo.",
+            icon="⏳",
+        )
+        return
+    except GifTooLargeError:
+        st.warning(
+            "El GIF generado supera el límite de 8 MiB. Reduce fotogramas o "
+            "dimensiones.",
+            icon="📦",
+        )
+        return
+    except (GifInvalidError, GifDownloadError):
+        st.error("No se pudo obtener el GIF generado.", icon="❌")
+        return
+    except EarthEngineError:
+        logger.warning("Change Animation failed with an Earth Engine error.")
+        st.error("No se pudo generar la animación temporal.", icon="❌")
+        return
+
+    # Only store on success; the signature ties it to the current main analysis.
+    ss[ANIMATION_SESSION_KEY] = artifact
+    ss[ANIMATION_SIGNATURE_KEY] = signature
+    logger.info(
+        "change_animation UI: done usable=%d/%d bytes=%d",
+        artifact.frame_count, artifact.planned_frame_count, artifact.byte_size,
+    )
+
+
+def _render_animation_result(artifact: AnimatedArtifact) -> None:
+    st.image(artifact.gif_bytes, output_format="GIF")
+
+    period = (
+        f"{artifact.request.start.isoformat()} → {artifact.request.end.isoformat()}"
+    )
+    size_kib = artifact.byte_size / 1024
+    st.markdown(
+        f"**{artifact.territory_name}** · Producto: "
+        f"**{_PRODUCT_LABELS[artifact.product]}** · Periodo: {period}  \n"
+        f"Fotogramas: **{artifact.frame_count}** usados / "
+        f"{artifact.planned_frame_count} planificados · "
+        f"{artifact.frames_per_second} FPS · {artifact.dimensions}px · "
+        f"{size_kib:.0f} KiB · "
+        f"{artifact.generated_at.strftime('%Y-%m-%d %H:%M UTC')}"
+    )
+
+    filename = (
+        f"snto_{artifact.territory_id}_{artifact.product.value}_"
+        f"{artifact.request.start.isoformat()}_{artifact.request.end.isoformat()}.gif"
+    )
+    st.download_button(
+        "Descargar GIF",
+        data=artifact.gif_bytes,
+        file_name=filename,
+        mime=artifact.mime_type,
+    )
+
+    if artifact.warnings:
+        for w in artifact.warnings:
+            st.caption(f"⚠️ {w}")
+
+    with st.expander("Detalle de fotogramas"):
+        st.write(
+            [
+                {
+                    "#": f.frame_index,
+                    "inicio": f.frame_start,
+                    "fin": f.frame_end,
+                    "escenas": f.scene_count,
+                    "omitido": bool(f.warning),
+                }
+                for f in artifact.frames
+            ]
+        )
+
+    st.caption(f"🎞️ {artifact.evidence_label}")

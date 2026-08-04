@@ -70,6 +70,10 @@ jobs:
             tests/unit/test_change_explorer_cache.py \
             tests/ui/test_change_explorer_tab.py \
             scripts/smoke_test_change_explorer_live.py \
+            tests/unit/test_change_animation.py tests/unit/test_change_video.py \
+            tests/unit/test_change_animation_service.py \
+            tests/unit/test_change_animation_cache.py \
+            scripts/smoke_test_change_animation_live.py \
             tests/live tests/unit/test_smoke_script.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true

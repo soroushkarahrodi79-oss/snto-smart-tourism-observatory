@@ -2,15 +2,108 @@
 
 - **Status:** In progress — **Foundation + Analysis/Static-PNG core + Service
   orchestration + Swipe UI (backlog steps 1–8, 10) implemented; smoke-test
-  harness (step 12); runtime bug-fix pass (§0e).** **Live status: real live
-  success on the user's machine for the conservative AOI and the full PNSG bbox
-  (NDVI + True Colour); the `valid_pixel_fraction > 1` bug is fixed; the UI
-  blank-result issue is addressed with loading feedback + a non-blank fallback
-  (not reproducible in *this* credential-less session).** GIF (step 9) not
-  started.
-- **Date:** 2026-08-02 (foundation landed 2026-08-02)
+  harness (step 12); runtime bug-fix pass (§0e); On-demand Temporal GIF MVP
+  (backlog step 9) implemented (§0f).**
+- **Swipe MVP live status: `LIVE VERIFIED — LOCAL DEVELOPMENT ENVIRONMENT`**
+  (date 2026-08-04). Real live success on the owner's machine for the
+  conservative AOI and the full PNSG bbox (NDVI + True Colour); the
+  `valid_pixel_fraction > 1` bug is fixed; the UI blank-result issue is addressed
+  with loading feedback + a non-blank fallback.
+- **GIF MVP live status: `NOT LIVE VERIFIED — awaiting owner live smoke test`**
+  (this Claude session has no Earth Engine credentials; the code is complete and
+  fully unit/UI-tested offline, and the manual live smoke procedure is documented
+  in §0f).
+- **Date:** 2026-08-02 (foundation landed 2026-08-02); GIF MVP 2026-08-04
 - **Companions:** `docs/audits/visual_change_feature_audit.md`,
   `docs/decisions/ADR-015-earth-engine-change-explorer.md`
+
+## 0f. On-demand Temporal GIF MVP (backlog step 9, implemented)
+
+A bounded, synchronous, **explicitly-triggered** temporal GIF, added **below** a
+successful swipe. It **never** runs on form change, page load, automatically
+after the swipe, or an ordinary rerun — only when its own separate
+*Generar GIF temporal* form is submitted. Products: **NDVI** and **True Colour**
+(the same product as the comparison result); **dNDVI is never animated**.
+
+**Frame methodology.** Each frame is a **median composite over a temporal
+sub-window** (True Colour: median of masked B4/B3/B2; NDVI: median of per-scene
+NDVI), **pre-visualised** with the centralised fixed visualisation so every frame
+shares one identical AOI, projection, dimensions and stretch/palette (**no
+per-frame auto-stretch**). No scientific/causal/severity labels are baked into
+the pixels.
+
+**Adaptive month-step planner** (`plan_frame_windows`, pure/local, no network, no
+current-date use): calendar-month windows with
+`step_months = ceil(number_of_calendar_months / max_frames)`; contiguous,
+ordered, non-overlapping; the first and last frame may be partial months; every
+day belongs to exactly one frame. Rejects reversed spans, `datetime` inputs,
+spans shorter than two frames, and spans longer than the 24-month cap.
+
+**Hard limits** (enforced in the models **and** the service, rejected *before*
+any EE call): span ≤ **24 months**; usable frames **min 2 / max 12** (UI default
+max **8**); dimensions **256 or 384** (default **256**); FPS **1/2/3** (default
+**2**); GIF response cap **8 MiB**; explicit **30 s** HTTP timeout; one GIF per
+request; no full-res downloads; no permanent file storage.
+
+**Scene-count-only frame policy.** Empty-frame handling uses **one** grouped EE
+expression (`scene_counts_expr` → a single `ee.List` of every frame's
+`collection.size()`) evaluated with **at most one** application-level `getInfo`.
+Zero-scene frames are removed (order preserved; a warning is recorded per omitted
+frame); **≥ 2 usable frames are required** or `InsufficientUsableFramesError` is
+raised. Per-frame **valid-pixel coverage is deliberately out of scope** — the GIF
+is exploratory/observational, not a validated measurement, so it is **not**
+re-computed per frame (that would add repeated expensive `reduceRegion` work).
+
+**URL-to-bytes.** The service calls `getVideoThumbURL` and **immediately** fetches
+the signed URL to bytes (bounded read, 8 MiB cap, timeout, GIF-magic
+validation), then discards the URL. The signed URL is **never** stored in session
+state, the cached result, a dataclass `repr`, logs, documentation, or test
+output.
+
+**Cache.** `st.cache_data`, **TTL 900 s**; the key includes territory + bbox +
+date range + product + cloud + dimensions + max frames + FPS + dataset id +
+composite-method version + visualisation version + animation-planner version — and
+**no** credentials/`Settings`/EE objects/signed URL. Failures are never cached;
+`clear_change_animation_cache()` resets it. The 8 MiB cap keeps cached bytes
+bounded.
+
+**Disclaimer (verbatim, Spanish, surfaced under every GIF):** *"Animación
+exploratoria de composiciones temporales Sentinel-2. Los cambios visibles pueden
+reflejar estacionalidad, nubosidad residual, fenología, incendios, manejo
+territorial u otros factores. No demuestra causalidad turística ni sustituye
+validación de campo."* Colours are never labelled as damage/impact/degradation/
+recovery.
+
+**Files.** `src/analysis/change_detection/animation.py` (planner + frame
+construction), `src/integrations/earth_engine/video.py` (`getVideoThumbURL`
+primitive), `src/services/change_animation_service.py` (orchestration + bounded
+download + cache), the GIF section in `src/ui/tabs/tab_change_explorer.py`, and
+tests `tests/unit/test_change_animation.py`, `tests/unit/test_change_video.py`,
+`tests/unit/test_change_animation_service.py`,
+`tests/unit/test_change_animation_cache.py`,
+`tests/ui/test_change_animation_ui.py`, plus the optional live
+`tests/live/test_change_animation_live.py`.
+
+**Manual live GIF smoke procedure** (`scripts/smoke_test_change_animation_live.py`,
+manual only, **never in CI**):
+
+1. Configure credentials out-of-band (`GEE_PROJECT_ID` + personal
+   `earthengine authenticate` **or** `GEE_SERVICE_ACCOUNT` + `GEE_KEY_FILE`), and
+   `SNTO_ENABLE_CHANGE_EXPLORER=true`.
+2. Run `python scripts/smoke_test_change_animation_live.py --confirm-live-ee`
+   (required opt-in; refuses with exit code 2 otherwise). Defaults: PNSG, NDVI,
+   2023-07-01 → 2024-08-31, max 8 frames, 256 px, 2 FPS, cloud ≤ 20 %, on the
+   conservative in-PNSG AOI (`--full-bbox` uses the registered bbox).
+3. It reuses the **production** `run_change_animation` service, prints **only**
+   safe metadata (frame counts, byte size, status) and **never** the signed video
+   URL. It writes a GIF to disk **only** with an explicit `--output <git-ignored
+   path>` and refuses to overwrite without `--force`. Distinct exit codes per
+   failure class; creates no assets/exports.
+
+**GIF MVP live status: `NOT LIVE VERIFIED — awaiting owner live smoke test`** —
+this session has no Earth Engine credentials, so no GIF live verification is
+claimed. The code is complete and fully unit/UI-tested offline (mocked `ee`, no
+network).
 
 ## 0e. Runtime bug-fix pass (full-AOI execution + UI visibility)
 
@@ -478,8 +571,14 @@ step with the adapter's tests green).
 7. ✅ **Done.** `analysis/change_detection/difference.py` — dNDVI band.
 8. ✅ **Done.** `src/services/change_explorer_service.py` — orchestrate + cache +
    typed errors; request/result models; service, cache and UI tests.
-9. `render.py` GIF path (`getVideoThumbURL`) wired through the service. **(next
-   task — not started; explicitly deferred)**
+9. ✅ **Done.** On-demand Temporal GIF MVP (§0f): a dedicated
+   `getVideoThumbURL` primitive (`integrations/earth_engine/video.py`) + local
+   frame planner and frame construction (`analysis/change_detection/animation.py`)
+   + orchestration/bounded-download/cache
+   (`services/change_animation_service.py`), wired through the service and
+   surfaced as an explicit, separate GIF form under a successful swipe.
+   Code-complete and offline-tested; **not yet live verified** (no credentials in
+   the implementing session).
 10. ✅ **Done.** `src/ui/tabs/tab_change_explorer.py` — AOI picker, date ranges, cloud slider,
     index toggle, swipe, GIF, metadata; register in `src/ui/navigation.py`.
 11. UI/navigation test; degraded-state test; docs sync; keep coverage ≥80 %.
