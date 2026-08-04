@@ -96,8 +96,6 @@ from src.config.constants import (
     SCM_SIG_LANDSCAPE_THRESHOLD,
 )
 
-load_dotenv()
-
 SEP = "=" * 72
 DIV = "-" * 72
 
@@ -118,6 +116,18 @@ DB_PORT = int(os.getenv("SNTO_DB_PORT", "5432"))
 DB_NAME = os.getenv("SNTO_DB_NAME", "snto")
 DB_USER = os.getenv("SNTO_DB_USER", "postgres")
 DB_PASS = os.getenv("SNTO_DB_PASS", "")
+
+
+def _load_runtime_db_config() -> None:
+    """Load .env for direct script execution and refresh DB globals."""
+    global DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS
+
+    load_dotenv()
+    DB_HOST = os.getenv("SNTO_DB_HOST", "localhost")
+    DB_PORT = int(os.getenv("SNTO_DB_PORT", "5432"))
+    DB_NAME = os.getenv("SNTO_DB_NAME", "snto")
+    DB_USER = os.getenv("SNTO_DB_USER", "postgres")
+    DB_PASS = os.getenv("SNTO_DB_PASS", "")
 
 
 # ── SIG math ──────────────────────────────────────────────────────────────────
@@ -293,6 +303,7 @@ def _ensure_columns(conn: psycopg2.extensions.connection) -> None:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
+    _load_runtime_db_config()
     if hasattr(sys.stdout, "buffer"):
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 

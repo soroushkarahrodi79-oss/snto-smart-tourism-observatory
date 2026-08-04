@@ -49,8 +49,6 @@ import psycopg2
 from dotenv import load_dotenv
 from psycopg2.extras import execute_values
 
-load_dotenv()  # carga .env antes de os.getenv() a nivel de módulo
-
 from src.config.constants import (
     SCM_LOCALIZED_FACTOR,
     SCM_MIXED_FACTOR,
@@ -76,6 +74,18 @@ DB_PORT = int(os.getenv("SNTO_DB_PORT", "5432"))
 DB_NAME = os.getenv("SNTO_DB_NAME", "snto")
 DB_USER = os.getenv("SNTO_DB_USER", "postgres")
 DB_PASS = os.getenv("SNTO_DB_PASS", "")
+
+
+def _load_runtime_db_config() -> None:
+    """Load .env for direct script execution and refresh DB globals."""
+    global DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS
+
+    load_dotenv()
+    DB_HOST = os.getenv("SNTO_DB_HOST", "localhost")
+    DB_PORT = int(os.getenv("SNTO_DB_PORT", "5432"))
+    DB_NAME = os.getenv("SNTO_DB_NAME", "snto")
+    DB_USER = os.getenv("SNTO_DB_USER", "postgres")
+    DB_PASS = os.getenv("SNTO_DB_PASS", "")
 
 # Column in production_hiking_trails that holds the budget-season EHS.
 _EHS_BUDGET_COLUMN: str = f"ehs_{EHS_SEASON_FOR_BUDGET}"
@@ -171,6 +181,7 @@ def _causal_factor(scm_classification: str | None) -> float:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
+    _load_runtime_db_config()
     if hasattr(sys.stdout, "buffer"):
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
     print(SEP)
