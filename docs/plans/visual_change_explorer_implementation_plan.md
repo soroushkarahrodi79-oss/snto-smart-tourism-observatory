@@ -1,13 +1,59 @@
 # Implementation Plan — Visual Change Explorer
 
 - **Status:** In progress — **Foundation + Analysis/Static-PNG core + Service
-  orchestration + Swipe UI (backlog steps 1–8, 10) implemented; manual +
-  gated-live smoke-test harness added (step 12).** **Live status: `NOT LIVE
-  VERIFIED — no Earth Engine credentials in the environment`** (see §0d). GIF
-  (step 9) not started.
+  orchestration + Swipe UI (backlog steps 1–8, 10) implemented; smoke-test
+  harness (step 12); runtime bug-fix pass (§0e).** **Live status: real live
+  success on the user's machine for the conservative AOI and the full PNSG bbox
+  (NDVI + True Colour); the `valid_pixel_fraction > 1` bug is fixed; the UI
+  blank-result issue is addressed with loading feedback + a non-blank fallback
+  (not reproducible in *this* credential-less session).** GIF (step 9) not
+  started.
 - **Date:** 2026-08-02 (foundation landed 2026-08-02)
 - **Companions:** `docs/audits/visual_change_feature_audit.md`,
   `docs/decisions/ADR-015-earth-engine-change-explorer.md`
+
+## 0e. Runtime bug-fix pass (full-AOI execution + UI visibility)
+
+Driven by a **real live run on the user's machine** (credentials valid). Confirmed
+live facts: conservative-AOI **and** full registered PNSG bbox both succeed for
+NDVI **and** True Colour at 256 px / cloud 20 % (scene_count 19/19, three
+artifacts, status `ok`). So Earth Engine init, S2 collection construction,
+metadata evaluation and thumbnail generation all work at full AOI — the backend
+is **not** the cause of the blank UI.
+
+- **Confirmed bug — `valid_pixel_fraction = 1.325` (impossible):** FIXED.
+  - **Root cause:** the fraction mixed two incompatible bases — numerator was a
+    `reduceRegion(count)` on the Sentinel-2 **UTM 10 m pixel grid**, denominator
+    was `geometry.area()/scale²` (a **geodesic m²** area). For a lon/lat rectangle
+    the two differ by ≈ `1/cos(latitude)`; at PNSG's ~40.9° N that is ≈ 1.323,
+    matching the observed 1.325.
+  - **Fix (not a clamp):** both counts now come from **one** `reduceRegion` over
+    the NDVI mask (`src/analysis/change_detection/quality.py::pixel_counts_expr`):
+    `sum` of the 0/1 mask = valid pixels, `count` = total footprint pixels, on the
+    **same** grid/projection/region. `valid ≤ total` ⇒ `fraction ∈ [0, 1]` by
+    construction; no footprint ⇒ counts `0`/`None` ⇒ fraction honestly `None`.
+    Scene cloud (`CLOUDY_PIXEL_PERCENTAGE`) vs AOI valid-pixel coverage stay
+    distinct. Still one combined `getInfo` per window.
+- **UI "nothing appears" symptom:** ADDRESSED (loading feedback + guaranteed
+  non-blank fallback). **Not reproduced live in this session** — this environment
+  has **no** Earth Engine credentials, so I could not launch the real Streamlit UI
+  or re-run the full-bbox smoke here (stated honestly; not fabricated). Fixes
+  applied, all offline-tested:
+  - **Loading state (B):** the service call is wrapped in `st.spinner(...)` so a
+    long full-bbox run (the user's confirmed working path) no longer looks frozen.
+  - **Fallback rendering (C):** if `image_comparison` raises, the page shows a
+    warning **plus** before/after via `st.image` side by side; on success, a
+    collapsed "ver por separado" expander still guarantees the images are
+    reachable even if the slider's client-side JS/CDN silently fails to render.
+    The dNDVI + quality panels always render below. No signed URL is shown as text.
+  - **Observability (D):** safe `INFO` logs at service start (territory, product,
+    dims, resolved bbox), service completion (status, scene counts, coverage), and
+    UI submit → "service done in Xs" → swipe-rendered / fallback — so the exact
+    service-vs-render boundary is visible in logs without any secret/URL.
+  - **Most likely cause (hypothesis, to confirm on the user's next run):** no
+    loading feedback during a multi-second full-bbox EE call (perceived hang)
+    and/or the swipe component rendering blank client-side. Both are now covered.
+- **Fallback path added:** yes. **Feature scope unchanged** (no GIF/tiles/API).
 
 ## 0d. Live verification
 

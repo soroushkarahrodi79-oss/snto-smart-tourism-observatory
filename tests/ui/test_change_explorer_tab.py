@@ -53,6 +53,9 @@ class _FakeSt:
         self.captions: list[str] = []
         self.writes: list = []
         self.images: list = []
+        self.spinners: list[str] = []
+        self.spinner_active_during_service = False
+        self._in_spinner = False
 
     # passthrough / no-op display
     def subheader(self, *a, **k): pass
@@ -68,6 +71,19 @@ class _FakeSt:
     # layout
     @contextmanager
     def form(self, *a, **k):
+        yield _Ctx()
+
+    @contextmanager
+    def spinner(self, msg="", *a, **k):
+        self.spinners.append(str(msg))
+        self._in_spinner = True
+        try:
+            yield _Ctx()
+        finally:
+            self._in_spinner = False
+
+    @contextmanager
+    def expander(self, label="", *a, **k):
         yield _Ctx()
 
     def columns(self, n, *a, **k):
@@ -219,6 +235,19 @@ def test_valid_submit_calls_service_once(monkeypatch, enabled):
     assert fake.session_state.get(tab.SESSION_KEY) is not None
 
 
+def test_service_runs_inside_loading_spinner(monkeypatch, enabled):
+    seen = {}
+
+    def _svc(req):
+        seen["in_spinner"] = fake._in_spinner  # service invoked inside st.spinner
+        return _result()
+
+    fake = _FakeSt(_default_widgets(), submit=True)
+    _run(monkeypatch, fake, service_fn=_svc)
+    assert fake.spinners  # a spinner/loading state was shown
+    assert seen["in_spinner"] is True  # the real service call is wrapped by it
+
+
 def test_invalid_dates_block_service_call(monkeypatch, enabled):
     service = []
     widgets = _default_widgets()
@@ -241,6 +270,25 @@ def test_swipe_receives_urls_and_labels(monkeypatch, enabled):
     assert ic["img1"] == _SECRET_URL and ic["img2"] == _SECRET_URL
     assert "2023-07-01" in ic["label1"] and "2024-07-01" in ic["label2"]
     assert ic.get("in_memory") is True
+
+
+def test_swipe_failure_falls_back_to_side_by_side(monkeypatch, enabled):
+    # If the swipe component raises, the page must NOT be blank: a warning plus
+    # before/after images (st.image) and the dNDVI must still appear.
+    def _boom(**k):
+        raise RuntimeError("component/CDN failure")
+
+    monkeypatch.setattr(tab, "image_comparison", _boom)
+    fake = _FakeSt(_default_widgets(), submit=True)
+    _run(monkeypatch, fake, service_fn=lambda r: _result())
+
+    assert any("lado a lado" in w for w in fake.warnings)  # fallback warning
+    rendered_urls = [url for url, _ in fake.images]
+    # before + after (fallback) + dNDVI all rendered as static images.
+    assert rendered_urls.count(_SECRET_URL) >= 3
+    # No signed URL leaked as user-facing text.
+    text_blobs = fake.markdowns + fake.captions + fake.errors
+    assert not any("SUPER-SECRET-TOKEN" in t for t in text_blobs)
 
 
 def test_dndvi_and_legend_shown(monkeypatch, enabled):

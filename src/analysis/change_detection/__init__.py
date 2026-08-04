@@ -21,11 +21,12 @@ from src.analysis.change_detection.models import (
     WindowRole,
 )
 from src.analysis.change_detection.quality import (
-    aoi_pixel_count_expr,
+    TOTAL_PIXELS_KEY,
+    VALID_PIXELS_KEY,
     evaluate_quality,
     mean_scene_cloud_expr,
+    pixel_counts_expr,
     scene_count_expr,
-    valid_pixel_count_expr,
 )
 
 __all__ = [
@@ -40,6 +41,7 @@ __all__ = [
     "evaluate_quality",
     "scene_count_expr",
     "mean_scene_cloud_expr",
-    "valid_pixel_count_expr",
-    "aoi_pixel_count_expr",
+    "pixel_counts_expr",
+    "VALID_PIXELS_KEY",
+    "TOTAL_PIXELS_KEY",
 ]

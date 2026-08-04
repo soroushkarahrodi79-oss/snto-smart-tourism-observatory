@@ -109,6 +109,22 @@ class TestOrchestration:
             [-4.21, 40.65, -3.58, 41.08], proj=None, geodesic=False
         )
 
+    def test_default_path_uses_registered_bbox_not_conservative_override(self, wired):
+        from src.config import territories
+
+        # The UI path uses the default resolver (territories.get) -> the FULL
+        # registered PNSG bbox, never the smoke script's conservative override.
+        req = ChangeExplorerRequest(
+            territory_id="pnsg", product=CompositeKind.NDVI, before=_BEFORE,
+            after=_AFTER, max_cloud_pct=20.0, dimensions=256,
+        )
+        run_change_explorer(req)  # no territory_resolver -> registry default
+        registered = territories.get("pnsg").bbox_wgs84
+        assert registered == (-4.21, 40.65, -3.58, 41.08)
+        wired["ee"].Geometry.Rectangle.assert_called_once_with(
+            list(registered), proj=None, geodesic=False
+        )
+
     def test_unknown_territory_raises_valueerror(self):
         def _boom(_t):
             raise KeyError(_t)
@@ -186,9 +202,10 @@ class TestDegradedStates:
 class TestEvaluationBoundary:
     def test_single_combined_getinfo(self):
         ee = MagicMock()
+        # Nested pixel counts come from the shared sum/count reduceRegion.
         ee.Dictionary.return_value.getInfo.return_value = {
             "scene_count": 5, "mean_scene_cloud": 10.0,
-            "valid_pixels": 800, "aoi_pixels": 1000,
+            "pixels": {"valid_sum": 800, "valid_count": 1000},
         }
         q = svc._evaluate_window_quality(
             ee, base_collection=MagicMock(), ndvi_image=MagicMock(),
@@ -198,8 +215,35 @@ class TestEvaluationBoundary:
         ee.Dictionary.return_value.getInfo.assert_called_once()  # exactly one call
         assert q.scene_count == 5
         assert q.valid_pixel_count == 800
-        assert q.valid_pixel_fraction == 0.8
+        assert q.aoi_pixel_count == 1000
+        assert q.valid_pixel_fraction == 0.8  # bounded [0,1]
         assert q.mean_scene_cloud_pct == 10.0
+
+    def test_fraction_is_bounded_for_full_coverage(self):
+        # Regression for the live 1.325 bug: valid == total -> exactly 1.0.
+        ee = MagicMock()
+        ee.Dictionary.return_value.getInfo.return_value = {
+            "scene_count": 19, "mean_scene_cloud": 4.7,
+            "pixels": {"valid_sum": 500000, "valid_count": 500000},
+        }
+        q = svc._evaluate_window_quality(
+            ee, base_collection=MagicMock(), ndvi_image=MagicMock(),
+            geometry=MagicMock(), window=_BEFORE, max_cloud_pct=20.0,
+        )
+        assert q.valid_pixel_fraction == 1.0
+
+    def test_no_footprint_gives_none_fraction(self):
+        ee = MagicMock()
+        ee.Dictionary.return_value.getInfo.return_value = {
+            "scene_count": 0, "mean_scene_cloud": None,
+            "pixels": {"valid_sum": None, "valid_count": 0},
+        }
+        q = svc._evaluate_window_quality(
+            ee, base_collection=MagicMock(), ndvi_image=MagicMock(),
+            geometry=MagicMock(), window=_BEFORE, max_cloud_pct=20.0,
+        )
+        assert q.valid_pixel_fraction is None
+        assert q.scene_count == 0
 
     def test_getinfo_error_mapped_to_typed(self):
         ee = MagicMock()

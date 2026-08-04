@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import datetime as _dt
 import logging
+import time
 
 import streamlit as st
 from streamlit_image_comparison import image_comparison
@@ -164,9 +165,21 @@ def _handle_submit() -> None:
         st.error(f"Revisa los parámetros: {exc}", icon="⚠️")
         return
 
-    # 2) Run the service; map known EE failures to safe, actionable messages.
+    # 2) Run the service inside a visible loading state so long Earth Engine work
+    #    never looks like a hang. Timing is logged (no secrets/URLs) so the exact
+    #    service-vs-render boundary is observable.
+    logger.info(
+        "change_explorer UI: submit territory=%s product=%s dims=%s",
+        ss["ce_territory"], getattr(ss["ce_product"], "value", ss["ce_product"]),
+        ss["ce_dimensions"],
+    )
+    _t0 = time.monotonic()
     try:
-        result = cached_run_change_explorer(request)
+        with st.spinner(
+            "Analizando imágenes de Sentinel-2 en Earth Engine… "
+            "(puede tardar unos segundos)"
+        ):
+            result = cached_run_change_explorer(request)
     except EarthEngineDisabledError:
         ss.pop(SESSION_KEY, None)
         st.info("El explorador está desactivado por configuración.", icon="🔒")
@@ -210,6 +223,11 @@ def _handle_submit() -> None:
         return
 
     ss[SESSION_KEY] = result
+    logger.info(
+        "change_explorer UI: service done in %.1fs status=%s has_swipe=%s "
+        "(rendering next)",
+        time.monotonic() - _t0, result.status.value, result.has_swipe,
+    )
 
 
 def _render_result(result: object) -> None:
@@ -245,8 +263,26 @@ def _render_result(result: object) -> None:
     st.caption(f"🛰️ {r.evidence_label}")
 
 
+def _render_side_by_side(r: object, width: int) -> None:
+    """Reliable fallback: before/after as two static images (no URL text shown)."""
+    col_b, col_a = st.columns(2)
+    with col_b:
+        st.image(
+            r.before_artifact.url,
+            caption=f"ANTES · {_window_label(r.request.before)}",
+            width=width,
+        )
+    with col_a:
+        st.image(
+            r.after_artifact.url,
+            caption=f"DESPUÉS · {_window_label(r.request.after)}",
+            width=width,
+        )
+
+
 def _render_swipe(r: object) -> None:
     width = min(int(r.request.dimensions), 704)
+    swipe_ok = False
     try:
         image_comparison(
             img1=r.before_artifact.url,
@@ -256,13 +292,25 @@ def _render_swipe(r: object) -> None:
             width=width,
             in_memory=True,  # embed base64 server-side; never exposes the URL
         )
+        swipe_ok = True
+        logger.info("change_explorer UI: swipe component rendered")
     except Exception:  # noqa: BLE001 - never surface a stack trace / URL
-        logger.warning("Swipe images could not be loaded (URL may have expired).")
+        logger.warning(
+            "change_explorer UI: swipe component failed; using side-by-side fallback"
+        )
         st.warning(
-            "No se pudieron cargar las imágenes de comparación (es posible que la "
-            "URL temporal haya caducado). Vuelve a ejecutar el análisis.",
+            "No se pudo mostrar el comparador deslizante; se muestran las imágenes "
+            "**antes/después** lado a lado.",
             icon="🖼️",
         )
+        _render_side_by_side(r, width)
+
+    if swipe_ok:
+        # The slider's JS/CSS loads client-side; if it does not render (e.g. a
+        # blocked CDN) the component can appear blank without raising. Offer a
+        # guaranteed, always-available separate view so the page is never blank.
+        with st.expander("Ver imágenes antes/después por separado"):
+            _render_side_by_side(r, width)
 
 
 def _render_dndvi(r: object) -> None:

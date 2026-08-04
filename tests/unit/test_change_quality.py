@@ -6,11 +6,12 @@ from unittest.mock import MagicMock
 
 from src.analysis.change_detection.models import DateWindow
 from src.analysis.change_detection.quality import (
-    aoi_pixel_count_expr,
+    TOTAL_PIXELS_KEY,
+    VALID_PIXELS_KEY,
     evaluate_quality,
     mean_scene_cloud_expr,
+    pixel_counts_expr,
     scene_count_expr,
-    valid_pixel_count_expr,
 )
 
 _WINDOW = DateWindow(date(2024, 6, 1), date(2024, 6, 30))
@@ -30,30 +31,45 @@ class TestExpressionBuilders:
         mean_scene_cloud_expr(collection)
         collection.aggregate_mean.assert_called_once_with("CLOUDY_PIXEL_PERCENTAGE")
 
-    def test_valid_pixel_count_single_reduce_region(self):
+    def test_pixel_counts_single_reduce_region_over_mask(self):
         ee = MagicMock()
         img = MagicMock()
         region = MagicMock()
-        out = valid_pixel_count_expr(ee_module=ee, ndvi_image=img, region=region)
+        out = pixel_counts_expr(ee_module=ee, ndvi_image=img, region=region)
 
+        # valid + total are counted from the SAME reduceRegion over the NDVI mask
+        # (sum = valid, count = total) — one reduction, same pixel grid.
         img.select.assert_called_once_with("NDVI")
-        reduce = img.select.return_value.reduceRegion
+        mask = img.select.return_value.mask.return_value
+        reduce = mask.rename.return_value.reduceRegion
         reduce.assert_called_once()  # exactly one reduceRegion
         kwargs = reduce.call_args.kwargs
-        assert kwargs["reducer"] is ee.Reducer.count.return_value
+        # combined sum + count reducer
+        ee.Reducer.sum.assert_called_once_with()
+        ee.Reducer.sum.return_value.combine.assert_called_once()
         assert kwargs["geometry"] is region
         assert kwargs["scale"] == 10
         assert kwargs["maxPixels"] == int(1e8)
         assert kwargs["bestEffort"] is False
         assert kwargs["tileScale"] == 1
-        reduce.return_value.get.assert_called_once_with("NDVI")
-        assert out is reduce.return_value.get.return_value
+        assert out is reduce.return_value
 
-    def test_aoi_pixel_count_uses_area_not_reduce_region(self):
-        region = MagicMock()
-        aoi_pixel_count_expr(region=region, scale=10)
-        region.area.assert_called_once_with(maxError=1)
-        region.area.return_value.divide.assert_called_once_with(100)
+    def test_pixel_count_keys_are_sum_and_count(self):
+        # The service reads these exact keys out of the reduced dictionary.
+        assert VALID_PIXELS_KEY == "valid_sum"
+        assert TOTAL_PIXELS_KEY == "valid_count"
+
+    def test_no_area_based_denominator_remains(self):
+        # Regression guard for the 1/cos(lat) bug: the old area-based builders are
+        # gone; the module must not call region.area(maxError=…) anywhere.
+        import inspect
+
+        from src.analysis.change_detection import quality
+
+        assert not hasattr(quality, "aoi_pixel_count_expr")
+        assert not hasattr(quality, "valid_pixel_count_expr")
+        assert hasattr(quality, "pixel_counts_expr")
+        assert ".area(maxError" not in inspect.getsource(quality)
 
 
 # ── Pure assembler ────────────────────────────────────────────────────────────
@@ -98,6 +114,23 @@ class TestEvaluateQuality:
         assert q.mean_scene_cloud_pct == 95.0
         assert q.valid_pixel_fraction == 0.8
         assert q.adequate_coverage is True
+
+    def test_full_coverage_fraction_is_one_not_above(self):
+        # valid == total (same-grid counts) -> exactly 1.0, never > 1 (the bug).
+        q = self._q(valid_pixel_count=1000, aoi_pixel_count=1000)
+        assert q.valid_pixel_fraction == 1.0
+
+    def test_fraction_bounded_for_count_consistent_inputs(self):
+        # With valid <= total (guaranteed by the shared sum/count reduceRegion),
+        # the fraction is always within [0, 1].
+        for valid, total in [(0, 1000), (250, 1000), (999, 1000), (1000, 1000)]:
+            q = self._q(valid_pixel_count=valid, aoi_pixel_count=total)
+            assert 0.0 <= q.valid_pixel_fraction <= 1.0
+
+    def test_no_footprint_gives_none_fraction(self):
+        # total == 0 (no composite footprint) -> honest None, not a fake value.
+        q = self._q(valid_pixel_count=0, aoi_pixel_count=0)
+        assert q.valid_pixel_fraction is None
 
     def test_min_valid_fraction_is_snto_convention(self):
         assert self._q().min_valid_pixel_fraction == 0.30

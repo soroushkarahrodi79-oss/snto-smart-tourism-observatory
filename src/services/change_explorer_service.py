@@ -40,11 +40,12 @@ from src.analysis.change_detection.models import (
     WindowRole,
 )
 from src.analysis.change_detection.quality import (
-    aoi_pixel_count_expr,
+    TOTAL_PIXELS_KEY,
+    VALID_PIXELS_KEY,
     evaluate_quality,
     mean_scene_cloud_expr,
+    pixel_counts_expr,
     scene_count_expr,
-    valid_pixel_count_expr,
 )
 from src.config import territories
 from src.config.settings import Settings
@@ -266,14 +267,15 @@ def _evaluate_window_quality(
     assembles :class:`QualityMetadata` offline. EE failures at evaluation time are
     mapped to the foundation's typed errors.
     """
+    # Valid + total pixel counts come from ONE reduceRegion over the NDVI mask
+    # (same grid), so the fraction is bounded [0, 1] — see pixel_counts_expr.
     expr = ee.Dictionary(
         {
             "scene_count": scene_count_expr(base_collection),
             "mean_scene_cloud": mean_scene_cloud_expr(base_collection),
-            "valid_pixels": valid_pixel_count_expr(
+            "pixels": pixel_counts_expr(
                 ee_module=ee, ndvi_image=ndvi_image, region=geometry
             ),
-            "aoi_pixels": aoi_pixel_count_expr(region=geometry),
         }
     )
     try:
@@ -283,15 +285,16 @@ def _evaluate_window_quality(
         raise map_ee_exception(exc) from exc
 
     scene_count = _as_int(raw.get("scene_count"))
-    valid_pixels = _as_int(raw.get("valid_pixels"))
-    aoi_pixels = _as_int(raw.get("aoi_pixels"))
+    pixels = raw.get("pixels") or {}
+    valid_pixels = _as_int(pixels.get(VALID_PIXELS_KEY))
+    total_pixels = _as_int(pixels.get(TOTAL_PIXELS_KEY))
     mean_cloud = _as_float(raw.get("mean_scene_cloud"))
     return evaluate_quality(
         window=window,
         requested_max_cloud_pct=max_cloud_pct,
         scene_count=scene_count,
         valid_pixel_count=valid_pixels,
-        aoi_pixel_count=aoi_pixels,
+        aoi_pixel_count=total_pixels,
         mean_scene_cloud_pct=mean_cloud,
     )
 
@@ -350,6 +353,17 @@ def run_change_explorer(
     resolver = territory_resolver or territories.get
     cfg = _resolve_territory(request.territory_id, resolver)
 
+    # Safe observability — geography/params only, never credentials or URLs. The
+    # bbox is the resolved *registered* territory bbox (the conservative override
+    # exists only in the manual smoke script, via territory_resolver).
+    logger.info(
+        "change_explorer: start territory=%s product=%s dims=%d cloud=%.0f "
+        "bbox=%s before=%s..%s after=%s..%s",
+        cfg.key, request.product.value, request.dimensions, request.max_cloud_pct,
+        cfg.bbox_wgs84, request.before.ee_start_date(), request.before.ee_end_date(),
+        request.after.ee_start_date(), request.after.ee_end_date(),
+    )
+
     client = get_change_explorer_client(app_settings)
     ee = client.module()
     geometry = bbox_to_ee_rectangle(ee, cfg.bbox_wgs84)
@@ -388,6 +402,10 @@ def run_change_explorer(
     # No fabricated URLs for no-data products: only render when BOTH windows have
     # at least one scene and one valid pixel.
     if not (_renderable(before_quality) and _renderable(after_quality)):
+        logger.info(
+            "change_explorer: done status=no_data scenes=%s/%s (no artifacts)",
+            before_quality.scene_count, after_quality.scene_count,
+        )
         return ChangeExplorerResult(
             territory_id=cfg.key,
             territory_name=cfg.display_name,
@@ -433,6 +451,12 @@ def run_change_explorer(
         before_quality.adequate_coverage and after_quality.adequate_coverage
     )
     status = ResultStatus.DEGRADED_COVERAGE if degraded else ResultStatus.OK
+    logger.info(
+        "change_explorer: done status=%s scenes=%s/%s coverage=%s/%s "
+        "(3 artifacts, URLs withheld)",
+        status.value, before_quality.scene_count, after_quality.scene_count,
+        before_quality.valid_pixel_fraction, after_quality.valid_pixel_fraction,
+    )
 
     return ChangeExplorerResult(
         territory_id=cfg.key,

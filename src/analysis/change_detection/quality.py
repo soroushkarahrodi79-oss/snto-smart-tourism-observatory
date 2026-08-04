@@ -5,9 +5,9 @@ SNTO — Change-detection quality metadata (ADR-015)
 Two layers, kept apart on purpose:
 
 1. **EE expression builders** (``scene_count_expr``, ``mean_scene_cloud_expr``,
-   ``valid_pixel_count_expr``, ``aoi_pixel_count_expr``) — construct lazy EE
-   objects only. They never call ``getInfo``; the future service evaluates them.
-   Emptiness is therefore never probed inside a pure builder.
+   ``pixel_counts_expr``) — construct lazy EE objects only. They never call
+   ``getInfo``; the service evaluates them. Emptiness is therefore never probed
+   inside a pure builder.
 2. **A pure assembler** (:func:`evaluate_quality`) — takes the *already-evaluated*
    scalars and returns a fully JSON-serialisable :class:`QualityMetadata`,
    applying the no-scenes / insufficient-coverage warning logic offline.
@@ -15,6 +15,19 @@ Two layers, kept apart on purpose:
 Cloud metrics are not conflated: ``CLOUDY_PIXEL_PERCENTAGE`` is scene metadata
 (pre-filter + ``mean_scene_cloud``), whereas valid-pixel coverage is an
 SCL-derived AOI/composite measure.
+
+Valid-pixel fraction — **bounded by construction** (fixes a confirmed live bug
+where ``valid_pixel_fraction`` came out as 1.325 ≈ 1/cos(latitude)). The previous
+denominator mixed two incompatible bases: the numerator was a ``reduceRegion``
+pixel *count* on the Sentinel-2 UTM 10 m grid, while the denominator was
+``geometry.area()/scale²`` — a geodesic m² area that, for a lat/lon rectangle,
+differs from the UTM pixel count by roughly the latitude-cosine factor. Both the
+valid count **and** the total count are now taken from the **same**
+``reduceRegion`` over the NDVI mask (``sum`` of the 0/1 mask = valid pixels;
+``count`` of the mask = total footprint pixels), on one identical pixel grid — so
+``valid ≤ total`` always and ``fraction = valid/total ∈ [0, 1]``. When there is no
+composite footprint the counts are ``0``/``None`` and the fraction is honestly
+``None``.
 
 reduceRegion knobs are explicit and justified:
 * ``scale = DEFAULT_SCALE_M`` (10 m) — the native NIR/Red resolution, matching the
@@ -60,7 +73,10 @@ def mean_scene_cloud_expr(collection: Any) -> Any:
     return collection.aggregate_mean(CLOUDY_PIXEL_PERCENTAGE)
 
 
-def valid_pixel_count_expr(
+_VALID_BAND = "valid"
+
+
+def pixel_counts_expr(
     *,
     ee_module: Any,
     ndvi_image: Any,
@@ -70,31 +86,36 @@ def valid_pixel_count_expr(
     best_effort: bool = False,
     tile_scale: int = 1,
 ) -> Any:
-    """``ee.Number`` of valid (unmasked) NDVI pixels within *region*.
+    """``ee.Dictionary`` with the valid and total pixel counts on ONE grid.
 
-    A single ``reduceRegion(ee.Reducer.count())`` over the NDVI band — one
-    reduction, no redundancy. ``count`` ignores masked pixels, so this is the
-    valid-pixel count for the composite inside the AOI.
+    Both counts come from a **single** ``reduceRegion`` over the NDVI mask
+    (``ndvi.mask()`` — a 0/1 image that is itself unmasked across the composite
+    footprint), so they share the exact same projection, scale and region:
+
+    * ``valid_sum``   = ``Reducer.sum``   of the mask → number of **valid** pixels;
+    * ``valid_count`` = ``Reducer.count`` of the mask → number of **total**
+      footprint pixels (valid + invalid).
+
+    Because ``sum ≤ count`` on the same grid, ``valid/total ∈ [0, 1]`` — this is
+    the numerically defensible denominator that replaces the old, incompatible
+    ``geometry.area()/scale²``. No ``getInfo`` here.
     """
     ee = ee_module
-    reduced = ndvi_image.select(NDVI_BAND).reduceRegion(
-        reducer=ee.Reducer.count(),
+    mask_band = ndvi_image.select(NDVI_BAND).mask().rename(_VALID_BAND)
+    reducer = ee.Reducer.sum().combine(ee.Reducer.count(), sharedInputs=True)
+    return mask_band.reduceRegion(
+        reducer=reducer,
         geometry=region,
         scale=scale,
         maxPixels=max_pixels,
         bestEffort=best_effort,
         tileScale=tile_scale,
     )
-    return reduced.get(NDVI_BAND)
 
 
-def aoi_pixel_count_expr(*, region: Any, scale: int = DEFAULT_SCALE_M) -> Any:
-    """``ee.Number`` of pixels the AOI covers at *scale* (area ÷ scale²).
-
-    Uses ``region.area`` (geometry measure), *not* a second ``reduceRegion``, so
-    the fraction denominator costs no extra pixel reduction.
-    """
-    return region.area(maxError=1).divide(scale * scale)
+# Keys produced by ``pixel_counts_expr`` (``<band>_<reducer>``).
+VALID_PIXELS_KEY = f"{_VALID_BAND}_sum"
+TOTAL_PIXELS_KEY = f"{_VALID_BAND}_count"
 
 
 # ── Pure assembler (offline; no EE) ───────────────────────────────────────────
@@ -113,7 +134,11 @@ def evaluate_quality(
 ) -> QualityMetadata:
     """Assemble :class:`QualityMetadata` from evaluated scalars (pure, offline).
 
-    Computes ``valid_pixel_fraction = valid / aoi`` and emits warnings for the
+    ``valid_pixel_count`` and ``aoi_pixel_count`` are now the ``sum`` and ``count``
+    of the NDVI mask from the **same** ``reduceRegion`` (see
+    :func:`pixel_counts_expr`), so ``valid ≤ aoi`` and ``valid_pixel_fraction =
+    valid / aoi ∈ [0, 1]`` by construction. When ``aoi`` is ``0``/``None`` (no
+    composite footprint) the fraction is honestly ``None``. Emits warnings for the
     two degraded states the service must surface understandably:
 
     * **no scenes** — the filtered collection is empty (nothing to composite);
