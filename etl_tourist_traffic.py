@@ -40,8 +40,6 @@ if hasattr(sys.stdout, "buffer"):
 import psycopg2
 from dotenv import load_dotenv
 
-load_dotenv()  # carga .env antes de os.getenv() a nivel de módulo
-
 SEP = "=" * 72
 DIV = "-" * 72
 
@@ -56,6 +54,18 @@ DB_PORT = int(os.getenv("SNTO_DB_PORT", "5432"))
 DB_NAME = os.getenv("SNTO_DB_NAME", "snto")
 DB_USER = os.getenv("SNTO_DB_USER", "postgres")
 DB_PASS = os.getenv("SNTO_DB_PASS", "")
+
+
+def _load_runtime_db_config() -> None:
+    """Load .env for direct script execution and refresh DB globals."""
+    global DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS
+
+    load_dotenv()
+    DB_HOST = os.getenv("SNTO_DB_HOST", "localhost")
+    DB_PORT = int(os.getenv("SNTO_DB_PORT", "5432"))
+    DB_NAME = os.getenv("SNTO_DB_NAME", "snto")
+    DB_USER = os.getenv("SNTO_DB_USER", "postgres")
+    DB_PASS = os.getenv("SNTO_DB_PASS", "")
 
 
 # ── Connection helper ─────────────────────────────────────────────────────────
@@ -74,6 +84,7 @@ def _connect() -> psycopg2.extensions.connection:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
+    _load_runtime_db_config()
     print(SEP)
     print("  SNTO ETL — Tourist Traffic Demand Layer")
     print("  Adding annual_visitors to production_hiking_trails")

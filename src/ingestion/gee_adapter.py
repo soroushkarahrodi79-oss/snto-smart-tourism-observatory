@@ -6,28 +6,41 @@ from typing import Any
 
 from src.assets.models import AssetObservation, GeometryType, SpatialStats, TourismAsset
 from src.ingestion.base import DataIngestionAdapter
+from src.integrations.earth_engine.collections import (
+    BAND_BLUE as _BAND_BLUE,
+)
+from src.integrations.earth_engine.collections import (
+    BAND_NIR as _BAND_NIR,
+)
+from src.integrations.earth_engine.collections import (
+    BAND_RED as _BAND_RED,
+)
+from src.integrations.earth_engine.collections import (
+    BAND_SWIR1 as _BAND_SWIR,
+)
+from src.integrations.earth_engine.collections import (
+    MIN_VALID_PIXEL_FRACTION as _MIN_VALID_PIX_PCT,
+)
+from src.integrations.earth_engine.collections import (
+    S2_COLLECTION_ID as _S2_COLLECTION,
+)
+from src.integrations.earth_engine.collections import (
+    SR_SCALE as _SR_SCALE,
+)
+from src.integrations.earth_engine.collections import (
+    add_ndvi as _shared_add_ndvi,
+)
+from src.integrations.earth_engine.collections import (
+    mask_scl as _shared_mask_scl,
+)
 
 logger = logging.getLogger(__name__)
 
-# ── Sentinel-2 SR collection ───────────────────────────────────────────────────
-# Harmonized collection is radiometrically consistent across processing baselines
-# (PB < 4.00 and >= 4.00 are normalised to a common reflectance range).
-_S2_COLLECTION = "COPERNICUS/S2_SR_HARMONIZED"
-
-# Surface reflectance scaling factor: raw DN / 10 000 → unitless [0, 1]
-_SR_SCALE = 10_000.0
-
-# Band names in this GEE collection
-_BAND_BLUE = "B2"   # Blue       490 nm   10 m — needed for EVI aerosol correction
-_BAND_RED  = "B4"   # Red        665 nm   10 m
-_BAND_NIR  = "B8"   # NIR broad  842 nm   10 m
-_BAND_SWIR = "B11"  # SWIR1     1610 nm   20 m  (GEE resamples to 10 m at runtime)
-_BAND_SCL  = "SCL"  # Scene Classification Layer  20 m
-
-# SCL classes to EXCLUDE from analysis (cloud / shadow / snow / saturated)
-# 0=no_data, 1=saturated, 3=cloud_shadow, 8=cloud_med_prob,
-# 9=cloud_high_prob, 10=thin_cirrus, 11=snow_ice
-_SCL_BAD_VALUES: list[int] = [0, 1, 3, 8, 9, 10, 11]
+# Sentinel-2 collection id, band names, SR scale, the SCL bad-class pixel mask,
+# the NDVI definition and the minimum-valid-pixel convention now live in the
+# shared foundation (src/integrations/earth_engine/collections.py) so the adapter
+# and the Visual Change Explorer share one source of truth (ADR-015). The private
+# aliases above preserve this module's internal references without churn.
 
 # EVI coefficients (standard MODIS/Liu & Huete 1995)
 _EVI_G  = 2.5
@@ -39,8 +52,8 @@ _EVI_L  = 1.0
 _TRAIL_BUFFER_M = 30    # 3× Sentinel-2 pixel, captures immediate trail corridor
 _POINT_BUFFER_M = 50    # 5× pixel, minimal aggregation area for point assets
 
-# Minimum fraction of valid (cloud-free) pixels to accept a monthly composite
-_MIN_VALID_PIX_PCT = 0.30
+# Minimum-valid-pixel fraction is the shared SNTO convention, imported above as
+# _MIN_VALID_PIX_PCT (= collections.MIN_VALID_PIXEL_FRACTION).
 
 # Aggregation scale in metres — match NIR/Red native 10 m resolution
 _AGGREGATE_SCALE_M = 10
@@ -250,34 +263,35 @@ class GEEAdapter(DataIngestionAdapter):
 
     @staticmethod
     def _cloud_mask_scl(image):
-        """Mask cloud, shadow, cirrus, snow pixels using the SCL band.
+        """Mask cloud / shadow / cirrus / snow pixels via the shared SCL mask.
 
-        SCL is the recommended masking approach for Sentinel-2 L2A.
-        It supersedes the older QA60 bitmask which only covered high-confidence clouds.
+        Delegates to the single-source ``collections.mask_scl`` (ADR-015); no
+        duplicate SCL bad-class list or masking loop lives here anymore. Behaviour
+        is unchanged — same bands [0, 1, 3, 8, 9, 10, 11], same ``updateMask``.
         """
-
-        scl = image.select(_BAND_SCL)
-        mask = scl.neq(_SCL_BAD_VALUES[0])
-        for bad_val in _SCL_BAD_VALUES[1:]:
-            mask = mask.And(scl.neq(bad_val))
-        return image.updateMask(mask)
+        return _shared_mask_scl(image)
 
     @staticmethod
     def _compute_scaled_indices(image):
-        """Compute NDVI, NDMI, and EVI from SR-scaled reflectance, adding them as bands.
+        """Compute NDVI, NDMI, and EVI, adding them as bands.
+
+        NDVI comes from the shared single-source definition
+        (``collections.add_ndvi`` → ``normalizedDifference([B8, B4])``); it is
+        scale-invariant, so it matches the previous scaled-reflectance NDVI
+        exactly. NDMI and EVI (which are not shared with the explorer) stay here.
 
         B11 (SWIR1, 20 m) is automatically resampled by GEE to the output
         resolution set in reduceRegion (scale=10 m) using bilinear interpolation.
-
-        EVI uses the blue band (B2) to correct for atmospheric aerosol scattering.
-        It avoids NDVI saturation in dense forest canopies (NDVI > 0.80).
+        EVI uses the blue band (B2) to correct for atmospheric aerosol scattering;
+        it avoids NDVI saturation in dense forest canopies (NDVI > 0.80).
         """
+        with_ndvi = _shared_add_ndvi(image)
+
         b2  = image.select(_BAND_BLUE).divide(_SR_SCALE)
         b4  = image.select(_BAND_RED).divide(_SR_SCALE)
         b8  = image.select(_BAND_NIR).divide(_SR_SCALE)
         b11 = image.select(_BAND_SWIR).divide(_SR_SCALE)
 
-        ndvi = b8.subtract(b4).divide(b8.add(b4)).rename("NDVI")
         ndmi = b8.subtract(b11).divide(b8.add(b11)).rename("NDMI")
 
         # EVI = G × (NIR – RED) / (NIR + C1×RED – C2×BLUE + L)
@@ -286,7 +300,7 @@ class GEEAdapter(DataIngestionAdapter):
         # Guard against zero/negative denominator before division
         evi = evi_num.divide(evi_denom.where(evi_denom.lte(0), 1e-6)).rename("EVI")
 
-        return image.addBands([ndvi, ndmi, evi])
+        return with_ndvi.addBands([ndmi, evi])
 
     # ── Monthly aggregation ────────────────────────────────────────────────────
 
@@ -396,23 +410,14 @@ class GEEAdapter(DataIngestionAdapter):
     def _initialize(self) -> None:
         if self._initialized:
             return
-        try:
-            import ee
-        except ImportError as exc:
-            raise RuntimeError(
-                "earthengine-api is not installed. "
-                "Run: pip install earthengine-api"
-            ) from exc
+        # Delegate to the shared, idempotent foundation (ADR-015) so ee.Initialize
+        # happens at most once per process/credential set. Behaviour is preserved:
+        # service-account mode when key_file is set, personal auth otherwise. A
+        # missing earthengine-api still surfaces as a RuntimeError subclass
+        # (EarthEngineUnavailableError). This adapter carries no separate
+        # service-account email, matching the previous email="" call.
+        from src.integrations.earth_engine.client import initialize_earth_engine
 
-        if self.key_file:
-            credentials = ee.ServiceAccountCredentials(
-                email="",
-                key_file=self.key_file,
-            )
-            ee.Initialize(credentials=credentials, project=self.project_id)
-        else:
-            # Personal auth — requires prior `earthengine authenticate` call
-            ee.Initialize(project=self.project_id)
-
+        initialize_earth_engine(self.project_id, key_file=self.key_file)
         self._initialized = True
         logger.info("GEE initialized. Project: %s", self.project_id)

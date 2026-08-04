@@ -60,7 +60,17 @@ jobs:
             tests/test_evidence_claims_sync.py tests/unit/test_prug_monitoring.py \
             scripts/build_dossier.py tests/unit/test_institutional_dossier.py \
             scripts/export_openapi.py tests/unit/test_openapi_contract.py \
-            tests/unit/test_pilot_package.py tests/unit/test_dashboard_kpis_empty.py
+            tests/unit/test_pilot_package.py tests/unit/test_dashboard_kpis_empty.py \
+            src/integrations tests/unit/test_earth_engine_client.py \
+            tests/unit/test_change_collections.py tests/unit/test_change_composites.py \
+            tests/unit/test_change_quality.py tests/unit/test_change_models.py \
+            tests/unit/test_change_render.py \
+            src/services src/ui/tabs/tab_change_explorer.py \
+            tests/unit/test_change_explorer_service.py \
+            tests/unit/test_change_explorer_cache.py \
+            tests/ui/test_change_explorer_tab.py \
+            scripts/smoke_test_change_explorer_live.py \
+            tests/live tests/unit/test_smoke_script.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github

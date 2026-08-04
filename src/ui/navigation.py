@@ -64,6 +64,7 @@ NAVIGATION_LAYERS = (
         question="¿Qué datos sostienen la señal?",
         modules=(
             NavigationModule("satellite", "Evidencia satelital"),
+            NavigationModule("change_explorer", "Explorador de cambio visual"),
             NavigationModule("confidence", "Confianza e incertidumbre"),
             NavigationModule("provenance", "Proveniencia y linaje"),
         ),
