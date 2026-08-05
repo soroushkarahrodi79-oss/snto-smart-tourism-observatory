@@ -9,11 +9,17 @@
   conservative AOI and the full PNSG bbox (NDVI + True Colour); the
   `valid_pixel_fraction > 1` bug is fixed; the UI blank-result issue is addressed
   with loading feedback + a non-blank fallback.
-- **GIF MVP live status: `NOT LIVE VERIFIED — awaiting owner live smoke test`**
-  (this Claude session has no Earth Engine credentials; the code is complete and
-  fully unit/UI-tested offline, and the manual live smoke procedure is documented
-  in §0f).
-- **Date:** 2026-08-02 (foundation landed 2026-08-02); GIF MVP 2026-08-04
+- **GIF MVP live status: `LIVE VERIFIED — LOCAL DEVELOPMENT ENVIRONMENT`**
+  (date 2026-08-05). Confirmed in the owner's authenticated local environment
+  via the manual smoke procedure (§0f): real Earth Engine initialization,
+  end-to-end temporal animation service completion, a usable `getVideoThumbURL`
+  result, signed-URL-to-bounded-bytes retrieval, a valid animated GIF with
+  stable frame extent/alignment and a consistent fixed visualisation across
+  frames, correct rendering inside the Streamlit Visual Change Explorer
+  alongside the still-visible swipe result, a working in-memory download
+  control, and no signed URL exposed in the UI or ordinary logs.
+- **Date:** 2026-08-02 (foundation landed 2026-08-02); GIF MVP implemented
+  2026-08-04, live-verified 2026-08-05
 - **Companions:** `docs/audits/visual_change_feature_audit.md`,
   `docs/decisions/ADR-015-earth-engine-change-explorer.md`
 
@@ -100,10 +106,34 @@ manual only, **never in CI**):
    path>` and refuses to overwrite without `--force`. Distinct exit codes per
    failure class; creates no assets/exports.
 
-**GIF MVP live status: `NOT LIVE VERIFIED — awaiting owner live smoke test`** —
-this session has no Earth Engine credentials, so no GIF live verification is
-claimed. The code is complete and fully unit/UI-tested offline (mocked `ee`, no
-network).
+**GIF MVP live status: `LIVE VERIFIED — LOCAL DEVELOPMENT ENVIRONMENT`.** The
+code was complete and fully unit/UI-tested offline (mocked `ee`, no network)
+before this record; the live round trip below confirms it also works against
+real Earth Engine.
+
+### Live-verification record — GIF MVP
+
+- **Date:** 2026-08-05.
+- **Environment:** owner's local development environment (not production, not
+  deployed infrastructure).
+- **Authentication:** real, configured Earth Engine credentials (owner-held;
+  no identity or credential detail recorded here).
+- **Confirmed:** real Earth Engine initialization succeeded; the temporal
+  animation service ran end to end; `getVideoThumbURL` returned a usable
+  signed URL; the signed URL was retrieved to bounded in-memory bytes
+  (never persisted, never logged, never shown in the UI); the resulting GIF
+  was valid and animated correctly; frame extent and spatial alignment stayed
+  stable across frames; the fixed product visualisation/palette stayed
+  consistent across frames (no per-frame auto-stretch); the GIF rendered
+  correctly inside the Streamlit Visual Change Explorer, with the existing
+  swipe result still visible alongside it; the in-memory download control
+  worked; no signed URL was visible in the UI or in ordinary logs.
+- **Not claimed:** exact duration, exact byte size, exact per-frame scene
+  count, and exact network request count are not recorded here — those were
+  not part of the committed safe output for this record.
+- **Remaining limitation:** this is **local-development verification only**,
+  not a production deployment verification and not a scientific field
+  validation (#26 remains the hard gate for any satellite↔field claim).
 
 ## 0e. Runtime bug-fix pass (full-AOI execution + UI visibility)
 
@@ -577,8 +607,8 @@ step with the adapter's tests green).
    + orchestration/bounded-download/cache
    (`services/change_animation_service.py`), wired through the service and
    surfaced as an explicit, separate GIF form under a successful swipe.
-   Code-complete and offline-tested; **not yet live verified** (no credentials in
-   the implementing session).
+   Code-complete, offline-tested, and **`LIVE VERIFIED — LOCAL DEVELOPMENT
+   ENVIRONMENT`** (2026-08-05, owner's authenticated local environment).
 10. ✅ **Done.** `src/ui/tabs/tab_change_explorer.py` — AOI picker, date ranges, cloud slider,
     index toggle, swipe, GIF, metadata; register in `src/ui/navigation.py`.
 11. UI/navigation test; degraded-state test; docs sync; keep coverage ≥80 %.
