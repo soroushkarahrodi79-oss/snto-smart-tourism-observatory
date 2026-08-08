@@ -281,6 +281,81 @@ def test_report_is_json_serialisable(patch_trails) -> None:
     json.dumps(build_prug_monitoring("pnsg"), ensure_ascii=False)
 
 
+# ── Sentinel-2 provenance qualified separately from EvidenceClass (PR 0.5.2) ──
+
+def _zoned_trails() -> list[RealTrail]:
+    return [
+        _trail(1, health_summer=80.0, delta_health=-1.0,
+               zone="Zona de Uso Moderado", weight=0.5),
+    ]
+
+
+def _force_snapshot(monkeypatch, snapshot) -> None:
+    """Pin the lazily-imported ``snapshot_provenance`` used inside the report."""
+    monkeypatch.setattr(
+        "src.platform.provenance.snapshot_provenance",
+        lambda _key: snapshot,
+        raising=True,
+    )
+
+
+def test_provenance_block_lists_paired_scenes_in_state_a(patch_trails, monkeypatch):
+    from src.platform.provenance import SceneReference, SnapshotProvenance
+    from src.temporal import DataStatus, TrendReadiness
+
+    snap = SnapshotProvenance(
+        status=DataStatus.REAL, derived_output_available=True,
+        raw_scenes_available=True, provenance_complete=True,
+        locally_reproducible=True, n_scenes=2,
+        scene_dates=["2025-08-10", "2026-04-10"],
+        scene_refs=[SceneReference("S2A", "2025-08-10"),
+                    SceneReference("S2B", "2026-04-10")],
+        readiness=TrendReadiness.SEASONAL_ONLY,
+        mann_kendall_justified=False, seasonal_delta_valid=True,
+        inference_label="…", caveat="…",
+    )
+    patch_trails(_dataset(_zoned_trails()))
+    _force_snapshot(monkeypatch, snap)
+    report = build_prug_monitoring("pnsg")
+    # EvidenceClass stays REAL; provenance is qualified separately.
+    assert report["evidence_class"] == EvidenceClass.REAL.value
+    prov = report["provenance"]
+    assert prov["raw_scenes_available"] is True
+    assert prov["provenance_complete"] is True
+    assert prov["locally_reproducible"] is True
+    pairs = {(r["sensor_id"], r["acquisition_date"]) for r in prov["scene_references"]}
+    assert pairs == {("S2A", "2025-08-10"), ("S2B", "2026-04-10")}
+    md = render_prug_monitoring_markdown(report)
+    assert "S2A" in md and "2025-08-10" in md
+
+
+def test_provenance_block_degrades_in_state_b(patch_trails, monkeypatch):
+    from src.platform.provenance import SnapshotProvenance
+    from src.temporal import DataStatus
+
+    snap = SnapshotProvenance(
+        status=DataStatus.REAL, derived_output_available=True,
+        raw_scenes_available=False, provenance_complete=False,
+        locally_reproducible=False, n_scenes=None,
+        scene_dates=[], scene_refs=[], readiness=None,
+        mann_kendall_justified=False, seasonal_delta_valid=False,
+        inference_label="…", caveat="…",
+    )
+    patch_trails(_dataset(_zoned_trails()))
+    _force_snapshot(monkeypatch, snap)
+    report = build_prug_monitoring("pnsg")
+    # Still REAL-derived, but provenance flagged incomplete / not reproducible.
+    assert report["evidence_class"] == EvidenceClass.REAL.value
+    prov = report["provenance"]
+    assert prov["raw_scenes_available"] is False
+    assert prov["provenance_complete"] is False
+    assert prov["locally_reproducible"] is False
+    assert prov["scene_references"] == []
+    md = render_prug_monitoring_markdown(report)
+    assert "no verificables en este entorno" in md
+    assert "no reproducible localmente" in md
+
+
 # ── Live checks against the real committed PNSG trails ───────────────────────
 
 def test_live_pnsg_report_is_available_and_real() -> None:
