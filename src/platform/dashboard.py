@@ -150,12 +150,12 @@ def _kpi_territory_health(assets: list) -> DashboardKPI:
             f"The destination health score ({score:.0f}/100) indicates significant "
             "environmental pressure. A substantial portion of assets require active management."
         )
-        action = "Approve emergency funding for Tier 1 assets. Restrict visitors at critical sites."
+        action = "Approve emergency funding for Tier 1 assets. Intensify monitoring and verification at critical sites."
     else:
         status, label = "RED", "CRITICAL"
         meaning = (
             f"The destination health score ({score:.0f}/100) is critically low. "
-            "The natural asset portfolio is at risk of irreversible degradation."
+            "Multiple assets show low health scores that warrant urgent assessment and verification."
         )
         action = "Immediate emergency intervention required across multiple critical assets."
 
@@ -228,7 +228,7 @@ def _kpi_visitor_capacity_at_risk(assets: list) -> DashboardKPI:
             "deteriorating or poor environmental condition. Their experience is compromised "
             "and they may become carriers of negative destination reputation."
         )
-        action = "Implement visitor redirection and remediation plan as a matter of urgency."
+        action = "Prioritise assessment and intensified monitoring of the highest-traffic stressed sites as a matter of urgency."
     elif pct >= 20:
         status, label = "AMBER", "MODERATE RISK"
         meaning = (
@@ -378,7 +378,7 @@ def _kpi_promotion_pipeline(assets: list) -> DashboardKPI:
 
 
 def _kpi_human_pressure_alerts(assets: list) -> DashboardKPI:
-    """KPI 7: Sites where visitor behaviour is causing measurable damage."""
+    """KPI 7: Sites where the SCM flags a possible localized (visitor-associated) impact hypothesis."""
     human_driven = [
         a for a in assets
         if a.scm_classification == "LOCALIZED_IMPACT" and a.tier in (1, 2)
@@ -389,23 +389,24 @@ def _kpi_human_pressure_alerts(assets: list) -> DashboardKPI:
     if n >= 3:
         status, label = "RED", "MULTIPLE ALERTS"
         meaning = (
-            f"{n} sites are experiencing measurable environmental damage caused by "
-            "visitor pressure. These are the most actionable cases: the cause is known "
-            "and visitor management can directly address it."
+            f"{n} sites are flagged with a localized-impact classification, a working "
+            "hypothesis that their environmental change may be associated with visitor "
+            "pressure. The association is not yet independently verified."
         )
-        action = f"Implement visitor management measures at {n} sites. Consider seasonal closures."
+        action = f"Prioritise assessment and field verification at {n} flagged sites before deciding on management measures."
     elif n >= 1:
         status, label = "AMBER", "ACTIVE ALERT"
         meaning = (
-            f"{n} site(s) show confirmed visitor-driven environmental damage. "
-            "This is the most direct form of tourism pressure on the destination's assets."
+            f"{n} site(s) carry a localized-impact classification, a hypothesis that "
+            "environmental change may be associated with visitor pressure. The association "
+            "is not yet independently verified."
         )
-        action = "Implement visitor management measures. Consider visitor quotas or guided-only access."
+        action = "Assess and verify the flagged site(s) to test the visitor-association hypothesis before deciding on management measures."
     else:
         status, label = "GREEN", "NO ALERTS"
         meaning = (
-            "No sites are currently flagged for visitor-driven environmental damage. "
-            "Environmental changes appear to be driven by natural climate variability."
+            "No sites are currently flagged with a localized-impact classification. "
+            "There is no present evidence associating environmental change with visitor pressure."
         )
         action = "Continue monitoring visitor impact indicators."
 
@@ -576,9 +577,10 @@ def _generate_call_to_action(assets: list) -> str:
     if t1_localized:
         top = sorted(t1_localized, key=lambda a: -(a.tpi or 0))[0]
         return (
-            f"Approve restoration funding for {top.name} immediately. "
-            "The cause (visitor pressure) is confirmed and the evidence is reliable. "
-            "Each month of delay increases restoration cost and visitor experience damage."
+            f"Prioritise {top.name} for assessment and field verification. "
+            "It is a Tier-1 site where the SCM flags a possible localized "
+            "(visitor-associated) impact; this association is a working hypothesis, "
+            "not an independently verified cause. Verify it before committing capital restoration."
         )
 
     evidence_gaps = [a for a in assets if a.dcs < 40 and a.tier == 1]
