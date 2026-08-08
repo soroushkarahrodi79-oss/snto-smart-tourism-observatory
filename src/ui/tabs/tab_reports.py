@@ -100,25 +100,42 @@ def render_tab_reports(
         report_date=report_date,
     )
     brief_md = render_territorial_brief_markdown(brief)
+    # Evidence gate (ADR-004 / I-5): the executive brief over the decision
+    # portfolio may only be offered as an *authorized* public/institutional
+    # download when the portfolio's evidence class supports public reporting.
+    # The synthetic fixture portfolio does not — it is shown as a demo preview
+    # with a warning, and the two download buttons are withheld. (Sections 2-4
+    # below use separate real-evidence pipelines and are unaffected.)
+    _public_ok = brief["metadata"].get("public_reporting_authorized", True)
     with st.expander(
         "Vista previa del informe", expanded=_view.section(audit=True)
     ):
         st.markdown(brief_md)
-    _slug = territory_name.lower().replace(" ", "_")[:40]
-    st.download_button(
-        "⬇️ Descargar informe ejecutivo (.md)",
-        data=brief_md,
-        file_name=f"snto_informe_{_slug}_{report_date}.md",
-        mime="text/markdown",
-        use_container_width=True,
-    )
-    st.download_button(
-        "⬇️ Descargar informe (.json)",
-        data=json.dumps(brief, ensure_ascii=False, indent=2),
-        file_name=f"snto_informe_{_slug}_{report_date}.json",
-        mime="application/json",
-        use_container_width=True,
-    )
+    if _public_ok:
+        _slug = territory_name.lower().replace(" ", "_")[:40]
+        st.download_button(
+            "⬇️ Descargar informe ejecutivo (.md)",
+            data=brief_md,
+            file_name=f"snto_informe_{_slug}_{report_date}.md",
+            mime="text/markdown",
+            use_container_width=True,
+        )
+        st.download_button(
+            "⬇️ Descargar informe (.json)",
+            data=json.dumps(brief, ensure_ascii=False, indent=2),
+            file_name=f"snto_informe_{_slug}_{report_date}.json",
+            mime="application/json",
+            use_container_width=True,
+        )
+    else:
+        st.warning(
+            brief.get(
+                "demo_warning",
+                "🧪 Cartera sintética de demostración: no autorizada para "
+                "descarga como informe público o institucional.",
+            ),
+            icon="🧪",
+        )
 
     st.divider()
 
