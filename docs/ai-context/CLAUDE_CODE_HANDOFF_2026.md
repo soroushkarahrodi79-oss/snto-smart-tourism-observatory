@@ -1,3 +1,31 @@
+> ⚠️ **HISTORICAL SNAPSHOT (as of 2026-07-08) — NOT CURRENT OPERATING CONTEXT**
+>
+> This document records the SNTO repository state as it stood on **2026-07-08**
+> (its only commit, `ae4a139`). Much of it is now **stale and must not be used as
+> the current source of truth.** Concretely, do **not** rely on this file for:
+>
+> - **`app.py` size/role** — it says "~2,890-line monolith"; `app.py` is now
+>   composition-only (~350 lines). Modularization shipped in v1.5.0.
+> - **PR state** (§6, §13) — PR #1 and PR #7 were resolved long ago. Run
+>   `gh pr list` for the live picture.
+> - **Branch state** (§5) — the named branches are long since merged or deleted.
+> - **Roadmap / "next actions" (§12, §13, §15)** — v1.1 → v2.0 are all shipped
+>   (v2.0.0 released 2026-07-21); §13's "do not start v2 exploration" no longer
+>   applies.
+>
+> **For current operating context, read instead:**
+>
+> - [`CLAUDE.md`](../../CLAUDE.md) — current status, architecture, PR history,
+>   roadmap discipline, and non-negotiables (this is the authoritative operating
+>   document).
+> - [`MASTER_STRATEGIC_INDEX.md`](../../MASTER_STRATEGIC_INDEX.md) — entry point to
+>   the strategic knowledge base under `docs/`.
+> - `gh pr list` / `git branch -a` — the live source of truth for PR and branch state.
+>
+> The strategic positioning (§9–§11) and the AI-agent guardrails (§14) remain
+> broadly valid and are echoed in `CLAUDE.md`. Everything describing repository
+> *state* below is preserved as a historical record, not as instructions.
+
 # Claude Code Handoff 2026
 
 ## 1. Purpose of This Handoff
@@ -319,6 +347,16 @@ Any future AI agent working on SNTO must:
 
 ## 16. How Claude Code Should Use This File
 
+> **Superseded — see the historical-snapshot banner at the top of this file.**
+> This section's original ordering advice is preserved below for the record but no
+> longer reflects how the file should be used.
+
+Claude Code should read repository-level `CLAUDE.md` first as the authoritative
+current context, then `MASTER_STRATEGIC_INDEX.md`. This handoff should be read only
+as a **dated historical record** — not as current repository state, and never
+before `CLAUDE.md`.
+
+Original (2026-07-08) advice, retained for the record:
 Claude Code should read repository-level `CLAUDE.md` first. Then it should read this handoff. After that, it should read `MASTER_STRATEGIC_INDEX.md` and `docs/` only if needed.
 
 Before making changes, Claude Code should identify the intended release target:
