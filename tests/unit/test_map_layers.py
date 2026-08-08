@@ -64,6 +64,12 @@ _region_centroid = _map_layers._region_centroid
 _trail_endpoints = _map_layers._trail_endpoints
 assets_to_geojson = _map_layers.assets_to_geojson
 build_pydeck_deck = _map_layers.build_pydeck_deck
+build_pydeck_deck_spectral = _map_layers.build_pydeck_deck_spectral
+
+# Stable test map centre (PN Sierra de Guadarrama), passed explicitly to every
+# builder call — the builders no longer carry a silent Sierra-del-Rincón default
+# (Phase 0.5D / PR 0.5.3). Spread as **_TEST_CENTER into the keyword-only args.
+_TEST_CENTER = {"map_lat": 40.820, "map_lon": -3.960, "map_zoom": 10}
 
 
 # ── Minimal TerritorialAsset stub ─────────────────────────────────────────────
@@ -408,17 +414,17 @@ class TestBuildPydeckDeck:
         return [_trail(tier=1), _viewpoint(tier=2), _park(tier=3)]
 
     def test_returns_deck_object(self):
-        deck = build_pydeck_deck(self._assets())
+        deck = build_pydeck_deck(self._assets(), **_TEST_CENTER)
         assert isinstance(deck, _pydeck_stub.Deck)
 
     def test_deck_has_one_geojson_layer(self):
-        deck = build_pydeck_deck(self._assets())
+        deck = build_pydeck_deck(self._assets(), **_TEST_CENTER)
         assert len(deck.layers) == 1
         layer = deck.layers[0]
         assert layer.kind == "GeoJsonLayer"
 
     def test_layer_data_is_feature_collection(self):
-        deck  = build_pydeck_deck(self._assets())
+        deck  = build_pydeck_deck(self._assets(), **_TEST_CENTER)
         layer = deck.layers[0]
         data  = layer.kwargs.get("data")
         assert data is not None
@@ -426,32 +432,35 @@ class TestBuildPydeckDeck:
 
     def test_layer_feature_count_matches_assets(self):
         assets = self._assets()
-        deck   = build_pydeck_deck(assets)
+        deck   = build_pydeck_deck(assets, **_TEST_CENTER)
         n_feat = len(deck.layers[0].kwargs["data"]["features"])
         assert n_feat == len(assets)
 
-    def test_view_state_centred_on_reserve(self):
-        deck = build_pydeck_deck(self._assets())
+    def test_view_state_uses_supplied_centre(self):
+        # The builder no longer carries a silent default centre; the view state
+        # must echo exactly the map centre the caller supplied.
+        deck = build_pydeck_deck(self._assets(), **_TEST_CENTER)
         vs   = deck.initial_view_state
-        assert 41.0 < vs.latitude  < 41.3
-        assert -3.6 < vs.longitude < -3.3
+        assert vs.latitude  == _TEST_CENTER["map_lat"]
+        assert vs.longitude == _TEST_CENTER["map_lon"]
+        assert vs.zoom      == _TEST_CENTER["map_zoom"]
 
     def test_tooltip_is_configured(self):
-        deck = build_pydeck_deck(self._assets())
+        deck = build_pydeck_deck(self._assets(), **_TEST_CENTER)
         assert deck.tooltip is not None
         assert "html" in deck.tooltip
 
     def test_tooltip_references_name_property(self):
-        deck = build_pydeck_deck(self._assets())
+        deck = build_pydeck_deck(self._assets(), **_TEST_CENTER)
         assert "{name}" in deck.tooltip["html"]
 
     def test_map_style_is_set(self):
-        deck = build_pydeck_deck(self._assets())
+        deck = build_pydeck_deck(self._assets(), **_TEST_CENTER)
         assert deck.map_style is not None
         assert "http" in deck.map_style
 
     def test_empty_asset_list_produces_empty_layer(self):
-        deck = build_pydeck_deck([])
+        deck = build_pydeck_deck([], **_TEST_CENTER)
         n_feat = len(deck.layers[0].kwargs["data"]["features"])
         assert n_feat == 0
 
@@ -490,3 +499,125 @@ class TestRealGeometryInjection:
     def test_missing_asset_id_falls_back_to_approx(self):
         fc = assets_to_geojson([_viewpoint(asset_id="v9")], {})
         assert fc["features"][0]["properties"]["geom_source"] == "approx"
+
+
+# ── Cross-process determinism (Phase 0.5D / PR 0.5.3, audit T-2) ──────────────
+
+# Runs in a fresh interpreter: imports map_layers *by file path* (no package
+# import, no cwd dependency) and prints the three synthetic-geometry helper
+# outputs as sorted JSON for a fixed asset_id.
+_SUBPROC_SCRIPT = r'''
+import importlib.util
+import json
+import os
+import sys
+
+root, asset_id = sys.argv[1], sys.argv[2]
+path = os.path.join(root, "src", "platform", "map_layers.py")
+spec = importlib.util.spec_from_file_location("_ml_subproc", path)
+ml = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(ml)
+
+lat, lon = 40.8870, -3.8690  # Rascafría centroid (arbitrary fixed anchor)
+heading = ml._heading_from_id(asset_id)
+out = {
+    "jitter": ml._jitter(asset_id, lat, lon, spread=0.006),
+    "heading": heading,
+    "path": ml._trail_path(lat, lon, 2.0, heading, asset_id),
+}
+sys.stdout.write(json.dumps(out, sort_keys=True))
+'''
+
+
+class TestCrossProcessDeterminism:
+    """The defect that shipped (audit T-2): synthetic geometry was keyed on
+    Python's per-process-salted ``hash()``, so the same asset_id produced
+    different coordinates in different interpreters. These tests spawn *two*
+    independent interpreters and assert byte-identical output.
+
+    ``PYTHONHASHSEED`` is deliberately **not pinned to a fixed value** — it is
+    removed from each child's environment so Python randomises string hashing
+    per process. If the code ever regressed to built-in ``hash()``, the two
+    children would (almost surely) disagree and this test would fail. With the
+    stable blake2b digest, the output is identical regardless of the salt.
+    """
+
+    def _run(self, asset_id: str) -> str:
+        import os
+        import subprocess
+        import sys
+        from pathlib import Path
+
+        root = Path(__file__).resolve().parents[2]
+        env = dict(os.environ)
+        env.pop("PYTHONHASHSEED", None)  # force per-process hash randomisation
+        proc = subprocess.run(
+            [sys.executable, "-c", _SUBPROC_SCRIPT, str(root), asset_id],
+            capture_output=True,
+            text=True,
+            env=env,
+            check=True,
+        )
+        return proc.stdout
+
+    def test_same_id_byte_identical_across_processes(self):
+        asset_id = "pnsg-nat-001"
+        out_a = self._run(asset_id)
+        out_b = self._run(asset_id)
+        assert out_a == out_b
+        # Sanity: the payload actually carries all three helper outputs.
+        import json
+        payload = json.loads(out_a)
+        assert set(payload) == {"jitter", "heading", "path"}
+        assert len(payload["path"]) >= 2
+
+    def test_distinct_ids_differ_across_processes(self):
+        # Sanity check (not a uniqueness proof): two different ids must not
+        # trivially collapse to identical synthetic geometry.
+        out_a = self._run("pnsg-nat-001")
+        out_b = self._run("pnsg-nat-002")
+        assert out_a != out_b
+
+
+# ── Distinct-ID fallback geometry sanity (Phase 0.5D / PR 0.5.3) ──────────────
+
+class TestFallbackGeometryDistinctIds:
+    def test_distinct_ids_produce_distinct_trail_paths(self):
+        # Same region → same centroid, but the synthetic trace must differ by id.
+        a = assets_to_geojson([_trail(asset_id="ta", region="Rascafría")])
+        b = assets_to_geojson([_trail(asset_id="tb", region="Rascafría")])
+        pa = a["features"][0]["geometry"]["coordinates"]
+        pb = b["features"][0]["geometry"]["coordinates"]
+        assert pa != pb
+
+
+# ── Required explicit map centre (Phase 0.5D / PR 0.5.3, audit X-11) ──────────
+
+class TestRequiredMapCentre:
+    """The builders must reject invocation without an explicit map centre —
+    a missing required keyword-only argument raises TypeError, which is
+    strictly preferable to silently falling back to the archived Sierra del
+    Rincón view state."""
+
+    def _assets(self):
+        return [_trail(tier=1)]
+
+    def test_build_pydeck_deck_requires_centre(self):
+        with pytest.raises(TypeError):
+            build_pydeck_deck(self._assets())
+
+    def test_build_pydeck_deck_spectral_requires_centre(self):
+        with pytest.raises(TypeError):
+            build_pydeck_deck_spectral(self._assets())
+
+    def test_build_pydeck_deck_partial_centre_still_rejected(self):
+        with pytest.raises(TypeError):
+            build_pydeck_deck(self._assets(), map_lat=40.82, map_lon=-3.96)
+
+    def test_build_pydeck_deck_accepts_explicit_centre(self):
+        deck = build_pydeck_deck(self._assets(), **_TEST_CENTER)
+        assert deck.initial_view_state.latitude == _TEST_CENTER["map_lat"]
+
+    def test_build_pydeck_deck_spectral_accepts_explicit_centre(self):
+        deck = build_pydeck_deck_spectral(self._assets(), **_TEST_CENTER)
+        assert deck.initial_view_state.longitude == _TEST_CENTER["map_lon"]

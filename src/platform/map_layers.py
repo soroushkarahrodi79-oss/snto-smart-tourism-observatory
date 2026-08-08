@@ -33,6 +33,7 @@ Dependencies: pydeck>=0.9  (pip install pydeck)
 """
 from __future__ import annotations
 
+import hashlib
 import math
 from typing import Any
 
@@ -64,13 +65,10 @@ _REGION_CENTROIDS: dict[str, tuple[float, float]] = {
     "San Lorenzo de El Escorial": (40.5930, -4.1470),
 }
 
-# Fallback centroid for unknown regions (geographic centre of the reserve)
+# Fallback centroid for unknown regions — a synthetic region-anchor used only
+# when a region name is absent from _REGION_CENTROIDS. This is NOT the map-view
+# centre (each map builder now requires an explicit map centre from its caller).
 _DEFAULT_CENTROID = (41.130, -3.490)
-
-# Default map centre and initial zoom (Sierra del Rincón)
-_MAP_LATITUDE  = 41.130
-_MAP_LONGITUDE = -3.490
-_MAP_ZOOM      = 11
 
 # ── Colour palette by tier (RGBA lists for Deck.gl / PyDeck) ─────────────────
 # Escala NEUTRA índigo→pizarra. El tier es prioridad de inversión (estrategia),
@@ -124,19 +122,43 @@ _M_PER_DEG_LAT = 111_320.0
 
 # ── Geometry helpers ──────────────────────────────────────────────────────────
 
+def _stable_hash(asset_id: str) -> int:
+    """Return a process-stable 64-bit integer derived from ``asset_id``.
+
+    Replaces Python's built-in ``hash()`` for synthetic-geometry seeding.
+    ``str.__hash__`` is salted per interpreter process (``PYTHONHASHSEED``),
+    so the same ``asset_id`` hashed in two processes yields different values —
+    which made the synthetic map geometry non-reproducible across restarts and
+    replicas. A blake2b digest is a pure function of the input bytes: the same
+    string always maps to the same integer, on any machine, in any process.
+    No cryptographic-security property is required or claimed here.
+    """
+    digest = hashlib.blake2b(
+        asset_id.encode("utf-8"),
+        digest_size=8,
+    ).digest()
+    return int.from_bytes(digest, "big")
+
+
 def _region_centroid(region: str) -> tuple[float, float]:
     """Return (lat, lon) for a region name, falling back to reserve centre."""
     return _REGION_CENTROIDS.get(region, _DEFAULT_CENTROID)
 
 
 def _jitter(asset_id: str, lat: float, lon: float, spread: float = 0.007) -> tuple[float, float]:
-    """Apply a deterministic, asset-specific offset within a region.
+    """Apply a synthetic, asset-specific offset within a region.
 
-    Uses the asset_id hash so the same asset always appears at the same
-    location across page reloads, while different assets in the same
-    municipality are spread out (spread ≈ 700 m at 41 °N).
+    This is **synthetic fallback geometry**, not an observed position: the
+    offset is derived deterministically from a stable digest of ``asset_id``
+    (:func:`_stable_hash`), so the same asset renders at the same synthetic
+    location across interpreter processes, restarts and replicas — no longer
+    only within a single process (the previous ``hash()`` implementation was
+    salted per process). Different assets in the same municipality are spread
+    out (spread ≈ 700 m at 41 °N). Deterministic here means *repeatable*, not
+    surveyed or observed; when a real Pipeline A trace exists for the asset it
+    replaces this fallback entirely (see :func:`_trail_feature`).
     """
-    h = hash(asset_id) & 0xFFFF
+    h = _stable_hash(asset_id) & 0xFFFF
     dlat = (((h >> 8) & 0xFF) / 255.0 - 0.5) * spread
     dlon = (((h      ) & 0xFF) / 255.0 - 0.5) * spread
     return lat + dlat, lon + dlon
@@ -169,8 +191,12 @@ def _trail_endpoints(
 
 
 def _heading_from_id(asset_id: str) -> float:
-    """Return a deterministic compass heading (0-360°) for a trail."""
-    h = (hash(asset_id) >> 16) & 0xFFFF
+    """Return a deterministic compass heading (0-360°) for a trail.
+
+    Keyed on a stable digest of ``asset_id`` (:func:`_stable_hash`), so the
+    synthetic heading is identical across processes and restarts.
+    """
+    h = (_stable_hash(asset_id) >> 16) & 0xFFFF
     return (h / 65535.0) * 360.0
 
 
@@ -178,18 +204,27 @@ def _trail_path(
     lat: float, lon: float, length_km: float, heading_deg: float, asset_id: str,
     n_points: int = 11,
 ) -> list[list[float]]:
-    """Generate an undulating polyline approximating a mountain trail trace.
+    """Generate an undulating polyline as **synthetic fallback** trail geometry.
 
-    Real trail geometry lives in PostGIS / hiking_trails.geojson; until that
-    integration, a straight 2-point segment misleads the territorial analyst.
-    This generator produces a deterministic curved path (same trace on every
-    reload, keyed on asset_id): points along the heading axis with
-    perpendicular sinusoidal offsets that mimic switchbacks and contour-following.
+    This is not observed geometry. Real trail traces live in the Pipeline A
+    output (PostGIS / hiking_trails.geojson) and, when present for an asset,
+    replace this fallback entirely (see :func:`_trail_feature`). Until then a
+    straight 2-point segment would misleadingly imply a surveyed line, so this
+    generator synthesises a curved path — points along the heading axis with
+    perpendicular sinusoidal offsets that mimic switchbacks and
+    contour-following.
+
+    Phase/amplitude seeds come from a stable digest of ``asset_id``
+    (:func:`_stable_hash`), so the same ``asset_id`` produces the *same*
+    synthetic trace across interpreter processes, restarts and replicas — the
+    previous ``hash()`` seeding was salted per process and produced a different
+    trace on every fresh interpreter. Deterministic here means repeatable, not
+    surveyed.
 
     Returns a list of [lon, lat] vertices (GeoJSON order).
     """
     start, end = _trail_endpoints(lat, lon, length_km, heading_deg)
-    h = hash(asset_id)
+    h = _stable_hash(asset_id)
     # Two deterministic phase/amplitude seeds per trail
     phase1 = ((h >> 4)  & 0xFF) / 255.0 * 2 * math.pi
     phase2 = ((h >> 12) & 0xFF) / 255.0 * 2 * math.pi
@@ -425,9 +460,10 @@ def assets_to_geojson(assets: list, real_geoms: "dict[str, list[dict]] | None" =
 
 def build_pydeck_deck(
     assets: list,
-    map_lat: float = _MAP_LATITUDE,
-    map_lon: float = _MAP_LONGITUDE,
-    map_zoom: int = _MAP_ZOOM,
+    *,
+    map_lat: float,
+    map_lon: float,
+    map_zoom: int,
     real_geoms: "dict[str, list[dict]] | None" = None,
 ) -> "pdk.Deck":
     """Build a Deck.gl / PyDeck deck for the territorial asset portfolio.
@@ -688,9 +724,10 @@ def _assets_to_geojson_spectral(assets: list, real_geoms: "dict[str, list[dict]]
 
 def build_pydeck_deck_spectral(
     assets: list,
-    map_lat: float = _MAP_LATITUDE,
-    map_lon: float = _MAP_LONGITUDE,
-    map_zoom: int = _MAP_ZOOM,
+    *,
+    map_lat: float,
+    map_lon: float,
+    map_zoom: int,
     real_geoms: "dict[str, list[dict]] | None" = None,
 ) -> "pdk.Deck":
     """Build a Deck.gl deck using the EHS spectral-gradient colour scheme.
