@@ -2,9 +2,31 @@
 Territory data fixtures (Sierra del Rincón, PNSG) — Fase 4, paso 0.
 
 Moved verbatim out of app.py (issue #27, modularización): these two builders
-are pure calibration/demo data (hardcoded TerritorialAsset instances), zero
-Streamlit coupling, so they are the safest and highest-leverage first cut of
-the modularization — no behavior change, just a location change.
+produce **authored synthetic demo data** (hardcoded ``TerritorialAsset``
+instances), with zero Streamlit coupling.
+
+EVIDENCE CLASS — SETTLED DECISION (Q-01, ADR-004, issue #10)
+============================================================
+Every asset these builders return is ``EvidenceClass.SYNTHETIC``. The place
+names, descriptions and ecological narratives are real and plausible, but the
+**numeric fields** (``ehs``, ``risk_score``, ``dcs``, ``mk_p_value``,
+``scm_classification``, ``scm_confidence``, ``visitor_capacity_annual``,
+``economic_importance``, ``accessibility_score``) are **authored constants**,
+written to exercise the TPI / dashboard / decision engine across all four tier
+states — not field measurements, and not literature-calibrated observations.
+Under ``src.platform.evidence``'s gating matrix, ``SYNTHETIC`` authorizes **no**
+real-world decision use (monitoring, prioritisation, intervention, public
+reporting). See ``docs/methodology/evidence-classes.md``.
+
+Provenance note
+---------------
+* Source / author: SNTO project fixture set (the project authors).
+* Purpose / basis: authored to exercise the decision engine and its tier
+  distribution; provide deterministic regression coverage across engine states.
+* Evidence basis: none — no field measurement and no real observational basis
+  for the numeric fixture values.
+* Version basis: authored during the Fase 4 modularization (issue #27), when
+  these builders were extracted verbatim from ``app.py``.
 
 ``build_territory`` seeds the Sierra del Rincón (SNR) pilot territory;
 ``build_pnsg_territory`` seeds the PNSG (Parque Nacional Sierra de
@@ -12,14 +34,33 @@ Guadarrama), the observatory's principal territory since v1.1.
 """
 from __future__ import annotations
 
+from src.platform.evidence import EvidenceClass
 from src.territorial.models import AssetType, TerritorialAsset
+
+# Settled Q-01 decision, stated once, in the fixture construction path. Every
+# fixture asset is routed through ``_fixture_asset`` so it carries this class
+# explicitly — the model default is a fail-closed safety net, not the source of
+# truth for these authored records.
+FIXTURE_EVIDENCE_CLASS = EvidenceClass.SYNTHETIC
+
+
+def _fixture_asset(**kwargs) -> TerritorialAsset:
+    """Construct a fixture ``TerritorialAsset`` with the settled synthetic class.
+
+    Makes the Q-01 decision explicit at every fixture construction site rather
+    than relying only on the model's fail-closed default.
+    """
+    return TerritorialAsset(evidence_class=FIXTURE_EVIDENCE_CLASS, **kwargs)
 
 
 def build_territory() -> list[TerritorialAsset]:
     """
-    20 activos reales de la Reserva de la Biosfera Sierra del Rincón (Madrid).
+    20 activos sintéticos de demostración inspirados en la Reserva de la
+    Biosfera Sierra del Rincón (Madrid). Evidence class: ``SYNTHETIC``.
 
-    Distribución de tiers calibrada contra el motor TPI:
+    Los campos numéricos están autorizados para *ejercitar* el motor TPI, no
+    son medidas de campo ni observaciones calibradas. La distribución de tiers
+    está autorada para cubrir los cuatro estados del motor:
       Tier 1 (Atención Inmediata) — 5 activos: presión turística alta, EHS < 45
       Tier 2 (Acción Preventiva)  — 6 activos: señales de alerta, EHS 50-65
       Tier 3 (Monitorización)     — 5 activos: estables, TPI < 38
@@ -33,7 +74,7 @@ def build_territory() -> list[TerritorialAsset]:
         # ──────────────────────────────────────────────────────────────────────
 
         # TPI ≈ 95 | CU=40(CRITICAL) + ES=20.5 + SV=19.3 + CC=15
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-nat-001",
             name="Hayedo de Montejo — Zona Periférica",
             asset_type=AssetType.NATURAL_PARK, region="Montejo de la Sierra",
@@ -52,7 +93,7 @@ def build_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 89 | CU=40(CRITICAL) + ES=19.0 + SV=14.8 + CC=15
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-rec-001",
             name="Área Recreativa Vado de Montejo",
             asset_type=AssetType.RECREATIONAL_AREA, region="Montejo de la Sierra",
@@ -71,7 +112,7 @@ def build_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 86 | CU=40(URGENT+declining, EHS<40 → factor=1.0) + ES=19.75 + SV=11.7 + CC=15
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-trail-001",
             name="Cascada del Chorrón — La Hiruela",
             asset_type=AssetType.TRAIL, region="La Hiruela",
@@ -90,7 +131,7 @@ def build_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 86 | CU=40(URGENT+declining) + ES=18.25 + SV=13.1 + CC=15
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-view-001",
             name="Mirador del Cancho de la Cabra",
             asset_type=AssetType.VIEWPOINT, region="Puebla de la Sierra",
@@ -109,7 +150,7 @@ def build_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 92 | CU=40(URGENT+declining) + ES=20.25 + SV=16.3 + CC=15
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-trail-002",
             name="Senda de los Hayas — Acceso Norte Hayedo",
             asset_type=AssetType.TRAIL, region="Montejo de la Sierra",
@@ -132,7 +173,7 @@ def build_territory() -> list[TerritorialAsset]:
         # ──────────────────────────────────────────────────────────────────────
 
         # TPI ≈ 61 | CU=26.4(PREV+dec) + ES=17.0 + SV=7.8 + CC=10
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-trail-003",
             name="Senda de los Carboneros — Horcajuelo",
             asset_type=AssetType.TRAIL, region="Horcajuelo de la Sierra",
@@ -151,7 +192,7 @@ def build_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 56 | CU=22.0(PREV+dec) + ES=18.0 + SV=7.8 + CC=8
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-nat-002",
             name="Hayedo de Robregordo",
             asset_type=AssetType.NATURAL_PARK, region="Robregordo",
@@ -170,7 +211,7 @@ def build_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 55 | CU=20.0(PREV) + ES=16.25 + SV=8.7 + CC=10
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-view-002",
             name="Mirador de La Hiruela — Cresta Norte",
             asset_type=AssetType.VIEWPOINT, region="La Hiruela",
@@ -189,7 +230,7 @@ def build_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 47 | CU=20.0(PREV) + ES=15.25 + SV=7.0 + CC=5
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-trail-004",
             name="Ruta del Vértice Cabeza Mediana",
             asset_type=AssetType.TRAIL, region="Prádena del Rincón",
@@ -208,7 +249,7 @@ def build_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 51 | CU=22.0(PREV+dec) + ES=14.5 + SV=10.4 + CC=4
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-rec-002",
             name="Fuente del Cura — Montejo de la Sierra",
             asset_type=AssetType.RECREATIONAL_AREA, region="Montejo de la Sierra",
@@ -227,7 +268,7 @@ def build_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 52 | CU=20.0(PREV) + ES=16.0 + SV=6.2 + CC=10
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-heritage-001",
             name="Castro de la Edad del Hierro — La Hiruela",
             asset_type=AssetType.NATURAL_PARK, region="La Hiruela",
@@ -250,7 +291,7 @@ def build_territory() -> list[TerritorialAsset]:
         # ──────────────────────────────────────────────────────────────────────
 
         # TPI ≈ 33 | CU=10.4(NORMAL,70) + ES=14.25 + SV=4.4 + CC=4
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-nat-003",
             name="Bosque de Quejigos — Horcajuelo de la Sierra",
             asset_type=AssetType.NATURAL_PARK, region="Horcajuelo de la Sierra",
@@ -269,7 +310,7 @@ def build_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 33 | CU=9.6(NORMAL,68) + ES=15.0 + SV=4.5 + CC=4
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-heritage-002",
             name="Ermita de San Blas — Montejo de la Sierra",
             asset_type=AssetType.VIEWPOINT, region="Montejo de la Sierra",
@@ -288,7 +329,7 @@ def build_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 37 | CU=10.6(NORMAL,73) + ES=14.5 + SV=3.5 + CC=8
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-stream-001",
             name="Arroyo de Horcajuelo — Tramo Alto",
             asset_type=AssetType.RECREATIONAL_AREA, region="Horcajuelo de la Sierra",
@@ -307,7 +348,7 @@ def build_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 32 | CU=10.2(NORMAL,71) + ES=13.75 + SV=4.8 + CC=3
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-view-003",
             name="Mirador de Somosierra — Acceso Reserva",
             asset_type=AssetType.VIEWPOINT, region="Prádena del Rincón",
@@ -326,7 +367,7 @@ def build_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 32 | CU=9.2(NORMAL,66) + ES=14.5 + SV=3.9 + CC=4
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-heritage-003",
             name="Antigua Nevera — Puebla de la Sierra",
             asset_type=AssetType.VIEWPOINT, region="Puebla de la Sierra",
@@ -349,7 +390,7 @@ def build_territory() -> list[TerritorialAsset]:
         # Objetivo: absorber visitantes del Hayedo y diversificar la oferta
         # ──────────────────────────────────────────────────────────────────────
 
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-trail-005",
             name="Senda del Castañar — La Hiruela",
             asset_type=AssetType.TRAIL, region="La Hiruela",
@@ -367,7 +408,7 @@ def build_territory() -> list[TerritorialAsset]:
             ),
         ),
 
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-trail-006",
             name="Ruta de los Pueblos Negros — Prádena a Robregordo",
             asset_type=AssetType.TRAIL, region="Robregordo",
@@ -385,7 +426,7 @@ def build_territory() -> list[TerritorialAsset]:
             ),
         ),
 
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-view-004",
             name="Mirador de la Hoya del Espino — Robregordo",
             asset_type=AssetType.VIEWPOINT, region="Robregordo",
@@ -403,7 +444,7 @@ def build_territory() -> list[TerritorialAsset]:
             ),
         ),
 
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="snr-center-001",
             name="Centro de Interpretación de la Biosfera — Montejo",
             asset_type=AssetType.RECREATIONAL_AREA, region="Montejo de la Sierra",
@@ -426,9 +467,12 @@ def build_territory() -> list[TerritorialAsset]:
 
 def build_pnsg_territory() -> list[TerritorialAsset]:
     """
-    8 activos representativos del Parque Nacional Sierra de Guadarrama (Madrid/Segovia).
+    8 activos sintéticos de demostración inspirados en el Parque Nacional
+    Sierra de Guadarrama (Madrid/Segovia). Evidence class: ``SYNTHETIC``.
 
-    Distribución de tiers calibrada contra el motor TPI:
+    Los campos numéricos están autorados para *ejercitar* el motor TPI, no son
+    medidas de campo ni observaciones calibradas. La distribución de tiers
+    cubre los cuatro estados del motor:
       Tier 1 (Atención Inmediata) — 2 activos: saturación crítica, EHS < 45
       Tier 2 (Acción Preventiva)  — 3 activos: señales de alerta, EHS 50-65
       Tier 3 (Monitorización)     — 2 activos: estables, EHS 65-74
@@ -439,7 +483,7 @@ def build_pnsg_territory() -> list[TerritorialAsset]:
         # ── TIER 1 · Atención Inmediata ───────────────────────────────────────
 
         # TPI ≈ 91 | Laguna más visitada del PNSG — saturación documentada
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="pnsg-nat-001",
             name="Laguna de Peñalara — Zona de Reserva",
             asset_type=AssetType.NATURAL_PARK, region="Rascafría",
@@ -459,7 +503,7 @@ def build_pnsg_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 87 | Cima masificada en fin de semana — erosión severa en crestas
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="pnsg-view-001",
             name="Cumbre Siete Picos — Acceso Sur",
             asset_type=AssetType.VIEWPOINT, region="Cercedilla",
@@ -482,7 +526,7 @@ def build_pnsg_territory() -> list[TerritorialAsset]:
         # ── TIER 2 · Acción Preventiva ────────────────────────────────────────
 
         # TPI ≈ 58 | Travesía de cresta masificada — señales de erosión lineal
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="pnsg-trail-001",
             name="Cuerda Larga — Travesía Integral de Cresta",
             asset_type=AssetType.TRAIL, region="Navacerrada",
@@ -502,7 +546,7 @@ def build_pnsg_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 55 | Área recreativa histórica con presión creciente
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="pnsg-rec-001",
             name="Valle de la Fuenfría — Sector Laguna",
             asset_type=AssetType.RECREATIONAL_AREA, region="Cercedilla",
@@ -522,7 +566,7 @@ def build_pnsg_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 47 | Puerto de montaña con acceso rodado — conflicto vehículos/senderistas
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="pnsg-view-002",
             name="Collado Ventoso — Puerto de Navacerrada",
             asset_type=AssetType.VIEWPOINT, region="Navacerrada",
@@ -545,7 +589,7 @@ def build_pnsg_territory() -> list[TerritorialAsset]:
         # ── TIER 3 · Monitorización Rutinaria ────────────────────────────────
 
         # TPI ≈ 32 | Hayedo maduro con buena cobertura de datos
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="pnsg-nat-002",
             name="Hayedo del Valle de El Paular",
             asset_type=AssetType.NATURAL_PARK, region="Rascafría",
@@ -565,7 +609,7 @@ def build_pnsg_territory() -> list[TerritorialAsset]:
         ),
 
         # TPI ≈ 33 | Senda menos conocida — indicador de recuperación
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="pnsg-trail-002",
             name="Senda Herreros — Collado del Hornillo",
             asset_type=AssetType.TRAIL, region="Manzanares El Real",
@@ -586,7 +630,7 @@ def build_pnsg_territory() -> list[TerritorialAsset]:
 
         # ── TIER 4 · Promoción Activa ─────────────────────────────────────────
 
-        TerritorialAsset(
+        _fixture_asset(
             asset_id="pnsg-rec-002",
             name="Centro de Visitantes El Paular — Valle del Lozoya",
             asset_type=AssetType.RECREATIONAL_AREA, region="Rascafría",

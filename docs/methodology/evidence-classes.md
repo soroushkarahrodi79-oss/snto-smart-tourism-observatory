@@ -90,6 +90,19 @@ intercambio `min ↔ max` y cambio de signo del delta). Verificada en
 `tests/unit/test_score_semantics.py`. Así una métrica alta significa siempre lo
 mismo en todo el sistema.
 
+## Clasificación de las fixtures territoriales (Q-01)
+
+Los constructores de fixtures territoriales
+[`build_territory` / `build_pnsg_territory`](../../src/territorial/fixtures.py)
+resuelven a `EvidenceClass.SYNTHETIC` (decisión de responsable Q-01): son datos
+de demostración autorados para *ejercitar* el motor de decisión, no medidas de
+campo ni observaciones calibradas. Bajo la matriz anterior, `SYNTHETIC` **no
+respalda ningún uso de decisión real** (monitorización, priorización,
+intervención ni reporte público). La clase es legible por máquina
+(`TerritorialAsset.evidence_class`, por defecto `SYNTHETIC`, *fail-closed*) y se
+aplica en los gates de decisión/visualización (panel ejecutivo, pestaña KPI,
+desgloses, y el informe ejecutivo territorial).
+
 ## Documentos relacionados
 
 - [ADR-004 — Separación de evidencia](../decisions/ADR-004.md)

@@ -41,6 +41,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
+from src.platform.evidence import EvidenceClass
 
 # ── Asset type vocabulary ─────────────────────────────────────────────────
 
@@ -111,6 +112,19 @@ class TerritorialAsset:
     length_km: Optional[float] = None     # trails / cycling routes
     area_ha: Optional[float] = None       # parks / recreational areas
     description: str = ""
+
+    # ── Provenance / evidence class (ADR-004, issue #10) ──────────────────
+    # The canonical evidence tier of this asset's numeric fields. Defaults to
+    # SYNTHETIC as a deliberate FAIL-CLOSED stance: every current direct
+    # constructor of this model (the fixtures in ``territorial/fixtures.py``
+    # plus the test/demo builders) holds authored demo data, so an unlabelled
+    # asset must never be treated as observed evidence. Under
+    # ``src.platform.evidence``'s gating matrix, SYNTHETIC authorizes NO
+    # real-world decision use (monitoring, prioritisation, intervention,
+    # public reporting). A future real-data constructor (e.g. re-rooting on the
+    # 218 Pipeline-A trails) MUST pass ``evidence_class=EvidenceClass.REAL``
+    # explicitly — never rely on this default for real assets.
+    evidence_class: EvidenceClass = EvidenceClass.SYNTHETIC
 
     # ── Territorial results (set by Phase 5 engine) ───────────────────────
     tpi: Optional[float] = None
