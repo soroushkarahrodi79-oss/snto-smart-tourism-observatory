@@ -190,6 +190,35 @@ def build_prug_monitoring(
 
     metadata["territory"] = dataset.summary.get("territory_name", dashboard_key)
 
+    # Provenance of the Sentinel-2 signal behind the ΔEHS. ``EvidenceClass.REAL``
+    # (below) is the *trust tier* of the derived signal and stays correct; this
+    # block qualifies, separately, whether the raw source scenes and their
+    # sensor/date metadata can be verified in this environment. It never changes
+    # priority_index, ΔEHS, thresholds or management logic.
+    from src.platform.provenance import snapshot_provenance
+
+    _snapshot = snapshot_provenance(dashboard_key)
+    if _snapshot.scene_refs:
+        _scene_note = "Escenas fuente: " + " · ".join(
+            f"{r.sensor_id} ({r.acquisition_date})" for r in _snapshot.scene_refs
+        )
+    else:
+        _scene_note = (
+            "Escenas fuente Sentinel-2 (sensor/fecha) no verificables en este "
+            "entorno; señal derivada real pero procedencia local incompleta y no "
+            "reproducible localmente."
+        )
+    provenance = {
+        "raw_scenes_available": _snapshot.raw_scenes_available,
+        "provenance_complete": _snapshot.provenance_complete,
+        "locally_reproducible": _snapshot.locally_reproducible,
+        "scene_references": [
+            {"sensor_id": r.sensor_id, "acquisition_date": r.acquisition_date}
+            for r in _snapshot.scene_refs
+        ],
+        "note": _scene_note,
+    }
+
     grouped: dict[str, list] = {}
     for trail in dataset.trails:
         grouped.setdefault(trail.prug_zone or "Fuera de zonificación", []).append(
@@ -219,6 +248,7 @@ def build_prug_monitoring(
         "metadata": metadata,
         "available": True,
         "evidence_class": EvidenceClass.REAL.value,
+        "provenance": provenance,
         "evidence_note": (
             "Zonificación PRUG (cartografía oficial OAPN) cruzada con señal "
             "Sentinel-2 real (EHS/ΔEHS/SCM). El ΔEHS de dos escenas es una "
@@ -279,6 +309,11 @@ def render_prug_monitoring_markdown(report: dict) -> str:
         "",
         f"> {report['mismatch_note']}",
         "",
+    ]
+    _prov = report.get("provenance")
+    if _prov:
+        lines += [f"> **Procedencia Sentinel-2:** {_prov['note']}", ""]
+    lines += [
         "## Panorama",
         "",
         f"- Zonas PRUG con sendas: **{s['n_zones']}**",

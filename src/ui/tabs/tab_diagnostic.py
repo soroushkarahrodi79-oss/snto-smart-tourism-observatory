@@ -22,9 +22,9 @@ from src.platform.map_layers import (
     build_real_trails_deck,
 )
 from src.platform.provenance import (
-    data_status_badge,
     load_timeseries_coverage,
     snapshot_provenance,
+    snapshot_status_badge,
 )
 from src.platform.real_trails import (
     build_real_trails_geojson,
@@ -273,9 +273,18 @@ def render_tab_diagnostic(
 
         # ── Calidad y trazabilidad del dato (F3) ──────────────────────────────
         _prov = snapshot_provenance(selected_key)
-        _badge = data_status_badge(_prov.status)
-        _scenes = (" · ".join(_prov.scene_dates)
-                   if _prov.scene_dates else f"{_prov.n_scenes} escenas estacionales")
+        _badge = snapshot_status_badge(_prov)
+        if _prov.scene_refs:
+            _scenes = " · ".join(
+                f"{r.sensor_id} · {r.acquisition_date}" for r in _prov.scene_refs
+            )
+        elif _prov.derived_output_available and not _prov.raw_scenes_available:
+            # State B: derived artifact real, but source scenes absent here — do
+            # not invent a count. Say plainly it cannot be verified locally.
+            _scenes = ("no verificables en este entorno "
+                       "(escenas fuente .SAFE ausentes)")
+        else:
+            _scenes = "—"
         st.markdown(
             f'<div class="snto-evidence-card">'
             f'<span class="snto-evidence-badge" '
