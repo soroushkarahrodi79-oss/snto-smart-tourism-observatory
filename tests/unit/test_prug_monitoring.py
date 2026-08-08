@@ -323,9 +323,8 @@ def test_provenance_block_lists_paired_scenes_in_state_a(patch_trails, monkeypat
     assert prov["raw_scenes_available"] is True
     assert prov["provenance_complete"] is True
     assert prov["locally_reproducible"] is True
-    assert {(r["sensor_id"], r["acquisition_date"]) for r in prov["scene_references"]} == {
-        ("S2A", "2025-08-10"), ("S2B", "2026-04-10"),
-    }
+    pairs = {(r["sensor_id"], r["acquisition_date"]) for r in prov["scene_references"]}
+    assert pairs == {("S2A", "2025-08-10"), ("S2B", "2026-04-10")}
     md = render_prug_monitoring_markdown(report)
     assert "S2A" in md and "2025-08-10" in md
 

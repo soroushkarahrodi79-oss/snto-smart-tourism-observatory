@@ -127,7 +127,8 @@ def detect_scene_dates(territory_key: str) -> list[str]:
     sorted, de-duplicated acquisition dates. Empty when no local ``.SAFE``
     products are present.
     """
-    return sorted({ref.acquisition_date for ref in detect_scene_references(territory_key)})
+    refs = detect_scene_references(territory_key)
+    return sorted({ref.acquisition_date for ref in refs})
 
 
 def _derived_output_available(dashboard_key: str) -> bool:
