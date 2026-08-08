@@ -6,8 +6,9 @@ implies field validation.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
+from src.platform.evidence import EvidenceClass
 from src.reporting.territorial_brief import (
     build_territorial_brief,
     render_territorial_brief_markdown,
@@ -28,6 +29,8 @@ class _FakeAsset:
     trend_direction: str | None
     recommended_action_label: str | None
     budget_estimate_eur: float | None
+    # Mirrors the real model default: fail-closed to SYNTHETIC.
+    evidence_class: EvidenceClass = EvidenceClass.SYNTHETIC
 
 
 def _portfolio() -> list[_FakeAsset]:
@@ -46,6 +49,12 @@ def _portfolio() -> list[_FakeAsset]:
             budget_estimate_eur=12000.0,
         ),
     ]
+
+
+def _real_portfolio() -> list[_FakeAsset]:
+    """The same portfolio promoted to REAL evidence (policy-branch fixture only,
+    NOT a scientific-validation claim)."""
+    return [replace(a, evidence_class=EvidenceClass.REAL) for a in _portfolio()]
 
 
 def test_brief_orders_worst_first_by_tier() -> None:
@@ -83,13 +92,41 @@ def test_metadata_carries_territory_and_count() -> None:
 
 
 def test_markdown_never_claims_field_validation() -> None:
-    brief = build_territorial_brief(_portfolio(), territory_name="PNSG")
+    # Use a REAL portfolio so the authorized institutional rendering (with its
+    # "Coste"/"Acción recomendada" columns) is what is exercised here.
+    brief = build_territorial_brief(_real_portfolio(), territory_name="PNSG")
     md = render_territorial_brief_markdown(brief)
     assert "Resumen ejecutivo del panel" in md
     # honesty guardrail: the evidence note explicitly denies field validation
     assert "validado en campo" in md
     for col in ["EHS", "Riesgo", "Tier", "Alerta", "Coste"]:
         assert col in md
+
+
+# ── Public-reporting evidence gate (Phase 0.5E / I-5) ────────────────────────
+
+def test_synthetic_portfolio_not_public_reporting_authorized() -> None:
+    brief = build_territorial_brief(_portfolio(), territory_name="PNSG")
+    assert brief["metadata"]["public_reporting_authorized"] is False
+    assert "demo_warning" in brief
+    md = render_territorial_brief_markdown(brief)
+    # Un-missable synthetic/demo/no-publicar banner and framing.
+    assert "NO PUBLICAR" in md
+    assert "SINTÉTICO" in md
+    # Action/budget columns are reframed as synthetic engine output.
+    assert "Salida sintética (motor)" in md
+    assert "no gasto propuesto" in md
+
+
+def test_real_portfolio_is_public_reporting_authorized() -> None:
+    brief = build_territorial_brief(_real_portfolio(), territory_name="PNSG")
+    assert brief["metadata"]["public_reporting_authorized"] is True
+    assert "demo_warning" not in brief
+    md = render_territorial_brief_markdown(brief)
+    assert "NO PUBLICAR" not in md
+    # Existing institutional framing preserved.
+    assert "Acción recomendada" in md
+    assert "Presupuesto orientativo total" in md
 
 
 def test_empty_portfolio_is_safe() -> None:

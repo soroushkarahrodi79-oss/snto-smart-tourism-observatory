@@ -6,17 +6,23 @@ The governing causal/confirmatory gate is:
     + independent verification
 
 All four conditions are required before SNTO may emit causal or confirmatory
-language, or a restrictive management recommendation. The current live outputs
-cannot programmatically demonstrate all four (there is no machine-readable
-``evidence_class`` on ``TerritorialAsset``, ``evidence.supports(...)`` has no
-callers, and validation/attribution/verification status is not available as a
-live gate). Therefore the emitted narratives must use hypothesis / association /
-absence-of-evidence framing and must not prescribe restrictive visitor controls.
+language, or a restrictive management recommendation.
+
+Phase 0.5E update: ``TerritorialAsset`` now carries a machine-readable
+``evidence_class`` (default ``SYNTHETIC``, fail-closed) and ``evidence.supports``
+is now consulted at the live decision/display gates (dashboard headline/CTA and
+per-KPI interpretation, plus the KPI-tab, drill-down and report surfaces) — it
+already had forecasting callers, so the earlier "has no callers" note is
+obsolete. The current fixture portfolio is ``SYNTHETIC``, which authorizes no
+real-world decision use; on top of that gate, the emitted narratives still use
+hypothesis / association / absence-of-evidence framing and must not prescribe
+restrictive visitor controls (the four-part causal gate is unchanged).
 
 These tests exercise the **constructed emitted output** of the dashboard,
 call-to-action, KPI-7 drill-down caption, and the decision-confidence factor
 explanation — not the raw source text — so they lock in what a manager actually
-reads. They deliberately do NOT depend on any future gate field.
+reads. The denylists below are unchanged; the evidence-gate assertions are
+additive.
 """
 from __future__ import annotations
 
@@ -26,13 +32,14 @@ import pytest
 
 from src.platform.dashboard import (
     _generate_call_to_action,
+    _generate_headline,
     _kpi_human_pressure_alerts,
     _kpi_territory_health,
     _kpi_visitor_capacity_at_risk,
     compute_executive_dashboard,
 )
+from src.platform.evidence import DecisionUse, EvidenceClass, supports
 from src.territorial.models import AssetType, TerritorialAsset
-
 
 # ── Banned language ──────────────────────────────────────────────────────────
 # Unsupported causal / confirmatory claims: assert a cause is *known*, *confirmed*
@@ -116,11 +123,14 @@ def _build_dashboard(assets):
 # ── 1. Populated KPI narratives + actions ────────────────────────────────────
 
 def test_full_dashboard_narratives_have_no_causal_or_restrictive_wording() -> None:
-    """A high-pressure portfolio (RED across health / capacity / KPI-7) must
-    still read as hypothesis + monitoring, never confirmed cause + restriction."""
+    """A high-pressure REAL portfolio (RED across health / capacity / KPI-7) must
+    still read as hypothesis + monitoring, never confirmed cause + restriction.
+    REAL evidence is used so the real narrative branches (not the synthetic-gate
+    notes) are what the denylist is actually exercised against."""
     assets = [
         _asset(asset_id=f"t1-{i}", name=f"Senda {i}", tier=1,
-               scm_classification="LOCALIZED_IMPACT", ehs=30.0, dcs=70.0)
+               scm_classification="LOCALIZED_IMPACT", ehs=30.0, dcs=70.0,
+               evidence_class=EvidenceClass.REAL)
         for i in range(4)
     ]
     dash = _build_dashboard(assets)
@@ -129,6 +139,59 @@ def test_full_dashboard_narratives_have_no_causal_or_restrictive_wording() -> No
     blob += " || " + dash.headline + " || " + dash.call_to_action
     _assert_no_phrases(blob, CAUSAL_CONFIRMATORY_PHRASES, "dashboard emitted text")
     _assert_no_phrases(blob, RESTRICTIVE_ACTION_PHRASES, "dashboard emitted text")
+
+
+# ── Evidence gate at the dashboard (Phase 0.5E / I-5) ────────────────────────
+
+def test_asset_default_evidence_class_is_synthetic() -> None:
+    """The fixture-style ``_asset`` factory (no explicit class) is SYNTHETIC —
+    the machine-readable field is present and fail-closed."""
+    assert _asset().evidence_class is EvidenceClass.SYNTHETIC
+    assert supports(_asset().evidence_class, DecisionUse.MONITORING) is False
+
+
+def test_synthetic_dashboard_preserves_kpi_values_but_gates_claims() -> None:
+    """A SYNTHETIC portfolio keeps identical KPI numeric values/statuses, but its
+    monitoring interpretation and prioritisation/intervention actions are gated,
+    and headline/CTA carry synthetic-demo framing."""
+    synth = [_asset(asset_id=f"s{i}", ehs=20.0, tier=1) for i in range(3)]
+    real = [
+        _asset(asset_id=f"r{i}", ehs=20.0, tier=1, evidence_class=EvidenceClass.REAL)
+        for i in range(3)
+    ]
+    d_syn = _build_dashboard(synth)
+    d_real = _build_dashboard(real)
+
+    # 1. Numeric values + statuses are the engine computation — identical.
+    assert [k.value for k in d_syn.kpis] == [k.value for k in d_real.kpis]
+    assert [k.status for k in d_syn.kpis] == [k.status for k in d_real.kpis]
+    assert [k.status_label for k in d_syn.kpis] == [k.status_label for k in d_real.kpis]
+
+    # 2. Synthetic monitoring interpretation is gated; REAL is not.
+    assert all("sintético de demostración" in k.what_it_means.lower() for k in d_syn.kpis)
+    assert not any("sintético de demostración" in k.what_it_means.lower() for k in d_real.kpis)
+
+    # 3. Synthetic actions are non-authorizing; REAL actions are real.
+    assert all("no autorizada" in k.recommended_action.lower() for k in d_syn.kpis)
+    assert not any("no autorizada" in k.recommended_action.lower() for k in d_real.kpis)
+
+    # 4. Synthetic headline/CTA are demo-framed; REAL are not.
+    assert "sintética de demostración" in d_syn.headline.lower()
+    assert "sintética de demostración" not in d_real.headline.lower()
+    assert "no autorizada" in d_syn.call_to_action.lower()
+
+    # 5. Gating never reintroduces banned language.
+    blob = " || ".join(_emitted_kpi_text(k) for k in d_syn.kpis)
+    blob += " || " + d_syn.headline + " || " + d_syn.call_to_action
+    _assert_no_phrases(blob, CAUSAL_CONFIRMATORY_PHRASES, "synthetic dashboard")
+    _assert_no_phrases(blob, RESTRICTIVE_ACTION_PHRASES, "synthetic dashboard")
+
+
+def test_synthetic_headline_is_gated_but_real_is_not() -> None:
+    synth = [_asset(asset_id="s", ehs=20.0, tier=1)]
+    assert _generate_headline(synth, _build_dashboard(synth).kpis).startswith("🧪")
+    real = [_asset(asset_id="r", ehs=20.0, tier=1, evidence_class=EvidenceClass.REAL)]
+    assert not _generate_headline(real, _build_dashboard(real).kpis).startswith("🧪")
 
 
 def test_territory_health_critical_drops_irreversible_and_restriction() -> None:
@@ -151,7 +214,13 @@ def test_visitor_capacity_high_risk_softens_redirection_action() -> None:
 # ── 2. Call to action ────────────────────────────────────────────────────────
 
 def test_call_to_action_localized_case_is_hypothesis_not_confirmed_cause() -> None:
-    assets = [_asset(tier=1, scm_classification="LOCALIZED_IMPACT", dcs=70.0, tpi=88.0)]
+    # A REAL-evidence portfolio clears the evidence gate, so the asset-specific
+    # localized branch fires — proving the gate is not hard-wired to suppress.
+    # (REAL here is a policy-branch fixture, NOT a scientific-validation claim.)
+    assets = [_asset(
+        tier=1, scm_classification="LOCALIZED_IMPACT", dcs=70.0, tpi=88.0,
+        evidence_class=EvidenceClass.REAL,
+    )]
     cta = _generate_call_to_action(assets)
     # The localized branch must fire (asset name present) ...
     assert "Senda de prueba" in cta
@@ -161,13 +230,34 @@ def test_call_to_action_localized_case_is_hypothesis_not_confirmed_cause() -> No
     assert "hypothesis" in cta.lower()
 
 
+def test_call_to_action_synthetic_portfolio_is_non_authorizing() -> None:
+    """A SYNTHETIC portfolio (the default) must NOT emit an asset-specific,
+    authorized action — the ranking still exists but the CTA is a synthetic
+    non-authorizing note."""
+    cta = _generate_call_to_action([_asset(
+        tier=1, scm_classification="LOCALIZED_IMPACT", dcs=70.0, tpi=88.0
+    )])
+    assert "Senda de prueba" not in cta
+    low = cta.lower()
+    assert "sintética" in low and "no autorizada" in low
+    _assert_no_phrases(cta, CAUSAL_CONFIRMATORY_PHRASES, "synthetic CTA")
+    _assert_no_phrases(cta, RESTRICTIVE_ACTION_PHRASES, "synthetic CTA")
+
+
 def test_call_to_action_other_branches_stay_clean() -> None:
+    # REAL evidence so the gap/default branches actually fire (past the gate).
     # Evidence-gap branch (Tier-1, very low DCS)
-    gap = _generate_call_to_action([_asset(tier=1, dcs=30.0, scm_classification="LANDSCAPE_DRIVEN")])
+    gap = _generate_call_to_action([_asset(
+        tier=1, dcs=30.0, scm_classification="LANDSCAPE_DRIVEN",
+        evidence_class=EvidenceClass.REAL,
+    )])
     _assert_no_phrases(gap, CAUSAL_CONFIRMATORY_PHRASES, "CTA evidence gap")
     _assert_no_phrases(gap, RESTRICTIVE_ACTION_PHRASES, "CTA evidence gap")
     # Default branch (nothing urgent)
-    default = _generate_call_to_action([_asset(tier=3, dcs=70.0, scm_classification="LANDSCAPE_DRIVEN")])
+    default = _generate_call_to_action([_asset(
+        tier=3, dcs=70.0, scm_classification="LANDSCAPE_DRIVEN",
+        evidence_class=EvidenceClass.REAL,
+    )])
     _assert_no_phrases(default, CAUSAL_CONFIRMATORY_PHRASES, "CTA default")
 
 
