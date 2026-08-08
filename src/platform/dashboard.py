@@ -24,7 +24,42 @@ THE 10 KPIs
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+
+from src.platform.evidence import DecisionUse, EvidenceClass, supports
+
+# ── Evidence gating (ADR-004 / I-5) ──────────────────────────────────────────
+# A portfolio's synthetic fixtures may exercise every calculation below, but
+# their computed values must never *authorize* a real-world decision. The gate
+# reuses the canonical policy in ``src.platform.evidence`` — no second matrix.
+
+# Non-authorizing replacements emitted when the portfolio's evidence class does
+# not support the corresponding decision use. They preserve the computed value
+# elsewhere; they only strip the *authorization* framing.
+_SYNTHETIC_MONITORING_NOTE = (
+    "🧪 Resultado sintético de demostración del motor SNTO. No constituye "
+    "monitorización observacional del territorio."
+)
+_SYNTHETIC_ACTION_NOTE = (
+    "🧪 Salida sintética de demostración. No autorizada para priorización ni "
+    "intervención real."
+)
+_SYNTHETIC_HEADLINE = (
+    "🧪 Cartera sintética de demostración: los indicadores ejercitan el motor "
+    "SNTO, no describen el estado observado del territorio."
+)
+
+
+def _portfolio_supports(assets: list, use: DecisionUse) -> bool:
+    """Whether *every* asset's evidence class supports ``use`` (empty ⇒ False).
+
+    Fail-closed: a mixed or empty portfolio cannot authorize the use. Reads the
+    single canonical gate ``evidence.supports`` — never a duplicated matrix.
+    """
+    return bool(assets) and all(
+        supports(getattr(a, "evidence_class", EvidenceClass.SYNTHETIC), use)
+        for a in assets
+    )
 
 
 @dataclass(frozen=True)
@@ -78,6 +113,26 @@ def compute_executive_dashboard(
         _kpi_recovery_progress(assets),
         _kpi_evidence_coverage_gap(assets),
     ]
+
+    # ── Evidence gate (ADR-004 / I-5) ────────────────────────────────────────
+    # Values, statuses and status labels above are the ENGINE computation and
+    # are left untouched. Here we gate only *interpretation/authorization*: a
+    # portfolio whose evidence class cannot back monitoring must not have its
+    # numbers read as an observed condition of the destination, and one that
+    # cannot back prioritisation/intervention must not emit an authorized action.
+    if not _portfolio_supports(assets, DecisionUse.MONITORING):
+        kpis = [
+            replace(
+                k,
+                what_it_means=f"{_SYNTHETIC_MONITORING_NOTE} {k.what_it_means}",
+            )
+            for k in kpis
+        ]
+    if not (
+        _portfolio_supports(assets, DecisionUse.PRIORITIZATION)
+        and _portfolio_supports(assets, DecisionUse.INTERVENTION)
+    ):
+        kpis = [replace(k, recommended_action=_SYNTHETIC_ACTION_NOTE) for k in kpis]
 
     # Headline: status of the most critical KPI
     headline = _generate_headline(assets, kpis)
@@ -546,7 +601,15 @@ def _kpi_evidence_coverage_gap(assets: list) -> DashboardKPI:
 # ── Summary generators ─────────────────────────────────────────────────────
 
 def _generate_headline(assets: list, kpis: list) -> str:
-    """Create one-line dashboard headline from the most critical KPI status."""
+    """Create one-line dashboard headline from the most critical KPI status.
+
+    Gated: a portfolio that cannot back prioritisation must not have its
+    headline assert a real management priority. The computed KPI statuses are
+    unchanged; only the headline framing is replaced with synthetic-demo text.
+    """
+    if not _portfolio_supports(assets, DecisionUse.PRIORITIZATION):
+        return _SYNTHETIC_HEADLINE
+
     n_red = sum(1 for k in kpis if k.status == "RED")
     n_amb = sum(1 for k in kpis if k.status == "AMBER")
     th    = kpis[0]  # Territory Health (KPI 1)
@@ -569,7 +632,19 @@ def _generate_headline(assets: list, kpis: list) -> str:
 
 
 def _generate_call_to_action(assets: list) -> str:
-    """Identify the single most important action the director must take now."""
+    """Identify the single most important action the director must take now.
+
+    Gated: unless the portfolio's evidence class supports BOTH prioritisation
+    and intervention, no asset-specific action is authorized — the underlying
+    ranking still exists (it is computed above), but it is surfaced as a
+    non-authorizing synthetic-demo note instead of a directive.
+    """
+    if not (
+        _portfolio_supports(assets, DecisionUse.PRIORITIZATION)
+        and _portfolio_supports(assets, DecisionUse.INTERVENTION)
+    ):
+        return _SYNTHETIC_ACTION_NOTE
+
     t1_localized = [
         a for a in assets
         if a.tier == 1 and a.scm_classification == "LOCALIZED_IMPACT" and a.dcs >= 55

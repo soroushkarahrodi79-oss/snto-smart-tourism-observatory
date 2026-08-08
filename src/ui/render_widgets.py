@@ -18,6 +18,7 @@ import datetime
 
 import streamlit as st
 
+from src.platform.evidence import DecisionUse, EvidenceClass, supports
 from src.ui.asset_navigation import select_asset
 from src.ui.kpi_sections import kpi_evidence_label
 from src.ui.render_helpers import (
@@ -31,6 +32,18 @@ from src.ui.render_helpers import (
     _ehs_color,
     _tier_chip,
 )
+
+
+def _portfolio_supports(assets, use: DecisionUse) -> bool:
+    """Whether every asset's evidence class supports ``use`` (empty ⇒ False).
+
+    Reads the single canonical gate ``evidence.supports`` (ADR-004 / I-5); a
+    synthetic fixture portfolio returns False for every real-world decision use.
+    """
+    return bool(assets) and all(
+        supports(getattr(a, "evidence_class", EvidenceClass.SYNTHETIC), use)
+        for a in assets
+    )
 
 
 # ── Renderizador de alertas en vivo ──────────────────────────────────────────
@@ -69,6 +82,14 @@ def _render_live_alerts(assets: list, refresh_count: int) -> None:
         f'<div style="display:flex;gap:8px;flex-wrap:wrap;padding-bottom:4px;">{chips}</div>',
         unsafe_allow_html=True,
     )
+    # Narrow evidence qualification (ADR-004 / I-5): a synthetic portfolio's
+    # alerts are engine output, not observed monitoring. This does NOT touch the
+    # autorefresh cadence or the "live" indicator — that is I-3, out of scope.
+    if not _portfolio_supports(active, DecisionUse.MONITORING):
+        st.caption(
+            "🧪 Alertas sintéticas de demostración: reflejan la salida del motor "
+            "sobre datos de demo, no una monitorización observacional del territorio."
+        )
 
 
 # ── TAREA 1: Configuración de banners dinámicos ──────────────────────────────
@@ -247,8 +268,17 @@ def _render_fichas_rapidas(ranked_assets: list) -> None:
     if not top3:
         top3 = ranked_assets[:3]
 
+    # Evidence gate (ADR-004 / I-5): the cards below are the engine's ranking
+    # (kept visible for demo), but a synthetic portfolio must not label them as
+    # an authorized real-world prioritisation.
+    _authorized = _portfolio_supports(ranked_assets, DecisionUse.PRIORITIZATION)
+    _title = (
+        "Priorización de Activos Turísticos Críticos"
+        if _authorized
+        else "🧪 Ranking del motor · demostración sintética (no autorizada)"
+    )
     st.markdown(
-        '<div class="snto-panel-title">Priorización de Activos Turísticos Críticos</div>',
+        f'<div class="snto-panel-title">{_title}</div>',
         unsafe_allow_html=True,
     )
     for a in top3:
@@ -281,11 +311,16 @@ def _render_fichas_rapidas(ranked_assets: list) -> None:
     _visitors_t12 = sum(
         a.visitor_capacity_annual for a in ranked_assets if (a.tier or 5) <= 2
     )
+    _summary_label = (
+        "Capacidad de carga antrópica comprometida (Tier 1+2)"
+        if _authorized
+        else "🧪 Suma sintética de visitantes Tier 1+2 · demostración (no es una medición)"
+    )
     st.markdown(
         f'<div style="margin-top:6px;padding:8px 10px;background:#fff8f0;'
         f'border-radius:6px;border-left:3px solid #EF9F27;">'
         f'<div style="font-size:0.65rem;color:#854F0B;text-transform:uppercase;'
-        f'letter-spacing:0.06em">Capacidad de carga antrópica comprometida (Tier 1+2)</div>'
+        f'letter-spacing:0.06em">{_summary_label}</div>'
         f'<div style="font-size:1.25rem;font-weight:700;color:#A32D2D">'
         f'{_visitors_t12:,}</div>'
         f'</div>',
@@ -355,7 +390,16 @@ def _render_kpi_drilldown(kpi, ranked_assets: list, cost_by_id: dict) -> None:
         return
 
     st.markdown("**Desglose de activos afectados**")
-    st.caption(_KPI_DRILLDOWN_CAPTION.get(kpi.number, ""))
+    _caption = _KPI_DRILLDOWN_CAPTION.get(kpi.number, "")
+    # Evidence gate (ADR-004 / I-5): the drill-down table is the engine's
+    # ranking (kept for demo), but a synthetic portfolio's prioritisation /
+    # intervention captions must not read as authorized real-world direction.
+    if not _portfolio_supports(ranked_assets, DecisionUse.PRIORITIZATION):
+        _caption = (
+            "🧪 Demostración sintética — no autoriza priorización ni intervención "
+            "real. " + _caption
+        )
+    st.caption(_caption)
     df = pd.DataFrame([
         {
             "Senda / Activo":   a.name,

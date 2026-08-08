@@ -100,9 +100,28 @@ def build_territorial_brief(
 
     Rolls up only fields the ``TerritorialAsset`` model actually holds; missing
     action/budget/tier degrade to explicit placeholders, never fabricated.
+
+    Evidence gate (ADR-004 / I-5): the brief carries a machine-readable
+    ``public_reporting_authorized`` flag. A portfolio whose evidence class does
+    not support ``PUBLIC_REPORTING`` (e.g. the synthetic fixtures) still yields a
+    full **demo preview**, but it is explicitly marked SYNTHETIC / NO PUBLICAR —
+    its entries are engine outputs, not institutional findings, and its budgets
+    are synthetic calculations, never proposed public expenditure. A portfolio
+    that satisfies the policy keeps the existing reporting behaviour unchanged.
     """
+    # Function-level import to keep this module light at load (see module note).
+    from src.platform.evidence import DecisionUse, EvidenceClass, supports
+
     if report_date is None:
         report_date = date.today().isoformat()
+
+    public_reporting_authorized = bool(assets) and all(
+        supports(
+            getattr(a, "evidence_class", EvidenceClass.SYNTHETIC),
+            DecisionUse.PUBLIC_REPORTING,
+        )
+        for a in assets
+    )
 
     ordered = sorted(assets, key=_priority_key)
     rows: list[BriefRow] = []
@@ -124,13 +143,14 @@ def build_territorial_brief(
         )
 
     total_budget = sum(r.budget_eur for r in rows if r.budget_eur is not None)
-    return {
+    brief = {
         "metadata": {
             "report_date": report_date,
             "system": "Smart Natural Tourism Observatory (SNTO)",
             "version": __version__,
             "territory": territory_name,
             "assets_in_portfolio": len(rows),
+            "public_reporting_authorized": public_reporting_authorized,
         },
         "evidence_note": (
             "EHS y riesgo son las señales calibradas del panel (EHS curado con "
@@ -143,14 +163,34 @@ def build_territorial_brief(
         "total_indicative_budget_eur": round(total_budget, 2) if total_budget else None,
         "entries": [r.__dict__ for r in rows],
     }
+    if not public_reporting_authorized:
+        # Demo preview only: the portfolio's evidence class cannot back public
+        # reporting. Values are retained for demonstration but explicitly framed
+        # as synthetic engine output, never institutional findings/expenditure.
+        brief["demo_warning"] = (
+            "🧪 SINTÉTICO · DEMO · NO PUBLICAR — La clase de evidencia de esta "
+            "cartera no autoriza reporte público. Las entradas son salidas del "
+            "motor SNTO sobre datos de demostración, no hallazgos institucionales; "
+            "los importes son cálculos sintéticos, no gasto público propuesto."
+        )
+    return brief
 
 
 def render_territorial_brief_markdown(brief: dict) -> str:
     """Render the territorial brief dict as a light, exportable Markdown doc."""
     m = brief["metadata"]
+    _authorized = m.get("public_reporting_authorized", True)
     lines = [
         f"# Resumen ejecutivo del panel — {m['territory']}",
         "",
+    ]
+    if not _authorized:
+        # Prominent, un-missable demo banner at the very top of the document.
+        lines += [
+            f"> {brief.get('demo_warning', '🧪 SINTÉTICO · DEMO · NO PUBLICAR')}",
+            "",
+        ]
+    lines += [
         f"**Fecha de informe:** {m['report_date']}  ·  **SNTO** v{m['version']}  ·  "
         f"**Activos en cartera:** {m['assets_in_portfolio']}",
         "",
@@ -159,9 +199,17 @@ def render_territorial_brief_markdown(brief: dict) -> str:
         "## Cartera de decisión (peor primero)",
         "",
     ]
+    _action_col = (
+        "Acción recomendada" if _authorized else "Salida sintética (motor)"
+    )
+    _budget_col = (
+        "Coste orientativo (€)"
+        if _authorized
+        else "Cálculo sintético (€, no gasto propuesto)"
+    )
     cols = [
         "#", "Activo", "EHS", "Riesgo", "Tier", "Alerta", "Tendencia",
-        "Acción recomendada", "Coste orientativo (€)",
+        _action_col, _budget_col,
     ]
     lines.append("| " + " | ".join(cols) + " |")
     lines.append("|" + "|".join("---" for _ in cols) + "|")
@@ -183,14 +231,25 @@ def render_territorial_brief_markdown(brief: dict) -> str:
         )
     lines.append("")
     if brief["total_indicative_budget_eur"]:
+        _budget_lbl = (
+            "Presupuesto orientativo total"
+            if _authorized
+            else "Suma sintética total (demostración, no gasto propuesto)"
+        )
         lines.append(
-            f"**Presupuesto orientativo total:** "
+            f"**{_budget_lbl}:** "
             f"{brief['total_indicative_budget_eur']:,.0f} €"
         )
         lines.append("")
-    lines.append(
-        "_Informe orientativo generado por SNTO. No sustituye la inspección de "
-        "campo ni la validación técnica local._"
-    )
+    if _authorized:
+        lines.append(
+            "_Informe orientativo generado por SNTO. No sustituye la inspección de "
+            "campo ni la validación técnica local._"
+        )
+    else:
+        lines.append(
+            "_🧪 Vista previa sintética de demostración. Clase de evidencia "
+            "`SYNTHETIC`: no autorizada para reporte público ni institucional._"
+        )
     lines.append("")
     return "\n".join(lines)

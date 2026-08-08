@@ -12,11 +12,24 @@ from __future__ import annotations
 import streamlit as st
 
 from src.platform.enrichment import enrichment_summary
+from src.platform.evidence import DecisionUse, EvidenceClass, supports
 from src.platform.provenance import data_status_badge
 from src.temporal import DataStatus
 from src.ui.asset_navigation import select_asset
 from src.ui.kpi_sections import decision_kpis
 from src.ui.render_widgets import _render_fichas_rapidas, render_kpi_grid
+
+
+def _portfolio_supports(assets, use: DecisionUse) -> bool:
+    """Whether every asset's evidence class supports ``use`` (empty ⇒ False).
+
+    Reads the single canonical gate ``evidence.supports``; a synthetic fixture
+    portfolio returns False for every real-world decision use.
+    """
+    return bool(assets) and all(
+        supports(getattr(a, "evidence_class", EvidenceClass.SYNTHETIC), use)
+        for a in assets
+    )
 
 
 def render_tab_kpis(dashboard, ranked_assets, base_comps, calibration, _view) -> None:
@@ -28,6 +41,22 @@ def render_tab_kpis(dashboard, ranked_assets, base_comps, calibration, _view) ->
         "**Diagnosticar → Diagnóstico espacial**; no se elimina ninguna métrica."
     )
 
+    # ── Evidence gate (ADR-004 / I-5) ────────────────────────────────────────
+    # A synthetic fixture portfolio may exercise every ranking/cost calculation
+    # below, but must not present any of it as an authorized real-world action.
+    _can_prioritize = _portfolio_supports(ranked_assets, DecisionUse.PRIORITIZATION)
+    _authorized = _can_prioritize and _portfolio_supports(
+        ranked_assets, DecisionUse.INTERVENTION
+    )
+    if ranked_assets and not _authorized:
+        st.warning(
+            "🧪 **Cartera sintética de demostración.** Los valores y rankings "
+            "ejercitan el motor SNTO, pero **no autorizan** monitorización, "
+            "priorización, intervención ni reporte institucional. "
+            "Clase de evidencia: `SYNTHETIC`.",
+            icon="🧪",
+        )
+
     # Coste de mitigación recomendado por activo (escenario óptimo TIS, Fase 6)
     _cost_by_id = {
         c.asset_id: c.scenarios[c.best_scenario_code].cost_eur
@@ -37,7 +66,7 @@ def render_tab_kpis(dashboard, ranked_assets, base_comps, calibration, _view) ->
     # ── Vista GESTOR: acción prioritaria en lenguaje de dirección ─────────────
     if _view.section(simplified=True):
         _priority = next((a for a in ranked_assets if (a.tier or 5) <= 2), None)
-        if _priority is not None:
+        if _priority is not None and _authorized:
             _act = _priority.recommended_action_label or "intervención de conservación"
             _cost = _cost_by_id.get(_priority.asset_id)
             _cost_txt = f" · coste estimado **€{_cost:,.0f}**" if _cost else ""
@@ -53,6 +82,33 @@ def render_tab_kpis(dashboard, ranked_assets, base_comps, calibration, _view) ->
             )
             st.button(
                 "Abrir ficha del activo prioritario",
+                key=f"asset-page-manager-priority-{_priority.asset_id}",
+                on_click=select_asset,
+                args=(st.session_state, _priority.asset_id),
+            )
+        elif _priority is not None:
+            # Gated: the ranking still exists (demo), but it is NOT an authorized
+            # territorial priority and its cost is NOT a management commitment.
+            _cost = _cost_by_id.get(_priority.asset_id)
+            _cost_txt = (
+                f" · cálculo sintético **€{_cost:,.0f}** (no es compromiso de gasto)"
+                if _cost else ""
+            )
+            _name_short = _priority.name.split("—")[0].strip()
+            st.markdown(
+                f'<div style="padding:12px 16px;border-radius:8px;margin-bottom:10px;'
+                f'background:#f4f2fb;border-left:5px solid #A32D2D;">'
+                f'<div style="font-size:0.66rem;text-transform:uppercase;'
+                f'letter-spacing:.06em;color:#A32D2D;font-weight:700">'
+                f'🧪 Demostración sintética · sin acción autorizada</div>'
+                f'<div style="font-size:0.95rem;color:#0d1b2a;margin-top:3px">'
+                f'Primer activo del ranking (salida del motor): '
+                f'<b>{_name_short}</b> ({_priority.region}){_cost_txt}. '
+                f'No constituye una prioridad territorial autorizada.</div></div>',
+                unsafe_allow_html=True,
+            )
+            st.button(
+                "Abrir ficha del activo (demostración)",
                 key=f"asset-page-manager-priority-{_priority.asset_id}",
                 on_click=select_asset,
                 args=(st.session_state, _priority.asset_id),
