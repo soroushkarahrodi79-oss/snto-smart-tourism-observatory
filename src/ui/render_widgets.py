@@ -321,7 +321,7 @@ _KPI_DRILLDOWN_CAPTION = {
     2:  "Sendas y enclaves que requieren intervención financiera inmediata o preventiva, ordenados por prioridad territorial (TPI).",
     3:  "Capacidad de carga antrópica comprometida: activos Tier 1-2 ordenados por presión de visitantes.",
     4:  "Deuda ecológica por activo: la inversión de mitigación pendiente justifica administrativamente la priorización del presupuesto público.",
-    7:  "Activos con degradación causada por presión antrópica confirmada (clasificación causal SCM: impacto localizado).",
+    7:  "Activos donde el SCM señala una hipótesis de impacto localizado (posible asociación con presión antrópica, no verificada de forma independiente).",
     9:  "Activos en trayectoria de degradación activa (tendencia Mann-Kendall decreciente).",
     10: "Activos sin evidencia suficiente (DCS < 55): requieren refuerzo de monitorización antes de comprometer inversión de capital.",
 }

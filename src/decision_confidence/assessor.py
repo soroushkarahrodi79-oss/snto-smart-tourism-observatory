@@ -465,7 +465,7 @@ def _explain_factors(
         )
     elif comp.model_stability < 8:
         uncertainty.append(
-            "Significant inter-annual variability (driven by the 2022 drought) "
+            "Significant inter-annual variability "
             "means risk scores differ between years. The model is sensitive to "
             "the year chosen as reference."
         )

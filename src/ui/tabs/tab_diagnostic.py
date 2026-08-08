@@ -123,8 +123,9 @@ def render_tab_diagnostic(
         help=(
             "**Vista de Gestión:** activos coloreados por tier de prioridad de inversión "
             "(escala neutra índigo→pizarra, NO semafórica). "
-            "**Vista Espectral:** gradiente continuo RdYlGn derivado del EHS real del activo — "
-            "simula el contraste espacial de degradación difusa visible en imágenes Sentinel-2."
+            "**Vista Espectral:** gradiente continuo RdYlGn derivado del valor EHS del registro del activo — "
+            "simula el contraste espacial de degradación difusa visible en imágenes Sentinel-2, "
+            "no es una medición espectral directa sobre este activo."
         ),
     )
     st.caption(
@@ -137,11 +138,12 @@ def render_tab_diagnostic(
 
     if spectral_mode:
         st.caption(
-            "🛰️ Color = gradiente RdYlGn (ColorBrewer) anclado en el EHS real del activo. "
+            "🛰️ Color = gradiente RdYlGn (ColorBrewer) anclado en el valor EHS del registro del activo. "
             "**Rojo intenso** → EHS < 30 (degradación crítica) · "
             "**Amarillo** → EHS ≈ 60 (zona de transición) · "
             "**Verde saturado** → EHS > 80 (salud óptima). "
-            "Reproduce el contraste espectral NDVI/NDMI a lo largo del corredor del sendero."
+            "Simula el contraste espectral NDVI/NDMI a lo largo del corredor del sendero; "
+            "no es una medición espectral directa sobre este activo."
         )
     else:
         st.caption(
@@ -437,6 +439,7 @@ def render_tab_diagnostic(
                   if selected_key == "pnsg" else "Cartografía OpenStreetMap")
         st.caption(
             f"Fuente: Pipeline A · Sentinel-2 tile T30TVL · {_carto} · "
-            "Salida real, sin datos sintéticos. Provenance: "
+            "EHS/ΔEHS derivados de observaciones Sentinel-2 reales; "
+            "la columna **Causa (SCM)** es simulada. Provenance: "
             f"`data/outputs/{_terr_folder}/pipeline_a_results.geojson`"
         )

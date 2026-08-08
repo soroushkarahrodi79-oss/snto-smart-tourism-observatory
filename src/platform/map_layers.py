@@ -730,7 +730,7 @@ def build_pydeck_deck_spectral(
             "<hr style='border:none;border-top:1px solid #2e4560;margin:6px 0'/>"
             "<b>EHS (Salud Ecológica)</b> {ehs}/100<br/>"
             "<span style='font-size:11px;color:#c8d6e5'>"
-            "Color = gradiente espectral NDVI/NDMI · "
+            "Color = gradiente derivado del EHS registrado del activo · "
             "🟢 verde = saludable · 🔴 rojo = degradado"
             "</span><br/>"
             "<span style='font-size:10px;color:#7e93a8;margin-top:3px;display:block'>{geom_note}</span>"
