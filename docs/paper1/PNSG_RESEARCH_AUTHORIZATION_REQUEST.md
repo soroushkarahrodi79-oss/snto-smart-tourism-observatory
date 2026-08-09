@@ -1,6 +1,6 @@
 # PNSG Research Authorisation Request — Draft Package
 
-**Status:** DRAFT — technical content complete, **applicant identity fields are placeholders and must not be submitted as-is** · **Date:** 2026-08-09
+**Status:** DRAFT — technical content complete, territorial scope **decided**, **applicant identity fields are still placeholders and this must not be submitted as-is** · **Date:** 2026-08-09, territorial scope confirmed 2026-08-09
 **Governs:** Master Execution Plan gate **G2** · Data Acquisition Triage open item · `FIELD_CAMPAIGN_EXECUTION_PLAN.md` §4.7
 
 This document is the working draft of the authorisation request for the field campaign in `FIELD_CAMPAIGN_EXECUTION_PLAN.md`. It is **not** ready to submit: the technical content is complete and traceable to the frozen scientific plan, but every applicant-identity field is a placeholder, and one jurisdictional decision is still open. Neither may be filled in by inference — both need a real, human answer.
@@ -24,16 +24,16 @@ PNSG's authorisation regime is **split by territory**, and it is not a formality
 
 **Verified fact from the repository's own trail geometry:** curated PNSG assets at longitude ≲ −4.0° (`pnsg_escalada_valsain` −4.013, `pnsg_escalada_puerto_de_navacerrada` −4.010, `pnsg_reserva_umbria_de_siete_picos` −4.041, `pnsg_reserva_umbria_de_cerro_ventoso` −4.051) sit on or near the Segovia side of the range crest, while the bulk of the network (La Pedriza, Peñalara, El Chorro) is Madrid-side. **The 218-trail sampling frame frozen in `PAPER1_SCIENTIFIC_CONTRACT.md` §F genuinely spans both jurisdictions.** This was not checked against an authoritative administrative-boundary layer — it is read off longitude and known place names, and should be verified with a real boundary overlay before it drives a decision (Backlog item, see §7).
 
-### Recommendation: restrict the sampling frame to the Madrid-side sector
+### Decision: Madrid-side only 🔒 **CONFIRMED 2026-08-09 (owner decision)**
 
-I recommend applying to **Comunidad de Madrid only**, and constraining trail-segment selection (Backlog B-01) to segments within that territory. Reasoning:
+The sampling frame's territorial scope is **Comunidad de Madrid only**. Trail-segment selection (Backlog B-01) is constrained to segments within that territory; no Castilla y León application will be filed for Paper 1. Reasoning, recorded for the record:
 
-1. **One process, one authority, one timeline** instead of two independent applications with two different lead times — the pilot (Master Plan gate G2) is already the schedule's longest dependency; doubling it is a cost with no scientific benefit.
-2. **CISE is the park's dedicated research-support unit and sits on the Madrid side** — a natural point of contact for both the formal application and informal pre-submission coordination, which local ecology guidance almost always recommends doing before filing.
+1. **One process, one authority, one timeline** instead of two independent applications with two different lead times — the pilot (Master Plan gate G2) is already the schedule's longest dependency; doubling it would be a cost with no scientific benefit.
+2. **CISE is the park's dedicated research-support unit and sits on the Madrid side** — a natural point of contact for both the formal application and informal pre-submission coordination.
 3. The Madrid sector alone contains the full elevation/habitat gradient the stratified design needs — La Pedriza (granite, low elevation) through Peñalara (alpine, >2 100 m) — so **nothing in the Statistical Analysis Plan or the four ecological strata (S1–S4) requires Segovia-side segments.**
-4. This is a **site-selection constraint, not a scientific-contract change** — the frame is still "218 OAPN trails" (Contract §F, F-1); this only narrows *which* of those 218 are eligible for Backlog B-01's stratified draw.
+4. This is a **site-selection constraint, not a scientific-contract change** — the frame is still "218 OAPN trails" (Contract §F, F-1); this only narrows *which* of those 218 are eligible for Backlog B-01's stratified draw. Recorded there and in the Contract.
 
-**This is a recommendation, not a decision I can make.** If you want Segovia-side sites included (e.g., because a specific stratum or trail is not well represented on the Madrid side once real strata are drawn from cartography), a second, independent CyL application must be filed and its own lead time tracked. Flagging this as 🔲 in §7.
+**Consequence, now firm rather than optional:** the longitude read-off in this document is not precise enough to filter the final 218-trail geometry — Backlog **B-01** must filter against a real Madrid/Castilla y León administrative boundary layer (public cartography, e.g. IGN límites administrativos) before the stratified segment draw runs, not the ≲ −4.0° heuristic used here to make the case for this decision.
 
 ---
 
@@ -71,7 +71,7 @@ Spanish regional-government authorisation processes of this kind typically run *
 > Test whether a Sentinel-2-derived ecological-stress indicator (already computed and published for the park's 218-trail network) covaries with an independently measured field degradation index at co-located plots, using a stratified control–impact design. The study makes no claim of visitor-caused causation; it is an association study (see `PAPER1_SCIENTIFIC_CONTRACT.md` §B–D).
 >
 > **Ámbito territorial solicitado**
-> Trail segments within the [Comunidad de Madrid sector — recommended, §1] of Parque Nacional de la Sierra de Guadarrama, drawn from the park's official public-use trail cartography (OAPN WFS `UsoPublico_visor`). Exact segments to be finalised by stratified selection (§5 below) once the territorial scope is confirmed; a provisional zone map covering the eligible segment pool is attached (§6).
+> Trail segments within the **Comunidad de Madrid** sector of Parque Nacional de la Sierra de Guadarrama, drawn from the park's official public-use trail cartography (OAPN WFS `UsoPublico_visor`). Exact segments to be finalised by stratified selection (§5 below); a provisional zone map covering the eligible Madrid-side segment pool is attached (§6).
 >
 > **Metodología**
 > Non-destructive, non-invasive field plots. Per plot (20 × 20 m, sampled via 5 × 1 m² subplots): visual estimation of vegetation cover (%) and erosion class (0–3, visual scale), soil-compaction reading via hand penetrometer (minimal-depth ground insertion, no excavation, no soil removed from site), trail-width tape measurement, georeferenced photography, GPS position. No specimens collected, no vegetation removed, no soil samples taken off-site. Full protocol: `docs/field_validation_protocol.md` (audited) and `docs/paper1/FIELD_CAMPAIGN_EXECUTION_PLAN.md`.
@@ -115,12 +115,12 @@ Nothing above is submittable as-is. Two classes of blocker:
 | 1 | Applicant legal name, ID number (DNI/NIE/passport), and institutional affiliation (or confirmation of independent-researcher status) |
 | 2 | Contact address, email, phone |
 | 3 | Scientific endorsement — an institutional letter, or your CV, to attach as the "aval científico" |
-| 4 | Confirmation of territorial scope: Madrid only (recommended, §1) / Castilla y León only / both |
-| 5 | Confirmation this should actually be submitted to the authority once complete — this is an external, real, hard-to-reverse action, and I will not send anything without that explicit go-ahead |
+| ~~4~~ | ~~Territorial scope~~ — **resolved 2026-08-09: Madrid only** |
+| 4 | Confirmation this should actually be submitted to the authority once complete — this is an external, real, hard-to-reverse action, and I will not send anything without that explicit go-ahead |
 
-**One technical check worth doing before or alongside filing:**
+**One technical check now required, not optional (§1):**
 
-6. Verify the Madrid/Castilla y León administrative boundary against an authoritative layer rather than the longitude read-off in §1 (cheap — the boundary is public cartography; a 30-minute task, not a blocker to *starting* the process).
+5. Verify the Madrid/Castilla y León administrative boundary against an authoritative layer (e.g. IGN límites administrativos) rather than the longitude read-off used to justify this decision — this now directly gates which of the 218 trail segments are eligible for Backlog B-01's stratified draw.
 
 ---
 

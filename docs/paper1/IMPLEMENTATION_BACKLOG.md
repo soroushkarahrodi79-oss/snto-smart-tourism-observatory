@@ -24,8 +24,8 @@ Scope rule: **the minimum code required to execute the scientific plan.** No pro
 |---|---|
 | **Scientific reason** | The shipped template gives impact and control plots **identical coordinates** (both Porrones rows are `40.7405, -3.9251`). A field team cannot navigate to the control, and both plots would draw the same satellite cell — voiding the control–impact contrast by construction. It also has only 4 rows, and targets a climbing polygon and a paragliding point rather than trails. |
 | **Files** | `clean_assets/field_validation/pnsg_field_observations_template.csv` (regenerated) · `scripts/run_field_validation.py` (`--init`) · new `scripts/generate_plot_plan.py` |
-| **Depends on** | ✅ Contract §F frozen to F-1 (218 OAPN trails, 2026-08-09) · B-04 (grid snapping) |
-| **Acceptance criteria** | Every plot has a distinct surveyed coordinate · every impact/control pair passes SM-1 (≥ 40 m, non-adjacent cells) · plots stratified by ecological stratum × satellite-stress tercile · exports GPX waypoints · records the generation seed and commit hash |
+| **Depends on** | ✅ Contract §F frozen to F-1 (218 OAPN trails, 2026-08-09) · ✅ territorial scope confirmed Madrid-only (2026-08-09, `PNSG_RESEARCH_AUTHORIZATION_REQUEST.md` §1) · B-04 (grid snapping) |
+| **Acceptance criteria** | Segment pool **first filtered to the Comunidad de Madrid-administered sector using a real administrative boundary layer** (not the longitude heuristic used to justify the decision) · every plot has a distinct surveyed coordinate · every impact/control pair passes SM-1 (≥ 40 m, non-adjacent cells) · plots stratified by ecological stratum × satellite-stress tercile · exports GPX waypoints · records the generation seed and commit hash |
 | **Tests** | No two plots share a 20 m cell · every impact has exactly one control in the same stratum · all coordinates inside the park boundary · regeneration is deterministic given the seed |
 | **Risk** | Low. New artefact; the old template is superseded, not silently mutated |
 | **Changes scientific output?** | **No** |
