@@ -20,6 +20,7 @@ Publication-oriented working set for **one** paper: empirical validation of SNTO
 | 9 | [`FIGURE_PLAN.md`](FIGURE_PLAN.md) | Figures + required source data |
 | 10 | [`JOURNAL_STRATEGY.md`](JOURNAL_STRATEGY.md) | Venue fit; decision staged until results exist |
 | 11 | [`IMPLEMENTATION_BACKLOG.md`](IMPLEMENTATION_BACKLOG.md) | Minimum code; **nothing implemented pending approval** |
+| — | [`PNSG_RESEARCH_AUTHORIZATION_REQUEST.md`](PNSG_RESEARCH_AUTHORIZATION_REQUEST.md) | Draft permit application (gate G2). Technical content complete; applicant identity and territorial scope (Madrid vs. Castilla y León) still open. **Nothing submitted.** |
 
 ## Status
 

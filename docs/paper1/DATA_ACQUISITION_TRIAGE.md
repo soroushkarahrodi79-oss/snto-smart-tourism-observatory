@@ -182,7 +182,7 @@ Locked statistical analysis
 |---|---|
 | ✅ | ~~Sampling frame~~ — **resolved 2026-08-09: F-1, 218 OAPN trails** (Contract §F) |
 | 🔲 1 | **OAPN data licence terms** — confirm and record the exact reuse conditions for A-3 and A-4 |
-| 🔲 2 | **PNSG research authorisation** — who applies, when; confirm penetrometer ground insertion is covered |
+| 🔲 2 | **PNSG research authorisation** — drafting started (`PNSG_RESEARCH_AUTHORIZATION_REQUEST.md`); blocked on applicant identity fields and the Madrid/Castilla y León territorial-scope decision (same document §1, §7) |
 | 🔲 3 | **Field team composition** — two observers are required for the repeatability protocol |
 | 🔲 4 | **Target field season** — determines the satellite window and the whole schedule |
 | 🔲 5 | **Instrument availability** — penetrometer model, gridded quadrat frame, GNSS |
