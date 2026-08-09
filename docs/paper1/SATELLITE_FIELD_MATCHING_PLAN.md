@@ -113,3 +113,9 @@ gps_to_cell_centre_m, ndvi, ndmi, ehs, evidence_class
 | `src/config/constants.py` EHS constants | **Unchanged.** The campaign-matched composite is processed with the **existing frozen constants**, so the paper evaluates the system as it is, not a variant tuned for the paper. |
 
 That last row is the important one: **Paper 1 validates the shipped indicator, not a bespoke one.** Any constant change would break the link between the published result and the operational system, and would require owner approval, a before/after comparison and a methodological rationale.
+
+## 6. H4 spatial-contrast extraction (sampling frame = 218 trails, decided 2026-08-09)
+
+With the sampling frame frozen to the 218 OAPN trails (Contract §F, option F-1), the trail-to-landscape spatial contrast (`sig_segment`, H4) is a candidate predictor for every sampled segment. It **cannot** be read from the existing `scm_class` field in `data/outputs/pnsg/pipeline_a_results.geojson`: `run_scm_operational.py:111-112` computes it from `spring_raster.tif`/`summer_raster.tif` — the same 2025-08-10/2026-04-10 pair disqualified in §1. That pair is chronologically inverted, cross-year and cross-sensor whether it feeds `delta_ehs` or SIG.
+
+**Required for H4:** re-run the same real zonal-extraction method (core/near/landscape ring buffers, `SIG = (NDVI_landscape − NDVI_core) / max(NDVI_landscape, 0.01)`) against the **campaign-matched composite** defined in §2, for the sampled segments only. No new data source — the same composite already being extracted for `satellite_stress` supplies this. Implementation: Backlog **B-14**. If this extraction is not completed before analysis, **H4 is not tested**, per Contract §K and §J — it is not tested with the temporally mismatched existing values.

@@ -36,7 +36,9 @@ Everything else in this audit follows from this. SNTO does not have one satellit
 
 **Consequence for Paper 1.** The primary scientific question is about *trails*. Universe B is the only real trail geometry in the repository — but it has no defensible temporal signal (§3). Universe A has the defensible temporal signal — but **only 6 of its 21 members are linear route features, and neither of the two assets seeded into the field-validation template is a trail at all**: `pnsg_escalada_maliciosa_porrones` is a climbing **polygon**, `pnsg_vuelo_libre_el_nevero` is a paragliding **point**.
 
-The field campaign as currently seeded would therefore validate the satellite indicator against a crag and a launch site, and the resulting paper could not honestly be titled or framed as a trail-impact study. **This is a design decision that must be made before any field day is spent** — see the Scientific Contract §E and the Implementation Backlog item B-01.
+The field campaign as previously seeded would therefore have validated the satellite indicator against a crag and a launch site, and the resulting paper could not honestly be titled or framed as a trail-impact study.
+
+> **Resolved 2026-08-09 (owner decision).** The sampling frame is **Universe B — the 218 OAPN trails**, frozen in `PAPER1_SCIENTIFIC_CONTRACT.md` §F as option F-1. Consequence: the Universe-A 2021–2026 Mann-Kendall record does not apply to the sampled trails (the primary analysis was already cross-sectional on a campaign-matched composite regardless of frame, so nothing the design needed is lost). A second consequence, newly identified while propagating this decision, is recorded in §2.5 below: the **real** SCM classification already computed on all 218 trails is not usable for H4 as-is, for the same temporal reason `delta_ehs` is unusable (§3).
 
 ---
 
@@ -91,7 +93,7 @@ The field campaign as currently seeded would therefore validate the satellite in
 
 | Capability | Status | Verified basis |
 |---|---|---|
-| SCM on Universe B (218 trails) | **READY (as a spatial contrast)** | `run_scm_operational.py` extracts genuine zonal mean NDVI from the real rasters for real ring buffers. Result: 24 LOCALIZED, 29 MIXED, 165 LANDSCAPE, 0 NULL. This is real measurement. |
+| SCM on Universe B (218 trails) | **READY (as a spatial contrast) / BLOCKED_BY_EVIDENCE (for H4 as-is)** | `run_scm_operational.py` extracts genuine zonal mean NDVI from the real rasters for real ring buffers. Result: 24 LOCALIZED, 29 MIXED, 165 LANDSCAPE, 0 NULL. Real measurement — **but `SPRING_PATH`/`SUMMER_PATH` in `run_scm_operational.py:111-112` point to the same `spring_raster.tif`/`summer_raster.tif` as `calculate_delta_ehs.py`**, i.e. the same disqualified 2025-08-10/2026-04-10 pair (§3). The existing `scm_class` field is therefore **not** usable for H4 without a fresh extraction against the campaign-matched composite (Backlog B-14) — same real code, new real input. |
 | SCM on Universe A (21 assets) | **PARTIAL — simulated** | `src/spatial_causality/analyzer.py` derives zone signals by α-decay from the single-buffer series. `src/spatial_causality/zones/` **does not exist**, so `real_zones_exist()` is `False` and the simulated path is what runs. Correctly labelled in code. |
 | SCM thresholds | **PARTIAL** | `SIG > 0.15` → localized, `SIG < 0.07` → landscape, cross-zone `r > 0.85` → climate, `r < 0.70` → localized. Zone *radii* are literature-cited; **the four decision thresholds are not** — no citation, no calibration, no sensitivity analysis. They are expert heuristics presented with three-significant-figure confidence. |
 | Causal language | **PARTIAL — must be reframed** | The module is named "Spatial Causality" and emits `LOCALIZED_IMPACT` = "human pressure / tourism-related". A spatial gradient is not a causal attribution. See `SCM_REFRAMING.md`. |

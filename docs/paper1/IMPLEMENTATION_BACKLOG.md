@@ -24,7 +24,7 @@ Scope rule: **the minimum code required to execute the scientific plan.** No pro
 |---|---|
 | **Scientific reason** | The shipped template gives impact and control plots **identical coordinates** (both Porrones rows are `40.7405, -3.9251`). A field team cannot navigate to the control, and both plots would draw the same satellite cell — voiding the control–impact contrast by construction. It also has only 4 rows, and targets a climbing polygon and a paragliding point rather than trails. |
 | **Files** | `clean_assets/field_validation/pnsg_field_observations_template.csv` (regenerated) · `scripts/run_field_validation.py` (`--init`) · new `scripts/generate_plot_plan.py` |
-| **Depends on** | 🔲 Contract §F (sampling frame) — **owner decision** · B-04 (grid snapping) |
+| **Depends on** | ✅ Contract §F frozen to F-1 (218 OAPN trails, 2026-08-09) · B-04 (grid snapping) |
 | **Acceptance criteria** | Every plot has a distinct surveyed coordinate · every impact/control pair passes SM-1 (≥ 40 m, non-adjacent cells) · plots stratified by ecological stratum × satellite-stress tercile · exports GPX waypoints · records the generation seed and commit hash |
 | **Tests** | No two plots share a 20 m cell · every impact has exactly one control in the same stratum · all coordinates inside the park boundary · regeneration is deterministic given the seed |
 | **Risk** | Low. New artefact; the old template is superseded, not silently mutated |
@@ -156,6 +156,19 @@ Executes S1–S10. **Reads constants; never writes them.** A test must assert th
 
 Extends the existing `tests/test_evidence_claims_sync.py` pattern to the manuscript: greps the draft for forbidden verbs (Contract §P/§R) and for numeric claims lacking a source reference; fails CI on a hit. Cheap, and it enforces the discipline mechanically rather than relying on care during revision. Risk: low. Changes scientific output: no.
 
+### B-14 · Fresh SIG extraction for H4 against the campaign-matched composite 🟢
+
+| | |
+|---|---|
+| **Scientific reason** | The sampling frame is now the 218 OAPN trails (Contract §F, frozen 2026-08-09). H4 needs a trail-to-landscape spatial contrast per sampled segment. The **existing** `scm_class`/SIG values (`run_scm_operational.py`, already computed for all 218 trails) are real zonal extraction but from `spring_raster.tif`/`summer_raster.tif` — the same disqualified 2025-08-10/2026-04-10 pair as `delta_ehs` (Phase 0 audit §3). They cannot feed H4 without reusing the same method against a temporally valid input. |
+| **Files** | new `scripts/paper1/extract_sig_campaign.py`, thin wrapper reusing `run_scm_operational.py`'s ring-buffer/SIG functions · `tests/unit/test_paper1_sig_extraction.py` |
+| **Design** | Same real code path (core/near/landscape rings, `SIG = (NDVI_landscape − NDVI_core) / max(NDVI_landscape, 0.01)`), pointed at the campaign-matched composite from B-06's manifest instead of `spring_raster.tif`/`summer_raster.tif`. Restricted to the sampled segments — not a full 218-trail rerun. **Does not touch `run_scm_operational.py` or its output.** |
+| **Depends on** | B-06 (acquisition manifest) · the campaign-matched composite existing |
+| **Acceptance criteria** | Numeric `sig_segment` per sampled segment, with the same provenance fields as B-04 (scene IDs, valid-pixel fraction) · explicit `None` (not `MIXED`) when a zone lacks raster coverage, matching the existing null-handling convention · zero writes to `data/outputs/pnsg/pipeline_a_results.geojson` |
+| **Tests** | SIG value matches a hand-computed reference on a synthetic raster · null propagation on missing zone coverage · confirms the operational `scm_class` field is untouched |
+| **Risk** | Low — reuses tested real logic against a new real input |
+| **Changes scientific output?** | **No** — new artefact for H4 only; the operational `scm_class`/SIG on all 218 trails is unchanged |
+
 ---
 
 ## Explicitly NOT in this backlog
@@ -194,14 +207,14 @@ B-02, B-03, B-05           ← must exist before the first field day
         ↓
 B-07, B-10, B-11, B-12     ← analysis
         ↓
-B-09 (remaining figures), B-13
+B-09 (remaining figures), B-13, B-14
 ```
 
 ## Risk summary
 
 | Item | Risk | Scientific-output-changing | Owner approval required |
 |---|---|---|---|
-| B-01 | Low | No | Depends on 🔲 §F |
+| B-01 | Low | No | No — §F resolved |
 | B-02 | Medium | No (additive) | **Yes** (🔴 class) |
 | B-03 | Low | No | No |
 | B-04 | Medium | No | No |
@@ -211,5 +224,6 @@ B-09 (remaining figures), B-13
 | B-11 | Low | No | No |
 | B-12 | Medium | No | No |
 | B-13 | Low | No | No |
+| B-14 | Low | No | No |
 
 **Two items (B-02, B-05) carry the 🔴 classification and require explicit owner approval before implementation**, in both cases because a careless implementation could change existing scientific output even though the specified implementation does not. Both are specified as strictly additive, and both carry a regression test asserting the existing path is byte-identical.

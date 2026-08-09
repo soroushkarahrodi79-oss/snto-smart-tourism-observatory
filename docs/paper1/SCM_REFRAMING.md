@@ -77,7 +77,8 @@ Required by Phase 6: classify every SCM constant by evidential basis.
 
 | Use | Admitted? |
 |---|---|
-| `sig_segment` as a secondary predictor (H4), from **real** zonal extraction | **Yes** |
+| `sig_segment` as a secondary predictor (H4), from a **fresh** real zonal extraction against the campaign-matched composite (`SATELLITE_FIELD_MATCHING_PLAN.md` §6, Backlog B-14) | **Yes** |
+| `sig_segment` from the **existing** `scm_class`/SIG already computed on the 218 trails (`run_scm_operational.py`, using `spring_raster.tif`/`summer_raster.tif`) | **No** — real extraction, but from the same disqualified 2025-08-10/2026-04-10 pair as `delta_ehs`. Genuinely real ≠ temporally usable. |
 | SIG described as a spatial contrast | **Yes** |
 | SIG described as causal attribution | **No** |
 | `LOCALIZED_IMPACT` counts reported as human-impact counts | **No** |

@@ -25,7 +25,9 @@ Publication-oriented working set for **one** paper: empirical validation of SNTO
 
 **No code has been changed. No scientific threshold has been modified. No field data exists.**
 
-Blocking owner decisions are marked 🔲 throughout; they are collected in the Master Execution Plan §7.
+**Sampling frame decided (2026-08-09): the 218 real OAPN trail segments** (`PAPER1_SCIENTIFIC_CONTRACT.md` §F, option F-1). This forfeits nothing the cross-sectional design needed, but it means the existing real SCM/SIG values already computed for those 218 trails are **not** usable for the H4 spatial-contrast analysis as-is — they come from the same disqualified satellite-scene pair as `delta_ehs` and need a fresh extraction against the campaign-matched composite (Backlog B-14).
+
+Remaining blocking owner decisions are marked 🔲 throughout; they are collected in the Master Execution Plan §7.
 
 ## Relationship to existing documentation
 

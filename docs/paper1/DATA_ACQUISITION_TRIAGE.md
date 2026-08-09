@@ -90,9 +90,9 @@ Classifies every dataset Paper 1 might touch into four bands, and states for eac
 
 ## Band B — USEFUL SECONDARY DATA
 
-### B-1 · Real multi-scale SCM zones (GEE export)
+### B-1 · Real multi-scale SCM / SIG zones for H4
 
-Source: `scripts/gee_scm_zones_pnsg.js` → `src/spatial_causality/zones/<asset_id>.json`. Authority: ESA/Copernicus via GEE. Spatial unit: core/near/landscape rings. **Proxy** — zonal NDVI is a spatial contrast, not a causal measure (`SCM_REFRAMING.md`). Current state: **MISSING** (`zones/` does not exist; the α-decay simulation runs on the Universe-A path). Needed for **H4 only**. If absent, **H4 is not tested** — it is *not* tested with simulated zones. Note that the Universe-B operational SCM (218 trails, `run_scm_operational.py`) is already real and may serve H4 directly for trail segments.
+Sampling frame is now the 218 OAPN trails (Contract §F, frozen 2026-08-09), so the relevant path is the **Universe-B operational SCM**, not the Universe-A GEE zone export. `run_scm_operational.py` performs genuine real zonal NDVI extraction (core/near/landscape ring buffers) — but against `spring_raster.tif`/`summer_raster.tif`, the same disqualified 2025-08-10/2026-04-10 pair as `delta_ehs` (`SATELLITE_FIELD_MATCHING_PLAN.md` §1). **Proxy** — zonal NDVI is a spatial contrast, not a causal measure (`SCM_REFRAMING.md`). Current state: real extraction exists but is temporally unusable for H4 as-is; a **fresh** extraction against the campaign-matched composite is needed (Backlog B-14) — no new data source, reuses the composite already required for `satellite_stress`. Needed for **H4 only**. If not completed, **H4 is not tested** — it is *not* tested with the temporally mismatched existing values. (The separate Universe-A GEE zone export path, `src/spatial_causality/zones/<asset_id>.json` via `scripts/gee_scm_zones_pnsg.js`, is now out of scope — it targets the wrong asset universe under F-1.)
 
 ### B-2 · Direct visitor counts during the campaign
 
@@ -151,7 +151,7 @@ Substitutions that would each, individually, invalidate the paper. Listed becaus
 ## Critical path
 
 ```
-🔲 Owner: resolve sampling frame (Contract §F)
+✅ Owner: sampling frame resolved (Contract §F → F-1, 218 OAPN trails, 2026-08-09)
         ↓
 A-4 strata derived from OAPN vegetation + DEM        ← desk, days
         ↓
@@ -180,9 +180,9 @@ Locked statistical analysis
 
 | # | Item |
 |---|---|
-| 🔲 1 | **Sampling frame** (Contract §F): 218 OAPN trails / 21 curated assets / hybrid |
-| 🔲 2 | **OAPN data licence terms** — confirm and record the exact reuse conditions for A-3 and A-4 |
-| 🔲 3 | **PNSG research authorisation** — who applies, when; confirm penetrometer ground insertion is covered |
-| 🔲 4 | **Field team composition** — two observers are required for the repeatability protocol |
-| 🔲 5 | **Target field season** — determines the satellite window and the whole schedule |
-| 🔲 6 | **Instrument availability** — penetrometer model, gridded quadrat frame, GNSS |
+| ✅ | ~~Sampling frame~~ — **resolved 2026-08-09: F-1, 218 OAPN trails** (Contract §F) |
+| 🔲 1 | **OAPN data licence terms** — confirm and record the exact reuse conditions for A-3 and A-4 |
+| 🔲 2 | **PNSG research authorisation** — who applies, when; confirm penetrometer ground insertion is covered |
+| 🔲 3 | **Field team composition** — two observers are required for the repeatability protocol |
+| 🔲 4 | **Target field season** — determines the satellite window and the whole schedule |
+| 🔲 5 | **Instrument availability** — penetrometer model, gridded quadrat frame, GNSS |

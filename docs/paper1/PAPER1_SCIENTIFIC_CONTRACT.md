@@ -1,6 +1,6 @@
 # Paper 1 — Scientific Contract
 
-**Status:** DRAFT, awaiting owner freeze · **Version:** 0.1 · **Date:** 2026-08-09
+**Status:** §F frozen (owner decision, 2026-08-09) · remainder awaiting freeze pending the pilot campaign · **Version:** 0.2 · **Date:** 2026-08-09
 
 This is the governing document for Paper 1. It is deliberately short. Once frozen, **no analysis choice may be changed without an explicit, dated amendment recorded at the bottom of this file.** Its purpose is to make it impossible to select the analysis after seeing the results.
 
@@ -47,19 +47,18 @@ Note on H3 vs H2: H2 tests the *field* premise (trails are more degraded). H3 te
 
 Because plots are nested within trail segments and strata, non-independence is expected and is handled explicitly in the Statistical Analysis Plan.
 
-## F. Target population 🔲
+## F. Target population 🔒 **FROZEN — 2026-08-09**
 
-**Recommended (default if no other decision is taken):** mapped OAPN trail segments within Parque Nacional de la Sierra de Guadarrama — the 218-trail, 1 035 km network in `data/outputs/pnsg/pipeline_a_results.geojson`, restricted to segments that are (a) legally accessible, (b) reachable within a field day, and (c) span the observed EHS range rather than clustering at its floor.
+**Decided: F-1 — mapped OAPN trail segments within Parque Nacional de la Sierra de Guadarrama** — the 218-trail, 1 035 km network in `data/outputs/pnsg/pipeline_a_results.geojson`, restricted to segments that are (a) legally accessible, (b) reachable within a field day, and (c) selected to span the observed EHS range rather than clustering at its floor.
 
-🔲 **OWNER DECISION REQUIRED — sampling frame.** Phase 0 established that the repository contains two disjoint asset universes and that the currently seeded field template targets a climbing crag and a paragliding launch site, neither of which is a trail. Three options:
+Phase 0 established that the repository contains two disjoint asset universes and that the previously seeded field template targeted a climbing crag and a paragliding launch site, neither of which is a trail. The owner resolved this by selecting the trail frame (F-1) over the alternative of the 21 curated assets (F-2, which inherits a 5-year Mann-Kendall record but is 15/21 non-trail features) or a hybrid (F-3).
 
-| Option | Frame | Consequence |
-|---|---|---|
-| **F-1 (recommended)** | 218 OAPN trails (Universe B) | Matches the paper's question and title. Requires a new campaign-matched satellite acquisition (which is required anyway, §3 of the audit). Forfeits the 2021–2026 time series. |
-| **F-2** | 21 curated assets (Universe A) | Inherits the defensible 5-year Mann-Kendall record — but 15 of 21 are crags, launch sites and reserves, so the paper cannot be a trail-impact study. The title and question must change. |
-| **F-3** | Hybrid: trails as the frame, plus the 6 Universe-A cycling routes as a bridge | Keeps the trail framing and gains a small subset with real temporal depth. Highest scientific value, highest field cost. |
+**Consequences of F-1, accepted as part of this decision:**
 
-This decision changes the title, the sampling design, the satellite acquisition and the manuscript framing. **It must be made before the pilot round.** Until it is made, the rest of this contract assumes **F-1**.
+1. **The 2021–2026 monthly time series and its Mann-Kendall trends do not apply to the sampling frame.** They exist only for the 21 curated (largely non-trail) assets. The primary analysis is **cross-sectional** on a single campaign-matched composite (already the design in `SATELLITE_FIELD_MATCHING_PLAN.md`) — this was already required regardless of frame, so F-1 forfeits nothing the design was otherwise going to use.
+2. **The existing `scm_class` / SIG values already computed for all 218 trails (`run_scm_operational.py`) are NOT usable for H4.** They are genuinely extracted from real rasters via real zonal statistics, but from the same disqualified scene pair as `delta_ehs` (S2A 2025-08-10 / S2B 2026-04-10 — chronologically inverted, cross-year, cross-sensor; Phase 0 audit §3). H4 requires a **fresh SIG extraction**, using the same real code, run against the campaign-matched composite for the sampled segments only. This is additive engineering work (Backlog B-14), not new data acquisition beyond the composite §D already requires.
+3. **Trail selection is now cartography-driven**, not asset-fixture-driven: segments are drawn from the real 218-trail network, stratified by ecological stratum × satellite-stress tercile of `ehs_summer` (a screening use of the existing, non-validation, product field — legitimate for *site selection*, not for the validation analysis itself).
+4. The title, `MANUSCRIPT_OUTLINE.md` §2 (Study Area) and `FIELD_CAMPAIGN_EXECUTION_PLAN.md` already assumed this frame; no further title change is required.
 
 ## G. Exposure / predictor variables 🔒
 
@@ -209,6 +208,6 @@ Forbidden anywhere in Paper 1: *causes*, *caused by*, *driven by visitors*, *pro
 
 | Date | Amendment | Reason | Approved by |
 |---|---|---|---|
-| — | *(none — document not yet frozen)* | | |
+| 2026-08-09 | §F (target population) frozen to **F-1**: 218 OAPN trail segments as the sampling frame. | Owner decision, resolving the sampling-frame 🔲 that blocked site selection, field template regeneration and the acquisition manifest. | Owner |
 
-> **Freeze procedure.** Owner resolves 🔲 F (sampling frame), then marks this document `FROZEN` with a date and commit hash. After freezing, changes require a dated row above, written **before** the affected analysis is re-run.
+> **Freeze procedure for the remainder of this contract.** The remaining sections freeze after the pilot round fixes the main sample size (Contract §Q, `FIELD_CAMPAIGN_EXECUTION_PLAN.md` Stage 1). Mark the whole document `FROZEN` with a date and commit hash at that point. After full freezing, changes require a dated row above, written **before** the affected analysis is re-run.

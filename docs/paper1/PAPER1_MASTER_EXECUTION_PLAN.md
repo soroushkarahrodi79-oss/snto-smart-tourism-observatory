@@ -21,10 +21,10 @@ SNTO has more software than it has evidence. It holds genuinely publication-grad
 **Verified MISSING:**
 **All field observations** · a temporally coherent satellite acquisition matched to any field window · plot-level satellite↔field pairing · empirical calibration of any threshold · independent verification.
 
-**Three structural problems that no amount of further development fixes:**
+**Three structural problems, one resolved by owner decision, two that no amount of further development fixes:**
 
-1. **Two disjoint asset universes.** The 21 curated assets carry the defensible time series but are crags, launch sites and reserves — **the two seeded field-validation targets are a climbing polygon and a paragliding point, neither of them a trail.** The 218 real trails carry real cartography but no temporal depth. A trail-impact paper needs a decision about which is the sampling frame.
-2. **The existing satellite pair is not usable for validation.** `delta_ehs` subtracts a 2026-04-10 scene from a 2025-08-10 scene — **the delta runs backwards in time**, across two years, across two satellites, with per-scene baselines that make the difference dimensionless in an uncontrolled way.
+1. **Two disjoint asset universes — RESOLVED 2026-08-09.** The 21 curated assets carry the defensible time series but are crags, launch sites and reserves — the two originally seeded field-validation targets were a climbing polygon and a paragliding point, neither a trail. **The owner selected the sampling frame: the 218 real OAPN trails (Contract §F, option F-1).** Consequence, propagated through the Scientific Contract, the Field Campaign Plan, the Satellite Matching Plan, `SCM_REFRAMING.md` and the Backlog: the 2021–2026 Mann-Kendall record does not apply to the sampled trails (the design was cross-sectional regardless), and the *existing* real SCM/SIG values already computed for all 218 trails are **not** usable for H4 as-is — they come from the same disqualified scene pair as `delta_ehs` (problem 2) and require a fresh extraction against the campaign-matched composite (Backlog B-14).
+2. **The existing satellite pair is not usable for validation.** `delta_ehs` subtracts a 2026-04-10 scene from a 2025-08-10 scene — **the delta runs backwards in time**, across two years, across two satellites, with per-scene baselines that make the difference dimensionless in an uncontrolled way. This also disqualifies the existing SCM/SIG values (see problem 1).
 3. **Sub-pixel treads.** PNSG trails are 1–3 m wide; Sentinel-2 resolves 10 m and 20 m. The indicator describes the **corridor's vegetation matrix**, of which the tread is a minority component. This is physics, not a defect, and the field design must match it rather than pretend otherwise.
 
 ---
@@ -59,7 +59,7 @@ SNTO has more software than it has evidence. It holds genuinely publication-grad
 | Phase | Deliverable | State |
 |---|---|---|
 | 0 | `PHASE0_REPOSITORY_AUDIT.md` | ✅ Complete — implementation- and data-verified |
-| 1 | `PAPER1_SCIENTIFIC_CONTRACT.md` | ✅ Drafted — **awaiting owner freeze**; 🔲 sampling frame |
+| 1 | `PAPER1_SCIENTIFIC_CONTRACT.md` | ✅ §F frozen to F-1 (218 OAPN trails, 2026-08-09); remainder freezes after the pilot fixes sample size |
 | 2 | `FIELD_CAMPAIGN_EXECUTION_PLAN.md` | ✅ Drafted — two-stage design, field-ready checklist |
 | 3 | `SPATIAL_MATCHING_PROTOCOL.md` | ✅ Drafted — 20 m support, 5-subplot aggregation, dilution quantified |
 | 4 | `SATELLITE_FIELD_MATCHING_PLAN.md` | ✅ Drafted — campaign-matched composite, no interpolation |
@@ -69,7 +69,7 @@ SNTO has more software than it has evidence. It holds genuinely publication-grad
 | 8 | `MANUSCRIPT_OUTLINE.md` | ✅ Drafted — every absent result marked `[TBD]`, no invented numbers |
 | 9 | `FIGURE_PLAN.md` | ✅ Drafted — 3 items drawable today, rest gated on data |
 | 10 | `JOURNAL_STRATEGY.md` | ✅ Drafted — RSASE primary, decision staged until results exist |
-| 11 | `IMPLEMENTATION_BACKLOG.md` | ✅ Drafted — 13 items; **no code written pending approval** |
+| 11 | `IMPLEMENTATION_BACKLOG.md` | ✅ Drafted — 14 items; **no code written pending approval** |
 
 **Scope removed, deliberately:** independent frontend · public portal · Entra SSO · Key Vault migration · FastAPI deployment · further mobile work · Experience Builder productization · commercial pilot packaging · ML visitor forecasting · SVI trends · CETS accreditation claims · LAC/ROS carrying capacity · OAPN cross-park benchmarking · PostGIS spatial queries. All remain valid engineering; none is a Paper-1 contribution.
 
@@ -79,7 +79,7 @@ SNTO has more software than it has evidence. It holds genuinely publication-grad
 
 | Gate | Condition to pass | Consequence of failure |
 |---|---|---|
-| **G0 — Frame** | Owner resolves Contract §F 🔲 | **STOP.** Everything downstream depends on it |
+| **G0 — Frame** | Owner resolves Contract §F | ✅ **PASSED 2026-08-09** — F-1, 218 OAPN trails |
 | **G1 — Contract frozen** | Contract and SAP frozen with commit hashes | **STOP.** Post-hoc analysis choices are unfalsifiable |
 | **G2 — Permit** | PNSG research authorisation obtained | **STOP.** No fieldwork without it |
 | **G3 — Window** | Acquisition manifest committed; field days inside the window | **STOP.** No temporal matching is possible otherwise |
@@ -99,14 +99,14 @@ SNTO has more software than it has evidence. It holds genuinely publication-grad
 
 **Owner (blocking, and not code):**
 
-1. 🔲 **Decide the sampling frame** — 218 OAPN trails (recommended) / 21 curated assets / hybrid. *Nothing else can start.*
+1. ✅ ~~Decide the sampling frame~~ — **resolved 2026-08-09: F-1, 218 OAPN trails.**
 2. 🔲 **Start the PNSG research authorisation now** — weeks of lead time; confirm penetrometer ground insertion is covered.
 3. 🔲 **Fix the target field season** — this sets the satellite window and the whole schedule.
 4. 🔲 **Confirm the field team** — two observers are required for the repeatability protocol.
 5. 🔲 **Confirm OAPN data licence terms** for trail and vegetation layers.
 6. 🔲 **Approve the Implementation Backlog**, in particular the two 🔴 items (B-02, B-05).
 
-**Engineering (safe, unblocked, small):** B-08 (SCM docstrings) · B-06 (acquisition manifest) · B-09 partial (Figure 1b, Figure 2, Table T2 from committed data).
+**Engineering (safe, unblocked, small):** B-01 site/plot generation can now proceed once B-04 (grid snapping) exists · B-08 (SCM docstrings) · B-06 (acquisition manifest) · B-09 partial (Figure 1b, Figure 2, Table T2 from committed data) · B-14 (fresh SIG extraction for H4) once B-06's composite exists.
 
 **Flagged to the owner as separate, non-Paper-1 issues:**
 - `delta_ehs` chronological inversion (Phase 0 §3) — a real product defect affecting the dossier and the technical report.
@@ -120,7 +120,7 @@ SNTO has more software than it has evidence. It holds genuinely publication-grad
 ```
                     Repository audited  ✅ (Phase 0)
                             │
-              🔲 OWNER: sampling frame decided        ◄── G0
+              ✅ OWNER: sampling frame decided (F-1)   ◄── G0 PASSED
                             │
                  Scientific contract frozen           ◄── G1
                   Statistical analysis plan frozen
