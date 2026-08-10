@@ -693,7 +693,8 @@ def render_cets_readiness_markdown(report: dict) -> str:
     lines = [
         f"# Preparación de dosier CETS Fase I — {m['territory']}",
         "",
-        f"**Marco:** {m['framework']}  ·  **Fecha:** {m['report_date'] or 'no registrada'}  ·  "
+        f"**Marco:** {m['framework']}  ·  **Fecha:** "
+        f"{m['report_date'] or 'no registrada'}  ·  "
         f"**SNTO** v{m['version']}",
         "",
         f"> {report['scope_note']}",

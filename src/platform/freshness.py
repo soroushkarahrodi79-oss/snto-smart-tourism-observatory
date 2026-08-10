@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 # Repo root: src/platform/freshness.py -> parents[2].
@@ -34,7 +35,7 @@ _UNAVAILABLE_SHORT = "no registrada"
 _UNAVAILABLE_LONG = (
     "Fecha de generación de datos no registrada en este entorno"
 )
-_UNAVAILABLE_SLUG = "sin-fecha"
+_UNAVAILABLE_SLUG = "no-registrada"
 
 
 @dataclass(frozen=True)
@@ -70,8 +71,17 @@ class GenerationProvenance:
 
     @property
     def slug(self) -> str:
-        """Filename-safe token (real date, or 'sin-fecha')."""
+        """Filename-safe token (real date, or 'no-registrada')."""
         return self.date or _UNAVAILABLE_SLUG
+
+
+def _valid_iso_timestamp(ts: str) -> bool:
+    """Return True iff *ts* parses as an ISO-8601 datetime."""
+    try:
+        datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        return True
+    except ValueError:
+        return False
 
 
 def display_generation_date(value: str | None) -> str:
@@ -107,7 +117,7 @@ def resolve_generation_provenance(
         except (OSError, ValueError):
             return GenerationProvenance(available=False)
         ts = data.get("timestamp_utc")
-        if isinstance(ts, str) and ts:
+        if isinstance(ts, str) and ts and _valid_iso_timestamp(ts):
             sha = data.get("git_sha")
             return GenerationProvenance(
                 available=True,

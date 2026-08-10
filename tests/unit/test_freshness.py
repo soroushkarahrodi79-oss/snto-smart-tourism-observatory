@@ -57,7 +57,7 @@ def test_missing_run_context_is_explicitly_unavailable(tmp_path) -> None:
     assert prov.generated_utc is None
     assert prov.date is None
     assert prov.short == "no registrada"
-    assert prov.slug == "sin-fecha"
+    assert prov.slug == "no-registrada"
     assert "no registrada" in prov.long
 
 
@@ -81,6 +81,24 @@ def test_corrupt_run_context_degrades_to_unavailable(tmp_path) -> None:
     d = tmp_path / "pnsg"
     d.mkdir(parents=True)
     (d / "run_context.json").write_text("{not json", encoding="utf-8")
+    prov = resolve_generation_provenance("pnsg", outputs_root=tmp_path)
+    assert prov.available is False
+
+
+def test_invalid_timestamp_string_is_unavailable(tmp_path) -> None:
+    """A syntactically invalid timestamp must not resolve as available=True."""
+    _write_run_context(
+        tmp_path, "pnsg", {"timestamp_utc": "banana", "git_sha": "abc1234"}
+    )
+    prov = resolve_generation_provenance("pnsg", outputs_root=tmp_path)
+    assert prov.available is False
+
+
+def test_non_string_timestamp_is_unavailable(tmp_path) -> None:
+    """A non-string timestamp (e.g. integer) must not resolve as available=True."""
+    _write_run_context(
+        tmp_path, "pnsg", {"timestamp_utc": 20260612, "git_sha": "abc1234"}
+    )
     prov = resolve_generation_provenance("pnsg", outputs_root=tmp_path)
     assert prov.available is False
 
@@ -145,7 +163,7 @@ def test_generation_date_token_real_returns_unchanged() -> None:
 # ── Dashboard machine-readable absence ───────────────────────────────────────
 
 def test_dashboard_report_date_is_none_without_run_context(tmp_path) -> None:
-    """load_dashboard stores None in dashboard.report_date when no run_context exists."""
+    """load_dashboard stores None in dashboard.report_date when no run_context."""
     from src.platform.freshness import resolve_generation_provenance as _resolve
     prov = _resolve("pnsg", outputs_root=tmp_path)
     assert prov.date is None  # the value that flows into compute_executive_dashboard

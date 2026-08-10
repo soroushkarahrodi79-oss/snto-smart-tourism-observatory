@@ -192,7 +192,8 @@ def render_territorial_brief_markdown(brief: dict) -> str:
             "",
         ]
     lines += [
-        f"**Fecha de informe:** {m['report_date'] or 'no registrada'}  ·  **SNTO** v{m['version']}  ·  "
+        f"**Fecha de informe:** {m['report_date'] or 'no registrada'}"
+        f"  ·  **SNTO** v{m['version']}  ·  "
         f"**Activos en cartera:** {m['assets_in_portfolio']}",
         "",
         f"> {brief['evidence_note']}",

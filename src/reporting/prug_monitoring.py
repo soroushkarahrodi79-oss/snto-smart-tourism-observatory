@@ -289,7 +289,8 @@ def render_prug_monitoring_markdown(report: dict) -> str:
     lines = [
         f"# Seguimiento del PRUG por zonas — {m.get('territory', m['territory_key'])}",
         "",
-        f"**Instrumento:** {m['instrument']}  ·  **Fecha:** {m['report_date'] or 'no registrada'}  ·  "
+        f"**Instrumento:** {m['instrument']}  ·  **Fecha:** "
+        f"{m['report_date'] or 'no registrada'}  ·  "
         f"**SNTO** v{m['version']}",
         "",
     ]
