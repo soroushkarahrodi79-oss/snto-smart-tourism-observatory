@@ -84,6 +84,10 @@ Ordered, and the order is fixed in advance:
 
 > **No interpolation of evidence.** A plot without a qualifying acquisition has no satellite value. It is counted in the flow diagram and excluded. This rule has no exceptions.
 
+## 2b. Manifest mechanism — implemented (Backlog B-06, 2026-08-09)
+
+The acquisition manifest described throughout this document is no longer only a plan: `src/validation/acquisition_manifest.py` implements it, and `clean_assets/paper1/acquisition_manifest.json` is committed at `status="planned"` — the frozen constants above (tile, cloud threshold, composite method, offset limits, valid-pixel thresholds, and the SCL class-5 baseline/plot-extraction asymmetry) are encoded and schema-checked, but `window_start`/`window_end`/`scene_ids` are honestly empty because the target field season is not yet decided (`DATA_ACQUISITION_TRIAGE.md` open item 4). `scripts/paper1/generate_acquisition_manifest.py --validate` checks it; `--check <scenes.json>` will fail loudly the moment a real extraction's scene IDs disagree with what the manifest declares. Advancing the manifest past `planned` (fixing the window, then the scene IDs) is a later, separate step — not part of this commit — gated on the field-season decision.
+
 ## 3. Provenance record (mandatory, per plot)
 
 Written into the analysis table for every plot, so any reviewer can trace one plot to one pixel to one scene:

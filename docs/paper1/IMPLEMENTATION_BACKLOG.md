@@ -82,17 +82,17 @@ Scope rule: **the minimum code required to execute the scientific plan.** No pro
 
 ## Priority 1 — Blocks the analysis
 
-### B-06 · Satellite acquisition manifest 🟢
+### B-06 · Satellite acquisition manifest 🟢 ✅ **DONE (2026-08-09)**
 
 | | |
 |---|---|
 | **Scientific reason** | Provenance currently depends on scanning `.SAFE` filenames under `data/raw_assets/raster_data/`, **which does not exist in a clean checkout**. A third party cannot regenerate the composite, and the paper cannot state its inputs precisely. |
-| **Files** | new `src/validation/acquisition_manifest.py` · new `clean_assets/paper1/acquisition_manifest.json` · new `tests/unit/test_acquisition_manifest.py` |
-| **Content** | Window start/end, tile, cloud threshold, SCL policy (including the class-5 asymmetry), composite method, scene IDs, sensor mix, generation timestamp, commit hash |
-| **Acceptance criteria** | Committed **before** extraction · schema-validated · a `--check` mode failing if the extracted data disagrees with the manifest |
-| **Tests** | Schema validation; `--check` detects a mismatch |
+| **Files** | `src/validation/acquisition_manifest.py` · `scripts/paper1/generate_acquisition_manifest.py` (`--init`/`--validate`/`--check`) · `clean_assets/paper1/acquisition_manifest.json` · `tests/unit/test_acquisition_manifest.py` · exports added to `src/validation/__init__.py` |
+| **Content** | `ManifestStatus` lifecycle (`planned` → `window_defined` → `scenes_identified` → `composite_generated` → `checked`) · window start/end, tile (`T30TVL`), cloud threshold (20 %), composite method (`median`), min scenes (3), max temporal offset (15/30 days), valid-pixel thresholds (70/90 %) · **the SCL class-5 asymmetry as two separate, checked lists** (`SCL_EXCLUDE_BASELINE` includes 5, `SCL_EXCLUDE_PLOT_EXTRACTION` excludes it) · scene IDs, sensor mix, generation timestamp, best-effort commit hash |
+| **Acceptance criteria** | ✅ Committed **before** extraction — the committed manifest is honestly `planned`, with `scene_ids=()` and no window, since the target field season is still undecided (Data Acquisition Triage open item 4) · ✅ schema-validated (`validate_manifest`, lifecycle-gated: a fixed window/scenes is only required once status advances past `planned`) · ✅ `--check` mode fails (non-zero exit) on any disagreement between the manifest's declared `scene_ids` and what an extraction run actually used — verified end-to-end against the committed (empty) manifest |
+| **Tests** | 25 tests: defaults match the matching plan · SCL asymmetry enforced even at `planned` stage · lifecycle gating for each status transition · out-of-range and inverted-threshold rejection · round-trip write/load · `--check` exact-match / mismatch / order-independence · the **committed manifest itself** is asserted valid and honestly `planned` (not fabricated as populated) |
 | **Risk** | Low |
-| **Changes scientific output?** | **No** |
+| **Changes scientific output?** | **No** — new artefact; touches no existing file outside `src/validation/__init__.py`'s export list (additive only) |
 
 ### B-07 · Not-computable state for Spearman 🟡
 

@@ -4,6 +4,18 @@ Field-observation schema and satellite↔terrain agreement metrics (Spearman
 correlation, control–impact BACI contrast) to demonstrate that the satellite
 EHS tracks degradation observed on the ground.
 """
+from src.validation.acquisition_manifest import (
+    AcquisitionManifest,
+    ManifestCheckReport,
+    ManifestStatus,
+    SCL_EXCLUDE_BASELINE,
+    SCL_EXCLUDE_PLOT_EXTRACTION,
+    check_against_extraction,
+    load_manifest,
+    new_planned_manifest,
+    validate_manifest,
+    write_manifest,
+)
 from src.validation.agreement import (
     AgreementReport,
     ContrastResult,
@@ -31,6 +43,16 @@ from src.validation.io import (
 )
 
 __all__ = [
+    "AcquisitionManifest",
+    "ManifestCheckReport",
+    "ManifestStatus",
+    "SCL_EXCLUDE_BASELINE",
+    "SCL_EXCLUDE_PLOT_EXTRACTION",
+    "check_against_extraction",
+    "load_manifest",
+    "new_planned_manifest",
+    "validate_manifest",
+    "write_manifest",
     "AgreementReport",
     "ContrastResult",
     "cliffs_delta",

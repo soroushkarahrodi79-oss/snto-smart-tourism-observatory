@@ -1,0 +1,35 @@
+{
+  "status": "planned",
+  "tile": "T30TVL",
+  "cloud_threshold_pct": 20.0,
+  "min_scenes_in_composite": 3,
+  "composite_method": "median",
+  "max_offset_days_primary": 15,
+  "max_offset_days_max": 30,
+  "valid_pixel_min_pct": 70.0,
+  "valid_pixel_flag_pct": 90.0,
+  "scl_exclude_baseline": [
+    3,
+    5,
+    6,
+    8,
+    9,
+    10,
+    11
+  ],
+  "scl_exclude_plot_extraction": [
+    3,
+    6,
+    8,
+    9,
+    10,
+    11
+  ],
+  "window_start": null,
+  "window_end": null,
+  "scene_ids": [],
+  "sensor_mix": [],
+  "generated_at": "2026-08-10T00:08:19+00:00",
+  "commit_hash": "c047896",
+  "notes": "Frozen matching-plan constants per SATELLITE_FIELD_MATCHING_PLAN.md §2. Acquisition window not yet fixed — pending the target field season decision (DATA_ACQUISITION_TRIAGE.md open item 4). Sampling frame restricted to the Comunidad de Madrid-administered sector of PNSG (PNSG_RESEARCH_AUTHORIZATION_REQUEST.md §1)."
+}
