@@ -621,3 +621,62 @@ class TestRequiredMapCentre:
     def test_build_pydeck_deck_spectral_accepts_explicit_centre(self):
         deck = build_pydeck_deck_spectral(self._assets(), **_TEST_CENTER)
         assert deck.initial_view_state.longitude == _TEST_CENTER["map_lon"]
+
+
+# ── I-4 (Phase 0.5H) — real-trails tooltip separates SCM attribution ──────────
+
+class TestRealTrailsTooltipScmSeparation:
+    """build_real_trails_deck's tooltip must visibly and semantically separate
+    the REAL Sentinel-2-derived EHS/ΔEHS indicators from the model-derived SCM
+    attribution, and must not claim it is simulated or an unqualified cause."""
+
+    def _geojson(self):
+        from src.platform.real_trails import (
+            RealTrail,
+            RealTrailDataset,
+            build_real_trails_geojson,
+        )
+        trail = RealTrail(
+            trail_id=1, name="Senda X", length_km=1.0,
+            health_spring=70.0, health_summer=65.0, delta_health=-5.0,
+            scm_class="MIXED", budget_eur=100.0,
+            geometry={"type": "LineString", "coordinates": [[0, 0], [1, 1]]},
+        )
+        ds = RealTrailDataset("t", True, [trail], {})
+        return build_real_trails_geojson(ds)
+
+    def _tooltip_html(self):
+        deck = _map_layers.build_real_trails_deck(self._geojson(), **_TEST_CENTER)
+        return deck.tooltip["html"]
+
+    def test_tooltip_names_the_model_not_a_bare_cause(self):
+        html = self._tooltip_html().lower()
+        assert "modelo" in html
+        assert "atribuci" in html  # "Atribución SCM"
+
+    def test_tooltip_does_not_say_causa_colon_scm(self):
+        html = self._tooltip_html()
+        assert "Causa: {scm}" not in html
+
+    def test_tooltip_has_no_causal_confirmatory_wording(self):
+        # The denial phrase ("...ni causa confirmada") legitimately contains
+        # the substring "causa confirmada" — what must never appear is an
+        # unqualified/affirmative causal claim.
+        html = self._tooltip_html().lower()
+        assert "causado por" not in html
+        assert "es la causa confirmada" not in html
+        assert "causa confirmada:" not in html
+
+    def test_tooltip_denies_causal_measurement_for_scm(self):
+        html = self._tooltip_html().lower()
+        assert "no constituye medici" in html or "no es una causa" in html
+
+    def test_tooltip_still_shows_ehs_and_delta_health_fields(self):
+        html = self._tooltip_html()
+        assert "{health_summer}" in html
+        assert "{delta_health}" in html
+        assert "{scm}" in html
+
+    def test_tooltip_marks_ehs_as_sentinel_derived(self):
+        html = self._tooltip_html().lower()
+        assert "sentinel-2" in html

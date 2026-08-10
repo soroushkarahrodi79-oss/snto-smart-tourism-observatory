@@ -64,9 +64,23 @@ PRIORITY_BANDS: list[tuple[float, str, str]] = [
 
 _SCM_LABEL_ES: dict[str, str] = {
     "LOCALIZED_IMPACT": "Impacto localizado (uso del sendero)",
-    "MIXED":            "Causa mixta",
+    "MIXED":            "Patrón mixto",
     "LANDSCAPE_DRIVEN": "Forzamiento de paisaje (clima)",
 }
+
+# ── I-4 (Phase 0.5H) — canonical presentation caveat for SCM attribution ──
+# The SCM classification (LOCALIZED_IMPACT / MIXED / LANDSCAPE_DRIVEN) is a
+# rule-based model output (SIG, run_scm_operational.py) computed from real
+# Sentinel-2 raster observations. It is NOT itself a direct measurement like
+# EHS/ΔEHS, and it is NOT a validated causal attribution. It must never be
+# presented as "simulated" (the underlying observations are real) nor as an
+# unqualified "REAL" causal claim (the classification is still a rule-based
+# hypothesis, not a confirmed cause).
+SCM_ATTRIBUTION_LABEL = "MODELO SIG"
+SCM_ATTRIBUTION_CAVEAT = (
+    "Clasificación del modelo SIG calculada sobre observaciones Sentinel-2 "
+    "reales; no constituye una medición causal ni una causa confirmada."
+)
 
 
 @dataclass(frozen=True)

@@ -27,6 +27,8 @@ from src.platform.provenance import (
     snapshot_status_badge,
 )
 from src.platform.real_trails import (
+    SCM_ATTRIBUTION_CAVEAT,
+    SCM_ATTRIBUTION_LABEL,
     build_real_trails_geojson,
     get_park_boundary,
     get_real_trails,
@@ -402,6 +404,24 @@ def render_tab_diagnostic(
 
         st.divider()
 
+        # ── I-4 (Phase 0.5H): visible evidence legend — separates the REAL
+        # environmental indicators from the model-derived SCM attribution
+        # *before* the reader reaches the table/tooltip below. ─────────────
+        st.markdown(
+            '<div class="snto-evidence-card">'
+            '<span class="snto-evidence-badge" '
+            'style="color:#0F6E56;border-color:#0F6E56">'
+            'SENTINEL-2 · DERIVADO</span> '
+            '<span class="snto-body-copy">EHS y ΔEHS se derivan de '
+            'observaciones Sentinel-2 reales.</span><br/>'
+            f'<span class="snto-evidence-badge" '
+            f'style="color:#8A5A00;border-color:#8A5A00">'
+            f'{SCM_ATTRIBUTION_LABEL}</span> '
+            f'<span class="snto-body-copy">{SCM_ATTRIBUTION_CAVEAT}</span>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
         # ── Tabla priorizada ──
         _has_prug = _real.has_prug
         if _has_prug:
@@ -420,7 +440,9 @@ def render_tab_diagnostic(
                 "EHS verano":     round(t.health_summer, 1) if t.health_summer is not None else None,
                 "ΔEHS":           round(t.delta_health, 1) if t.delta_health is not None else None,
                 "Prioridad":      t.priority_label,
-                "Causa (SCM)":    t.scm_label_es,
+                "Atribución SCM": (
+                    f"🧭 {t.scm_label_es}" if t.scm_class else t.scm_label_es
+                ),
                 "Presupuesto (€)": round(t.budget_eur, 0) if t.budget_eur is not None else None,
             }
             if _has_prug:
@@ -436,6 +458,14 @@ def render_tab_diagnostic(
             "ΔEHS": st.column_config.NumberColumn(
                 "ΔEHS", format="%.1f",
                 help="Negativo = empeora en verano (caída de NDVI estacional)."),
+            "Atribución SCM": st.column_config.TextColumn(
+                "Atribución SCM",
+                help=(
+                    "Clasificación del modelo SIG sobre observaciones Sentinel-2 "
+                    "reales. Es una hipótesis de atribución espacial, no una "
+                    "medición causal ni una causa confirmada."
+                ),
+            ),
             "Presupuesto (€)": st.column_config.NumberColumn(format="€%d"),
         }
         if _has_prug:
@@ -448,7 +478,9 @@ def render_tab_diagnostic(
                   if selected_key == "pnsg" else "Cartografía OpenStreetMap")
         st.caption(
             f"Fuente: Pipeline A · Sentinel-2 tile T30TVL · {_carto} · "
-            "EHS/ΔEHS derivados de observaciones Sentinel-2 reales; "
-            "la columna **Causa (SCM)** es simulada. Provenance: "
+            "EHS/ΔEHS son indicadores derivados de observaciones Sentinel-2 "
+            "reales. La **Atribución SCM** es una clasificación del modelo SIG "
+            "calculada sobre esas observaciones; no constituye medición causal "
+            "ni causa confirmada. Provenance: "
             f"`data/outputs/{_terr_folder}/pipeline_a_results.geojson`"
         )

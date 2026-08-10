@@ -250,8 +250,11 @@ def build_prug_monitoring(
         "evidence_class": EvidenceClass.REAL.value,
         "provenance": provenance,
         "evidence_note": (
-            "Zonificación PRUG (cartografía oficial OAPN) cruzada con señal "
-            "Sentinel-2 real (EHS/ΔEHS/SCM). El ΔEHS de dos escenas es una "
+            "Zonificación PRUG (cartografía oficial OAPN) cruzada con EHS/ΔEHS, "
+            "indicadores derivados de observaciones Sentinel-2 reales. La "
+            "Atribución SCM (uso / mixto / paisaje) es una clasificación del "
+            "modelo SIG calculada sobre esas observaciones; no constituye "
+            "medición causal ni causa confirmada. El ΔEHS de dos escenas es una "
             "**alerta temprana estacional**, no una tendencia plurianual ni un "
             "veredicto de cumplimiento del Plan; ninguna senda está validada en "
             "campo (campaña #26 pendiente); el presupuesto es orientativo."
@@ -335,8 +338,8 @@ def render_prug_monitoring_markdown(report: dict) -> str:
 
     cols = [
         "Zona PRUG", "Peso protección", "Sendas", "km", "EHS verano medio",
-        "Deteriorándose", "SCM uso / mixto / clima", "Índice prioridad medio",
-        "Coste orientativo (€)",
+        "Deteriorándose", "Atribución SCM (modelo) · uso / mixto / paisaje",
+        "Índice prioridad medio", "Coste orientativo (€)",
     ]
     lines.append("| " + " | ".join(cols) + " |")
     lines.append("|" + "|".join("---" for _ in cols) + "|")
