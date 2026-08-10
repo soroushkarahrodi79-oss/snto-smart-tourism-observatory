@@ -5,6 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from src.platform.evidence import descriptor
+from src.platform.freshness import GenerationProvenance
 from src.platform.lineage import build_lineage_profiles
 from src.platform.provenance import snapshot_provenance
 
@@ -37,7 +38,7 @@ def render_tab_provenance(
     ranked_assets,
     calibration,
     territory_key: str,
-    report_date: str,
+    provenance: GenerationProvenance,
     _view,
 ) -> None:
     """Render per-datum source, class, transformation, and known date gaps."""
@@ -68,14 +69,15 @@ def render_tab_provenance(
     st.warning(
         "El runtime conserva valores y contratos de fuente, pero todavía no "
         "persiste una huella de ejecución ni una fecha de adquisición para "
-        "cada valor calculado. **Fecha de informe no equivale a fecha del dato.**"
+        "cada valor calculado. **Fecha de generación no equivale a fecha del "
+        f"dato.** {provenance.long}."
     )
 
     metrics = st.columns(4)
     metrics[0].metric("Registros de linaje", len(profile.records))
     metrics[1].metric("Fechas verificables", profile.dated_records)
     metrics[2].metric("Fechas pendientes", profile.missing_dates)
-    metrics[3].metric("Corte del informe", report_date)
+    metrics[3].metric("Generación de datos", provenance.short)
 
     st.markdown("#### Dato → indicador → decisión")
     st.graphviz_chart(_lineage_diagram(profile), use_container_width=True)

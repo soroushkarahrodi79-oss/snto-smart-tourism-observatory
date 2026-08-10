@@ -28,7 +28,6 @@ shape of ``risk_brief`` so the reporting surface stays consistent.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
 from typing import TYPE_CHECKING
 
 from src._version import __version__
@@ -101,6 +100,11 @@ def build_territorial_brief(
     Rolls up only fields the ``TerritorialAsset`` model actually holds; missing
     action/budget/tier degrade to explicit placeholders, never fabricated.
 
+    ``report_date`` is the machine-readable as-of date (ISO ``YYYY-MM-DD``) or
+    ``None`` when the generation provenance is not recorded. It is stored as
+    ``None`` in the returned dict — not replaced by today's date. Markdown
+    renderers translate ``None`` to "no registrada" at presentation time.
+
     Evidence gate (ADR-004 / I-5): the brief carries a machine-readable
     ``public_reporting_authorized`` flag. A portfolio whose evidence class does
     not support ``PUBLIC_REPORTING`` (e.g. the synthetic fixtures) still yields a
@@ -111,9 +115,6 @@ def build_territorial_brief(
     """
     # Function-level import to keep this module light at load (see module note).
     from src.platform.evidence import DecisionUse, EvidenceClass, supports
-
-    if report_date is None:
-        report_date = date.today().isoformat()
 
     public_reporting_authorized = bool(assets) and all(
         supports(
@@ -191,7 +192,7 @@ def render_territorial_brief_markdown(brief: dict) -> str:
             "",
         ]
     lines += [
-        f"**Fecha de informe:** {m['report_date']}  ·  **SNTO** v{m['version']}  ·  "
+        f"**Fecha de informe:** {m['report_date'] or 'no registrada'}  ·  **SNTO** v{m['version']}  ·  "
         f"**Activos en cartera:** {m['assets_in_portfolio']}",
         "",
         f"> {brief['evidence_note']}",

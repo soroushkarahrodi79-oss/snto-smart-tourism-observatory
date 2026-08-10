@@ -79,7 +79,7 @@ class DashboardKPI:
 class ExecutiveDashboard:
     """Complete 10-KPI destination intelligence dashboard."""
     territory_name: str
-    report_date: str
+    report_date: str | None  # truthful as-of date from pipeline run_context, or None when not recorded
     n_assets: int
     kpis: list             # list[DashboardKPI]
     headline: str          # one-line executive headline
@@ -88,7 +88,7 @@ class ExecutiveDashboard:
 
 def compute_executive_dashboard(
     territory_name: str,
-    report_date: str,
+    report_date: str | None,  # truthful as-of date, or None when generation provenance unavailable
     assets: list,          # list[TerritorialAsset] (Phase 5 output, with tier + tpi set)
     budget_result,         # TISBudgetResult (Phase 6 output)
     comparisons: list,     # list[AssetScenarioComparison] (Phase 6)

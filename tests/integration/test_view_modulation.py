@@ -168,9 +168,13 @@ def test_provenance_module_never_fakes_missing_audit_metadata(rendered: dict):
     for view in ("tecnica", "gestor", "tribunal"):
         assert "Proveniencia de datos y linaje" in rendered[view]["subheader"]
         assert "PROPAGACIÓN INCOMPLETA" in rendered[view]["error"]
-        assert "Fecha de informe no equivale a fecha del dato" in rendered[view][
-            "warning"
-        ]
+        # I-3 (Phase 0.5G): the audit warning declares the displayed generation
+        # value is not the datum's acquisition date, and surfaces the honest
+        # "no registrada" generation state instead of a fabricated one.
+        assert "Fecha de generación no equivale a fecha del dato" in rendered[
+            view
+        ]["warning"]
+        assert "no registrada" in rendered[view]["warning"]
 
 
 def test_telemetry_records_view_when_enabled(tmp_path, monkeypatch):

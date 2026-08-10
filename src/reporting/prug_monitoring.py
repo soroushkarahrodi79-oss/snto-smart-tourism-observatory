@@ -48,7 +48,6 @@ HONESTY BOUNDARIES (carried verbatim from the dossier's own caveats)
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
 
 from src._version import __version__
 from src.platform.evidence import EvidenceClass
@@ -148,10 +147,11 @@ def build_prug_monitoring(
 
     Args:
         dashboard_key: dashboard territory key (e.g. ``"pnsg"``).
-        report_date: ISO date; defaults to today.
+        report_date: ISO date, or ``None`` when generation provenance is not
+            recorded. Stored as ``None`` in the returned dict — never replaced
+            by today's date. Markdown renderers translate ``None`` to
+            "no registrada" at presentation time.
     """
-    if report_date is None:
-        report_date = date.today().isoformat()
 
     # Imported lazily: real-trail loading pulls Pipeline-A outputs off disk.
     from src.platform.real_trails import get_real_trails
@@ -289,7 +289,7 @@ def render_prug_monitoring_markdown(report: dict) -> str:
     lines = [
         f"# Seguimiento del PRUG por zonas — {m.get('territory', m['territory_key'])}",
         "",
-        f"**Instrumento:** {m['instrument']}  ·  **Fecha:** {m['report_date']}  ·  "
+        f"**Instrumento:** {m['instrument']}  ·  **Fecha:** {m['report_date'] or 'no registrada'}  ·  "
         f"**SNTO** v{m['version']}",
         "",
     ]

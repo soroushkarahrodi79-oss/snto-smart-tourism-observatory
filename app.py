@@ -8,7 +8,6 @@ Levanta el servidor con:
 from __future__ import annotations
 
 import streamlit as st
-from streamlit_autorefresh import st_autorefresh
 
 from src._version import __version__
 from src.platform.map_layers import LEGEND_ITEMS
@@ -111,7 +110,7 @@ with st.sidebar:
     if _view.shows:
         st.caption(f"🔁 {_view.shows}")
     # F10 Fase 5: telemetría de uso de vistas — local y opt-in (SNTO_TELEMETRY=1).
-    # Se registra una vez por CAMBIO de vista en la sesión, no en cada autorefresh,
+    # Se registra una vez por CAMBIO de vista en la sesión, no en cada rerun,
     # para medir selecciones reales sin inflar el conteo.
     if (
         telemetry_enabled()
@@ -122,7 +121,7 @@ with st.sidebar:
     st.divider()
 
 # ── Cargar datos ──────────────────────────────────────────────────────────────
-dashboard, ranked_assets, base_comps, assets_by_id, base_budget, _terr_cfg, calibration = load_dashboard(selected_key)
+dashboard, ranked_assets, base_comps, assets_by_id, base_budget, _terr_cfg, calibration, provenance = load_dashboard(selected_key)
 BUDGET_EUR = _terr_cfg["budget"]
 
 n_red = sum(1 for k in dashboard.kpis if k.status == "RED")
@@ -135,7 +134,7 @@ with st.sidebar:
         f'<div class="snto-side-row"><span class="snto-side-icon">🏛️</span>'
         f'<span><strong>Territorio</strong><br/>{dashboard.territory_name}</span></div>'
         f'<div class="snto-side-row"><span class="snto-side-icon">📅</span>'
-        f'<span><strong>Fecha de informe</strong><br/>{dashboard.report_date}</span></div>'
+        f'<span><strong>Generación de datos</strong><br/>{dashboard.report_date or "no registrada"}</span></div>'
         f'<div class="snto-side-row"><span class="snto-side-icon">🗂️</span>'
         f'<span><strong>Activos monitorizados</strong><br/>{dashboard.n_assets} '
         f'sendas y enclaves</span></div>',
@@ -177,13 +176,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ── Autorefresh: recarga la app cada 60 s (simula polling de datos en vivo) ───
-_refresh_count = st_autorefresh(interval=60_000, limit=None, key=f"live_{selected_key}")
-
-# ── Barra de alertas en vivo ──────────────────────────────────────────────────
-_alerts_placeholder = st.empty()
-with _alerts_placeholder.container():
-    _render_live_alerts(ranked_assets, _refresh_count)
+# ── Barra de alertas ──────────────────────────────────────────────────────────
+# I-3 (Phase 0.5G): no hay autorrefresco de 60 s ni indicador "en vivo". Los
+# datos derivados sólo cambian cuando se reejecuta un pipeline offline y se
+# vuelven a versionar sus artefactos; simular un feed continuo era engañoso. Las
+# alertas se pintan una vez por render normal de Streamlit.
+_render_live_alerts(ranked_assets)
 
 # ── F9: Capa socioeconómica real (ALMUDENA / INE) ────────────────────────────
 # Solo el PNSG tiene snapshot socioeconómico curado. Para otros territorios el
@@ -307,7 +305,7 @@ for _layer, _layer_container in zip(_layer_order, _layer_tabs, strict=True):
                         ranked_assets,
                         calibration,
                         selected_key,
-                        dashboard.report_date,
+                        provenance,
                         _view,
                     )
                 elif _module.key == "methodology":
