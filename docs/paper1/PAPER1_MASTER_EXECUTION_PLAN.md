@@ -106,7 +106,7 @@ SNTO has more software than it has evidence. It holds genuinely publication-grad
 5. 🔲 **Confirm OAPN data licence terms** for trail and vegetation layers.
 6. 🔲 **Approve the Implementation Backlog**, in particular the two 🔴 items (B-02, B-05).
 
-**Engineering (safe, unblocked, small):** B-01 site/plot generation can now proceed once B-04 (grid snapping) exists · B-08 (SCM docstrings) · ✅ **B-06 (acquisition manifest) — done 2026-08-09**, `clean_assets/paper1/acquisition_manifest.json` committed at `status=planned`, 25 tests, full suite green (1459 passed) · B-09 partial (Figure 1b, Figure 2, Table T2 from committed data) · B-14 (fresh SIG extraction for H4) once the manifest advances past `planned`.
+**Engineering (safe, unblocked, small):** ✅ **B-04 (plot↔cell matching) — done 2026-08-09**, `src/validation/spatial_match.py`, 24 tests · ✅ **B-06 (acquisition manifest) — done 2026-08-09**, `clean_assets/paper1/acquisition_manifest.json` at `status=planned`, 25 tests · B-01 site/plot generation now unblocked (needs B-04 ✅ + the Madrid boundary filter) · B-08 (SCM docstrings) · B-09 partial (Figure 1b, Figure 2, Table T2 from committed data) · B-14 (fresh SIG extraction for H4) once the manifest advances past `planned`. Full suite green (1483 passed).
 
 **Flagged to the owner as separate, non-Paper-1 issues:**
 - `delta_ehs` chronological inversion (Phase 0 §3) — a real product defect affecting the dossier and the technical report.

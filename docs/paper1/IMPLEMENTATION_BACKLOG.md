@@ -24,7 +24,7 @@ Scope rule: **the minimum code required to execute the scientific plan.** No pro
 |---|---|
 | **Scientific reason** | The shipped template gives impact and control plots **identical coordinates** (both Porrones rows are `40.7405, -3.9251`). A field team cannot navigate to the control, and both plots would draw the same satellite cell — voiding the control–impact contrast by construction. It also has only 4 rows, and targets a climbing polygon and a paragliding point rather than trails. |
 | **Files** | `clean_assets/field_validation/pnsg_field_observations_template.csv` (regenerated) · `scripts/run_field_validation.py` (`--init`) · new `scripts/generate_plot_plan.py` |
-| **Depends on** | ✅ Contract §F frozen to F-1 (218 OAPN trails, 2026-08-09) · ✅ territorial scope confirmed Madrid-only (2026-08-09, `PNSG_RESEARCH_AUTHORIZATION_REQUEST.md` §1) · B-04 (grid snapping) |
+| **Depends on** | ✅ Contract §F frozen to F-1 (218 OAPN trails, 2026-08-09) · ✅ territorial scope confirmed Madrid-only (2026-08-09, `PNSG_RESEARCH_AUTHORIZATION_REQUEST.md` §1) · ✅ B-04 grid snapping (done 2026-08-09) |
 | **Acceptance criteria** | Segment pool **first filtered to the Comunidad de Madrid-administered sector using a real administrative boundary layer** (not the longitude heuristic used to justify the decision) · every plot has a distinct surveyed coordinate · every impact/control pair passes SM-1 (≥ 40 m, non-adjacent cells) · plots stratified by ecological stratum × satellite-stress tercile · exports GPX waypoints · records the generation seed and commit hash |
 | **Tests** | No two plots share a 20 m cell · every impact has exactly one control in the same stratum · all coordinates inside the park boundary · regeneration is deterministic given the seed |
 | **Risk** | Low. New artefact; the old template is superseded, not silently mutated |
@@ -54,17 +54,17 @@ Scope rule: **the minimum code required to execute the scientific plan.** No pro
 | **Risk** | Low |
 | **Changes scientific output?** | **No** |
 
-### B-04 · Plot ↔ satellite cell matching 🟢
+### B-04 · Plot ↔ satellite cell matching 🟢 ✅ **DONE (2026-08-09)**
 
 | | |
 |---|---|
 | **Scientific reason** | **Nothing in the repository maps a field plot to the satellite support that produced its value.** The nearest existing thing, `src/ui/services/field_agreement.py`, pairs at *asset* level: every plot in an asset receives the same `satellite_stress`, producing pseudo-replication and near-total ties. This is the largest missing piece of Paper-1 machinery. |
-| **Files** | new `src/validation/spatial_match.py` · new `tests/unit/test_spatial_match.py` |
-| **Functions** | `snap_to_support_grid(lat, lon)` → 20 m B11-grid cell in EPSG:25830 · `check_pair_independence(impact, control)` → SM-1…SM-5 · `extract_plot_values(plots, composite)` → per-plot NDVI/NDMI/EHS + full provenance |
-| **Acceptance criteria** | Deterministic cell assignment · grid alignment verified against a real S2 B11 raster footprint · every provenance field emitted (cell ID, centre, GPS-to-centre distance, valid-pixel fraction, SCL classes, scene IDs) · raises rather than silently returning a value when coverage < 70 % |
-| **Tests** | Two points 5 m apart map to the same cell; 25 m apart to different cells · SM-1…SM-5 each fire on crafted inputs · a plot with 60 % valid coverage is excluded, not averaged |
-| **Risk** | **Medium** — CRS handling is where this class of code fails silently |
-| **Changes scientific output?** | **No** — new path; the existing asset-level service is untouched and stays in the product |
+| **Files** | `src/validation/spatial_match.py` · `tests/unit/test_spatial_match.py` · exports in `src/validation/__init__.py` |
+| **Functions delivered** | `snap_to_support_grid(lon, lat)` → 20 m B11-grid `SupportCell` in EPSG:25830 (deterministic, stable `cell_id`) · `check_pair_independence` (SM-1) + `find_cell_collisions` (SM-2) · `control_trail_clearance_m` / `control_clearance_ok` + `load_trail_network_utm` (SM-3) · `cell_inside_footprint` (SM-4) · `extract_plot_value(...)` → per-plot NDVI/NDMI + full provenance · `plot_stress_from_baselines(...)` composes EHS by **lazy-importing the operational `_trail_stress_score`** (formula reused, never forked; needs scene baselines the caller holds). SM-5 is clustering, recorded via `segment_id` downstream, not enforced here. |
+| **Acceptance criteria** | ✅ Deterministic cell assignment · ✅ **grid alignment verified against the raster transform** — `extract_plot_value` raises `GridMisalignment`/`CRSMismatch` rather than silently resampling (the silent-CRS-failure guard) · ✅ every provenance field emitted (cell ID, centre, GPS-to-centre distance, valid-pixel fraction, SCL classes, scene IDs) · ✅ raises `InsufficientCoverage` rather than averaging when valid coverage < 70 % |
+| **Tests** | 24 tests: 5 m apart → same cell, 25 m apart → different (via the real lon/lat API); SM-1…SM-4 each fire on crafted inputs; extraction against synthetic in-memory rasters — full-valid returns the mean, 75 % passes, 50 % raises, grid/CRS misalignment raises; the **SCL class-5 asymmetry** verified (a cell of bare/rock is retained, not masked); a regression guard that the asset-level service still imports |
+| **Risk** | **Medium** — CRS handling is where this class of code fails silently. Mitigated by the explicit grid-alignment and CRS-equality guards, which raise instead of resampling. |
+| **Changes scientific output?** | **No** — new path; the existing asset-level service is untouched and stays in the product (regression-guarded). Full suite: 1483 passed. |
 
 ### B-05 · Make SCL masking mandatory for Paper-1 processing 🔴
 
@@ -193,9 +193,9 @@ Extends the existing `tests/test_evidence_claims_sync.py` pattern to the manuscr
 ```
 🔲 Owner: Contract §F (sampling frame) + approve this backlog
         ↓
-B-08, B-09(partial), B-06  ← safe, no dependencies, do first
+B-08, B-09(partial), B-06 ✅  ← safe, no dependencies, do first
         ↓
-B-04 → B-01                ← grid matching must exist before plots are planned
+B-04 ✅ → B-01              ← grid matching (done) must exist before plots are planned
         ↓
 B-02, B-03, B-05           ← must exist before the first field day
         ↓
@@ -217,7 +217,7 @@ B-09 (remaining figures), B-13, B-14
 | B-01 | Low | No | No — §F resolved |
 | B-02 | Medium | No (additive) | **Yes** (🔴 class) |
 | B-03 | Low | No | No |
-| B-04 | Medium | No | No |
+| B-04 | Medium | No | No — ✅ done |
 | B-05 | Low | No (default preserved) | **Yes** (🔴 class) |
 | B-06–B-09 | Low | No | No |
 | B-10 | Medium | Creates new only | No |
