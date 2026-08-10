@@ -136,7 +136,9 @@ duplicating authorization rules.
 label and cycle counter, the pulsing "live" indicator, and the hard-coded
 `REPORT_DATE = "2026-06-12"` were all removed. The generation date uses provenance
 metadata when available; an unknown value is `None` machine-readable and `"no registrada"`
-in presentation. The application is not described as live or real-time.
+in presentation. The application no longer presents dashboard data freshness as live or
+real-time. Any remaining "en tiempo real" wording refers only to interactive what-if
+recalculation in the simulator, not to a live data feed or freshness claim.
 
 **SCM attribution separation (I-4):** EHS/ΔEHS are indicators derived from real Sentinel-2
 observations; SCM is presented explicitly as `Atribución SCM` / `MODELO SIG`, a rule-based
