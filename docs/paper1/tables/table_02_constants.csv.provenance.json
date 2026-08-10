@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-08-10T15:31:47+00:00",
+  "commit_hash": "a6680f4",
+  "inputs": {
+    "constants": {
+      "path": "src/config/constants.py",
+      "sha256": "aca36f029b4f091793256380d8e865c5cff43dc6f09e84c367d27e82dc8922da"
+    },
+    "analyzer": {
+      "path": "src/spatial_causality/analyzer.py",
+      "sha256": "1c7475c6e584b3821a8c48409770fef6d50c310430fd4498e2d87afc1b7a1a21"
+    },
+    "etl_buffers": {
+      "path": "etl_raster_intersection.py",
+      "sha256": "945184116bb3b38b14a403ce55545133fb0149f3a7be76d2fbc7d5d599972a59"
+    }
+  },
+  "params": {
+    "n_constants": 18
+  }
+}

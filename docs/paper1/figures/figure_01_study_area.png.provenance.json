@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-08-10T15:31:46+00:00",
+  "commit_hash": "a6680f4",
+  "inputs": {
+    "trails": {
+      "path": "data/outputs/pnsg/pipeline_a_results.geojson",
+      "sha256": "dc9c2029f1f015f847aa30e02d23d4e0c2f3df31b65132d8902d6572fc11e8e2"
+    },
+    "boundary": {
+      "path": "data/raw_assets/vector_data/oapn/oapn_limite_pn.geojson",
+      "sha256": "d096a271edb92d822bd6bdc82d77752998fcbd52ee36d15c1560ab38d4734ce5"
+    }
+  },
+  "params": {
+    "stress_column": "ehs_summer",
+    "grid_epsg": 25830,
+    "cmap": "cividis",
+    "vmin": 0.0,
+    "vmax": 71.9641,
+    "n_trails": 218
+  }
+}

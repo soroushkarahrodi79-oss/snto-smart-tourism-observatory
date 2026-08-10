@@ -31,7 +31,7 @@ Publication-oriented working set for **one** paper: empirical validation of SNTO
 - **Permit scope — Comunidad de Madrid sector only** (`PNSG_RESEARCH_AUTHORIZATION_REQUEST.md` §1): one application, not two; the Madrid side spans the full elevation/habitat gradient.
 - **Target field season — summer 2027, ~20 Jun – 31 Jul** (2028 fallback), strata sampled low-early / high-late to bracket out snow and drought senescence (`SATELLITE_FIELD_MATCHING_PLAN.md` §2).
 
-**Infrastructure landed (additive, no existing output changed):** the acquisition manifest (`src/validation/acquisition_manifest.py`, committed at `status=planned`) · plot↔satellite-cell matching (`src/validation/spatial_match.py`, B-04) — the 20 m-support grid, SM-1…SM-4 independence checks, and a coverage-gated extractor that raises on grid/CRS misalignment rather than resampling silently.
+**Infrastructure landed (additive, no existing output changed):** the acquisition manifest (`src/validation/acquisition_manifest.py`, committed at `status=planned`) · plot↔satellite-cell matching (`src/validation/spatial_match.py`, B-04) — the 20 m-support grid, SM-1…SM-4 independence checks, and a coverage-gated extractor that raises on grid/CRS misalignment rather than resampling silently · the SCM causal-reframing caveat (B-08, docstring-only) · the three committed-data figures/table (B-09: `scripts/paper1/figure_01_study_area.py`, `figure_02_pipeline.py`, `table_02_constants.py` → `docs/paper1/figures|tables/`, each with a provenance sidecar).
 
 Remaining blocking items are marked 🔲 throughout; they are collected in the Master Execution Plan §7 — chiefly the applicant identity for the permit, and the go-ahead to file.
 

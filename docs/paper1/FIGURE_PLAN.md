@@ -104,15 +104,15 @@ Rule applied throughout: **a figure that cannot be drawn from committed data is 
 
 ---
 
-## What can be produced right now
+## What can be produced right now — ✅ BUILT (2026-08-09, Backlog B-09 partial)
 
-Two figures and one table are drawable from committed data before a single field day:
+Two figures and one table are drawable from committed data before a single field day, and are now generated:
 
-- **Figure 1(b)** — the 218-trail network coloured by `ehs_summer` (real cartography × real Sentinel-2 signal)
-- **Figure 2** — the pipeline schematic
-- **Table T2** — the constants-and-provenance table
+- ✅ **Figure 1(b)** — `scripts/paper1/figure_01_study_area.py` → `docs/paper1/figures/figure_01_study_area.pdf/.png`. The 218-trail network coloured by `ehs_summer` (cividis, CVD-safe) over the OAPN park boundary; honest untruncated 0–72 ramp; caption states n, evidence class of each layer, and CRS.
+- ✅ **Figure 2** — `scripts/paper1/figure_02_pipeline.py` → `.pdf/.svg`. The pipeline schematic; boxes colour-coded by evidence class (Okabe-Ito, validated CVD-safe), gates drawn with their thresholds, SCL class-5 asymmetry shown.
+- ✅ **Table T2** — `scripts/paper1/table_02_constants.py` → `docs/paper1/tables/table_02_constants.csv/.md`. 18 constants with **live values pulled from the code** (drift-guarded by a test), code location, basis, and sensitivity flag.
 
-Producing these three now is a good early test of the figure-generation scripts (Backlog **B-09**) and would surface rendering and CRS problems long before they can hold up a submission.
+Each artifact carries a `*.provenance.json` sidecar (input SHA-256 + commit hash). The scripts fail loudly (`MissingInput`) rather than rendering a partial figure, and — the early-warning value the plan predicted — building them surfaced and fixed the CRS/reprojection path (all layers reprojected to EPSG:25830) before any submission pressure.
 
 **Everything else waits for real data. No figure in this paper will be drawn from synthetic, simulated or placeholder values, including for internal drafts** — a draft figure with plausible fake numbers has a way of surviving into a final manuscript.
 

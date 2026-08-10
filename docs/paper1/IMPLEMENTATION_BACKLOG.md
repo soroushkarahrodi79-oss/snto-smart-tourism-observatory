@@ -118,16 +118,16 @@ Scope rule: **the minimum code required to execute the scientific plan.** No pro
 | **Risk** | Very low |
 | **Changes scientific output?** | **No** |
 
-### B-09 · Figure generation scripts 🟢
+### B-09 · Figure generation scripts 🟢 ✅ **PARTIAL DONE (2026-08-09)** — the 3 committed-data artifacts
 
 | | |
 |---|---|
 | **Scientific reason** | Figures must be reproducible from committed data, and Figure 1(b), Figure 2 and Table T2 are producible **today** — building them early surfaces CRS and rendering problems long before submission. |
-| **Files** | new `scripts/paper1/figure_01_study_area.py`, `figure_02_pipeline.py`, `table_02_constants.py` (+ the rest once data exists) |
-| **Acceptance criteria** | Run from a clean checkout · print input checksums and commit hash into figure metadata · vector output · colourblind-safe · **fail loudly rather than plotting anything if required data is absent** |
-| **Tests** | Smoke test on committed data; a test asserting the scripts refuse to run on missing inputs |
+| **Files** | `scripts/paper1/_figutil.py` (shared provenance) · `figure_01_study_area.py` · `figure_02_pipeline.py` · `table_02_constants.py` · `tests/unit/test_paper1_figures.py` · outputs under `docs/paper1/figures/` and `docs/paper1/tables/`. Remaining figures (3,4,5,6,7,8; tables T1,T3,T4) wait for real field data. |
+| **Acceptance criteria** | ✅ Runs from a clean checkout (matplotlib is offline figure-tooling, lazily imported; the non-render logic needs only stdlib/geopandas) · ✅ input SHA-256 + commit hash written to a `*.provenance.json` sidecar · ✅ vector output (Fig 1 PDF+PNG, Fig 2 PDF+SVG) · ✅ colourblind-safe (cividis sequential; Okabe-Ito categorical, validated with the dataviz palette validator) · ✅ **fails loudly (`MissingInput`) rather than plotting anything if an input is absent** |
+| **Tests** | 10 tests: `require_inputs` raises on missing (naming only the absent file); SHA-256 + provenance structure; palette coverage; **Table T2 values match the live constants** + the committed CSV is fresh (drift guard, like the manifest `--check`); Figure 1 fails loudly on a missing input; Figure 1/2 renders produce PDF/PNG/SVG + sidecar (`importorskip('matplotlib')`) |
 | **Risk** | Low |
-| **Changes scientific output?** | **No** |
+| **Changes scientific output?** | **No** — new offline generators; no existing module touched. Full suite: 1498 passed |
 
 ---
 
@@ -193,7 +193,7 @@ Extends the existing `tests/test_evidence_claims_sync.py` pattern to the manuscr
 ```
 🔲 Owner: Contract §F (sampling frame) + approve this backlog
         ↓
-B-08 ✅, B-09(partial), B-06 ✅  ← safe, no dependencies, do first
+B-08 ✅, B-09(partial) ✅, B-06 ✅  ← safe, no dependencies, do first
         ↓
 B-04 ✅ → B-01              ← grid matching (done) must exist before plots are planned
         ↓
