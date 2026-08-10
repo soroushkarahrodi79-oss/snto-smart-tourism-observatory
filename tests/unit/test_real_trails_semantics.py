@@ -6,6 +6,8 @@ convenio 0=crítico, 100=sano, con delta_health > 0 ⇒ la salud mejora.
 from __future__ import annotations
 
 from src.platform.real_trails import (
+    SCM_ATTRIBUTION_CAVEAT,
+    SCM_ATTRIBUTION_LABEL,
     RealTrail,
     RealTrailDataset,
     build_real_trails_geojson,
@@ -83,3 +85,37 @@ def test_pnsg_real_output_is_in_health_convention_if_present():
         if (t.health_summer is not None and t.health_spring is not None
                 and t.delta_health is not None):
             assert abs(t.delta_health - (t.health_summer - t.health_spring)) < 0.05
+
+
+# ── I-4 (Phase 0.5H) — SCM attribution caveat and stored-value invariance ─────
+
+def test_scm_attribution_caveat_states_model_not_causal():
+    """The canonical caveat must name the model provenance without claiming
+    causal validation, and without falsely calling the live data simulated."""
+    text = SCM_ATTRIBUTION_CAVEAT.lower()
+    assert "modelo" in text
+    assert "sentinel-2" in text
+    assert "causa confirmada" in text or "medici" in text  # causal-denial present
+    assert "simulad" not in text  # the underlying observations are real
+
+
+def test_scm_attribution_label_is_not_simulated_or_bare_real():
+    label = SCM_ATTRIBUTION_LABEL.lower()
+    assert "simulad" not in label
+    assert label.strip() != "real"
+
+
+def test_scm_label_es_stored_values_unchanged():
+    """I-4 changes only display wording; the stored SCM classification values
+    (LOCALIZED_IMPACT / MIXED / LANDSCAPE_DRIVEN / None) must not change."""
+    for cls in ("LOCALIZED_IMPACT", "MIXED", "LANDSCAPE_DRIVEN", None):
+        t = _trail("X", 70, 65, scm_class=cls)
+        assert t.scm_class == cls
+
+
+def test_scm_label_es_mixed_avoids_causal_wording():
+    """'MIXED' must not render as an unqualified 'Causa mixta' — that phrasing
+    reads as a confirmed cause. The stored class itself is unaffected."""
+    t = _trail("X", 70, 65, scm_class="MIXED")
+    assert t.scm_class == "MIXED"
+    assert "causa" not in t.scm_label_es.lower()

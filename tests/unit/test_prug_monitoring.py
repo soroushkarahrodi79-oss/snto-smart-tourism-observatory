@@ -272,6 +272,85 @@ def test_evidence_note_carries_seasonal_and_validation_caveats(patch_trails) -> 
     assert "cumplimiento" in note  # explicitly not a compliance verdict
 
 
+# ── I-4 (Phase 0.5H) — SCM attribution distinguished from EHS/ΔEHS ────────────
+
+def test_evidence_note_distinguishes_scm_from_ehs_delta(patch_trails) -> None:
+    """The evidence_note must not group SCM with EHS/ΔEHS as the same kind of
+    evidence, and must deny causal validation for the SCM classification."""
+    trails = [
+        _trail(1, health_summer=80.0, delta_health=-1.0,
+               zone="Zona de Uso Moderado", weight=0.5),
+    ]
+    patch_trails(_dataset(trails))
+    note = build_prug_monitoring("pnsg")["evidence_note"]
+    assert "atribución scm" in note.lower()
+    assert "modelo sig" in note.lower()
+    assert "no constituye" in note.lower()
+    assert "causa confirmada" in note.lower()
+
+
+def test_evidence_note_still_names_ehs_delta_as_sentinel_derived(patch_trails) -> None:
+    trails = [
+        _trail(1, health_summer=80.0, delta_health=-1.0,
+               zone="Zona de Uso Moderado", weight=0.5),
+    ]
+    patch_trails(_dataset(trails))
+    note = build_prug_monitoring("pnsg")["evidence_note"]
+    assert "sentinel-2" in note.lower()
+    assert "derivad" in note.lower()
+
+
+def test_markdown_scm_column_header_is_model_qualified(patch_trails) -> None:
+    trails = [
+        _trail(1, health_summer=80.0, delta_health=-1.0,
+               zone="Zona de Uso Moderado", weight=0.5),
+    ]
+    patch_trails(_dataset(trails))
+    report = build_prug_monitoring("pnsg")
+    md = render_prug_monitoring_markdown(report)
+    assert "Atribución SCM (modelo)" in md
+    assert "SCM uso / mixto / clima" not in md
+
+
+def test_markdown_has_no_bare_causal_scm_claim(patch_trails) -> None:
+    trails = [
+        _trail(1, health_summer=80.0, delta_health=-1.0,
+               zone="Zona de Uso Moderado", weight=0.5),
+    ]
+    patch_trails(_dataset(trails))
+    report = build_prug_monitoring("pnsg")
+    md = render_prug_monitoring_markdown(report).lower()
+    # The denial phrase ("...ni causa confirmada") legitimately contains the
+    # substring "causa confirmada" — what must never appear is an unqualified
+    # affirmative causal claim.
+    assert "causado por" not in md
+    assert "es la causa confirmada" not in md
+    assert "causa confirmada:" not in md
+
+
+def test_zone_counts_and_budget_unchanged_by_wording_fix(patch_trails) -> None:
+    """I-4 is a presentation-only change: zone SCM counts, budgets and the
+    evidence_class must be byte-identical to the pre-I-4 values."""
+    trails = [
+        _trail(1, health_summer=80.0, delta_health=-1.0,
+               zone="Zona de Uso Moderado", weight=0.5,
+               scm_class="LOCALIZED_IMPACT", budget_eur=500.0),
+        _trail(2, health_summer=40.0, delta_health=-10.0,
+               zone="Zona de Uso Restringido", weight=1.0,
+               scm_class="MIXED", budget_eur=300.0),
+    ]
+    patch_trails(_dataset(trails))
+    report = build_prug_monitoring("pnsg")
+    assert report["evidence_class"] == EvidenceClass.REAL.value
+    assert report["summary"]["total_indicative_budget_eur"] == 800.0
+    zone_scm = {
+        z["zone"]: (z["scm_localized"], z["scm_mixed"], z["scm_landscape"])
+        for z in report["zones"]
+    }
+    assert zone_scm["Zona de Uso Moderado"] == (1, 0, 0)
+    assert zone_scm["Zona de Uso Restringido"] == (0, 1, 0)
+
+
 def test_report_is_json_serialisable(patch_trails) -> None:
     trails = [
         _trail(1, health_summer=80.0, delta_health=-1.0,
