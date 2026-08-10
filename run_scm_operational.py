@@ -7,6 +7,29 @@ Classifies each hiking trail as LOCALIZED_IMPACT, LANDSCAPE_DRIVEN, or MIXED
 by computing the Spatial Impact Gradient (SIG) directly from the real
 Sentinel-2 seasonal rasters — no simulated or synthetic data.
 
+SPATIAL CONTRAST, NOT CAUSAL ATTRIBUTION (Paper-1 reframing — docs/paper1/SCM_REFRAMING.md)
+==========================================================================================
+SIG measures a **trail-to-landscape spatial contrast** — how much lower the
+vegetation index is in the trail-proximal core zone than in the surrounding
+landscape. That contrast is real and measured from real rasters. It is NOT a
+causal attribution:
+
+  * A localized spatial contrast is not evidence of causation. A trail is a
+    constructed linear feature; reduced vegetation along it is expected from the
+    trail's physical existence, independently of current visitor use. Edaphic,
+    topographic and management factors produce comparable localized contrasts.
+    SIG can detect the trail, not necessarily its use.
+  * The decision thresholds (SIG 0.15 / 0.07) are expert-defined operational
+    heuristics that have not been empirically calibrated against field
+    observation (issue #26). Treat them as such.
+  * "LOCALIZED_IMPACT" denotes a trail-proximal vegetation deficit, NOT
+    confirmed human or visitor impact; "LANDSCAPE_DRIVEN" denotes no detectable
+    trail-proximal contrast, NOT proven climatic causation. The "assumed
+    unaffected by trail use" note on the landscape zone below is a modelling
+    assumption, not an established fact.
+
+This is a documentation caveat only: it changes no logic, threshold or output.
+
 SCIENTIFIC BASIS
 ================
 The SIG diagnostic rests on a spatial autocorrelation principle:

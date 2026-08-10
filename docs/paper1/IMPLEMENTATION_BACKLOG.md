@@ -106,15 +106,15 @@ Scope rule: **the minimum code required to execute the scientific plan.** No pro
 | **Risk** | Low |
 | **Changes scientific output?** | **No** |
 
-### B-08 · SCM docstring reframing (documentation only) 🟢
+### B-08 · SCM docstring reframing (documentation only) 🟢 ✅ **DONE (2026-08-09)**
 
 | | |
 |---|---|
 | **Scientific reason** | The module is named "Spatial Causality" and emits `LOCALIZED_IMPACT` described as "human pressure / tourism-related". A spatial gradient is not causal attribution, and a trail produces a trail-proximal contrast simply by existing. |
-| **Files** | `src/spatial_causality/analyzer.py` (docstring) · `run_scm_operational.py` (docstring) |
-| **Design** | **Docstrings only. No rename, no logic change, no threshold change.** State what SIG measures, that the four decision thresholds are uncalibrated expert heuristics, and that localization is not causation. |
-| **Acceptance criteria** | No behavioural diff · a test asserts the docstring contains the non-causal caveat |
-| **Tests** | Full existing SCM suite passes unchanged (48 tests currently green) |
+| **Files** | `src/spatial_causality/analyzer.py` (docstring) · `run_scm_operational.py` (docstring) · `tests/unit/test_scm_reframing_docs.py` |
+| **Design** | ✅ **Docstrings only — verified by diff: no rename, no logic change, no threshold change.** Both module docstrings now carry a "SPATIAL CONTRAST, NOT CAUSAL ATTRIBUTION" caveat stating what SIG measures, that the four decision thresholds (SIG 0.15/0.07, cross-zone r 0.85/0.70) are uncalibrated expert heuristics, and that localization is not causation (a trail produces a trail-proximal contrast by existing). The `(A)/(B)/(C)` glosses were reworded from causal language to spatial-pattern language; the `LOCALIZED_IMPACT`/`LANDSCAPE_DRIVEN`/`MIXED` output labels are preserved verbatim so downstream code and data are unaffected. |
+| **Acceptance criteria** | ✅ No behavioural diff (docstring-only; the two edited files show only triple-quoted-string changes) · ✅ a test asserts each caveat phrase is present in both modules, that the thresholds are named, and that the labels are preserved |
+| **Tests** | 5 new caveat-presence tests + full existing SCM suite unchanged (`test_spatial_causality.py`, `test_scm_real_zones.py`, `test_tis_causal_budget.py` → 38 green). Full suite: 1488 passed |
 | **Risk** | Very low |
 | **Changes scientific output?** | **No** |
 
@@ -193,7 +193,7 @@ Extends the existing `tests/test_evidence_claims_sync.py` pattern to the manuscr
 ```
 🔲 Owner: Contract §F (sampling frame) + approve this backlog
         ↓
-B-08, B-09(partial), B-06 ✅  ← safe, no dependencies, do first
+B-08 ✅, B-09(partial), B-06 ✅  ← safe, no dependencies, do first
         ↓
 B-04 ✅ → B-01              ← grid matching (done) must exist before plots are planned
         ↓

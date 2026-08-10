@@ -50,7 +50,7 @@ The current UI text already fails this test: `docs/audit/2026-snto-baseline/SCIE
 | "human pressure alerts" | "trail-proximal contrast flags" |
 | "confirms tourism impact" | "is consistent with trail-associated vegetation difference; alternative explanations are not excluded" |
 
-**Recommendation on renaming production code: do not rename.** `src/spatial_causality/` is referenced across the persistence layer, the reporting layer, the PRUG monitoring roll-up, the dossier automation and the tests. A rename would be a large, risky, scientifically empty diff. The manuscript uses correct language; the code keeps its name with a corrected module docstring stating plainly what it measures and what it does not (Backlog **B-08** — docstring only, no behaviour change).
+**Recommendation on renaming production code: do not rename.** `src/spatial_causality/` is referenced across the persistence layer, the reporting layer, the PRUG monitoring roll-up, the dossier automation and the tests. A rename would be a large, risky, scientifically empty diff. The manuscript uses correct language; the code keeps its name with a corrected module docstring stating plainly what it measures and what it does not (Backlog **B-08 — ✅ done 2026-08-09**: both `analyzer.py` and `run_scm_operational.py` now carry a "spatial contrast, not causal attribution" caveat; docstring-only, no behaviour change, guarded by `tests/unit/test_scm_reframing_docs.py`).
 
 ## 4. Threshold provenance
 

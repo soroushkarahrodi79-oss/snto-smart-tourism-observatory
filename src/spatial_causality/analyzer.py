@@ -3,11 +3,35 @@ from __future__ import annotations
 """
 Spatial Causality Module (SCM)
 ==============================
-Determines whether observed environmental change is:
+Classifies observed environmental change by its spatial pattern into:
 
-  (A) LOCALIZED_IMPACT   -- human pressure / tourism-related
-  (B) LANDSCAPE_DRIVEN   -- climate / regional environmental forcing
-  (C) MIXED              -- ambiguous, both drivers present
+  (A) LOCALIZED_IMPACT   -- a localized trail-proximal vegetation deficit
+  (B) LANDSCAPE_DRIVEN   -- no detectable trail-proximal contrast (landscape-scale pattern)
+  (C) MIXED              -- intermediate / ambiguous contrast
+
+SPATIAL CONTRAST, NOT CAUSAL ATTRIBUTION (Paper-1 reframing — docs/paper1/SCM_REFRAMING.md)
+==========================================================================================
+What this module measures is a **trail-to-landscape spatial contrast**: how much
+lower the vegetation index is in the trail-proximal core zone than in the
+surrounding landscape. That contrast is real and measurable. It is NOT a causal
+attribution, and the labels above must be read accordingly:
+
+  * A localized spatial contrast is not evidence of causation. A trail is a
+    constructed linear feature; reduced vegetation along it is expected from the
+    trail's physical existence, independently of current visitor use. Edaphic,
+    topographic and management factors (soil depth, bedrock, aspect, drainage,
+    grazing, fire management) produce comparable localized contrasts. In short,
+    SIG can detect the trail, not necessarily its use.
+  * The four decision thresholds (SIG 0.15 / 0.07 and cross-zone r 0.85 / 0.70)
+    are expert-defined operational heuristics that have not been empirically
+    calibrated against field observation (issue #26). Treat them as such.
+  * "LOCALIZED_IMPACT" therefore denotes a trail-proximal vegetation deficit,
+    NOT confirmed human or visitor impact; "LANDSCAPE_DRIVEN" denotes no
+    detectable trail-proximal contrast, NOT proven climatic causation.
+
+This is a documentation caveat only: it changes no logic, threshold or output.
+The classification labels below keep their names so downstream code and data are
+unaffected; only the interpretation is corrected.
 
 SCIENTIFIC BASIS
 ================
