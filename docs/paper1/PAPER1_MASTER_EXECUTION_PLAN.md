@@ -82,7 +82,7 @@ SNTO has more software than it has evidence. It holds genuinely publication-grad
 | **G0 — Frame** | Owner resolves Contract §F | ✅ **PASSED 2026-08-09** — F-1, 218 OAPN trails |
 | **G1 — Contract frozen** | Contract and SAP frozen with commit hashes | **STOP.** Post-hoc analysis choices are unfalsifiable |
 | **G2 — Permit** | PNSG research authorisation obtained | **STOP.** No fieldwork without it. Drafting started, `PNSG_RESEARCH_AUTHORIZATION_REQUEST.md` — territorial scope resolved (Madrid-only, 2026-08-09); blocked on applicant identity and the explicit go-ahead to file |
-| **G3 — Window** | Acquisition manifest committed; field days inside the window | **STOP.** No temporal matching is possible otherwise |
+| **G3 — Window** | Acquisition manifest committed; field days inside the window | **STOP.** No temporal matching is possible otherwise. Target season decided (summer 2027, 2026-08-09); manifest committed at `status=planned`; advances to `window_defined` when field dates lock against the permit |
 | **G4 — Pilot** | ≥ 6 valid plot pairs; σ estimated; timing measured | **STOP.** Sample size cannot be justified |
 | **G5 — Sample size** | Main n fixed from pilot σ; Contract amended | **STOP.** Reverts to asserting "15–20" without basis |
 | **G6 — QA** | Field CSV passes QA; frozen with a checksum | **STOP.** Unverified data must not be analysed |
@@ -101,7 +101,7 @@ SNTO has more software than it has evidence. It holds genuinely publication-grad
 
 1. ✅ ~~Decide the sampling frame~~ — **resolved 2026-08-09: F-1, 218 OAPN trails.**
 2. 🟡 **PNSG research authorisation — drafting started, territorial scope resolved.** `PNSG_RESEARCH_AUTHORIZATION_REQUEST.md` has the full technical case (memoria) ready, sourced from the park's own published requirements. Territorial scope decided 2026-08-09: **Madrid only** — one application, not two (propagated into Contract §F and Backlog B-01, which now filters the 218-trail pool to the Madrid-administered sector before site selection). Still blocked on: applicant identity, contact and scientific-endorsement/CV — cannot be fabricated — and the explicit go-ahead to file. Nothing has been submitted.
-3. 🔲 **Fix the target field season** — this sets the satellite window and the whole schedule.
+3. ✅ ~~Fix the target field season~~ — **resolved 2026-08-09: summer 2027 (~20 Jun – 31 Jul), 2028 fallback**, with a phenological low-early/high-late stratum ordering (`SATELLITE_FIELD_MATCHING_PLAN.md` §2). 2027 is conditional on the permit landing by late spring 2027.
 4. 🔲 **Confirm the field team** — two observers are required for the repeatability protocol.
 5. 🔲 **Confirm OAPN data licence terms** for trail and vegetation layers.
 6. 🔲 **Approve the Implementation Backlog**, in particular the two 🔴 items (B-02, B-05).

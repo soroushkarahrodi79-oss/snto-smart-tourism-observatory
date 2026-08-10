@@ -24,11 +24,16 @@ Publication-oriented working set for **one** paper: empirical validation of SNTO
 
 ## Status
 
-**No code has been changed. No scientific threshold has been modified. No field data exists.**
+**No scientific threshold has been modified. No existing scientific output has changed. No field data exists.** The only code added so far is additive Paper-1 infrastructure (Backlog B-06, the acquisition manifest) that touches no existing module's behaviour.
 
-**Sampling frame decided (2026-08-09): the 218 real OAPN trail segments** (`PAPER1_SCIENTIFIC_CONTRACT.md` §F, option F-1). This forfeits nothing the cross-sectional design needed, but it means the existing real SCM/SIG values already computed for those 218 trails are **not** usable for the H4 spatial-contrast analysis as-is — they come from the same disqualified satellite-scene pair as `delta_ehs` and need a fresh extraction against the campaign-matched composite (Backlog B-14).
+**Decisions taken (2026-08-09):**
+- **Sampling frame — the 218 real OAPN trail segments** (`PAPER1_SCIENTIFIC_CONTRACT.md` §F, F-1). Forfeits nothing the cross-sectional design needed, but the existing real SCM/SIG values on those trails are **not** usable for H4 as-is — same disqualified scene pair as `delta_ehs`; needs a fresh extraction against the campaign-matched composite (Backlog B-14).
+- **Permit scope — Comunidad de Madrid sector only** (`PNSG_RESEARCH_AUTHORIZATION_REQUEST.md` §1): one application, not two; the Madrid side spans the full elevation/habitat gradient.
+- **Target field season — summer 2027, ~20 Jun – 31 Jul** (2028 fallback), strata sampled low-early / high-late to bracket out snow and drought senescence (`SATELLITE_FIELD_MATCHING_PLAN.md` §2).
 
-Remaining blocking owner decisions are marked 🔲 throughout; they are collected in the Master Execution Plan §7.
+**Infrastructure landed:** the acquisition manifest (`src/validation/acquisition_manifest.py`, committed at `status=planned`).
+
+Remaining blocking items are marked 🔲 throughout; they are collected in the Master Execution Plan §7 — chiefly the applicant identity for the permit, and the go-ahead to file.
 
 ## Relationship to existing documentation
 

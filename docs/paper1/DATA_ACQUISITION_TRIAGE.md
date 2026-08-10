@@ -184,5 +184,5 @@ Locked statistical analysis
 | 🔲 1 | **OAPN data licence terms** — confirm and record the exact reuse conditions for A-3 and A-4 |
 | 🔲 2 | **PNSG research authorisation** — drafting started (`PNSG_RESEARCH_AUTHORIZATION_REQUEST.md`); territorial scope resolved (Madrid-only, 2026-08-09); blocked on applicant identity fields and the go-ahead to file |
 | 🔲 3 | **Field team composition** — two observers are required for the repeatability protocol |
-| 🔲 4 | **Target field season** — determines the satellite window and the whole schedule |
+| ~~4~~ | ~~Target field season~~ — **resolved 2026-08-09: summer 2027 (~20 Jun – 31 Jul), 2028 fallback** (`SATELLITE_FIELD_MATCHING_PLAN.md` §2) |
 | 🔲 5 | **Instrument availability** — penetrometer model, gridded quadrat frame, GNSS |

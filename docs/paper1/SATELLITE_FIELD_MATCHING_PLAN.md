@@ -30,10 +30,19 @@ Separately: the operational product's use of these scenes is a *product* questio
 
 **A single-season, single-year composite centred on the field campaign.**
 
+> **🔒 TARGET FIELD SEASON DECIDED (2026-08-09): summer 2027, planning window ~20 June – 31 July, campaign midpoint anchored early-to-mid July.**
+>
+> This is not a generic "summer" — it is a phenological bracket specific to Guadarrama's elevation gradient:
+> - **Lower bound (~20 June):** after reliable snowmelt at the alpine stratum **S4** (> 2 100 m, Peñalara). NDMI over lingering snow is meaningless and S4 is physically unsurveyable before melt.
+> - **Upper bound (~31 July):** *before* pronounced Mediterranean **summer-drought senescence** browns off the lower herbaceous strata. Late-August senescence is a **landscape-scale** stress signal that would inflate absolute EHS independently of trail impact — it would contaminate the H1 absolute correlation (the within-stratum control–impact contrast, H2/H3, survives it, but the paper leads with H1). This bracket keeps the whole gradient near peak-green simultaneously.
+> - **Operational rule that follows:** sample **low strata early, high strata late** in the window (dodges senescence at the bottom, snow at the top). Encoded in `FIELD_CAMPAIGN_EXECUTION_PLAN.md` §8.
+>
+> **Year contingency, stated honestly:** 2026 is closed regardless of permit speed. **2027 is the target *conditional on the PNSG permit landing by late spring 2027*** (`PNSG_RESEARCH_AUTHORIZATION_REQUEST.md`); **2028 is the fallback** for the main campaign if the pilot reveals the required sample exceeds one season's field days, or if the permit slips. This does not change any constant below — only *when* the composite is acquired.
+
 | Parameter | Specification | Rationale |
 |---|---|---|
-| **Target window** | Peak growing season, ± 3 weeks around the campaign midpoint | Maximum vegetation signal; NDVI/NDMI most sensitive to condition |
-| **PNSG phenological peak** | ~mid-June to mid-August above 1 500 m | Montane Mediterranean; snowmelt-constrained at S4 |
+| **Target window** | Peak growing season, ± 3 weeks around the campaign midpoint (within the ~20 Jun – 31 Jul bracket above) | Maximum vegetation signal; NDVI/NDMI most sensitive to condition |
+| **PNSG phenological peak** | ~mid-June to end-July above 1 500 m; **bracketed below by S4 snowmelt, above by low-stratum drought senescence** | Montane Mediterranean; snowmelt-constrained at S4, senescence-constrained at S1 |
 | **Composite type** | Median of all qualifying acquisitions in the window | Robust to residual cloud; standard in S2 practice |
 | **Minimum scenes in composite** | **3** | Below this the median is not robust; declare and use single-scene with the caveat, or abandon |
 | **Sensor** | S2A + S2B both admitted **within one composite**, but the sensor mix is recorded | Harmonised L2A; mixing within a composite is standard, mixing across a *difference* is not |
@@ -86,7 +95,9 @@ Ordered, and the order is fixed in advance:
 
 ## 2b. Manifest mechanism — implemented (Backlog B-06, 2026-08-09)
 
-The acquisition manifest described throughout this document is no longer only a plan: `src/validation/acquisition_manifest.py` implements it, and `clean_assets/paper1/acquisition_manifest.json` is committed at `status="planned"` — the frozen constants above (tile, cloud threshold, composite method, offset limits, valid-pixel thresholds, and the SCL class-5 baseline/plot-extraction asymmetry) are encoded and schema-checked, but `window_start`/`window_end`/`scene_ids` are honestly empty because the target field season is not yet decided (`DATA_ACQUISITION_TRIAGE.md` open item 4). `scripts/paper1/generate_acquisition_manifest.py --validate` checks it; `--check <scenes.json>` will fail loudly the moment a real extraction's scene IDs disagree with what the manifest declares. Advancing the manifest past `planned` (fixing the window, then the scene IDs) is a later, separate step — not part of this commit — gated on the field-season decision.
+The acquisition manifest described throughout this document is no longer only a plan: `src/validation/acquisition_manifest.py` implements it, and `clean_assets/paper1/acquisition_manifest.json` is committed at `status="planned"` — the frozen constants above (tile, cloud threshold, composite method, offset limits, valid-pixel thresholds, and the SCL class-5 baseline/plot-extraction asymmetry) are encoded and schema-checked. `scripts/paper1/generate_acquisition_manifest.py --validate` checks it; `--check <scenes.json>` will fail loudly the moment a real extraction's scene IDs disagree with what the manifest declares.
+
+**Why the manifest stays `planned` even though the target season is now decided.** The *season* (summer 2027, ~20 Jun – 31 Jul) is a planning-level decision. The manifest's `window_start`/`window_end` are a **narrower** object: the ± 3-week composite window anchored on the *actual campaign midpoint*, which is not knowable until field dates lock against the permit and weather. Populating them now would assert a precision we do not have — exactly the false-precision failure the manifest exists to prevent. The manifest advances to `window_defined` when campaign dates lock, and to `scenes_identified` when the real Sentinel-2 scenes in that window are queried. The decided season is recorded in the manifest's `notes`, not fabricated into its window.
 
 ## 3. Provenance record (mandatory, per plot)
 

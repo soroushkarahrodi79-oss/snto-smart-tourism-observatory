@@ -59,7 +59,7 @@ Structure (250 words): protected-area managers increasingly rely on satellite in
 
 **3.3 Stratification layers.** OAPN vegetation polygons + DEM; four strata (S1–S4).
 
-**3.4 Field observations.** `[TBD]` plots, `[TBD]` impact / `[TBD]` control, `[TBD]` strata, collected `[TBD dates]`. Instruments and units per variable. Reference the published protocol and the open data deposit.
+**3.4 Field observations.** `[TBD]` plots, `[TBD]` impact / `[TBD]` control, `[TBD]` strata, collected `[TBD — exact dates]` within the target window (summer 2027, ~20 Jun – 31 Jul; 2028 fallback). Instruments and units per variable. Reference the published protocol and the open data deposit. State the low-early/high-late stratum ordering (§Methods) and its phenological rationale.
 
 **3.5 Data and evidence provenance.** Present the four-class evidence framework (`real` / `calibrated` / `simulated` / `synthetic`, plus `missing`) and state that only `real` data enters any analysis in this paper. This is a genuine methodological contribution and belongs in the Data section, not buried in a footnote.
 

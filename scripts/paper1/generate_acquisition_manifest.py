@@ -59,10 +59,14 @@ _MANIFEST_PATH = _ROOT / "clean_assets" / "paper1" / "acquisition_manifest.json"
 def _init() -> None:
     m = new_planned_manifest(
         notes="Frozen matching-plan constants per SATELLITE_FIELD_MATCHING_PLAN.md "
-              "§2. Acquisition window not yet fixed — pending the target field "
-              "season decision (DATA_ACQUISITION_TRIAGE.md open item 4). "
-              "Sampling frame restricted to the Comunidad de Madrid-administered "
-              "sector of PNSG (PNSG_RESEARCH_AUTHORIZATION_REQUEST.md §1)."
+              "§2. Target field season DECIDED: summer 2027, ~20 Jun – 31 Jul "
+              "(2028 fallback). The manifest stays 'planned' because "
+              "window_start/window_end are the narrower ±3-week composite window "
+              "anchored on the actual campaign midpoint, which awaits locked "
+              "field dates against the permit — advances to 'window_defined' "
+              "then. Sampling frame restricted to the Comunidad de "
+              "Madrid-administered sector of PNSG "
+              "(PNSG_RESEARCH_AUTHORIZATION_REQUEST.md §1)."
     )
     errors = validate_manifest(m)
     if errors:

@@ -198,15 +198,26 @@ Per-plot value = **mean of subplot values**; per-plot **SD is also recorded** an
 
 ## 8. Multi-day campaign shape (indicative)
 
+**Target season (decided 2026-08-09): summer 2027, ~20 June – 31 July** (`SATELLITE_FIELD_MATCHING_PLAN.md` §2). 2028 is the fallback for the main campaign if the pilot shows the required sample exceeds one season's field days, or if the permit slips past late spring 2027.
+
+**Phenological ordering rule — binding, not a preference.** Within the window, **sample low strata early and high strata late**:
+- **S1/S2** (montane forest, 1 200–1 800 m) in the **early** window (late June) — before summer-drought senescence browns the herb layer and inflates absolute EHS.
+- **S3** (shrubland, 1 800–2 100 m) mid-window.
+- **S4** (alpine grassland, > 2 100 m) in the **late** window (mid–end July) — after reliable snowmelt; earlier is physically unsurveyable and NDMI over snow is meaningless.
+
+This simultaneously minimises the two landscape-scale confounds (senescence at the bottom, snow at the top) that would otherwise contaminate the H1 absolute correlation. It constrains the schedule below.
+
 | Day | Activity | Output |
 |---|---|---|
-| **D1** | Pilot, stratum S1 — 4 impact + 4 control + 2 repeats | Timing, σ estimate |
-| **D2** | Pilot, stratum S3 — 4 impact + 4 control + 1 repeat | Cross-stratum σ, repeatability |
+| **D1** | Pilot, stratum S1 (early window) — 4 impact + 4 control + 2 repeats | Timing, σ estimate |
+| **D2** | Pilot, stratum S3 (mid window) — 4 impact + 4 control + 1 repeat | Cross-stratum σ, repeatability |
 | **Desk** | Compute σ, effect range, per-plot time; **fix the main sample size**; amend the Contract | Frozen sample size |
-| **D3–Dn** | Main campaign, ≥ 3 strata, spanning EHS terciles | Ground-truth dataset |
+| **D3–Dn** | Main campaign, ≥ 3 strata, spanning EHS terciles, **ordered low→high with the window** | Ground-truth dataset |
 | **Close** | QA, freeze, checksum | Analysis-ready CSV |
 
 Expect **6–10 plots per field day** including travel on PNSG terrain, at roughly 45–60 min per plot plus walking. The pilot replaces this estimate with a measured one — that is one of its five purposes.
+
+**Same-season pilot→main is the plan, not guaranteed.** The ~6-week window is wide enough to fit the pilot early, the desk step in a few days (provided the B-10 estimators are built beforehand), and the main campaign across the remainder — **but only if the permit is in hand at the window's start.** If the desk step reveals a sample larger than the remaining field days allow, the main campaign moves to summer 2028 rather than being rushed. A split across two years reintroduces inter-annual variation into a cross-sectional single-composite design, so it is a fallback, not a first choice.
 
 ---
 

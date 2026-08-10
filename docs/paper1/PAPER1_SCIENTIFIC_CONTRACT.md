@@ -146,6 +146,7 @@ Governed by `SPATIAL_MATCHING_PROTOCOL.md`. Contract-level commitments:
 Governed by `SATELLITE_FIELD_MATCHING_PLAN.md`. Contract-level commitments:
 
 - Field observations are compared against imagery from a **campaign-matched acquisition window**, defined before the campaign.
+- **Target field season (decided 2026-08-09): summer 2027, ~20 June – 31 July** (2028 fallback), with strata sampled low-elevation-early / high-elevation-late to keep the whole gradient near peak-green and out of both snow and drought-senescence. This is a *season* decision; the exact ±3-week composite window is fixed when field dates lock.
 - The existing 2025-08-10 / 2026-04-10 scene pair is **not** used for validation.
 - `delta_ehs` as currently computed (backwards in time, cross-sensor, cross-year, per-scene-anchored baselines) is **not a validation target** and does not appear in the primary analysis.
 - No interpolation across a missing scene. A missing acquisition means missing evidence.
