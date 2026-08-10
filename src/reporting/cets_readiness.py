@@ -58,7 +58,6 @@ WHAT THIS REPORT REFUSES TO DO
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
 from enum import Enum
 from pathlib import Path
 
@@ -596,7 +595,10 @@ def build_cets_readiness(
     Args:
         territory_name: human-readable territory name for the header.
         park: ``satellite_trends`` park key used to probe real evidence.
-        report_date: ISO date; defaults to today.
+        report_date: ISO date, or ``None`` when generation provenance is not
+            recorded. Stored as ``None`` in the returned dict — never replaced
+            by today's date. Markdown renderers translate ``None`` to
+            "no registrada" at presentation time.
         signals: pre-resolved evidence signals (injected by tests); resolved
             from the repository when omitted.
 
@@ -604,8 +606,6 @@ def build_cets_readiness(
         A JSON-serialisable dict. Counts are derived from the rows, so they can
         never disagree with the table a reader sees.
     """
-    if report_date is None:
-        report_date = date.today().isoformat()
     if signals is None:
         signals = resolve_signals(park)
 
@@ -693,7 +693,8 @@ def render_cets_readiness_markdown(report: dict) -> str:
     lines = [
         f"# Preparación de dosier CETS Fase I — {m['territory']}",
         "",
-        f"**Marco:** {m['framework']}  ·  **Fecha:** {m['report_date']}  ·  "
+        f"**Marco:** {m['framework']}  ·  **Fecha:** "
+        f"{m['report_date'] or 'no registrada'}  ·  "
         f"**SNTO** v{m['version']}",
         "",
         f"> {report['scope_note']}",

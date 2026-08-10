@@ -14,8 +14,6 @@ Names keep their original ``_`` prefix so app.py call sites are unchanged.
 """
 from __future__ import annotations
 
-import datetime
-
 import streamlit as st
 
 from src.platform.evidence import DecisionUse, EvidenceClass, supports
@@ -46,8 +44,12 @@ def _portfolio_supports(assets, use: DecisionUse) -> bool:
     )
 
 
-# ── Renderizador de alertas en vivo ──────────────────────────────────────────
-def _render_live_alerts(assets: list, refresh_count: int) -> None:
+# ── Renderizador de alertas ──────────────────────────────────────────────────
+def _render_live_alerts(assets: list) -> None:
+    # I-3 (Phase 0.5G): rendered once per normal Streamlit rerun. No 60 s
+    # autorefresh, no render-clock "Actualizado" timestamp, no cycle counter and
+    # no pulsing "live" dot — none reflected data freshness, so all were removed
+    # to avoid implying a continuous monitoring feed that does not exist.
     active = sorted(
         [a for a in assets if a.alert_level in _ALERT_META],
         key=lambda a: _ALERT_SEVERITY[a.alert_level],
@@ -70,21 +72,17 @@ def _render_live_alerts(assets: list, refresh_count: int) -> None:
             f'</div>'
         )
 
-    ts = datetime.datetime.now().strftime("%H:%M:%S")
     st.markdown(
         f'<div class="snto-alert-bar">'
         f'  <span class="snto-alert-title">'
-        f'    <span class="snto-pulse"></span>'
         f'    {len(active)} alerta{"s" if len(active) != 1 else ""} activa{"s" if len(active) != 1 else ""}'
         f'  </span>'
-        f'  <span class="snto-refresh-ts">Actualizado: {ts} · ciclo #{refresh_count}</span>'
         f'</div>'
         f'<div style="display:flex;gap:8px;flex-wrap:wrap;padding-bottom:4px;">{chips}</div>',
         unsafe_allow_html=True,
     )
     # Narrow evidence qualification (ADR-004 / I-5): a synthetic portfolio's
-    # alerts are engine output, not observed monitoring. This does NOT touch the
-    # autorefresh cadence or the "live" indicator — that is I-3, out of scope.
+    # alerts are engine output, not observed monitoring. (Preserved from #151.)
     if not _portfolio_supports(active, DecisionUse.MONITORING):
         st.caption(
             "🧪 Alertas sintéticas de demostración: reflejan la salida del motor "
@@ -155,7 +153,7 @@ def _render_banner(key: str, cfg: dict, dashboard, n_red: int, n_amb: int) -> No
         f'<div class="snto-banner-title" style="color:{bc["text_color"]};">'
         f'{dashboard.territory_name}</div>'
         f'<div class="snto-banner-sub" style="color:{bc["sub_color"]};">'
-        f'Plataforma SNTO · Informe estratégico · {dashboard.report_date} · '
+        f'Plataforma SNTO · Datos generados: {dashboard.report_date or "no registrada"} · '
         f'{dashboard.n_assets} activos monitorizados · '
         f'Presupuesto base: €{cfg["budget"]:,}'
         f'</div>'

@@ -14,6 +14,7 @@ from src._version import __version__
 from src.intervention import allocate_tis_budget, compare_scenarios
 from src.platform import compute_executive_dashboard
 from src.platform.enrichment import enrich_assets_with_satellite
+from src.platform.freshness import resolve_generation_provenance
 from src.territorial.fixtures import build_pnsg_territory, build_territory
 from src.territorial.tpi import rank_assets
 
@@ -136,17 +137,6 @@ _BASE_CSS = """
 .snto-alert-title {
     font-size: 0.72rem; font-weight: 700; color: #7a8899;
     text-transform: uppercase; letter-spacing: 0.08em;
-}
-.snto-refresh-ts { font-size: 0.68rem; color: #9aa4af; }
-.snto-pulse {
-    display: inline-block; width: 7px; height: 7px;
-    background: #22c55e; border-radius: 50%;
-    margin-right: 5px; vertical-align: middle;
-    animation: snto-pulse 1.8s infinite;
-}
-@keyframes snto-pulse {
-    0%,100% { opacity:1; transform:scale(1); }
-    50%      { opacity:0.35; transform:scale(0.8); }
 }
 
 /* Tier stat row in map hero */
@@ -302,24 +292,21 @@ def inject_base_styles() -> None:
     st.markdown(_BASE_CSS, unsafe_allow_html=True)
 
 
-# ── Fecha global de informe ───────────────────────────────────────────────────
-REPORT_DATE = "2026-06-12"
-
-
 # ── Registro de territorios ───────────────────────────────────────────────────
+# I-3 (Phase 0.5G): there is no hard-coded global report date. The as-of value is
+# resolved per territory from committed run-context provenance in load_dashboard,
+# or reported as "no registrada" — never a fabricated or fixed literal.
 _TERRITORY_CONFIG: dict[str, dict] = {
     "snr": {
         "name":       "Reserva de la Biosfera Sierra del Rincón",
         "short":      "Sierra del Rincón",
         "budget":     100_000,
-        "report_date": REPORT_DATE,
         "map_center": (41.130, -3.490, 11),
     },
     "pnsg": {
         "name":       "Parque Nacional Sierra de Guadarrama",
         "short":      "PN Sierra de Guadarrama",
         "budget":     150_000,
-        "report_date": REPORT_DATE,
         "map_center": (40.820, -3.960, 10),
     },
 }
@@ -340,14 +327,22 @@ _VISIBLE_TERRITORIES = ["pnsg"]
 
 @st.cache_data(show_spinner="Calculando inteligencia territorial…")
 def load_dashboard(territory_key: str):
-    """Return (dashboard, assets, comps, assets_by_id, base_budget, cfg, cal) — cached per territory.
+    """Return (dashboard, assets, comps, assets_by_id, base_budget, cfg, cal, provenance) — cached per territory.
 
     Fase 2 — inyección satelital: antes de rankear, el EHS satelital real del
     Pipeline A sobreescribe (conservadoramente) el EHS curado donde el satélite
     observa MÁS degradación. Como rank_assets recalcula TPI/tier a partir de
     ehs, el dato real se propaga a TPI, tiers, presupuesto y los 10 KPIs.
+
+    I-3 (Phase 0.5G): ``dashboard.report_date`` is the machine-readable
+    ``str | None`` as-of date from committed run-context provenance — ``None``
+    when generation provenance is unavailable (honest absence, not "no
+    registrada"). UI surfaces convert ``None`` to "no registrada" at render time
+    using ``display_generation_date()``. ``provenance`` is returned for surfaces
+    that need the fuller sentence or the ``.long`` description.
     """
     cfg    = _TERRITORY_CONFIG[territory_key]
+    provenance = resolve_generation_provenance(territory_key)
     raw    = _BUILD_FN[territory_key]()
     raw, cal = enrich_assets_with_satellite(territory_key, raw)
     assets = rank_assets(raw)
@@ -357,9 +352,9 @@ def load_dashboard(territory_key: str):
     budget = allocate_tis_budget(comps, by_id, cfg["budget"])
     dash   = compute_executive_dashboard(
         territory_name=cfg["name"],
-        report_date=cfg["report_date"],
+        report_date=provenance.date,  # str | None — None when run_context absent
         assets=assets,
         budget_result=budget,
         comparisons=comps,
     )
-    return dash, assets, comps, by_id, budget, cfg, cal
+    return dash, assets, comps, by_id, budget, cfg, cal, provenance

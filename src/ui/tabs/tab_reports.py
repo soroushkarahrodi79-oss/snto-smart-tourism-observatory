@@ -45,6 +45,15 @@ _ROOT = Path(__file__).resolve().parents[3]
 _ASSETS_GEOJSON = {"pnsg": _ROOT / "clean_assets/pnsg_assets.geojson"}
 
 
+def _date_stamp(report_date: str | None) -> str:
+    """Filename-safe token from the as-of value (I-3): None or spaces → dashes.
+
+    ``report_date`` is ``str | None`` (machine-readable absence = ``None``).
+    Neither ``None`` nor a space may appear in a download filename.
+    """
+    return (report_date or "no-registrada").replace(" ", "-")
+
+
 @st.cache_data(show_spinner=False)
 def _load_gis_feature_collection(park: str) -> dict | None:
     """Build the real-trend GIS FeatureCollection for a park, or None.
@@ -72,7 +81,7 @@ def render_tab_reports(
     ranked_assets,
     selected_key: str,
     territory_name: str,
-    report_date: str,
+    report_date: str | None,
     _view,
 ) -> None:
     """Two evidence-labelled, downloadable artifacts over existing data."""
@@ -113,17 +122,18 @@ def render_tab_reports(
         st.markdown(brief_md)
     if _public_ok:
         _slug = territory_name.lower().replace(" ", "_")[:40]
+        _ds = _date_stamp(report_date)
         st.download_button(
             "⬇️ Descargar informe ejecutivo (.md)",
             data=brief_md,
-            file_name=f"snto_informe_{_slug}_{report_date}.md",
+            file_name=f"snto_informe_{_slug}_{_ds}.md",
             mime="text/markdown",
             use_container_width=True,
         )
         st.download_button(
             "⬇️ Descargar informe (.json)",
             data=json.dumps(brief, ensure_ascii=False, indent=2),
-            file_name=f"snto_informe_{_slug}_{report_date}.json",
+            file_name=f"snto_informe_{_slug}_{_ds}.json",
             mime="application/json",
             use_container_width=True,
         )
@@ -201,7 +211,7 @@ def _render_gis_section(selected_key: str, _view) -> None:
 
 
 def _render_cets_section(
-    selected_key: str, territory_name: str, report_date: str, _view
+    selected_key: str, territory_name: str, report_date: str | None, _view
 ) -> None:
     """Section 3: CETS Fase I readiness — a preparation aid, not a dossier.
 
@@ -259,23 +269,24 @@ def _render_cets_section(
         st.markdown(cets_md)
 
     _slug = territory_name.lower().replace(" ", "_")[:40]
+    _ds = _date_stamp(report_date)
     st.download_button(
         "⬇️ Descargar preparación CETS (.md)",
         data=cets_md,
-        file_name=f"snto_cets_fase1_{_slug}_{report_date}.md",
+        file_name=f"snto_cets_fase1_{_slug}_{_ds}.md",
         mime="text/markdown",
         use_container_width=True,
     )
     st.download_button(
         "⬇️ Descargar preparación CETS (.json)",
         data=json.dumps(report, ensure_ascii=False, indent=2),
-        file_name=f"snto_cets_fase1_{_slug}_{report_date}.json",
+        file_name=f"snto_cets_fase1_{_slug}_{_ds}.json",
         mime="application/json",
         use_container_width=True,
     )
 
 
-def _render_prug_section(selected_key: str, report_date: str, _view) -> None:
+def _render_prug_section(selected_key: str, report_date: str | None, _view) -> None:
     """Section 4: PRUG-zone monitoring roll-up over the real trail evidence.
 
     Reports the park through its own management instrument (the PRUG
@@ -321,17 +332,18 @@ def _render_prug_section(selected_key: str, report_date: str, _view) -> None:
     ):
         st.markdown(prug_md)
 
+    _ds = _date_stamp(report_date)
     st.download_button(
         "⬇️ Descargar seguimiento PRUG (.md)",
         data=prug_md,
-        file_name=f"snto_prug_{selected_key}_{report_date}.md",
+        file_name=f"snto_prug_{selected_key}_{_ds}.md",
         mime="text/markdown",
         use_container_width=True,
     )
     st.download_button(
         "⬇️ Descargar seguimiento PRUG (.json)",
         data=json.dumps(report, ensure_ascii=False, indent=2),
-        file_name=f"snto_prug_{selected_key}_{report_date}.json",
+        file_name=f"snto_prug_{selected_key}_{_ds}.json",
         mime="application/json",
         use_container_width=True,
     )
