@@ -117,9 +117,29 @@ def _place_control(impact_utm, perp, trails_utm, used_cells, impact_cell):
     return None
 
 
+def _load_strata_map(strata_path: Path | None) -> dict[int, str]:
+    """trail_id → ecological stratum (S1–S4) from an A-4 strata CSV, or {}."""
+    if strata_path is None:
+        return {}
+    import csv
+    out: dict[int, str] = {}
+    with open(strata_path, encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            s = (row.get("stratum") or "").strip()
+            if s and s != "unresolved":
+                out[int(row["trail_id"])] = s
+    return out
+
+
 def build_plan(trails_gdf, trails_utm, *, n_segments: int, impacts_per_segment: int,
-               seed: int):
-    """Return (rows, plot_meta) — deterministic given seed."""
+               seed: int, strata_map: dict[int, str] | None = None):
+    """Return (rows, plot_meta) — deterministic given seed.
+
+    When ``strata_map`` (A-4) is supplied, the ``stratum`` column carries the
+    ecological stratum (S1–S4); otherwise it carries the interim satellite-stress
+    tercile. Segment selection spans the EHS terciles either way.
+    """
+    strata_map = strata_map or {}
     from shapely.geometry import Point  # noqa: F401
 
     stress = trails_gdf[_STRESS_COL].astype(float)
@@ -150,7 +170,7 @@ def build_plan(trails_gdf, trails_utm, *, n_segments: int, impacts_per_segment: 
         line = _merged_line(row.geometry)
         if line.length < 40:  # too short to host separated plots
             continue
-        stratum = f"sat_stress_{tercile}"
+        stratum = strata_map.get(sid, f"sat_stress_{tercile}")
         # Even fractions avoiding the endpoints.
         fracs = [(k + 1) / (impacts_per_segment + 1)
                  for k in range(impacts_per_segment)]
@@ -197,7 +217,8 @@ def _write_gpx(rows: list[dict], path: Path) -> None:
 
 
 def render(boundary: Path, *, margin_m: float, seed: int, n_segments: int,
-           impacts_per_segment: int, authoritative: bool, out_dir: Path = _OUT_DIR):
+           impacts_per_segment: int, authoritative: bool, out_dir: Path = _OUT_DIR,
+           strata_path: Path | None = None):
     import geopandas as gpd
     import warnings
     warnings.filterwarnings("ignore")
@@ -222,9 +243,10 @@ def render(boundary: Path, *, margin_m: float, seed: int, n_segments: int,
     # Full 218-trail network (UTM) for SM-3 clearance — controls must clear ALL trails.
     trails_utm = list(trails.geometry.values)
 
+    strata_map = _load_strata_map(strata_path)
     rows, meta = build_plan(
         eligible, trails_utm, n_segments=n_segments,
-        impacts_per_segment=impacts_per_segment, seed=seed)
+        impacts_per_segment=impacts_per_segment, seed=seed, strata_map=strata_map)
 
     tag = "" if authoritative else "_PROVISIONAL"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -240,6 +262,8 @@ def render(boundary: Path, *, margin_m: float, seed: int, n_segments: int,
             "impacts_per_segment": impacts_per_segment,
             "boundary_authoritative": authoritative,
             "boundary_sha256": sha256_file(boundary),
+            "stratum_axis": "ecological_S1_S4" if strata_map else "sat_stress_tercile",
+            "strata_source": str(strata_path) if strata_path else None,
             "n_trails_total": len(trails),
             "n_eligible_madrid": int(eligible_mask.sum()),
             "n_plots": len(rows),
@@ -265,12 +289,16 @@ def main() -> None:
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--n-segments", type=int, default=12)
     p.add_argument("--impacts-per-segment", type=int, default=2)
+    p.add_argument("--strata", type=Path, default=None,
+                   help="A-4 ecological strata CSV (build_ecological_strata.py). "
+                        "When given, the stratum column carries S1–S4 instead of "
+                        "the interim satellite-stress tercile.")
     args = p.parse_args()
 
     csv_path, prov = render(
         args.boundary, margin_m=args.margin_m, seed=args.seed,
         n_segments=args.n_segments, impacts_per_segment=args.impacts_per_segment,
-        authoritative=args.boundary_authoritative)
+        authoritative=args.boundary_authoritative, strata_path=args.strata)
 
     pr = prov["params"]
     if not pr["boundary_authoritative"]:

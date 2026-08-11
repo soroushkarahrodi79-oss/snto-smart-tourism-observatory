@@ -30,7 +30,7 @@ Scope rule: **the minimum code required to execute the scientific plan.** No pro
 | **Risk** | Low for the geometry engine (validated). The jurisdiction determination is provisional and **must not be treated as settled** until IGN replaces the placeholder. |
 | **Changes scientific output?** | **No** — old template's void-contrast + wrong-universe rows removed, not silently mutated; `cets_readiness.count_measured_field_plots` stays 0. |
 
-> **Two follow-ups this leaves open, both owner-side:** (1) supply the **IGN Líneas Límite** Comunidad de Madrid polygon and re-run with `--boundary-authoritative` (`clean_assets/field_validation/reference/README.md` has the steps); (2) once **A-4** derives ecological strata (S1–S4), re-run so `stratum` carries the habitat×elevation band.
+> **Two follow-ups this leaves open, both owner-side:** (1) supply the **IGN Líneas Límite** Comunidad de Madrid polygon and re-run with `--boundary-authoritative` (`clean_assets/field_validation/reference/README.md` has the steps); (2) **A-4 engine is now built** (`scripts/paper1/build_ecological_strata.py`) — supply a **DEM** (Copernicus GLO-30 / IGN MDT05, both proxy-blocked here) to produce the S1–S4 strata table, then pass it to the planner via `--strata` so `stratum` carries the ecological band. Both follow-ups are blocked only on data unreachable from this build env, not on code.
 
 ### B-02 · Field schema: strict index, GPS accuracy, subplots 🔴
 
