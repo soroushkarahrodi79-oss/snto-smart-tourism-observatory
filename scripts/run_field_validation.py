@@ -53,40 +53,22 @@ log = logging.getLogger(__name__)
 
 _OUT_DIR = _ROOT / "clean_assets/field_validation"
 
-# Priority assets to visit first (issue #26): the two PNSG assets with a
-# significant NDVI trend. Coordinates from clean_assets/pnsg_assets.py. Each is
-# seeded with one impact plot (on the corridor) and one control plot (same
-# habitat, far from the trail); measurement columns stay blank.
-_PRIORITY_SEED: dict[str, list[dict]] = {
-    "pnsg": [
-        {"plot_id": "porrones_impact_1",
-         "asset_id": "pnsg_escalada_maliciosa_porrones",
-         "lat": 40.7405, "lon": -3.9251, "distance_to_trail_m": 0,
-         "is_control": "false", "stratum": "escalada-roquedo"},
-        {"plot_id": "porrones_control_1",
-         "asset_id": "pnsg_escalada_maliciosa_porrones",
-         "lat": 40.7405, "lon": -3.9251, "distance_to_trail_m": 80,
-         "is_control": "true", "stratum": "escalada-roquedo"},
-        {"plot_id": "nevero_impact_1",
-         "asset_id": "pnsg_vuelo_libre_el_nevero",
-         "lat": 40.983965, "lon": -3.836133, "distance_to_trail_m": 0,
-         "is_control": "false", "stratum": "vuelo-libre-pastizal"},
-        {"plot_id": "nevero_control_1",
-         "asset_id": "pnsg_vuelo_libre_el_nevero",
-         "lat": 40.983965, "lon": -3.836133, "distance_to_trail_m": 80,
-         "is_control": "true", "stratum": "vuelo-libre-pastizal"},
-    ],
-}
+# NOTE (Paper-1 B-01): the earlier priority seed placed impact and control
+# plots at IDENTICAL coordinates (a void-contrast bug — both would draw the same
+# satellite pixel) and used Universe-A crag/point assets, not the trail frame
+# frozen in Contract §F. Plot coordinates now come from the dedicated planner
+# ``scripts/paper1/generate_plot_plan.py`` (Madrid-filtered, snapped to the 20 m
+# support grid, SM-1…SM-3-validated). ``--init`` therefore writes a header-only
+# template and points there, rather than re-emitting fabricated seed rows.
 
 
 def _init(park: str) -> None:
-    seed = _PRIORITY_SEED.get(park, [])
-    if not seed:
-        log.warning("No hay activos prioritarios sembrados para '%s'.", park)
     path = _OUT_DIR / f"{park}_field_observations_template.csv"
-    write_template(path, seed)
-    log.info("Plantilla de registro → %s (%d filas semilla).", path, len(seed))
-    log.info("Rellena las columnas de medición en campo y ejecuta sin --init.")
+    write_template(path, [])
+    log.info("Plantilla (solo cabecera) → %s", path)
+    log.info("Para coordenadas reales de parcelas impacto/control usa: "
+             "python scripts/paper1/generate_plot_plan.py --boundary <limite> "
+             "(ver clean_assets/field_validation/reference/README.md).")
 
 
 def _render_report(park: str, observations: list, trends: list) -> str:

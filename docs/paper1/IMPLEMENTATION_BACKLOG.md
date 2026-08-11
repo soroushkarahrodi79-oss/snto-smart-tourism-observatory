@@ -18,17 +18,19 @@ Scope rule: **the minimum code required to execute the scientific plan.** No pro
 
 ## Priority 0 — Blocks the field campaign
 
-### B-01 · Regenerate the field campaign template with real, distinct plot coordinates 🟢
+### B-01 · Regenerate the field campaign template with real, distinct plot coordinates 🟢 ✅ **ENGINE DONE (2026-08-09); jurisdiction PROVISIONAL pending IGN boundary**
 
 | | |
 |---|---|
-| **Scientific reason** | The shipped template gives impact and control plots **identical coordinates** (both Porrones rows are `40.7405, -3.9251`). A field team cannot navigate to the control, and both plots would draw the same satellite cell — voiding the control–impact contrast by construction. It also has only 4 rows, and targets a climbing polygon and a paragliding point rather than trails. |
-| **Files** | `clean_assets/field_validation/pnsg_field_observations_template.csv` (regenerated) · `scripts/run_field_validation.py` (`--init`) · new `scripts/generate_plot_plan.py` |
-| **Depends on** | ✅ Contract §F frozen to F-1 (218 OAPN trails, 2026-08-09) · ✅ territorial scope confirmed Madrid-only (2026-08-09, `PNSG_RESEARCH_AUTHORIZATION_REQUEST.md` §1) · ✅ B-04 grid snapping (done 2026-08-09) |
-| **Acceptance criteria** | Segment pool **first filtered to the Comunidad de Madrid-administered sector using a real administrative boundary layer** (not the longitude heuristic used to justify the decision) · every plot has a distinct surveyed coordinate · every impact/control pair passes SM-1 (≥ 40 m, non-adjacent cells) · plots stratified by ecological stratum × satellite-stress tercile · exports GPX waypoints · records the generation seed and commit hash |
-| **Tests** | No two plots share a 20 m cell · every impact has exactly one control in the same stratum · all coordinates inside the park boundary · regeneration is deterministic given the seed |
-| **Risk** | Low. New artefact; the old template is superseded, not silently mutated |
-| **Changes scientific output?** | **No** |
+| **Scientific reason** | The shipped template gave impact and control plots **identical coordinates** (both Porrones rows `40.7405, -3.9251`) — void control–impact contrast — and targeted a climbing polygon and a paragliding point rather than trails. |
+| **Files** | `scripts/paper1/generate_plot_plan.py` (new engine) · `scripts/run_field_validation.py` (`--init` no longer emits the identical-coordinate seed; header-only + points to the planner) · `clean_assets/field_validation/pnsg_field_observations_template.csv` (reset header-only) · `clean_assets/field_validation/pnsg_plot_plan_PROVISIONAL.{csv,gpx,csv.provenance.json}` (generated plan) · `clean_assets/field_validation/reference/` (boundary + README) · `tests/unit/test_plot_plan.py` |
+| **Depends on** | ✅ Contract §F frozen to F-1 · ✅ Madrid-only scope · ✅ B-04 grid snapping |
+| **Acceptance criteria** | ⚠️ Segment pool filtered to the Madrid sector via a **real administrative boundary layer** (not the longitude heuristic) — done as a **pluggable** filter, but the committed boundary is Natural Earth 10m (**NON-AUTHORITATIVE, crest-inaccurate**; IGN Líneas Límite is unreachable from this build env — proxy blocks ign.es/GISCO/GADM/Overpass/npm CDNs). Output is `_PROVISIONAL` until `--boundary-authoritative` is passed with an IGN layer. · ✅ every plot has a distinct surveyed coordinate · ✅ every impact/control pair passes SM-1 · ✅ every control ≥ 100 m from all trails (SM-3) · ✅ no two plots share a 20 m cell (SM-2) · ⚠️ stratified by **satellite-stress tercile** now; ecological stratum (S1–S4) deferred to A-4 — the `stratum` column carries `sat_stress_{low,mid,high}`, honestly labelled · ✅ exports GPX · ✅ records seed + commit + boundary SHA-256 + per-plot cell id and control clearance |
+| **Tests** | 11 tests: distinct coordinates · SM-1/SM-2/SM-3 independently re-verified on the emitted plan · 1:1 stratum-matched pairing · deterministic given the seed · PROVISIONAL marking present/absent by the flag · GPX written · missing boundary fails loudly. Full suite: 1509 passed |
+| **Risk** | Low for the geometry engine (validated). The jurisdiction determination is provisional and **must not be treated as settled** until IGN replaces the placeholder. |
+| **Changes scientific output?** | **No** — old template's void-contrast + wrong-universe rows removed, not silently mutated; `cets_readiness.count_measured_field_plots` stays 0. |
+
+> **Two follow-ups this leaves open, both owner-side:** (1) supply the **IGN Líneas Límite** Comunidad de Madrid polygon and re-run with `--boundary-authoritative` (`clean_assets/field_validation/reference/README.md` has the steps); (2) once **A-4** derives ecological strata (S1–S4), re-run so `stratum` carries the habitat×elevation band.
 
 ### B-02 · Field schema: strict index, GPS accuracy, subplots 🔴
 
@@ -195,7 +197,7 @@ Extends the existing `tests/test_evidence_claims_sync.py` pattern to the manuscr
         ↓
 B-08 ✅, B-09(partial) ✅, B-06 ✅  ← safe, no dependencies, do first
         ↓
-B-04 ✅ → B-01              ← grid matching (done) must exist before plots are planned
+B-04 ✅ → B-01 ✅           ← engine done; jurisdiction provisional pending IGN boundary
         ↓
 B-02, B-03, B-05           ← must exist before the first field day
         ↓
@@ -214,7 +216,7 @@ B-09 (remaining figures), B-13, B-14
 
 | Item | Risk | Scientific-output-changing | Owner approval required |
 |---|---|---|---|
-| B-01 | Low | No | No — §F resolved |
+| B-01 | Low | No | No — ✅ engine done (jurisdiction provisional) |
 | B-02 | Medium | No (additive) | **Yes** (🔴 class) |
 | B-03 | Low | No | No |
 | B-04 | Medium | No | No — ✅ done |

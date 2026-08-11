@@ -72,6 +72,10 @@ clean_assets/gis_export/
 # --- Validación de campo: outputs generados (la plantilla sí se versiona) ---
 clean_assets/field_validation/*
 !clean_assets/field_validation/*_template.csv
+# Reference administrative boundary (input to scripts/paper1/generate_plot_plan.py)
+# is versioned; the generated *_plot_plan* outputs are NOT (regenerable, and the
+# jurisdiction is provisional until the IGN boundary lands).
+!clean_assets/field_validation/reference/
 
 # --- ArcGIS DEMO: registros locales y metadatos de cuenta -----------------
 arcgis/demo/pnsg/item-registry.local.yaml

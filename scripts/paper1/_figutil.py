@@ -74,8 +74,8 @@ def build_provenance(
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "commit_hash": git_commit_hash(),
         "inputs": {
-            name: {"path": str(Path(p).relative_to(_ROOT)) if _is_under_root(p)
-                   else str(p),
+            name: {"path": str(Path(p).resolve().relative_to(_ROOT))
+                   if _is_under_root(p) else str(p),
                    "sha256": sha256_file(p)}
             for name, p in inputs.items()
         },

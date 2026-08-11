@@ -72,8 +72,10 @@ Classifies every dataset Paper 1 might touch into four bands, and states for eac
 | Measures | Vegetation community; elevation, slope, aspect |
 | **Target or proxy?** | **Target** for stratum definition |
 | Limitations | Polygon boundaries are generalised; a plot near a boundary may be misassigned — record the distance to the nearest boundary and use it in sensitivity analysis |
-| Current state | **PARTIAL** — the fetch path exists; the layer is not committed and strata are not yet derived |
+| Current state | **PARTIAL** — the fetch path exists; the layer is not committed and strata are not yet derived. B-01's plot planner therefore stratifies by **satellite-stress tercile** as an interim axis; the ecological stratum (S1–S4) is filled once this lands. |
 | Blocking | **Yes** for the stratified design (the strata must be defined *before* site selection, from cartography, not from the satellite signal) |
+
+> **Related blocker found building B-01 (2026-08-09):** the **IGN Líneas Límite** administrative boundary needed to filter trails to the Madrid sector is **unreachable from this build environment** — the outbound proxy blocks `ign.es`, Eurostat GISCO, GADM, the Overpass API, and every npm CDN, reaching only `raw.githubusercontent.com`. The only boundaries obtainable there are cartographic-scale (Natural Earth 10m, click_that_hood) and **misplace the CM/Castilla y León crest border by kilometres — exactly where the trail network sits** (they mark ~160/218 trails "outside Madrid", including unambiguously-Madrid ones). B-01's Madrid filter is therefore **pluggable and provisional**: it ships with the Natural Earth placeholder (clearly labelled non-authoritative) and the plan is `_PROVISIONAL` until the owner supplies the IGN layer and re-runs with `--boundary-authoritative`. See `clean_assets/field_validation/reference/README.md`.
 
 ### A-5 · GPS positions with recorded accuracy
 
