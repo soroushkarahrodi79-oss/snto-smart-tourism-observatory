@@ -25,11 +25,13 @@ FIELDNAMES = [
     "plot_id", "asset_id", "lat", "lon", "distance_to_trail_m", "is_control",
     "soil_compaction_mpa", "veg_cover_pct", "erosion_class", "trail_width_m",
     "visitor_count", "photo_ref", "stratum", "observed_at",
+    # Paper-1 additions (B-02); appended so existing CSVs still parse unchanged.
+    "gps_accuracy_m", "subplot_id", "bare_soil_pct", "observer_id", "notes",
 ]
 
 _FLOAT_COLS = {
     "lat", "lon", "distance_to_trail_m", "soil_compaction_mpa",
-    "veg_cover_pct", "trail_width_m",
+    "veg_cover_pct", "trail_width_m", "gps_accuracy_m", "bare_soil_pct",
 }
 _INT_COLS = {"erosion_class", "visitor_count"}
 
@@ -74,6 +76,11 @@ def load_field_observations(path: str | Path) -> list[FieldObservation]:
                 photo_ref=(row.get("photo_ref") or "").strip() or None,
                 stratum=(row.get("stratum") or "").strip() or None,
                 observed_at=(row.get("observed_at") or "").strip() or None,
+                gps_accuracy_m=_num(row.get("gps_accuracy_m", ""), float),
+                subplot_id=(row.get("subplot_id") or "").strip() or None,
+                bare_soil_pct=_num(row.get("bare_soil_pct", ""), float),
+                observer_id=(row.get("observer_id") or "").strip() or None,
+                notes=(row.get("notes") or "").strip() or None,
             ))
     return out
 

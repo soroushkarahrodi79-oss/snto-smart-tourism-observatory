@@ -32,17 +32,18 @@ Scope rule: **the minimum code required to execute the scientific plan.** No pro
 
 > **Two follow-ups this leaves open, both owner-side:** (1) supply the **IGN Líneas Límite** Comunidad de Madrid polygon and re-run with `--boundary-authoritative` (`clean_assets/field_validation/reference/README.md` has the steps); (2) **A-4 engine is now built** (`scripts/paper1/build_ecological_strata.py`) — supply a **DEM** (Copernicus GLO-30 / IGN MDT05, both proxy-blocked here) to produce the S1–S4 strata table, then pass it to the planner via `--strata` so `stratum` carries the ecological band. Both follow-ups are blocked only on data unreachable from this build env, not on code.
 
-### B-02 · Field schema: strict index, GPS accuracy, subplots 🔴
+### B-02 · Field schema: strict index, GPS accuracy, subplots 🔴 ✅ **DONE (2026-08-10, owner-approved)**
 
 | | |
 |---|---|
 | **Scientific reason** | Three defects. (a) `degradation_index()` averages *whatever components are present*, so a 1-component and a 3-component index are placed on incommensurable scales yet compared as equals. (b) No GPS accuracy field exists, so exclusion rule L-1 is unenforceable. (c) No subplot structure exists, so the 5-subplot aggregation the spatial protocol requires cannot be recorded. |
 | **Files** | `src/validation/field.py` · `src/validation/io.py` · `tests/unit/test_validation.py` |
 | **Design** | Add `degradation_index_strict()` returning `None` unless all three core components are present — **as a new method**. The existing permissive `degradation_index()` is **unchanged** so no product output moves. Add `gps_accuracy_m`, `subplot_id`, `bare_soil_pct`, `observer_id`, `notes`. Paper 1 uses `_strict` exclusively (Contract §H). |
-| **Acceptance criteria** | Existing method byte-identical in behaviour · new method returns `None` on any missing core component · CSV round-trips all new columns · blanks still load as `None`, never 0 |
-| **Tests** | Strict returns `None` for each single-missing-component case · permissive method's existing tests pass unchanged · round-trip preserves `None` |
-| **Risk** | **Medium** — touches the module that defines the scientific outcome variable |
-| **Changes scientific output?** | **No, if implemented as specified** (additive method). It is classified 🔴 because a careless implementation that modified the existing method *would* change output. The before/after comparison must demonstrate the existing method is untouched. |
+| **Acceptance criteria** | ✅ Existing method byte-identical — `degradation_index()` source SHA `24a969f9…` unchanged before/after; outputs `[100.0, 0.0, 60.0, 58.33, None]` pinned by a regression test · ✅ `degradation_index_strict()` returns `None` on any missing core component (compaction/cover/erosion) · ✅ CSV round-trips all 5 new columns · ✅ blanks load as `None`, never 0 · ✅ old CSVs without the new columns still load |
+| **Tests** | 10 tests in `test_validation.py`: permissive outputs pinned; strict `None` for each single-missing case; strict == permissive when complete; new-column round-trip + blanks→None; old-CSV backward-compat; FIELDNAMES additive-not-reordered. Product paths (cets_readiness, field_agreement, confusion, persistence ingest) unchanged. Full suite: 1534 passed |
+| **Before/after** | `git diff` = **34 insertions, 1 deletion** (the one deletion extends `_FLOAT_COLS` in place to parse the two new float columns; no existing column's behaviour removed). `degradation_index()` body: **zero deletions**. |
+| **Risk** | **Medium** — touches the module that defines the scientific outcome variable. Mitigated: strictly additive, permissive method proven byte-identical, product paths stay on the permissive method. |
+| **Changes scientific output?** | **No** — additive only. `degradation_index_strict()` is used by Paper-1 analysis (Contract §H); every existing product path keeps using the unchanged permissive `degradation_index()`. |
 
 ### B-03 · Field data QA runner 🟢
 
@@ -217,7 +218,7 @@ B-09 (remaining figures), B-13, B-14
 | Item | Risk | Scientific-output-changing | Owner approval required |
 |---|---|---|---|
 | B-01 | Low | No | No — ✅ engine done (jurisdiction provisional) |
-| B-02 | Medium | No (additive) | **Yes** (🔴 class) |
+| B-02 | Medium | No (additive) | ✅ owner-approved, done 2026-08-10 |
 | B-03 | Low | No | No |
 | B-04 | Medium | No | No — ✅ done |
 | B-05 | Low | No (default preserved) | **Yes** (🔴 class) |
@@ -228,4 +229,4 @@ B-09 (remaining figures), B-13, B-14
 | B-13 | Low | No | No |
 | B-14 | Low | No | No |
 
-**Two items (B-02, B-05) carry the 🔴 classification and require explicit owner approval before implementation**, in both cases because a careless implementation could change existing scientific output even though the specified implementation does not. Both are specified as strictly additive, and both carry a regression test asserting the existing path is byte-identical.
+**Two items (B-02, B-05) carry the 🔴 classification and require explicit owner approval before implementation**, in both cases because a careless implementation could change existing scientific output even though the specified implementation does not. Both are specified as strictly additive, and both carry a regression test asserting the existing path is byte-identical. **B-02 is done (2026-08-10, owner-approved)** — implemented additively with the permissive method proven byte-identical (source SHA + pinned outputs). **B-05 (mandatory SCL masking flag) remains** — same additive discipline applies when it is built.

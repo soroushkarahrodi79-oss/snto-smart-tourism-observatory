@@ -53,6 +53,12 @@ class FieldObservation:
     photo_ref: Optional[str] = None
     stratum: Optional[str] = None                  # habitat / altitude band
     observed_at: Optional[str] = None              # ISO date
+    # ── Paper-1 additions (B-02), all optional, all additive ────────────────
+    gps_accuracy_m: Optional[float] = None         # GNSS accuracy (m); Contract L-1 excludes > 5 m
+    subplot_id: Optional[str] = None               # subplot within the 20 m plot (SPATIAL_MATCHING_PROTOCOL.md §3)
+    bare_soil_pct: Optional[float] = None          # 0-100; recorded, NOT part of the composite index
+    observer_id: Optional[str] = None              # for inter-observer repeatability
+    notes: Optional[str] = None                    # e.g. "compaction: bedrock" — reason for a blank
 
     def degradation_index(self) -> Optional[float]:
         """Composite field degradation 0-100 (stress convention), or None.
@@ -74,6 +80,26 @@ class FieldObservation:
         if not components:
             return None
         return round(sum(components) / len(components), 2)
+
+    def degradation_index_strict(self) -> Optional[float]:
+        """Composite field degradation 0-100, defined ONLY when all three core
+        components (compaction, cover, erosion) are present; else ``None``.
+
+        Paper 1 uses this exclusively (Contract §H). Rationale: an index built
+        from one component is not on the same 0-100 scale as one built from
+        three, so :meth:`degradation_index` (the permissive product method,
+        which averages whatever is present) silently makes incommensurable
+        plots look comparable. The strict variant treats a partial index as
+        **missing** rather than averaging it. It is deliberately additive: the
+        permissive method is unchanged, so no existing product output moves —
+        ``bare_soil_pct`` is recorded but, per Contract §H, is not a component
+        of the composite.
+        """
+        if (self.soil_compaction_mpa is None
+                or self.veg_cover_pct is None
+                or self.erosion_class is None):
+            return None
+        return self.degradation_index()
 
 
 def split_impact_control(

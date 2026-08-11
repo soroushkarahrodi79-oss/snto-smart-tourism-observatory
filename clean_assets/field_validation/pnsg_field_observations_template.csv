@@ -1,1 +1,1 @@
-plot_id,asset_id,lat,lon,distance_to_trail_m,is_control,soil_compaction_mpa,veg_cover_pct,erosion_class,trail_width_m,visitor_count,photo_ref,stratum,observed_at
+plot_id,asset_id,lat,lon,distance_to_trail_m,is_control,soil_compaction_mpa,veg_cover_pct,erosion_class,trail_width_m,visitor_count,photo_ref,stratum,observed_at,gps_accuracy_m,subplot_id,bare_soil_pct,observer_id,notes
