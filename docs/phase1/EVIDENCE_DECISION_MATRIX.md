@@ -4,32 +4,37 @@
 Answers one question: *given an evidence combination, what is SNTO actually
 allowed to do?* Then audits current product surfaces against the answer.
 
-Legend for uses: **M** monitor/context · **F** flag & prioritize investigation ·
-**Rn** recommend non-restrictive action · **Rr** recommend restrictive action ·
-**P** public/institutional reporting · **E** evaluate effectiveness · **C** claim
-causality/regeneration. ✅ authorized · 🟡 authorized *with explicit label* · ⛔
-prohibited.
+Legend for uses: **M** monitor/context · **F** flag & prioritize investigation/
+inspection · **R5a** recommend monitoring/inspection · **R5b** recommend a
+resource-committing intervention · **Rr** recommend a restrictive action
+(closure/quota) · **P** public/institutional reporting · **E** evaluate
+effectiveness · **C** claim causality/regeneration. ✅ authorized · 🟡 authorized
+*with explicit label* · ⛔ prohibited.
 
 ## 1. Evidence combination → authorized use
 
-| Evidence combination | M | F | Rn | Rr | P | E | C | Max ladder |
-|---|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
-| **Sentinel REAL only** (today's PNSG state) | ✅ | ✅ | ✅ | ⛔ | 🟡 | ⛔ | ⛔ | L5 |
-| Sentinel REAL + CALIBRATED climate | ✅ | ✅ | ✅ | ⛔ | 🟡 | ⛔ | ⛔ | L5 |
-| Sentinel REAL + MITMA municipal mobility | ✅ (macro only) | ✅ | ✅ | ⛔ | 🟡 | ⛔ | ⛔ | L5 |
-| Sentinel REAL + **real** visitor pressure (asset-level) | ✅ | ✅ | ✅ | ⛔ | 🟡 | ⛔ | ⛔ | L5 |
-| Simulated SCM + REAL EHS | 🟡 (hypothesis) | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | L2 (hypothesis) |
-| Visitor pressure **without** ecological observation | 🟡 (context) | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | L1 |
-| Synthetic fixture only | 🟡 (demo) | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | L0 |
-| Real intervention record + post-intervention REAL satellite (no field) | ✅ | ✅ | ✅ | ⛔ | 🟡 | ⛔ | ⛔ | L5 (not L6 — field missing) |
-| **Full: before/after + pressure + complete mgmt record + field (#26)** | ✅ | ✅ | ✅ | 🟡 (with owner policy) | ✅ | ✅ | ✅ | L7 |
+| Evidence combination | M | F | R5a | R5b | Rr | P | E | C | Max ladder |
+|---|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| **Sentinel REAL only** (today's PNSG state) | ✅ | ✅ | ✅ | ⛔ | ⛔ | 🟡 | ⛔ | ⛔ | L5a |
+| Sentinel REAL + CALIBRATED climate | ✅ | ✅ | ✅ | ⛔ | ⛔ | 🟡 | ⛔ | ⛔ | L5a |
+| Sentinel REAL + MITMA municipal mobility | ✅ (macro only) | ✅ | ✅ | ⛔ | ⛔ | 🟡 | ⛔ | ⛔ | L5a |
+| Sentinel REAL + **real** asset-level visitor pressure | ✅ | ✅ | ✅ | ⛔ | ⛔ | 🟡 | ⛔ | ⛔ | L5a |
+| Simulated SCM + REAL EHS | 🟡 (hypothesis) | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | L2 (hypothesis) |
+| Visitor pressure **without** ecological observation | 🟡 (context) | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | L1 |
+| Synthetic fixture only | 🟡 (demo) | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | L0 |
+| Real intervention record + post-intervention REAL satellite (**no field**) | ✅ | ✅ | ✅ | ⛔ | ⛔ | 🟡 | ⛔ | ⛔ | L5a (not L6 — no comparator/field) |
+| **Full: before/after + comparator + pressure + complete mgmt record + field (#26)** | ✅ | ✅ | ✅ | ✅ | 🟡 (with owner policy) | ✅ | ✅ | ✅ | L7 |
 
 **Key results (acceptable non-answers):**
-- With Sentinel REAL alone, **effectiveness and causality are not authorized** —
-  "not enough evidence" is the correct output.
+- With Sentinel REAL alone, the ceiling is **L5a**: recommend monitoring/
+  inspection. Recommending a **resource-committing** intervention (R5b) is **not**
+  authorized on satellite alone — even non-restrictive ones — and **effectiveness
+  and causality are not authorized** ("not enough evidence" is the correct output).
 - **Restrictive** recommendations (Rr) are never authorized below the full row,
   and even there require explicit owner policy sign-off.
 - Municipal MITMA never upgrades a claim to trail-level pressure.
+- A before/after change **without a comparator** is only an L2 observation, never
+  L6 effectiveness.
 
 ## 2. Current product-surface audit against the contract
 
@@ -50,16 +55,19 @@ contract / overclaim · **GREY** — future capability, no evidence.
 | EHS / satellite trends | 🟢 GREEN | REAL, with valid-pixel accounting; Mann-Kendall p-values shown |
 | SCM (spatial causal model) | 🟡 AMBER | Runs **simulated α-decay**; labelled "Hipótesis causal" + "no es medición causal ni una causa confirmada" — correct, but depends on that label never being dropped |
 | Visual Change Explorer / temporal GIF | 🟡 AMBER | REAL imagery; must keep "visual change ≠ validated impact" framing |
-| Visitor-pressure readiness | 🟡 AMBER | Correctly `INSUFFICIENT_EVIDENCE`; AMBER only because no real feed yet |
+| Visitor-pressure readiness | 🟡 AMBER | Correctly `INSUFFICIENT_EVIDENCE`; AMBER only because no real *target* feed yet |
 | Synthetic fixtures | 🟢 GREEN | Classified `SYNTHETIC`; decision gates block them (Phase 0.5E) |
-| "Economía Regenerativa" (socioeconomic tab title) | 🟡 AMBER | A socioeconomic *framing* label, not an evaluated ecological outcome — keep it clearly scoped to SVI/jobs, never adjacent to a satellite-change claim |
-| Effectiveness / regenerative-outcome evaluation | ⚪ GREY | Not built; L6–L7 blocked by #26 + pillars 1&3 |
+| **TIS / intervention euro-efficiency verdict** | 🔴 **RED-RISK** | Register item **C-10 (OVERSTATED)**: a benefit-per-euro verdict derived from unsourced SIMULATED elasticity constants. Owner decision Q-05 declares the coefficients illustrative-only; **the live UI text must be re-verified** to ensure it does not present them as observed/forecast effect. Not fixable in this docs PR — tracked as a corrective follow-up. |
+| "Economía Regenerativa" (socioeconomic tab title) | 🟡 AMBER | A socioeconomic *vision framing* label (SVI/jobs), not an evaluated ecological outcome — borderline; recommend a scope caveat or rename so a standing header is not read as a regeneration claim |
+| Effectiveness / regenerative-outcome evaluation | ⚪ GREY | Not built; L6–L7 blocked by #26 + Pillars 1&3 |
 | Management-response record | ⚪ GREY | Schema stub only; recording contract is WP-3 |
 
-**No RED surfaces found.** SNTO's current surfaces do not imply more than the
-evidence supports. The three AMBERs are *label-dependent*, not overclaiming
-today; they are tracked as follow-ups, not blockers, and none requires a code
-change in Phase 1.0.
+**One RED-RISK surface (corrected from the initial "no RED" finding).** The TIS
+euro-efficiency verdict (C-10) is a pre-existing `OVERSTATED` claims-register item
+whose live UI text must be re-verified against this contract; because that is a
+**runtime-text** issue it is out of scope for this docs-only PR and is logged as a
+corrective follow-up (candidate WP), **not** downgraded to AMBER to avoid the work.
+The remaining AMBERs are label-dependent, not overclaiming today.
 
 ## 3. What cannot currently be authorized (explicit)
 

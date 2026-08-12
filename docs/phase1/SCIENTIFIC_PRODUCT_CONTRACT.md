@@ -65,10 +65,26 @@ Canonical and already implemented in `src/platform/evidence.py`
 | **SYNTHETIC** | Authored demo/fixture data | nothing above L0 (demo only) |
 | **MISSING** | Expected datum absent — declared `null`, never filled | nothing; records absence |
 
-Two related axes remain distinct on purpose: `DataType` (epistemic operation:
-Observed/Calculated/Estimated/Simulated) and `DataStatus` (temporal trust tier).
-A **Calculated** value inherits the class of its inputs and is never collapsed to
-a single class.
+### Two orthogonal axes (do not conflate)
+
+Provenance is **not** the same as epistemic operation. A datum has *both*:
+
+- **Axis 1 — Source / provenance** (the table above): REAL / CALIBRATED /
+  SIMULATED / SYNTHETIC / MISSING. Implemented as `EvidenceClass`.
+- **Axis 2 — Epistemic transformation:** OBSERVED / DERIVED / MODELLED /
+  HYPOTHESIZED. Partly implemented as `DataType`
+  (Observed/Calculated/Estimated/Simulated); `DataStatus` is the temporal trust
+  tier. **No new enum is added by Phase 1** — this is a documentation-level
+  clarification; wiring is out of scope.
+
+**Critical consequence: `REAL` does not mean "observed."** Sentinel-2 L2A
+surface reflectance and official cartography are REAL **and** OBSERVED. NDVI /
+NDMI / **EHS** are REAL-provenance but **DERIVED** (a documented transform of
+observations). SCM output is SIMULATED **and** MODELLED/HYPOTHESIZED. This
+matters for the ladder: an OBSERVED value may support L1; a DERIVED value enters
+at **L2**, never L1; a MODELLED/HYPOTHESIZED value is capped at an L2 *hypothesis*
+display. A **Calculated/derived** value inherits the *source class* of its inputs
+and is never collapsed to a single class.
 
 ---
 
@@ -77,21 +93,56 @@ a single class.
 Authoritative table lives in ADR-016 and machine-readable form in
 [`claim_ladder.json`](claim_ladder.json). Summary:
 
-- **L0 Availability** → any class.
-- **L1 Observation / L2 Derived / L3 Association** → **REAL** inputs; L3 needs
-  ≥2 REAL series and declared statistics. No causal language below L7.
-- **L4 Decision-support signal** (flag / prioritize investigation) → REAL, or
-  CALIBRATED strictly as labelled context.
-- **L5 Management recommendation** → REAL state + explicit uncertainty;
-  **non-restrictive actions only** (monitor/inspect/maintain). Restrictive
-  actions (closure/quota/access limit) are **not** authorized here.
-- **L6 Effectiveness assessment** → REAL before/after **+ a complete management
-  record** (§F pillar 3) **+ field validation**. **Blocked today.**
-- **L7 Causal attribution / evaluated regenerative outcome** → BACI field
-  validation (#26 pre-registration: Cliff's δ ≥ 0.474 p<0.01; Spearman ρ ≥ 0.60).
-  **Blocked today.**
+- **L0 Availability** → any class. Authorizes nothing.
+- **L1 Observation** → REAL **and OBSERVED** (Sentinel L2A reflectance, official
+  cartography). Derived indices are **not** L1.
+- **L2 Derived condition** → REAL-provenance **DERIVED** (NDVI/NDMI/**EHS**);
+  requires a documented transform, quality metadata, and valid provenance. A
+  MODELLED/HYPOTHESIZED value (SCM) is capped at an L2 *hypothesis* display.
+- **L3 Association** → ≥2 *measured* variables, temporal/spatial alignment, an
+  explicit statistical method, and uncertainty. (Minimum plot count is the
+  *tracked field convention* — ≥3 co-located plots, `field_agreement.py` — cited,
+  not invented here.) No causal language.
+- **L4 Decision-support signal** → flag / monitor / **prioritize investigation &
+  field inspection only**. Explicitly **not**: prioritize a physical
+  intervention, allocate budget, or restrict access. REAL, or CALIBRATED strictly
+  as labelled context.
+- **L5a Observational recommendation** → recommend monitoring / inspection /
+  field verification. REAL state + explicit uncertainty. **← current ceiling.**
+- **L5b Committing recommendation** → recommend a **resource-committing**
+  intervention (restoration/maintenance/redistribution) **or** a **restrictive**
+  action (closure/quota/access limit). **Blocked:** needs ≥L6-grade evidence;
+  the restrictive sub-type additionally needs explicit owner policy.
+- **L6 Effectiveness assessment** → complete management record (§F) + pre/post
+  REAL + temporal alignment + a **comparator/counterfactual** + **confounder
+  discussion** + field + uncertainty. *A bare before/after change is only L2, not
+  L6.* **Blocked today.**
+- **L7 Causal attribution (high-confidence, BACI-supported)** →
+  quasi-experimental attribution under **stated assumptions**; requires L6 +
+  control/impact design + assumption/confounder treatment + the **approved
+  field-validation pre-registration** (see §I). Not proof; **no mechanical
+  `BACI + p-value = causality` rule.** **Blocked today.**
 
-**SNTO operates at L1–L4 today; L5 for non-restrictive recommendations only.**
+**No numeric agreement threshold (ρ, κ, p, DI) is canonized as product policy** —
+those belong to the field-validation protocol/pre-registration, not the product
+contract (see §I and the threshold-provenance note there).
+
+### Current maturity map (do not give the product its strongest component's level)
+
+| Surface | Reached level | Note |
+|---|---|---|
+| Ecosystem state observation | L1 | REAL+OBSERVED reflectance/cartography |
+| EHS / NDVI condition | L2 | REAL-provenance DERIVED |
+| Multi-year trend association | L3 | REAL series + Mann-Kendall + p-value |
+| Flag / prioritize investigation | L4 | early-warning only |
+| Monitoring / inspection recommendation | L5a | **product ceiling today** |
+| SCM causal layer | L2 (hypothesis) | SIMULATED+HYPOTHESIZED, labelled |
+| Visitor pressure | L0 (L1 context via MITMA) | `INSUFFICIENT_EVIDENCE` target |
+| Management response | L0 | schema stub |
+| Effectiveness / regeneration | — | blocked (L6/L7) |
+
+**SNTO contains capabilities spanning L1–L4 and L5a; no surface exceeds this, and
+several (pressure, management response) are at L0.**
 
 ---
 
@@ -105,16 +156,38 @@ enforcement point; the *combination* gate is in
 |---|---|---|
 | Monitor / contextualise | REAL or CALIBRATED (labelled) | L1–L2 |
 | Flag / prioritize investigation / field inspection | REAL (CALIBRATED as context) | L4 |
-| Recommend non-restrictive action | REAL state + uncertainty | L5 |
-| Recommend restrictive action | **not authorized** (needs ≥L6 + owner policy) | — |
-| Public / institutional reporting | REAL only, with caveats; never "validated" | ≤ L4/L5 |
-| Evaluate effectiveness | REAL before/after + complete mgmt record + field | L6 (blocked) |
-| Claim causality / regeneration | BACI + field (#26) | L7 (blocked) |
+| Recommend monitoring / inspection | REAL state + uncertainty | L5a |
+| Recommend resource-committing intervention | **not authorized** (needs ≥L6) | L5b (blocked) |
+| Recommend restrictive action (closure/quota) | **not authorized** (needs ≥L6 + owner policy) | L5b (blocked) |
+| Public / institutional reporting | REAL only, with caveats; never "validated" | ≤ L4/L5a |
+| Evaluate effectiveness | complete mgmt record + pre/post REAL + comparator + field | L6 (blocked) |
+| Claim causality / regeneration | L6 + control/impact + approved pre-registration | L7 (blocked) |
 | Any use of SIMULATED/SYNTHETIC | demo/scenario exploration only | L0 |
+
+> **Refinement vs implementation (item to reconcile in WP-2):** `evidence.py`
+> currently exposes a single coarse `DecisionUse.INTERVENTION` that REAL
+> satisfies — it conflates *"order a field inspection"* (low-regret, L4/L5a) with
+> *"commit intervention budget"* (L5b). This contract is deliberately **stricter**
+> on the latter: recommending a resource-committing intervention needs ≥L6
+> evidence, not REAL satellite alone. WP-2 splits the code's `INTERVENTION` use to
+> match. No current surface issues an autonomous budget-commit recommendation, so
+> this refinement blocks nothing today.
 
 ---
 
-## F. Four-pillar contract
+## F. Pillar contract (DPSIR: three evidence pillars + one evaluation layer)
+
+The four "pillars" are **not** four symmetric evidence sources. Three are
+evidence pillars; the fourth is an **evaluation layer** computed from them:
+
+```
+Visitor Pressure  →  Ecosystem State  →  Management Response   (evidence pillars)
+                          └────────────── Regenerative Outcome  (evaluation layer)
+```
+
+Regenerative Outcome has **no independent data source** — it is an interpretation
+derived from the three pillars plus a comparator, and is **out of scope for Phase
+1** (see below).
 
 ### Pillar 1 — Visitor Pressure
 - **Minimum data:** a traceable, real, time-stamped pressure series (counts /
@@ -123,11 +196,18 @@ enforcement point; the *combination* gate is in
 - **Current status:** `INSUFFICIENT_EVIDENCE` ("Decision C"). Only a curated
   annual capacity *proxy* exists; the MITMA crosswalk is committed but the
   snapshot has never been generated (`mobility_real=False`).
-- **Target status:** ≥ `PARTIALLY_READY` on one real feed → enables L4 pressure
-  context (never trail footfall from municipal data).
-- **Validation requirement:** none to *hold* data; a real series to *use* it.
-- **Permitted outputs:** with no real data → none beyond declaring the gap. With
-  MITMA → macro-territorial context only.
+- **Target status:** the **pressure-target-variable** gate (`ReadinessStatus`)
+  changes only with a real, traceable **asset/park-level** count series. **MITMA
+  municipal mobility does NOT satisfy this gate** — a municipal inbound-trip
+  count is not trail footfall, so ingesting it leaves readiness at
+  `INSUFFICIENT_EVIDENCE` for the *target* while adding L4 **macro-context** only.
+  A technically-real dataset can be scientifically unsuitable as the target
+  variable; calibration from municipal trips to park/trail pressure is an open
+  research problem, not a wiring task.
+- **Validation requirement:** none to *hold* data; a real asset-level series to
+  *use* it as a pressure target.
+- **Permitted outputs:** with no real target series → none beyond declaring the
+  gap. With MITMA → macro-territorial context only, never a pressure figure.
 
 ### Pillar 2 — Ecosystem State
 - **Minimum data:** Sentinel-2 L2A observation with valid-pixel accounting.
@@ -141,30 +221,39 @@ enforcement point; the *combination* gate is in
   causal *hypothesis* display only.
 
 ### Pillar 3 — Management Response
-- **Minimum data (recording contract, currently missing):** per intervention —
-  *what, where (asset/geometry), when, who authorized, cost, duration, target,
-  intended effect, completion status*, linked to the triggering recommendation
-  and to the asset.
+- **Minimum data (recording contract, currently missing).** The scientifically
+  usable record per intervention (full field set specified in WP-3): intervention
+  id; asset; spatial footprint; decision date; implementation start/end;
+  intervention type; authorized by; target pressure/state; intended mechanism;
+  planned cost; actual cost; completion state; monitoring window; evidence links;
+  and the triggering recommendation. *Planned vs actual cost are distinct fields;
+  a single `budget_eur` cannot support effectiveness reasoning.*
 - **Current status:** `interventions` table is a **thin stub** (asset_id,
-  status, budget_eur, started_at, resolved_at) and unpopulated; the required
-  fields above are absent. No scientifically usable management record exists.
+  status, budget_eur, started_at, resolved_at) and unpopulated; the fields above
+  are absent. No scientifically usable management record exists.
 - **Target status:** a defined recording contract (schema spec — WP-3) so that
   L6 becomes *possible* once real records + real before/after exist.
 - **Validation requirement:** completeness of the record itself; field for L6.
 - **Permitted outputs:** none as evidence today; TIS/scenarios remain SIMULATED
-  projections.
+  projections and must never be presented as observed or forecast effect.
 
-### Pillar 4 — Regenerative Outcome
-- **Minimum data:** the full chain `pressure → state → intervention →
-  post-intervention REAL change → attribution/confidence`, with field BACI.
-- **Current status:** **no chain exists.** "Improved NDVI" is **not** treated as
-  regenerative. "Economía Regenerativa" appears only as a *socioeconomic framing*
-  label in one tab, not as an evaluated outcome.
-- **Target status:** aspiration only in Phase 1; unlocking requires pillars 1&3
-  **and** #26.
-- **Validation requirement:** L7 (BACI, pre-registered thresholds).
-- **Permitted outputs:** none. The term "regenerative outcome" may not be used as
-  an evaluated result until L7 conditions are met.
+### Evaluation layer — Regenerative Outcome (not an independent pillar)
+- **What it is NOT.** None of the following, alone, is regeneration: NDVI
+  increased; EHS improved; a visitor count decreased; an intervention was
+  completed. Each is at most an L2 observation of change.
+- **Minimum conceptual chain (all links required):**
+  `pressure → ecosystem state → management response → observed post-response
+  state → counterfactual/comparator → uncertainty → regenerative interpretation`.
+- **Current status:** **no link of the chain past "state" is instrumented.** The
+  string "Economía Regenerativa" appears only as a *socioeconomic-vision framing*
+  in one tab (SVI/jobs) — not an evaluated ecological outcome (audited AMBER, §
+  matrix).
+- **Target status:** **out of scope for Phase 1** — it depends on Pillars 1 & 3
+  *and* #26, none of which is satisfied. Stated here as a boundary, not a
+  deliverable.
+- **Permitted outputs:** none. "Regenerative outcome" may not be used as an
+  evaluated result. This is a scientific scoping, not a normative definition of
+  "regenerative"; any normative definition is deferred to the owner.
 
 ---
 
@@ -195,11 +284,33 @@ surfaces must additionally state the #26 gate explicitly.
 1. **Field validation (#26)** — the only open Issue. Blocks L6–L7, all
    satellite↔field agreement claims, and any "validated"/"regenerative
    outcome"/causal language. **Not to be closed, weakened, or worked around.**
-2. **Visitor-pressure readiness** — `INSUFFICIENT_EVIDENCE` until one real,
-   traceable series passes the temporal policy. No forecasting/ML before then.
+2. **Visitor-pressure readiness** — `INSUFFICIENT_EVIDENCE` for the pressure
+   *target variable* until a real, traceable asset/park-level series passes the
+   temporal policy. MITMA context does not lift this. No forecasting/ML before then.
 3. **Management-response completeness** — L6 blocked until the recording contract
    exists and real, complete records are captured.
-4. **Regenerative-outcome** — L7 blocked until 1–3 and BACI are satisfied.
+4. **Regenerative-outcome** — blocked until 1–3 and a comparator/counterfactual
+   are satisfied.
+
+### Threshold-provenance rule (why no ρ/κ/p/DI number is policy here)
+
+The pass/fail *numbers* for satellite↔field agreement are **field-validation
+protocol** parameters, **not product-authorization policy**, and this contract
+**does not canonize them**. Provenance audit (2026-08-12):
+
+| Number | Tracked source | Status |
+|---|---|---|
+| Cliff's δ = 0.474 | `src/validation/agreement.py` (Romano et al. 2006) | tracked *effect-size label* — may be cited, is **not** a causal gate |
+| Spearman ρ ≥ 0.60 | none (tracked display gate is ρ≥0.3) | **not canonized** — untracked origin |
+| Cohen's κ ≥ 0.60 | none (no kappa in tracked code) | **not canonized** |
+| p < 0.01 | none (`agreement.py` computes no p-values) | **not canonized** |
+| DI ≥ 50 | none | **not canonized** |
+
+**Gate wording for L6/L7:** *"must satisfy the approved, tracked field-validation
+protocol (`docs/field_validation_protocol.md`) and the campaign's pre-registration
+when #26 runs."* The pre-registration (an uncommitted `docs/paper1/` draft by
+another agent) is **not canonical** until the owner commits and approves it; no
+number from it is adopted as policy here.
 
 ---
 

@@ -20,11 +20,14 @@ conservative posture already implemented across `src/platform/evidence.py`,
 
 ## Answers in under five minutes (multi-agent operating contract)
 - **What phase are we in?** Phase 1.0 — Scientific & Product Contract.
-- **What is allowed?** L1–L4 today (L5 for *non-restrictive* recommendations
-  only). See the matrix.
-- **What is blocked?** Effectiveness (L6), causality/regeneration (L7),
-  restrictive recommendations, "validated"/"regenerative outcome" language —
-  gated on #26 field validation and Pillars 1 & 3.
+- **What is allowed?** L1–L4, plus **L5a** (monitoring / inspection
+  recommendations). That is the product ceiling; several surfaces are lower
+  (pressure, management response are L0). See the matrix.
+- **What is blocked?** Resource-committing / restrictive recommendations (L5b),
+  effectiveness (L6), causality/regeneration (L7), and "validated"/"regenerative
+  outcome" language — gated on #26 field validation and Pillars 1 & 3. **No
+  numeric agreement threshold (ρ/κ/p/DI) is product policy** — those live in the
+  approved field-validation protocol/pre-registration.
 - **What should I work on next?** **WP-2** (enforce the ladder in code) once WP-1
   is merged. The only open hard gate is **#26** (manual field campaign).
 - **Prohibited shortcuts:** fabricating field/pressure data, promoting

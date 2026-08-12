@@ -42,49 +42,77 @@ raises defensible evidence, not by what the codebase *could* do.
   today's `interventions` table is a thin stub.
 - **Prerequisite:** WP-1. **Evidence:** none (design).
 - **Files:** `docs/phase1/management_response_contract.md`, proposed fields for
-  `src/persistence/models/intervention.py` (spec, not applied).
+  `src/persistence/models/intervention.py` (spec, not applied). Minimum field set:
+  intervention id · asset · spatial footprint · decision date · implementation
+  start/end · intervention type · authorized by · target pressure/state · intended
+  mechanism · **planned cost** · **actual cost** · completion state · monitoring
+  window · evidence links · triggering recommendation.
 - **Deliverable / DoD:** reviewed contract; migration deferred to a data WP.
 - **Code required:** spec only (no migration). **Owner work:** confirm the field
   set matches OAPN practice (real-world fact → may need owner input).
 - **Blocked-by:** WP-1. **Unlocks:** L6 once real records + before/after exist.
 
-## WP-4 — Visitor-pressure: ingest one real feed (data, un-gated)
+## WP-4 — Visitor-pressure: ingest MITMA as macro-context (does NOT lift the target gate)
 - **Objective:** generate `src/mobility/snapshot/mobility.json` via the committed
-  MITMA path (`etl_mobility.py`), OR onboard one real asset-level counter series;
-  re-run the readiness audit and `resolve_signals()`; update the docs claim in the
-  same PR.
-- **Why:** upgrades Pillar 1 from `INSUFFICIENT_EVIDENCE` toward `PARTIALLY_READY`
-  with **zero code change** — the gate and fallback already exist.
-- **Prerequisite:** WP-1. **Evidence:** real MITMA export (macro context only) or
-  a real counter feed.
+  MITMA path (`etl_mobility.py`); surface the municipal figure as **macro-context
+  only**; re-run `resolve_signals()`; update the docs claim in the same PR.
+- **Why / honest scope:** this moves MITMA from MISSING to an L4 **context**
+  signal — it does **NOT** change visitor-pressure `ReadinessStatus`, because a
+  municipal inbound-trip count is **not** the pressure *target variable* (trail/
+  park footfall). Calibrating municipal mobility → park pressure is an open
+  research problem, not a wiring task. The `INSUFFICIENT_EVIDENCE` *target* gate
+  stays honest.
+- **Prerequisite:** WP-1. **Evidence:** real MITMA export (macro context only).
 - **Files:** `src/mobility/snapshot/mobility.json` (generated), doc claim update.
-- **Deliverable / DoD:** readiness ≠ `INSUFFICIENT_EVIDENCE` for the ingested
-  feed; MITMA labelled macro-territorial context, never trail footfall.
-- **Code required:** run existing ETL. **Owner work:** provide/authorize the feed.
-- **Blocked-by:** WP-1; data availability. **Unlocks:** L4 pressure context.
-- **⚠ Do NOT** build forecasting/ML on this until a real *asset-level* series
-  exists (contract §I gate 2).
+- **Deliverable / DoD:** MITMA shown as labelled macro-context, never trail
+  footfall; pressure-target readiness explicitly unchanged.
+- **Code required:** run existing ETL. **Owner work:** authorize the feed.
+- **Blocked-by:** WP-1; data availability. **Unlocks:** L4 macro-context only.
+- **⚠ Do NOT** build forecasting/ML on MITMA, and do **not** claim it upgrades the
+  pressure target (contract §F Pillar 1, §I gate 2). A separate future WP is
+  needed for a real *asset-level* counter series.
 
-## HARD GATE — #26 Field Validation Campaign (unchanged, owner/manual)
+## HARD GATE — #26 Field Validation Campaign (INDEPENDENT — can start now, owner/manual)
 - **Objective:** collect real ground-truth (compaction/cover/erosion) on PNSG
   priority plots per `docs/field_validation_protocol.md`.
 - **Why:** the only path to L6/L7; blocks all validated/causal/regenerative claims.
 - **Status:** tooling, protocol, agreement runner all merged; **field data not
-  collected.** This is manual field work, not a code task.
-- **Unlocks:** WP-5 (satellite↔field agreement), then L7 evaluation.
+  collected.** Manual field work — **no repository prerequisite**; it does **not**
+  depend on WP-2/3/4 and should begin as early as the owner can mobilise it.
+- **Unlocks:** WP-5 (satellite↔field agreement), then L6/L7 evaluation.
 - **Do not close, weaken, or simulate.**
 
 ## WP-5 — Satellite↔field agreement (only after #26)
-- **Objective:** run `src/validation/agreement.py` on real plots; report ρ/δ/κ
-  against the pre-registered thresholds; emit the L3/L7 verdict honestly.
+- **Objective:** run `src/validation/agreement.py` on real plots; report the
+  agreement statistics **against the approved pre-registration** (not a threshold
+  invented here); emit the L3/L6/L7 verdict honestly.
 - **Prerequisite:** #26 data ingested. **Blocked-by:** #26.
-- **Deliverable / DoD:** agreement report; claim level updated per result.
+- **Deliverable / DoD:** agreement report; claim level updated per result. No
+  numeric pass threshold is adopted from the uncommitted `paper1/` draft until the
+  owner commits and approves it.
 
 ---
 
-### Sequence
-`WP-1 → WP-2 ; WP-3 ; WP-4` (parallelisable after WP-1) → **#26 (hard gate)** →
-`WP-5`.
+### Dependency graph (reality, not narrative order)
+```
+WP-1 (this PR) ──unlocks──> { WP-2 , WP-3 , WP-4 }   (mutually independent)
+#26 field campaign ─────── independent; startable NOW; no code prerequisite
+WP-5 ── depends on ──> #26
+```
+- WP-2 does **not** need WP-3 or WP-4; #26 does **not** wait for any WP.
+- Management-response (WP-3) is **not** required before MITMA context (WP-4).
+- Only WP-5 is truly gated (on #26).
+
+## WP-C10 — Re-verify the TIS euro-efficiency UI text (corrective, small)
+- **Objective:** confirm the live intervention/TIS UI does not present SIMULATED
+  scenario coefficients (register item **C-10**, Q-05 illustrative-only) as
+  observed or forecast effect; correct the text if it does.
+- **Why:** the one **RED-RISK** surface in the audit; a runtime-text issue, so it
+  is out of scope for the docs-only WP-1 but must not be forgotten.
+- **Prerequisite:** none (independent). **Files:** `src/ui/tabs/tab_diagnostic.py`
+  or the TIS reporter text; a claims-register cross-check.
+- **Code required:** yes (text/label only). **Blocked-by:** none.
+- **Deliverable / DoD:** C-10 surface verified/fixed; register updated.
 
 ### Deliberately excluded from Phase 1 (see contract §J)
 Forecasting/ML · PostGIS prod migration · API deployment · Experience Builder

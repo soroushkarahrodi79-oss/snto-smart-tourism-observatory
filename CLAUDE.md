@@ -10,12 +10,13 @@ it adds no feature. Authority: `docs/phase1/SCIENTIFIC_PRODUCT_CONTRACT.md`,
 `docs/phase1/EVIDENCE_DECISION_MATRIX.md`, ADR-016 (claim ladder), ADR-004
 (evidence classes), ADR-003 (validation gate #26).
 
-- **Allowed today:** claim-ladder L1–L4; L5 for *non-restrictive* recommendations
-  (monitor/inspect/maintain) only.
-- **Blocked:** L6 effectiveness, L7 causality/regeneration, restrictive
-  recommendations (closure/quota), and any "validated"/"regenerative outcome"
-  language — gated on **#26 field validation** (the sole open Issue) and on
-  Visitor-Pressure (`INSUFFICIENT_EVIDENCE`) + Management-Response (schema stub).
+- **Allowed today:** claim-ladder L1–L4 plus **L5a** (recommend monitoring/
+  inspection) only. `REAL` ≠ observed: derived indices (EHS/NDVI) are L2, SCM is
+  an L2 hypothesis. No numeric agreement threshold (ρ/κ/p/DI) is product policy.
+- **Blocked:** L5b resource-committing/restrictive recommendations (closure/quota),
+  L6 effectiveness, L7 causality/regeneration, and any "validated"/"regenerative
+  outcome" language — gated on **#26 field validation** (the sole open Issue) and
+  on Visitor-Pressure (`INSUFFICIENT_EVIDENCE`) + Management-Response (schema stub).
 - **Live evidence today (probe, don't assume):** satellite REAL for
   pnsg/monfrague/tablas; mobility snapshot, socioeconomic series, real SCM zones,
   and field plots all absent → SCM runs the α-decay *simulation*. Re-check with
