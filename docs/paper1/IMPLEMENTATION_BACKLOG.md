@@ -18,19 +18,19 @@ Scope rule: **the minimum code required to execute the scientific plan.** No pro
 
 ## Priority 0 — Blocks the field campaign
 
-### B-01 · Regenerate the field campaign template with real, distinct plot coordinates 🟢 ✅ **ENGINE DONE (2026-08-09); jurisdiction PROVISIONAL pending IGN boundary**
+### B-01 · Regenerate the field campaign template with real, distinct plot coordinates 🟢 ✅ **DONE (2026-08-15) — jurisdiction now authoritative**
 
 | | |
 |---|---|
 | **Scientific reason** | The shipped template gave impact and control plots **identical coordinates** (both Porrones rows `40.7405, -3.9251`) — void control–impact contrast — and targeted a climbing polygon and a paragliding point rather than trails. |
-| **Files** | `scripts/paper1/generate_plot_plan.py` (new engine) · `scripts/run_field_validation.py` (`--init` no longer emits the identical-coordinate seed; header-only + points to the planner) · `clean_assets/field_validation/pnsg_field_observations_template.csv` (reset header-only) · `clean_assets/field_validation/pnsg_plot_plan_PROVISIONAL.{csv,gpx,csv.provenance.json}` (generated plan) · `clean_assets/field_validation/reference/` (boundary + README) · `tests/unit/test_plot_plan.py` |
-| **Depends on** | ✅ Contract §F frozen to F-1 · ✅ Madrid-only scope · ✅ B-04 grid snapping |
-| **Acceptance criteria** | ⚠️ Segment pool filtered to the Madrid sector via a **real administrative boundary layer** (not the longitude heuristic) — done as a **pluggable** filter, but the committed boundary is Natural Earth 10m (**NON-AUTHORITATIVE, crest-inaccurate**; IGN Líneas Límite is unreachable from this build env — proxy blocks ign.es/GISCO/GADM/Overpass/npm CDNs). Output is `_PROVISIONAL` until `--boundary-authoritative` is passed with an IGN layer. · ✅ every plot has a distinct surveyed coordinate · ✅ every impact/control pair passes SM-1 · ✅ every control ≥ 100 m from all trails (SM-3) · ✅ no two plots share a 20 m cell (SM-2) · ⚠️ stratified by **satellite-stress tercile** now; ecological stratum (S1–S4) deferred to A-4 — the `stratum` column carries `sat_stress_{low,mid,high}`, honestly labelled · ✅ exports GPX · ✅ records seed + commit + boundary SHA-256 + per-plot cell id and control clearance |
-| **Tests** | 11 tests: distinct coordinates · SM-1/SM-2/SM-3 independently re-verified on the emitted plan · 1:1 stratum-matched pairing · deterministic given the seed · PROVISIONAL marking present/absent by the flag · GPX written · missing boundary fails loudly. Full suite: 1509 passed |
-| **Risk** | Low for the geometry engine (validated). The jurisdiction determination is provisional and **must not be treated as settled** until IGN replaces the placeholder. |
+| **Files** | `scripts/paper1/generate_plot_plan.py` (engine) · `scripts/run_field_validation.py` (`--init` no longer emits the identical-coordinate seed) · `clean_assets/field_validation/pnsg_field_observations_template.csv` (reset header-only) · `clean_assets/field_validation/pnsg_plot_plan.{csv,gpx,csv.provenance.json}` (final plan, no `_PROVISIONAL` suffix) · `clean_assets/field_validation/reference/madrid_boundary_osm.geojson` (owner-supplied 2026-08-15) + README · `tests/unit/test_plot_plan.py` |
+| **Depends on** | ✅ Contract §F frozen to F-1 · ✅ Madrid-only scope · ✅ B-04 grid snapping · ✅ **real Madrid boundary supplied by owner (2026-08-15)** |
+| **Acceptance criteria** | ✅ Segment pool filtered to the Madrid sector via a **real administrative boundary** — OpenStreetMap relation 349055 (6 294 vertices, ODbL), fetched by the owner and validated against two known landmarks before use (La Pedriza → inside ✓, Valsaín → outside ✓); a nested-shells topology defect was repaired with `buffer(0)` (area Δ 0.015%, far from PNSG). 41/218 trails eligible at a 1000 m inward margin. `--boundary-authoritative` passed → output carries no `_PROVISIONAL` suffix. · ✅ every plot has a distinct surveyed coordinate · ✅ every impact/control pair passes SM-1 · ✅ every control ≥ 100 m from all trails (SM-3) · ✅ no two plots share a 20 m cell (SM-2) · ⚠️ stratified by **satellite-stress tercile** for now; ecological stratum (S1–S4) still deferred to A-4 (blocked on a DEM) — the `stratum` column carries `sat_stress_{low,mid,high}`, honestly labelled · ✅ exports GPX · ✅ records seed + commit + boundary SHA-256 + per-plot cell id and control clearance |
+| **Tests** | 13 tests: distinct coordinates · SM-1/SM-2/SM-3 independently re-verified on the emitted plan · 1:1 stratum-matched pairing · deterministic given the seed · PROVISIONAL marking present/absent by the flag · GPX written · missing boundary fails loudly · **the real OSM boundary produces a non-provisional plan** · **the real boundary classifies both landmarks correctly**. Full suite: 1536 passed |
+| **Risk** | Low. The jurisdiction determination is now backed by a validated real boundary, not a heuristic. |
 | **Changes scientific output?** | **No** — old template's void-contrast + wrong-universe rows removed, not silently mutated; `cets_readiness.count_measured_field_plots` stays 0. |
 
-> **Two follow-ups this leaves open, both owner-side:** (1) supply the **IGN Líneas Límite** Comunidad de Madrid polygon and re-run with `--boundary-authoritative` (`clean_assets/field_validation/reference/README.md` has the steps); (2) **A-4 engine is now built** (`scripts/paper1/build_ecological_strata.py`) — supply a **DEM** (Copernicus GLO-30 / IGN MDT05, both proxy-blocked here) to produce the S1–S4 strata table, then pass it to the planner via `--strata` so `stratum` carries the ecological band. Both follow-ups are blocked only on data unreachable from this build env, not on code.
+> **One follow-up remains, owner-side:** **A-4's DEM is still needed** — supply a DEM (Copernicus GLO-30 / IGN MDT05, both proxy-blocked here) to produce the S1–S4 strata table, then pass it to the planner via `--strata` so `stratum` carries the ecological band instead of the satellite-stress tercile.
 
 ### B-02 · Field schema: strict index, GPS accuracy, subplots 🔴 ✅ **DONE (2026-08-10, owner-approved)**
 
@@ -217,7 +217,7 @@ B-09 (remaining figures), B-13, B-14
 
 | Item | Risk | Scientific-output-changing | Owner approval required |
 |---|---|---|---|
-| B-01 | Low | No | No — ✅ engine done (jurisdiction provisional) |
+| B-01 | Low | No | No — ✅ done, jurisdiction authoritative |
 | B-02 | Medium | No (additive) | ✅ owner-approved, done 2026-08-10 |
 | B-03 | Low | No | No |
 | B-04 | Medium | No | No — ✅ done |

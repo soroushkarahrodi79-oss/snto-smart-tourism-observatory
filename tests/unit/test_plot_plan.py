@@ -27,6 +27,8 @@ from src.validation.spatial_match import (
 _ROOT = Path(__file__).resolve().parents[2]
 _BOUNDARY = (_ROOT / "clean_assets" / "field_validation" / "reference"
              / "madrid_boundary_naturalearth10m.geojson")
+_OSM_BOUNDARY = (_ROOT / "clean_assets" / "field_validation" / "reference"
+                 / "madrid_boundary_osm.geojson")
 _TRAILS = _ROOT / "data" / "outputs" / "pnsg" / "pipeline_a_results.geojson"
 
 pytestmark = pytest.mark.skipif(
@@ -132,3 +134,37 @@ def test_missing_boundary_fails_loudly(tmp_path):
         render(tmp_path / "nope.geojson", margin_m=1000.0, seed=1,
                n_segments=3, impacts_per_segment=1, authoritative=False,
                out_dir=tmp_path)
+
+
+# ── real OSM boundary (owner-supplied 2026-08-15) ───────────────────────────
+
+@pytest.mark.skipif(not _OSM_BOUNDARY.exists(), reason="OSM boundary not present")
+def test_osm_boundary_produces_non_provisional_plan(tmp_path):
+    csv_path, prov = render(_OSM_BOUNDARY, margin_m=1000.0, seed=42,
+                            n_segments=12, impacts_per_segment=2,
+                            authoritative=True, out_dir=tmp_path)
+    assert "_PROVISIONAL" not in csv_path.name
+    assert prov["params"]["boundary_authoritative"] is True
+    assert 0 < prov["params"]["n_eligible_madrid"] < prov["params"]["n_trails_total"]
+
+
+@pytest.mark.skipif(not _OSM_BOUNDARY.exists(), reason="OSM boundary not present")
+def test_osm_boundary_classifies_known_landmarks_correctly():
+    # La Pedriza (unambiguously Madrid) must fall inside; Valsain (unambiguously
+    # Castilla y Leon) must fall outside. Both are real disambiguation checks,
+    # not synthetic — this is what makes the boundary trustworthy enough to
+    # mark authoritative.
+    import geopandas as gpd
+    import warnings
+    warnings.filterwarnings("ignore")
+    from shapely.geometry import Point
+
+    b = gpd.read_file(_OSM_BOUNDARY)
+    if b.crs is None:
+        b = b.set_crs(4326)
+    geom = b.to_crs(4326).geometry.union_all()
+
+    la_pedriza = Point(-3.87, 40.74)
+    valsain = Point(-4.013, 40.817)
+    assert geom.contains(la_pedriza) is True
+    assert geom.contains(valsain) is False

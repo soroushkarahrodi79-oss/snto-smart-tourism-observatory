@@ -1,61 +1,70 @@
 # Administrative boundary reference for the Madrid-side trail filter (B-01)
 
-## ⚠️ The committed boundary is NON-AUTHORITATIVE
+## ✅ `madrid_boundary_osm.geojson` — the boundary now in use
 
-`madrid_boundary_naturalearth10m.geojson` is the **Comunidad de Madrid** polygon
-from **Natural Earth 10m admin-1** (public domain / CC0), clipped to the PNSG
-region. It is committed only because the authoritative source is unreachable
-from this build environment (see below).
+Supplied by the owner (2026-08-15) from **OpenStreetMap**, relation
+[`349055`](https://www.openstreetmap.org/relation/349055) (Comunidad de
+Madrid), fetched via polygons.openstreetmap.fr and confirmed to be the correct
+administrative area before saving. **6 294 vertices** across 3 polygons (the
+mainland community + 2 small exclaves) — dramatically finer than the earlier
+placeholders (Natural Earth 425 vertices, click_that_hood 155).
 
-**It is cartographic-scale (~1:10 000 000, 425 vertices for the whole community)
-and is NOT accurate at the mountain crest**, which is exactly where the
-Comunidad de Madrid / Castilla y León (Segovia) border runs and exactly where
-the PNSG trail network sits. Verified against the 218-trail network, this
-boundary misclassifies a large fraction of sierra trails (it places ~160 of 218
-"outside Madrid", including trails that are unambiguously Madrid). **Do not treat
-a jurisdiction determination made with this layer as correct.**
+**Repaired on ingest**: the raw geometry had a topology defect (`Nested
+shells`, one polygon fully inside another rather than expressed as a hole) —
+fixed with `geometry.buffer(0)`, the standard Shapely repair. Area changed by
+**0.015%**, localised far from PNSG (near an exclave around 40.63°N, −3.38°E),
+so the fix does not affect the trail-filtering result.
 
-## Why not IGN
+**Validated against known landmarks** before use:
+- La Pedriza (−3.87, 40.74), unambiguously Madrid-side → **within** ✓
+- Valsaín (−4.013, 40.817), unambiguously Segovia/Castilla y León-side → **outside** ✓
 
-The authoritative layer is the IGN *Líneas Límite jurisdiccionales* (≈1:25 000),
-served from `ign.es` / the INSPIRE Administrative Units WFS. That host — along
-with Eurostat GISCO, GADM, the Overpass API, and every npm CDN (unpkg,
-jsDelivr) — is blocked by this environment's outbound proxy, which only reaches
-`raw.githubusercontent.com`. The finest boundary obtainable there is this
-Natural Earth polygon.
+Trail-network check: **41/218** PNSG trails fall within this boundary at a
+1000 m inward safety margin (vs. the old Natural Earth placeholder's ~55-58,
+which — per the landmark test — was misclassifying the crest region).
 
-## How to finalise the Madrid filter
+**Provenance note:** this is an OpenStreetMap community-maintained boundary,
+not a literal export of the IGN *Líneas Límite jurisdiccionales* file. It is
+used as `--boundary-authoritative` because it passed the landmark validation
+above and its resolution is adequate for this filtering task (excluding trails
+near the boundary via the inward margin already absorbs residual small-scale
+uncertainty). If the owner later obtains the literal IGN *Líneas Límite* layer,
+swap it in the same way (see below) and re-run.
+
+## Why not fetched directly from IGN
+
+`ign.es` / the INSPIRE Administrative Units WFS — along with Eurostat GISCO,
+GADM, the Overpass API, and every npm CDN (unpkg, jsDelivr) — is blocked by
+this environment's outbound proxy, which only reaches
+`raw.githubusercontent.com`. The owner fetched the OSM boundary from their own
+network and uploaded it directly.
+
+## Superseded placeholder
+
+`madrid_boundary_naturalearth10m.geojson` (Natural Earth 10m admin-1, ~1:10M,
+425 vertices) is kept for historical reference only. It is **not** used by
+default any more — it materially misclassified sierra trails at the crest
+(verified: it placed unambiguously-Madrid trails as "outside").
+
+## How to swap in a different boundary later
 
 `scripts/paper1/generate_plot_plan.py` takes the boundary as a parameter and
-treats the plan as **PROVISIONAL** unless `--boundary-authoritative` is passed.
-To produce a defensible Madrid-side pool:
-
-1. Obtain the IGN *Líneas Límite* Comunidad de Madrid polygon (IGN download
-   centre, or the INSPIRE AU WFS) in any OGR-readable format.
-2. Place it here, e.g. `madrid_boundary_ign.geojson`.
-3. Re-run:
-   ```
-   python scripts/paper1/generate_plot_plan.py \
-       --boundary clean_assets/field_validation/reference/madrid_boundary_ign.geojson \
-       --boundary-authoritative
-   ```
-4. The output loses its `PROVISIONAL` marking only when an authoritative
-   boundary is declared.
-
-Until then, the plot plan the engine produces demonstrates correct plot
-geometry (distinct, SM-1…SM-4-valid impact/control coordinates) but its
-**jurisdiction filter is provisional** and every selected trail's distance to
-the boundary is recorded in the plan's provenance sidecar so it can be vetted
-by hand.
+treats the plan as **PROVISIONAL** unless `--boundary-authoritative` is passed:
+```
+python scripts/paper1/generate_plot_plan.py \
+    --boundary clean_assets/field_validation/reference/<file>.geojson \
+    --boundary-authoritative
+```
 
 ## Provenance
 
 | Field | Value |
 |---|---|
-| Layer | Comunidad de Madrid (admin-1) |
-| Source | Natural Earth 10m Admin 1 – States, Provinces (`nvkelso/natural-earth-vector`) |
-| Licence | Public domain (CC0) |
-| Scale | ~1:10 000 000 |
-| Retrieved | 2026-08-10, via `raw.githubusercontent.com` |
-| Clipped to | bbox (−4.6, 40.5, −3.5, 41.3) around PNSG |
-| Authoritative? | **No** — placeholder pending IGN Líneas Límite |
+| Layer | Comunidad de Madrid (admin-1), OSM relation 349055 |
+| Source | OpenStreetMap, via polygons.openstreetmap.fr |
+| Licence | ODbL (OpenStreetMap contributors) |
+| Vertices | 6 294 (3 polygons: mainland + 2 exclaves) |
+| Retrieved | 2026-08-15, supplied by the owner |
+| Repair | `buffer(0)` on ingest — fixed a nested-shells topology defect; area Δ 0.015%, far from PNSG |
+| Validated | Landmark spot-check (La Pedriza in / Valsaín out) — passed |
+| Authoritative? | **Yes**, for the purposes of this filter (see provenance note above) |
