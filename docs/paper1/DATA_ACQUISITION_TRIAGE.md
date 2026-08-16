@@ -72,8 +72,8 @@ Classifies every dataset Paper 1 might touch into four bands, and states for eac
 | Measures | Vegetation community; elevation, slope, aspect |
 | **Target or proxy?** | **Target** for stratum definition |
 | Limitations | Polygon boundaries are generalised; a plot near a boundary may be misassigned — record the distance to the nearest boundary and use it in sensitivity analysis |
-| Current state | **ENGINE BUILT (2026-08-10), input BLOCKED.** `scripts/paper1/build_ecological_strata.py` derives S1–S4 per trail from a DEM (elevation band + N/S aspect split; optional OAPN vegetation cross-check), and B-01's planner consumes it via `--strata` so the `stratum` column carries S1–S4. **But no DEM can be obtained here** — Copernicus/earth-search STAC, OpenTopography, USGS/CGIAR SRTM and IGN MDT are all proxy-blocked (only `raw.githubusercontent.com` reaches), and the OAPN vegetation WFS is blocked too. `--dem` has **no default**; the pure elevation×aspect→S1–S4 mapping is fully tested against a synthetic DEM. Until a real DEM is supplied, B-01 falls back to the labelled **satellite-stress tercile**. |
-| Blocking | **Yes** for the stratified design — but now blocked only on **supplying a DEM** (Copernicus GLO-30 or IGN MDT05, both free, reachable from a normal network), not on writing code. |
+| Current state | ✅ **RESOLVED 2026-08-16.** Owner supplied a real Copernicus GLO-30 DEM (via OpenTopography, from their own network — this environment's proxy still blocks the source directly). Reprojected EPSG:4326 → EPSG:25830 with `scripts/paper1/reproject_dem_to_utm.py` (deterministic, byte-identical on re-run) — required because aspect computed directly in geographic coordinates at PNSG's latitude is skewed by the ~1.3× ratio between a degree of longitude and a degree of latitude there, which would have mis-assigned the N/S forest split. `build_ecological_strata.py --dem-authoritative` classified all 218 trails, 0 unresolved: 161 S2 (forest, S-facing), 38 S1 (forest, N-facing), 17 S3 (shrubland), 2 S4 (alpine, both >2100 m and N-facing — consistent with a high cirque near Peñalara). Elevations sanity-checked against Peñalara's real summit (2428 m; DEM max 2424.2 m). B-01's plan now carries real ecological strata, not the tercile fallback. The raw DEM is **not committed** (repo-wide raster policy); the derived `pnsg_trail_strata.csv` + provenance sidecar (DEM SHA-256) are. Full provenance: `clean_assets/field_validation/reference/README.md`. |
+| Blocking | **No longer blocking anything.** |
 
 > **Blocker found building B-01 (2026-08-09), resolved by the owner (2026-08-15):** the **IGN Líneas Límite** administrative boundary needed to filter trails to the Madrid sector was **unreachable from this build environment** — the outbound proxy blocks `ign.es`, Eurostat GISCO, GADM, the Overpass API, and every npm CDN, reaching only `raw.githubusercontent.com`. The cartographic-scale substitutes tried first (Natural Earth 10m, click_that_hood) misplaced the CM/Castilla y León crest border by kilometres — exactly where the trail network sits (verified: ~160/218 trails "outside Madrid", including unambiguously-Madrid ones). **The owner supplied a real boundary directly** (OpenStreetMap relation 349055, 6 294 vertices, fetched from their own network) — validated against known landmarks (La Pedriza in / Valsaín out), a minor topology defect repaired (`buffer(0)`, area Δ 0.015%), and B-01's plan regenerated with `--boundary-authoritative`: **no longer PROVISIONAL**. See `clean_assets/field_validation/reference/README.md`.
 
@@ -155,7 +155,7 @@ Substitutions that would each, individually, invalidate the paper. Listed becaus
 ```
 ✅ Owner: sampling frame resolved (Contract §F → F-1, 218 OAPN trails, 2026-08-09)
         ↓
-A-4 strata derived from OAPN vegetation + DEM        ← desk, days
+✅ A-4 strata derived from a real DEM (2026-08-16)
         ↓
 Site selection stratified by stratum × EHS tercile   ← desk, days
         ↓

@@ -35,7 +35,7 @@ Publication-oriented working set for **one** paper: empirical validation of SNTO
 
 **B-01's Madrid jurisdiction filter is now finalised (2026-08-15):** the owner supplied the real Comunidad de Madrid boundary (OpenStreetMap relation 349055, 6 294 vertices), validated against known landmarks (La Pedriza in / Valsaín out) and repaired for a minor topology defect. `clean_assets/field_validation/pnsg_plot_plan.csv` is regenerated with `--boundary-authoritative` — no longer `_PROVISIONAL`.
 
-**A-4's strata are still blocked by this env's proxy, not by code:** every DEM source is unreachable from here. The engine is pluggable and fully tested against a synthetic DEM; supply a real DEM to finalise (`clean_assets/field_validation/reference/README.md`).
+**A-4's strata are now real (2026-08-16):** the owner supplied a Copernicus GLO-30 DEM directly; it was reprojected to the pipeline's metric CRS (`scripts/paper1/reproject_dem_to_utm.py`, verified deterministic) and used to classify all 218 trails into S1–S4, with 0 unresolved and elevations sanity-checked against Peñalara's real summit. `clean_assets/field_validation/pnsg_plot_plan.csv` now carries these real ecological strata rather than the interim satellite-stress tercile. The raw DEM itself is not committed (repo-wide raster policy); the derived strata table and its provenance sidecar are (`clean_assets/field_validation/reference/README.md`).
 
 Remaining blocking items are marked 🔲 throughout; they are collected in the Master Execution Plan §7 — chiefly the applicant identity for the permit, and the go-ahead to file.
 

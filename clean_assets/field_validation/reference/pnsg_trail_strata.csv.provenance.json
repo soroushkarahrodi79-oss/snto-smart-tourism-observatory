@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-08-16T16:09:47+00:00",
+  "commit_hash": "00d9819",
+  "inputs": {
+    "trails": {
+      "path": "data/outputs/pnsg/pipeline_a_results.geojson",
+      "sha256": "dc9c2029f1f015f847aa30e02d23d4e0c2f3df31b65132d8902d6572fc11e8e2"
+    },
+    "dem": {
+      "path": "clean_assets/field_validation/reference/pnsg_dem.tif",
+      "sha256": "16fff032c2ae9deb792cd2c2ea4d2e511d337e67772283c517beb431a66e210f"
+    }
+  },
+  "params": {
+    "dem_authoritative": true,
+    "dem_sha256": "16fff032c2ae9deb792cd2c2ea4d2e511d337e67772283c517beb431a66e210f",
+    "dem_crs_epsg": 25830,
+    "n_trails": 218,
+    "forest_max_m": 1800.0,
+    "shrub_max_m": 2100.0,
+    "north_half_window_deg": 45.0,
+    "stratum_distribution": {
+      "S2_forest_S": 161,
+      "S1_forest_N": 38,
+      "S3_shrubland": 17,
+      "S4_alpine_grassland": 2
+    }
+  }
+}
