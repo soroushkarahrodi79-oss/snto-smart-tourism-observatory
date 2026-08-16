@@ -1,11 +1,11 @@
 # PNSG Research Authorisation Request — Draft Package
 
-**Status:** DRAFT — technical content complete, territorial scope **decided**, **applicant identity fields are still placeholders and this must not be submitted as-is** · **Date:** 2026-08-09, territorial scope confirmed 2026-08-09
+**Status:** ✅ **CONTENT-COMPLETE (2026-08-16)** — territorial scope decided, applicant identity/contact/scientific endorsement all supplied and assembled (delivered to the owner directly, **not** committed to this public repo). The package is ready for the owner to file. **Not yet submitted to any authority** — see §7 item 5. · **Date:** 2026-08-09, updated 2026-08-16
 **Governs:** Master Execution Plan gate **G2** · Data Acquisition Triage open item · `FIELD_CAMPAIGN_EXECUTION_PLAN.md` §4.7
 
-This document is the working draft of the authorisation request for the field campaign in `FIELD_CAMPAIGN_EXECUTION_PLAN.md`. It is **not** ready to submit: the technical content is complete and traceable to the frozen scientific plan, but every applicant-identity field is a placeholder, and one jurisdictional decision is still open. Neither may be filled in by inference — both need a real, human answer.
+This document is the working record of the authorisation request for the field campaign in `FIELD_CAMPAIGN_EXECUTION_PLAN.md`. Every content item is resolved (§7); the one remaining step is the owner physically filing it with the Comunidad de Madrid — an action this assistant cannot perform (no portal access, no digital certificate).
 
-**No submission has been made. Nothing in this document has been sent to any authority.**
+**No submission has been made. Nothing has been sent to any authority. Applicant personal data (name, ID, address, phone, CV) was assembled and handed to the owner directly, and is deliberately not written into this file or any other file in this repository, because the repository is public on GitHub.**
 
 ---
 
@@ -91,12 +91,9 @@ Spanish regional-government authorisation processes of this kind typically run *
 > **Aval científico / CV**
 > [PLACEHOLDER — attach separately; not fabricated in this draft]
 
-## 5. What "finalising segments" needs before submission
+## 5. Submission strategy — 🔒 DECIDED (2026-08-16): (a), zone-level, now
 
-The plano de detalle (§6) and the memoria's exact itinerary are strongest once real ecological strata are derived from OAPN vegetation/DEM layers and the stratified segment draw is run (`IMPLEMENTATION_BACKLOG.md` B-01, itself gated on the territorial-scope decision in §1). Two submission strategies, either is normal practice:
-
-- **(a)** Submit now with a **zone-level** request (the eligible sector of the park, e.g. "Madrid-side public-use trail network"), which the park's own documentation explicitly accommodates ("zona **o** itinerario"), and supply the precise segment list as a follow-up once B-01 completes — likely well before fieldwork, since the permit will still be processing.
-- **(b)** Complete B-01 first (a few desk-days), then submit with exact segments named.
+The owner chose **(a)**: submit now with a **zone-level** request (the eligible Madrid-side sector of the park), which the park's own documentation explicitly accommodates ("zona **o** itinerario"), and supply the precise segment list as a follow-up once B-01's exact site selection is finalised (already unblocked — see `IMPLEMENTATION_BACKLOG.md` B-01) — well before fieldwork, since the permit will still be processing. This keeps the permit's own lead time (§3) off the campaign's critical path instead of waiting on desk work that runs in parallel anyway.
 
 **Recommendation: (a).** It removes the permit application from the campaign's critical path instead of adding to it — the permit's own processing time is already the longest lead item (§3), so nothing is gained by delaying its submission for a desk task that runs in parallel anyway.
 
@@ -106,21 +103,15 @@ Not yet produced. Once the territorial scope is confirmed (§1), a park-boundary
 
 ## 7. What is needed from you before this can be submitted
 
-Nothing above is submittable as-is. Two classes of blocker:
-
-**Facts that cannot be inferred or fabricated:**
-
-| # | Needed |
-|---|---|
-| 1 | Applicant legal name, ID number (DNI/NIE/passport), and institutional affiliation (or confirmation of independent-researcher status) |
-| 2 | Contact address, email, phone |
-| 3 | Scientific endorsement — an institutional letter, or your CV, to attach as the "aval científico" |
-| ~~4~~ | ~~Territorial scope~~ — **resolved 2026-08-09: Madrid only** |
-| 4 | Confirmation this should actually be submitted to the authority once complete — this is an external, real, hard-to-reverse action, and I will not send anything without that explicit go-ahead |
-
-**One technical check now required, not optional (§1):**
-
-5. Verify the Madrid/Castilla y León administrative boundary against an authoritative layer (e.g. IGN límites administrativos) rather than the longitude read-off used to justify this decision — this now directly gates which of the 218 trail segments are eligible for Backlog B-01's stratified draw.
+| # | Needed | Status |
+|---|---|---|
+| 1 | Applicant legal name, ID number, institutional affiliation | ✅ **Provided 2026-08-15/16.** Assembled into the memoria and delivered to the owner directly (not committed here — this repo is **public** on GitHub; personal identifiers are kept out of git history by design). |
+| 2 | Contact address, email, phone | ✅ **Provided 2026-08-16.** Same treatment as #1. |
+| 3 | Scientific endorsement ("aval científico") | ✅ **Resolved 2026-08-16.** Owner supplied two candidate CVs; the data-analyst-framed one was recommended (closer fit to the field/satellite methodology this permit describes) and a short tailored "Declaración de idoneidad científico-técnica" was drafted from facts already in that CV — no credential invented. Both delivered directly to the owner, not committed. |
+| ~~4~~ | ~~Territorial scope~~ | **resolved 2026-08-09: Madrid only** |
+| ~~5~~ | ~~Madrid/Castilla y León boundary verified against an authoritative layer~~ | **resolved 2026-08-15 — see Backlog B-01: real OSM boundary supplied by the owner, validated against known landmarks** |
+| 4 | Submission strategy | ✅ **Decided 2026-08-16: (a), zone-level, submit now** — see §5. |
+| 5 | Actual filing with the authority | 🔲 **Still requires the owner to act.** This assistant has no access to the Comunidad de Madrid sede electrónica, no digital certificate/Cl@ve credential, and cannot submit official paperwork on the owner's behalf. All content above is drafted and ready; the owner files it themselves via the channel in §1, then reports back so this document and the Master Plan gate (G2) can be updated. |
 
 ---
 
