@@ -40,9 +40,18 @@ sample:
   unique_by: sha256
 
 source:
+  # The camera population is ALWAYS the Informo KML below. The licence sources
+  # never contribute a camera; datos.gob.es in particular is a licence/metadata
+  # fallback only, never a camera source (see PD-001 in PREREGISTRATION.md).
   camera_list: https://informo.madrid.es/informo/tmadrid/CCTV.kml
-  licence_and_terms: >-
-    https://datos.madrid.es catalogue page for "Tráfico. Cámaras"
+  licence_and_terms:
+    primary: >-
+      https://datos.madrid.es/dataset/202088-0-trafico-camaras
+      — municipal canonical dataset page for "Tráfico. Cámaras"
+    fallback: >-
+      https://datos.gob.es/es/catalogo/l01280796-trafico-camaras1.xml
+      — official national catalogue RDF/XML for the SAME dataset (CC BY 4.0)
+    fallback_scope: licence_metadata_only
   discovery: >-
     structural KML <Placemark> parsing (name, Point/coordinates, and the image
     endpoint attached to that Placemark). Image URLs are never harvested by

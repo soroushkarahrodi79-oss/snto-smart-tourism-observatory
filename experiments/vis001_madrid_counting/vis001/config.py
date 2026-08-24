@@ -170,11 +170,18 @@ MADRID_CCTV_KML_URL: Final[str] = "https://informo.madrid.es/informo/tmadrid/CCT
 #: terms-of-use statement; provenance is verified against it, not against the
 #: KML alone, because the KML itself ships no licence header.
 MADRID_DATASET_PAGE_URL: Final[str] = (
-    "https://datos.madrid.es/portal/site/egob/menuitem."
-    "c05c1f754a33a9fbe4b2e4b284f1a5a0/"
-    "?vgnextoid=8803c23866b93410VgnVCM1000000b205a0aRCRD"
+    "https://datos.madrid.es/dataset/202088-0-trafico-camaras"
 )
 
+#: Official national open-data catalogue entry for the SAME Ayuntamiento de
+#: Madrid dataset ("Tráfico. Cámaras"), served as RDF/XML by datos.gob.es. It is
+#: a licence/metadata **fallback only**, consulted when the municipal catalogue
+#: page above times out (see protocol deviation PD-001 in ``PREREGISTRATION.md``).
+#: It is NEVER an image source and NEVER a camera-list substitute: the
+#: authoritative camera population is always ``MADRID_CCTV_KML_URL``.
+MADRID_DATASET_NATIONAL_FALLBACK_URL: Final[str] = (
+    "https://datos.gob.es/es/catalogo/l01280796-trafico-camaras1.xml"
+)
 # --------------------------------------------------------------------------
 # Evidence semantics — experiment-local on purpose (§13 of the protocol)
 # --------------------------------------------------------------------------

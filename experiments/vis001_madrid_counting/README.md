@@ -35,33 +35,41 @@ The model's output is a derived prediction; it is never ground truth.
 | Axis | State |
 | --- | --- |
 | Implementation | Complete — pipeline, metrics, gate, tests |
-| Preregistration | Frozen, gate version 1.0 (amendments A1, A2 — pre-data) |
-| Camera manifest | **Empty** — the KML is unreachable here. See *Blocker* below |
-| Benchmark cameras frozen | **No** — cannot be selected from an empty manifest |
-| Data acquired | **None** |
+| Preregistration | Frozen, gate version 1.0 (amendments A1, A2; deviation PD-001) |
+| Camera manifest | **357 cameras** — parsed structurally from the official KML |
+| Benchmark cameras frozen | **No** — the eight are not selected yet |
+| Data acquired | **None** — zero image frames |
 | Human ground truth | **None** — annotation cannot begin without frames |
 | Baseline run | Not executed — no images to run on |
 | Verdict | **NO VERDICT — MISSING EVIDENCE** |
 
-### Blocker: the official Madrid sources are unreachable from this environment
+### Provenance: camera list parsed; licence fallback recorded as PD-001
 
-`informo.madrid.es` (which serves the authoritative `CCTV.kml`),
-`datos.madrid.es` and the DGT national access point (`nap.dgt.es`) are all
-refused at the network egress proxy (`403` to `CONNECT`) in the environment
-where this experiment was implemented. That is an organisation-level network
-policy, not a fault in the source or in this code.
+The authoritative `CCTV.kml` at `informo.madrid.es` **is** reachable here: a
+local pre-frame resolution run parsed **357 official cameras** into
+`data/camera_manifest.csv`. Those rows are real KML placemarks and are never
+edited by hand.
 
-Per the protocol's stop conditions, VIS-001 **stops the data claim, not the
-implementation**. The acquisition pipeline ships and is reproducible; it has
-simply never had a reachable source to run against. No frame was invented, no
-mirror was substituted, and no generic internet imagery was used in place of
-official Madrid data.
+The licence / terms-of-use source is a **separate** document from the camera
+list, because the KML ships no licence header. Its primary source is the
+municipal canonical dataset page
+(`https://datos.madrid.es/dataset/202088-0-trafico-camaras`). That page timed
+out repeatedly under automated requests from this environment, so — recorded as
+**protocol deviation PD-001** in [`PREREGISTRATION.md`](PREREGISTRATION.md) — the
+resolver also consults the official Spanish **national** catalogue entry for the
+**same** Ayuntamiento de Madrid dataset
+(`https://datos.gob.es/es/catalogo/l01280796-trafico-camaras1.xml`, which
+declares CC BY 4.0) as a **licence-metadata fallback only**. `datos.gob.es` is
+never an image source and never a camera-list substitute; the camera population
+is always the Informo KML.
 
-Both `data/camera_manifest.csv` and `data/sample_manifest.csv` are therefore
-**header-only**, and `data/selected_cameras.json` does not exist. That is
-deliberate: they state the schema without asserting a single row of evidence
-that does not exist. The eight benchmark cameras cannot be frozen from an empty
-camera manifest, and every downstream step refuses to run without them.
+The rest of the evidence chain is still empty by design, and every downstream
+step refuses to run without it: the eight benchmark cameras are **not frozen**
+(`data/selected_cameras.json` does not exist), `data/sample_manifest.csv` is
+**header-only** (zero frames acquired), no human annotation exists, and no
+formal RF-DETR baseline has run on Madrid imagery. No frame was invented, no
+mirror was substituted for the camera list, and no generic internet imagery was
+used in place of official Madrid data.
 
 ## Frozen parameters
 
@@ -73,7 +81,7 @@ camera manifest, and every downstream step refuses to run without them.
 | Confidence threshold | 0.35 |
 | Evaluation IoU | 0.50 |
 | Camera list | `https://informo.madrid.es/informo/tmadrid/CCTV.kml`, parsed structurally |
-| Licence / terms | Verified against the `datos.madrid.es` catalogue page |
+| Licence / terms | `datos.madrid.es` catalogue page (primary); `datos.gob.es` national XML as licence-metadata fallback (PD-001) |
 | Camera selection | 8 compass sectors, median distance — procedure version 1.0 |
 | Sample | ≥ 20 **unique** frames from **each** of the 8 frozen cameras |
 | Evaluation set | **exactly** 10 × 8 = 80, seed `20260824` |
@@ -200,7 +208,7 @@ experiments/vis001_madrid_counting/
 ├── requirements.txt           ← experiment-local CV stack
 ├── .gitignore                 ← raw imagery, outputs and weights never committed
 ├── data/
-│   ├── camera_manifest.csv    ← cameras from the KML (header-only until resolved)
+│   ├── camera_manifest.csv    ← cameras from the KML (357 rows, parsed locally)
 │   ├── sample_manifest.csv    ← frame chain of custody (header-only until acquired)
 │   └── annotations/README.md  ← how to produce and place blind COCO ground truth
 ├── vis001/

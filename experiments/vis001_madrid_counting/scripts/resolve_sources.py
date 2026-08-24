@@ -65,8 +65,18 @@ CANDIDATE_SOURCES: tuple[dict[str, str], ...] = (
         "key": "datos_madrid_dataset_trafico_camaras",
         "role": "licence_and_terms",
         "url": config.MADRID_DATASET_PAGE_URL,
-        "note": "Open data catalogue page for 'Tráfico. Cámaras'. Carries the "
-                "licence / terms-of-use statement the KML does not.",
+        "note": "Open data catalogue page for 'Tráfico. Cámaras'. Primary "
+                "licence / terms-of-use statement the KML does not carry.",
+    },
+    {
+        "key": "datos_gob_es_trafico_camaras_rdf",
+        "role": "licence_and_terms",
+        "url": config.MADRID_DATASET_NATIONAL_FALLBACK_URL,
+        "note": "National open-data catalogue (datos.gob.es) RDF/XML entry for "
+                "the SAME Ayuntamiento de Madrid dataset. Licence / metadata "
+                "FALLBACK ONLY, consulted when the municipal catalogue page "
+                "times out. Never a camera source or camera-list substitute "
+                "(protocol deviation PD-001).",
     },
     {
         "key": "datos_madrid_kml_mirror",

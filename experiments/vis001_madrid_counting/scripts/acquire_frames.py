@@ -248,9 +248,11 @@ def main() -> int:
     known_hashes = {record.sha256 for record in existing}
 
     licence_note = (
-        "Ayuntamiento de Madrid open data catalogue (datos.madrid.es / "
-        "informo.madrid.es). See data/source_resolution.json for the verbatim "
-        "terms-of-use snippets retrieved at resolution time."
+        "Ayuntamiento de Madrid open data (informo.madrid.es KML; licence via "
+        "the datos.madrid.es catalogue, with datos.gob.es as the official "
+        "national fallback). data/source_resolution.json is the authoritative "
+        "provenance record: see its verbatim terms-of-use snippets and the "
+        "source that supplied them."
     )
 
     for index in range(passes):

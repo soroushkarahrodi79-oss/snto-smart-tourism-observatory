@@ -533,4 +533,37 @@ have reported something other than what was actually measured.
 
 Numbered, dated, and recorded **before** the affected evaluation is re-run.
 
-*(None recorded. The gate has not yet been applied to any result.)*
+### PD-001 — Official licence-metadata fallback (2026-08-25)
+
+Recorded while **zero image frames had been acquired, zero human annotations
+existed and no formal RF-DETR evaluation result on Madrid imagery existed**. This
+is a provenance substitution only; it is **not** a result-dependent change, and
+it is deliberately not filed as an amendment (A3) because it touches no rule this
+document governs.
+
+What happened, exactly:
+
+- The authoritative camera source **remains** the Informo Madrid KML
+  (`https://informo.madrid.es/informo/tmadrid/CCTV.kml`). It is unchanged.
+- A local, pre-frame resolution run parsed **357 cameras** structurally from that
+  KML into `data/camera_manifest.csv`. The camera population is real and is not
+  altered by this deviation.
+- Repeated automated requests to the canonical `datos.madrid.es` catalogue page
+  (the primary licence / terms-of-use source, §6) **timed out** from this
+  environment: the dataset page did not respond within 60 s or 180 s, and the
+  `datos.madrid.es` API returned 0 bytes after 30 s.
+- The official Spanish **national** open-data catalogue entry for the **same**
+  Ayuntamiento de Madrid dataset "Tráfico. Cámaras"
+  (`https://datos.gob.es/es/catalogo/l01280796-trafico-camaras1.xml`) **is**
+  reachable. Its RDF/XML declares
+  `dcterms:license = https://creativecommons.org/licenses/by/4.0/legalcode.es`,
+  titled **Creative Commons Attribution 4.0 International (CC BY 4.0)**.
+- That national catalogue entry is therefore accepted **only** as a licence /
+  metadata fallback, consulted after the municipal source. It is **never** an
+  image source and **never** a camera-list substitute.
+
+What did **not** change: no camera-selection rule, sample size, target class,
+model, confidence threshold, IoU threshold, random seed, metric, verdict algebra,
+gate threshold, gate version or privacy rule. The resolver still reaches
+`RESOLVED` only when licence-bearing evidence is retrieved and remains
+`PARTIAL`/`UNRESOLVED` otherwise; `status = RESOLVED` is never forced by hand.
