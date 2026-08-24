@@ -92,6 +92,20 @@ def test_ros_and_lac_are_populated() -> None:
     assert profile.capacity_at_standard is not None
 
 
+def test_capacity_at_standard_none_for_non_localized_attribution() -> None:
+    # WP-C11: a LANDSCAPE_DRIVEN / MIXED trail must not receive a capacity number,
+    # because the linear model would attribute a non-visitor deficit to visitors.
+    landscape = assess_pressure_capacity(
+        [_asset(scm_classification="LANDSCAPE_DRIVEN")]
+    )[0]
+    mixed = assess_pressure_capacity([_asset(scm_classification="MIXED")])[0]
+    assert landscape.capacity_at_standard is None
+    assert mixed.capacity_at_standard is None
+    # Its ROS/LAC classification is still populated — only the quota-shaped
+    # number is withheld.
+    assert landscape.ros_label and landscape.lac_status
+
+
 def test_remote_asset_gets_stricter_standard() -> None:
     remote = assess_pressure_capacity([_asset(accessibility_score=0.1)])[0]
     developed = assess_pressure_capacity([_asset(accessibility_score=0.95)])[0]

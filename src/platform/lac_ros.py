@@ -60,6 +60,15 @@ _LAC_STANDARD_EHS: dict[ROSClass, float] = {
 # EHS points above the standard within which the asset is "approaching" it.
 _APPROACH_BUFFER = 10.0
 
+# The SCM attribution class under which a visitor-capacity threshold is
+# meaningful. ``capacity_at_standard`` attributes the *entire* (pristine − EHS)
+# deficit to visitor pressure; that is only defensible where the ecological
+# deficit is actually attributed to localized visitor use. SNTO's own SCM
+# classifies most PNSG trails LANDSCAPE_DRIVEN (climate/landscape forcing), so
+# for those a capacity number would convert a non-visitor deficit into a visitor
+# quota — the WP-C11 defect. Kept as the single source of this precondition.
+_VISITOR_ATTRIBUTED_CLASS = "LOCALIZED_IMPACT"
+
 # LAC status labels.
 STATUS_WITHIN = "Dentro del estándar"
 STATUS_APPROACHING = "Cerca del límite"
@@ -109,6 +118,7 @@ def capacity_at_standard(
     ehs: float,
     standard: float,
     *,
+    attribution: str | None,
     pristine_ehs: float = 100.0,
 ) -> int | None:
     """Estimate the annual pressure consistent with holding EHS at ``standard``.
@@ -123,9 +133,21 @@ def capacity_at_standard(
     * EHS above the standard → headroom → ``P_std`` above current pressure.
     * EHS below the standard → over capacity → ``P_std`` below current pressure.
 
-    Returns ``None`` when the estimate is undefined or meaningless (near-pristine
-    EHS, non-positive pressure) — absence is stated, never faked.
+    **Attribution precondition (WP-C11).** The denominator ``(pristine_ehs − ehs)``
+    is the *entire* health deficit, so the model attributes all degradation to
+    visitor pressure. That is only defensible where the asset's SCM attribution is
+    ``LOCALIZED_IMPACT``. For ``LANDSCAPE_DRIVEN`` / ``MIXED`` / unknown
+    attribution this returns ``None`` — a climate- or geology-driven deficit is
+    not a visitor capacity, and stating absence is more honest than converting it
+    into a quota. ``attribution`` is a required keyword so no caller can obtain an
+    un-attributed number by omission.
+
+    Returns ``None`` when the estimate is undefined or meaningless (attribution
+    not localized, near-pristine EHS, non-positive pressure) — absence is stated,
+    never faked.
     """
+    if attribution != _VISITOR_ATTRIBUTED_CLASS:
+        return None
     if current_pressure <= 0:
         return None
     denom = pristine_ehs - max(0.0, min(pristine_ehs, ehs))

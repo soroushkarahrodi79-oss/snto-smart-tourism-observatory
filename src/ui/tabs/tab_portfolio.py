@@ -16,6 +16,7 @@ from src.mobility import (
 )
 from src.platform import methodology as method
 from src.platform.charts import build_portfolio_matrix
+from src.platform.evidence import DecisionUse, EvidenceClass, supports
 from src.platform.pressure_capacity import assess_pressure_capacity
 from src.socioeconomic.loader import load_municipalities, snapshot_exists
 from src.socioeconomic.mapping import normalize_name
@@ -26,6 +27,19 @@ from src.ui.render_helpers import (
     _alert_chip,
     _tier_chip,
 )
+
+
+def _portfolio_supports(assets: list, use: DecisionUse) -> bool:
+    """Whether *every* asset's evidence class supports ``use`` (empty ⇒ False).
+
+    Fail-closed, reading the single canonical gate ``evidence.supports`` (ADR-004
+    / I-5) — mirrors the identical helper in ``platform/dashboard.py`` and
+    ``ui/render_widgets.py`` rather than introducing a second authorization rule.
+    """
+    return bool(assets) and all(
+        supports(getattr(a, "evidence_class", EvidenceClass.SYNTHETIC), use)
+        for a in assets
+    )
 
 
 def _real_municipal_pressure(assets) -> dict[str, float] | None:
@@ -208,15 +222,37 @@ def _render_pressure_capacity(assets: list) -> None:
         "salud ecológica (EHS) por clase — más estricto cuanto más primitivo — y "
         "señala si el activo lo supera. La *capacidad al estándar* es la presión "
         "compatible con mantener el EHS en su estándar: una estimación de "
-        "planificación (supuesto lineal desde estado prístino), no un aforo."
+        "planificación (supuesto lineal desde estado prístino), **no un aforo ni "
+        "un cupo**."
     )
+    st.caption(
+        "⚠️ La *capacidad al estándar* solo se muestra cuando el SCM atribuye el "
+        "déficit ecológico a **uso localizado** (`LOCALIZED_IMPACT`): el modelo "
+        "lineal imputa todo el déficit a la presión de visitantes, supuesto que "
+        "no es defendible en sendas `LANDSCAPE_DRIVEN`/`MIXED` (forzamiento "
+        "climático o de paisaje). En esos casos se muestra “—” en lugar de "
+        "convertir un déficit no atribuible a visitantes en un cupo."
+    )
+    # Evidence-class gate: even where attribution supports a number, a portfolio
+    # whose evidence class does not back prioritisation cannot present the value
+    # as a decision figure. Under SYNTHETIC fixtures (today's live path) this
+    # blanks the column — mirroring the fail-closed gating in dashboard.py.
+    capacity_authorized = _portfolio_supports(assets, DecisionUse.PRIORITIZATION)
+    if not capacity_authorized:
+        st.caption(
+            "🧪 Datos de demostración (clase de evidencia SYNTHETIC): la columna "
+            "*capacidad al estándar* se omite porque esta clase no autoriza "
+            "ninguna decisión (ADR-004 / gating I-5)."
+        )
     lac_rows = [
         {
             "Activo": profile.asset_name,
             "Clase ROS": profile.ros_label,
             "Estándar EHS (LAC)": profile.lac_standard_ehs,
             "Estado LAC": profile.lac_status,
-            "Capacidad al estándar": profile.capacity_at_standard,
+            "Capacidad al estándar": (
+                profile.capacity_at_standard if capacity_authorized else None
+            ),
             "Presión (origen)": profile.pressure_source,
             "Movilidad municipal (viajes/día)": profile.municipal_inbound_daily,
         }

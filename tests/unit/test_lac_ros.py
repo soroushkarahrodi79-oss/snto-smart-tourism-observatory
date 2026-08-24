@@ -44,20 +44,57 @@ def test_lac_status_bands() -> None:
 def test_capacity_headroom_when_ehs_above_standard() -> None:
     # EHS 80 vs standard 55, current pressure 10000:
     # P_std = 10000 * (100-55)/(100-80) = 10000 * 45/20 = 22500 → headroom.
-    cap = capacity_at_standard(10_000, ehs=80.0, standard=55.0)
+    # Only meaningful for a localized-impact trail (WP-C11 precondition).
+    cap = capacity_at_standard(
+        10_000, ehs=80.0, standard=55.0, attribution="LOCALIZED_IMPACT"
+    )
     assert cap is not None and cap > 10_000
 
 
 def test_capacity_over_when_ehs_below_standard() -> None:
     # EHS 40 vs standard 55: already exceeded → capacity below current.
-    cap = capacity_at_standard(10_000, ehs=40.0, standard=55.0)
+    cap = capacity_at_standard(
+        10_000, ehs=40.0, standard=55.0, attribution="LOCALIZED_IMPACT"
+    )
     assert cap is not None and cap < 10_000
 
 
 def test_capacity_declines_to_none_near_pristine() -> None:
     # No measurable degradation to extrapolate from → honest None, not a number.
-    assert capacity_at_standard(10_000, ehs=100.0, standard=55.0) is None
+    assert (
+        capacity_at_standard(
+            10_000, ehs=100.0, standard=55.0, attribution="LOCALIZED_IMPACT"
+        )
+        is None
+    )
 
 
 def test_capacity_none_for_nonpositive_pressure() -> None:
-    assert capacity_at_standard(0, ehs=50.0, standard=55.0) is None
+    assert (
+        capacity_at_standard(
+            0, ehs=50.0, standard=55.0, attribution="LOCALIZED_IMPACT"
+        )
+        is None
+    )
+
+
+def test_capacity_none_for_landscape_driven_attribution() -> None:
+    # WP-C11: the linear model attributes the whole deficit to visitors, so a
+    # climate/landscape-driven trail must not receive a capacity number even when
+    # the math would otherwise yield one.
+    assert (
+        capacity_at_standard(
+            10_000, ehs=80.0, standard=55.0, attribution="LANDSCAPE_DRIVEN"
+        )
+        is None
+    )
+
+
+def test_capacity_none_for_mixed_and_unknown_attribution() -> None:
+    for attribution in ("MIXED", None, "", "localized_impact"):
+        assert (
+            capacity_at_standard(
+                10_000, ehs=80.0, standard=55.0, attribution=attribution
+            )
+            is None
+        ), attribution
