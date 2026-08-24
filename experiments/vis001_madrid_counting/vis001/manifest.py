@@ -13,9 +13,9 @@ from __future__ import annotations
 
 import csv
 import hashlib
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
-from typing import Iterable, Iterator
+from typing import Iterable, Iterator, Mapping, Sequence
 
 MANIFEST_COLUMNS: tuple[str, ...] = (
     "image_id",
@@ -213,17 +213,53 @@ def iter_camera_ids(records: Iterable[FrameRecord]) -> Iterator[str]:
 
 @dataclass(frozen=True)
 class ManifestCoverage:
-    """How far the acquired sample is from the preregistered target."""
+    """How far the acquired sample is from the preregistered structure.
+
+    Completeness is **structural**, not a headline count. The preregistration
+    asks for 20 frames from each of 8 specific cameras; 160 frames spread
+    unevenly across those cameras — or spread across twelve of them — is a
+    different sample that happens to share a total, and it would break the
+    per-camera stratification the gate's camera rules rest on.
+    """
 
     frames: int
     cameras: int
     target_frames: int
     target_cameras: int
     frames_per_camera: dict[str, int]
+    #: The frozen eight. Empty when the selection has not been frozen yet, in
+    #: which case the sample can never be complete.
+    selected_cameras: tuple[str, ...] = ()
+    #: Minimum unique frames each selected camera must hold.
+    frames_per_camera_required: int = 0
+    #: Selected cameras that are short, mapped to what they actually hold.
+    cameras_below_quota: dict[str, int] = field(default_factory=dict)
+    #: Selected cameras with no frames at all.
+    cameras_missing: tuple[str, ...] = ()
+    #: Cameras present in the manifest that are not among the frozen eight.
+    cameras_unexpected: tuple[str, ...] = ()
 
     @property
     def is_complete(self) -> bool:
-        return self.frames >= self.target_frames and self.cameras >= self.target_cameras
+        """True only for exactly the preregistered structure.
+
+        Every one of these must hold; the frame total on its own satisfies
+        none of them:
+
+        * the eight cameras have been frozen at all;
+        * exactly ``target_cameras`` of them are selected;
+        * each holds at least ``frames_per_camera_required`` unique frames;
+        * the manifest contains no frames from an unselected camera.
+        """
+        if not self.selected_cameras:
+            return False
+        if len(self.selected_cameras) != self.target_cameras:
+            return False
+        if self.cameras_missing or self.cameras_below_quota:
+            return False
+        if self.cameras_unexpected:
+            return False
+        return True
 
     def summary(self) -> str:
         state = "COMPLETE" if self.is_complete else "TARGET SAMPLE NOT YET COMPLETE"
@@ -232,23 +268,84 @@ class ManifestCoverage:
             f"{self.cameras}/{self.target_cameras} cameras"
         )
 
+    def shortfalls(self) -> list[str]:
+        """Human-readable reasons the sample is not yet complete."""
+        reasons: list[str] = []
+        if not self.selected_cameras:
+            reasons.append(
+                "the eight benchmark cameras have not been frozen "
+                "(run resolve_sources.py, then select_cameras.py)"
+            )
+            return reasons
+        if len(self.selected_cameras) != self.target_cameras:
+            reasons.append(
+                f"{len(self.selected_cameras)} cameras are frozen, "
+                f"but exactly {self.target_cameras} are required"
+            )
+        if self.cameras_missing:
+            reasons.append(
+                "no frames acquired for selected cameras: "
+                + ", ".join(self.cameras_missing)
+            )
+        if self.cameras_below_quota:
+            listed = ", ".join(
+                f"{camera} ({count}/{self.frames_per_camera_required})"
+                for camera, count in sorted(self.cameras_below_quota.items())
+            )
+            reasons.append(f"selected cameras below the per-camera quota: {listed}")
+        if self.cameras_unexpected:
+            reasons.append(
+                "frames present from cameras outside the frozen eight: "
+                + ", ".join(self.cameras_unexpected)
+            )
+        return reasons
+
 
 def coverage(
     records: Iterable[FrameRecord],
     *,
     target_frames: int,
     target_cameras: int,
+    selected_cameras: Sequence[str] = (),
+    frames_per_camera: int = 0,
 ) -> ManifestCoverage:
+    """Measure the sample against the preregistered structure.
+
+    Frames are counted **unique by content hash within a camera**: Madrid
+    republishes a capture roughly every five minutes, so the same bytes can be
+    fetched twice, and counting a byte-identical repeat towards the quota would
+    inflate the sample without adding a single new observation.
+    """
     materialised = list(records)
+    unique_per_camera: dict[str, set[str]] = {}
+    for record in materialised:
+        unique_per_camera.setdefault(record.camera_id, set()).add(record.sha256)
     per_camera = {
-        camera: len(frames) for camera, frames in group_by_camera(materialised).items()
+        camera: len(hashes) for camera, hashes in unique_per_camera.items()
     }
+
+    selected = tuple(selected_cameras)
+    missing = tuple(camera for camera in selected if per_camera.get(camera, 0) == 0)
+    below = {
+        camera: per_camera[camera]
+        for camera in selected
+        if 0 < per_camera.get(camera, 0) < frames_per_camera
+    }
+    unexpected = tuple(
+        sorted(camera for camera in per_camera if selected and camera not in selected)
+    )
+
     return ManifestCoverage(
         frames=len(materialised),
         cameras=len(per_camera),
         target_frames=target_frames,
         target_cameras=target_cameras,
         frames_per_camera=dict(sorted(per_camera.items())),
+        selected_cameras=selected,
+        frames_per_camera_required=frames_per_camera,
+        cameras_below_quota=below,
+        cameras_missing=missing,
+        cameras_unexpected=unexpected,
     )
 
 
@@ -262,13 +359,20 @@ def select_evaluation_set(
     *,
     per_camera: int,
     seed: int,
+    selected_cameras: Sequence[str],
 ) -> list[str]:
-    """Draw the frozen evaluation set: ``per_camera`` image ids from each camera.
+    """Draw the frozen evaluation set: ``per_camera`` images from each of the
+    frozen benchmark cameras.
 
-    The draw is stratified by camera and fully reproducible: cameras are visited
-    in sorted ``camera_id`` order, each camera's frames are sorted by
-    ``image_id``, and a single :class:`random.Random` seeded with ``seed`` draws
-    the sample. Given the same manifest and the same seed, the result is
+    The draw is stratified over **exactly** ``selected_cameras`` — the eight
+    frozen before any inference — not over whatever cameras happen to appear in
+    the manifest. Frames from an unselected camera are ignored entirely, so a
+    stray acquisition cannot dilute or enlarge the evaluation set.
+
+    The draw is fully reproducible: cameras are visited in the order they were
+    frozen, each camera's frames are sorted by ``image_id``, and a single
+    :class:`random.Random` seeded with ``seed`` samples them. Given the same
+    manifest, the same frozen cameras and the same seed, the result is
     byte-identical on any machine.
 
     Because the draw is a function of the *whole* manifest, adding frames later
@@ -276,17 +380,92 @@ def select_evaluation_set(
     called, and the caller is expected to store the manifest's SHA-256 alongside
     the drawn ids so that drift is detectable rather than silent.
 
-    A camera with fewer than ``per_camera`` frames contributes all of them; the
-    shortfall is reported by the caller rather than back-filled from another
-    camera, which would break stratification.
+    A camera with fewer than ``per_camera`` frames contributes all of them. The
+    shortfall is reported by the caller and forces NO VERDICT; it is never
+    back-filled from another camera, which would break stratification while
+    leaving the headline count looking correct.
     """
     import random
 
     rng = random.Random(seed)
     grouped = group_by_camera(records)
     selected: list[str] = []
-    for camera_id in sorted(grouped):
-        image_ids = sorted(record.image_id for record in grouped[camera_id])
+    for camera_id in selected_cameras:
+        image_ids = sorted(
+            record.image_id for record in grouped.get(camera_id, [])
+        )
         take = min(per_camera, len(image_ids))
         selected.extend(rng.sample(image_ids, take))
     return selected
+
+
+@dataclass(frozen=True)
+class EvaluationSetIntegrity:
+    """Whether the drawn evaluation set matches the preregistered structure."""
+
+    size: int
+    required_size: int
+    per_camera: dict[str, int]
+    required_per_camera: int
+    selected_cameras: tuple[str, ...]
+    required_cameras: int
+
+    @property
+    def is_exact(self) -> bool:
+        """True only for exactly N images from each of exactly the frozen eight."""
+        if len(self.selected_cameras) != self.required_cameras:
+            return False
+        if self.size != self.required_size:
+            return False
+        return all(
+            self.per_camera.get(camera, 0) == self.required_per_camera
+            for camera in self.selected_cameras
+        )
+
+    def shortfalls(self) -> list[str]:
+        reasons: list[str] = []
+        if len(self.selected_cameras) != self.required_cameras:
+            reasons.append(
+                f"{len(self.selected_cameras)} benchmark cameras are frozen, "
+                f"but the gate requires exactly {self.required_cameras}"
+            )
+        if self.size != self.required_size:
+            reasons.append(
+                f"the evaluation set holds {self.size} images, but the gate "
+                f"requires exactly {self.required_size}"
+            )
+        short = {
+            camera: self.per_camera.get(camera, 0)
+            for camera in self.selected_cameras
+            if self.per_camera.get(camera, 0) != self.required_per_camera
+        }
+        if short:
+            listed = ", ".join(
+                f"{camera} ({count}/{self.required_per_camera})"
+                for camera, count in sorted(short.items())
+            )
+            reasons.append(f"cameras not contributing exactly their quota: {listed}")
+        return reasons
+
+
+def evaluation_set_integrity(
+    image_ids: Sequence[str],
+    *,
+    camera_of_image: Mapping[str, str],
+    selected_cameras: Sequence[str],
+    required_per_camera: int,
+    required_cameras: int,
+) -> EvaluationSetIntegrity:
+    """Check a drawn evaluation set against the frozen structure."""
+    per_camera: dict[str, int] = {}
+    for image_id in image_ids:
+        camera = camera_of_image.get(image_id, "")
+        per_camera[camera] = per_camera.get(camera, 0) + 1
+    return EvaluationSetIntegrity(
+        size=len(image_ids),
+        required_size=required_cameras * required_per_camera,
+        per_camera=per_camera,
+        required_per_camera=required_per_camera,
+        selected_cameras=tuple(selected_cameras),
+        required_cameras=required_cameras,
+    )

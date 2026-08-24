@@ -33,13 +33,42 @@ sample:
   cameras: 8
   frames_per_camera: 20
   total_frames: 160
-  source: Ayuntamiento de Madrid open data (datos.madrid.es / informo.madrid.es)
   mirrors_permitted: false
+  # Completeness is structural: at least frames_per_camera UNIQUE frames from
+  # EACH frozen camera. A matching total spread unevenly does NOT satisfy it.
+  completeness: per_camera_quota
+  unique_by: sha256
+
+source:
+  camera_list: https://informo.madrid.es/informo/tmadrid/CCTV.kml
+  licence_and_terms: >-
+    https://datos.madrid.es catalogue page for "Tráfico. Cámaras"
+  discovery: >-
+    structural KML <Placemark> parsing (name, Point/coordinates, and the image
+    endpoint attached to that Placemark). Image URLs are never harvested by
+    scanning arbitrary HTML for .jpg/.png.
+
+camera_selection:
+  procedure_version: "1.0"
+  method: >-
+    eight 45-degree compass sectors around the centroid of all published
+    cameras; the median-distance camera within each sector; empty sectors
+    backfilled from the richest remaining sector
+  inputs: published geographic metadata only
+  uses_imagery: false
+  uses_model_output: false
+  frozen_to: data/selected_cameras.json
+  frozen_before: inference
+  rejected_alternative: >-
+    first N sorted camera ids — municipal ids track installation batches, so
+    the lowest eight cluster on the same few roads
 
 evaluation_set:
   images_per_camera: 10
   total_images: 80
-  stratified_by: camera_id
+  exact_required: true          # 79 is not 80; anything else forces NO VERDICT
+  stratified_by: frozen selected cameras
+  backfill_permitted: false
   random_seed: 20260824
 
 metrics:
@@ -52,6 +81,11 @@ metrics:
     wape: sum(abs(predicted - ground_truth)) / sum(ground_truth)
     mape: excluded — frames legitimately contain zero objects of a class
   slices: [class, camera]
+  class_coverage_required: true   # all four classes evaluable, or NO VERDICT
+  undefined_class_handling: >-
+    NO VERDICT — INSUFFICIENT CLASS COVERAGE. An undefined class F1 is never
+    dropped from the macro average: bus and bicycle are the classes most likely
+    to go undefined and the ones a counting benchmark most needs measured.
 
 gate:
   advance:
@@ -67,6 +101,14 @@ gate:
     camera_wape_spread_above: 0.50
   local_fine_tune: residual band — neither ADVANCE nor KILL_OR_REPOSITION
   precedence: [kill_or_reposition, advance, local_fine_tune]
+  no_verdict_when:
+    - the eight benchmark cameras are not frozen
+    - the sample is structurally incomplete
+    - the evaluation set is not exactly 80 images, 10 per frozen camera
+    - the frozen evaluation set is not fully annotated
+    - predictions are absent
+    - any of the four target classes is not evaluable
+    - macro F1 or WAPE is undefined
 
 privacy:
   object_counting_only: true

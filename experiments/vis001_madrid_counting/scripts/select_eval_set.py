@@ -28,11 +28,26 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from vis001 import config  # noqa: E402
 from vis001.manifest import (  # noqa: E402
+    evaluation_set_integrity,
     group_by_camera,
     read_manifest,
     select_evaluation_set,
     sha256_of,
 )
+
+
+def load_selected_cameras() -> list[str]:
+    """The frozen eight camera ids, in the order they were frozen."""
+    path = config.SELECTED_CAMERAS_PATH
+    if not path.exists():
+        raise SystemExit(
+            f"missing {path}\n"
+            "Freeze the benchmark cameras first (resolve_sources.py, then "
+            "select_cameras.py). The evaluation set is stratified over exactly "
+            "those eight, not over whatever cameras happen to be present."
+        )
+    frozen = json.loads(path.read_text(encoding="utf-8"))
+    return [entry["camera_id"] for entry in frozen.get("selected_cameras", [])]
 
 
 def main() -> int:
@@ -57,18 +72,23 @@ def main() -> int:
             "be drawn, and none will be fabricated."
         )
 
+    frozen_cameras = load_selected_cameras()
     selected = select_evaluation_set(
         records,
         per_camera=config.EVAL_IMAGES_PER_CAMERA,
         seed=config.RANDOM_SEED,
+        selected_cameras=frozen_cameras,
     )
 
     grouped = group_by_camera(records)
-    shortfalls = {
-        camera: len(frames)
-        for camera, frames in sorted(grouped.items())
-        if len(frames) < config.EVAL_IMAGES_PER_CAMERA
-    }
+    camera_of_image = {record.image_id: record.camera_id for record in records}
+    integrity = evaluation_set_integrity(
+        selected,
+        camera_of_image=camera_of_image,
+        selected_cameras=frozen_cameras,
+        required_per_camera=config.EVAL_IMAGES_PER_CAMERA,
+        required_cameras=config.TARGET_CAMERAS,
+    )
 
     payload = {
         "experiment_id": config.EXPERIMENT_ID,
@@ -77,10 +97,18 @@ def main() -> int:
         "images_per_camera": config.EVAL_IMAGES_PER_CAMERA,
         "target_size": config.EVAL_SET_SIZE,
         "actual_size": len(selected),
+        "is_exact": integrity.is_exact,
+        "shortfalls": integrity.shortfalls(),
         "manifest_sha256": sha256_of(config.SAMPLE_MANIFEST_PATH),
         "manifest_rows": len(records),
+        "selected_cameras": frozen_cameras,
+        "selected_cameras_sha256": (
+            sha256_of(config.SELECTED_CAMERAS_PATH)
+            if config.SELECTED_CAMERAS_PATH.exists()
+            else ""
+        ),
         "cameras": sorted(grouped),
-        "cameras_below_quota": shortfalls,
+        "images_per_camera_drawn": dict(sorted(integrity.per_camera.items())),
         "image_ids": sorted(selected),
     }
 
@@ -95,6 +123,8 @@ def main() -> int:
             )
         if sorted(frozen.get("image_ids", [])) != payload["image_ids"]:
             drifted.append("a fresh draw yields a different image set")
+        if frozen.get("selected_cameras") != frozen_cameras:
+            drifted.append("the frozen benchmark cameras changed")
         if drifted:
             for item in drifted:
                 print(f"DRIFT: {item}")
@@ -113,15 +143,19 @@ def main() -> int:
     )
 
     print(
-        f"drew {len(selected)}/{config.EVAL_SET_SIZE} images "
-        f"from {len(grouped)} cameras (seed {config.RANDOM_SEED})"
+        f"drew {len(selected)}/{config.EVAL_SET_SIZE} images from "
+        f"{len(frozen_cameras)} frozen cameras (seed {config.RANDOM_SEED})"
     )
-    if shortfalls:
-        print("cameras below the per-camera quota (not back-filled from elsewhere):")
-        for camera, count in shortfalls.items():
-            print(f"  {camera}: {count}/{config.EVAL_IMAGES_PER_CAMERA}")
+    for camera in frozen_cameras:
+        drawn = integrity.per_camera.get(camera, 0)
+        marker = "" if drawn == config.EVAL_IMAGES_PER_CAMERA else "  <- short"
+        print(f"  {camera}: {drawn}/{config.EVAL_IMAGES_PER_CAMERA}{marker}")
+    if not integrity.is_exact:
+        print("\nthe evaluation set is NOT exact; the gate will issue NO VERDICT:")
+        for reason in integrity.shortfalls():
+            print(f"  - {reason}")
     print(f"written: {config.EVAL_SET_PATH}")
-    return 0 if len(selected) == config.EVAL_SET_SIZE else 2
+    return 0 if integrity.is_exact else 2
 
 
 if __name__ == "__main__":

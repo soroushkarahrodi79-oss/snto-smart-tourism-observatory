@@ -46,15 +46,70 @@ The model's output is a **derived prediction**. It is never ground truth.
 | Camera locations | 8 |
 | Frames per camera | 20 |
 | Total target frames | 160 |
-| Source | Ayuntamiento de Madrid open data (`datos.madrid.es` / `informo.madrid.es`) |
+| Camera list | `https://informo.madrid.es/informo/tmadrid/CCTV.kml` (authoritative) |
+| Licence / terms | The `datos.madrid.es` catalogue page for "Tráfico. Cámaras" |
 | Third-party mirrors | Not permitted while the official source exists |
 
-Cameras are selected for **heterogeneity**, not for ease: pedestrian density,
-vehicle density, illumination, shadow, partial occlusion, camera height, camera
-angle and background complexity should vary across the eight. Camera selection
-is explicitly **not** optimised for RF-DETR performance — no camera may be
-previewed, scored or rejected on the basis of how well the model does on it.
-The camera manifest is frozen before evaluation.
+### Camera discovery — structural, not scraped
+
+Cameras are read out of the KML's `<Placemark>` structure: published name,
+`<Point>` coordinates, and the image endpoint attached to that Placemark (from
+`<ExtendedData>`, or from the `<description>` balloon parsed as HTML **scoped to
+that one Placemark**). A Placemark without both coordinates and an image
+endpoint is dropped, never completed from a guess.
+
+Cameras are **never** identified by scanning a page for anything ending in
+`.jpg` or `.png`. A blind regex over arbitrary markup returns logos, legend
+icons and banners with equal confidence, and none of them is a camera. Every row
+of the camera manifest is therefore traceable to one entry in the official
+dataset. Provenance is verified against the catalogue page as well as the KML,
+because the KML ships no licence header.
+
+The camera manifest records, per camera: `camera_id`, `camera_name`,
+`latitude`, `longitude`, `image_url`, `source_document`. It is frozen before
+selection.
+
+### Camera selection — deterministic, geographic, pre-model
+
+The eight benchmark cameras are chosen by a frozen procedure (version **1.0**),
+run **before any inference**:
+
+1. Compute the centroid of every camera published in the KML.
+2. Assign each camera to one of eight 45° compass sectors around that centroid
+   (N, NE, E, SE, S, SW, W, NW), with longitude scaled by `cos(latitude)` so a
+   degree east covers the same ground as a degree north.
+3. Within each sector, order by distance from the centroid, breaking ties by
+   `camera_id`, and take the **median** camera. Not the nearest (which would
+   concentrate all eight in the centre) and not the farthest (which would
+   concentrate them on the ring road) — either collapses the scene variety the
+   sectors exist to create.
+4. Visit sectors in compass order; backfill an empty sector from the sector with
+   the most unselected cameras, so a gap in published coverage does not silently
+   yield seven cameras.
+
+This replaces "the first eight sorted camera ids", which is **not** acceptable:
+municipal ids track installation batches, so the lowest eight tend to sit on the
+same few roads — one scene type, one mounting style, one background.
+
+Every input is **published geographic metadata**. No image is opened, no model
+is run, and no prediction is consulted, so the choice cannot be tuned — even
+accidentally — to flatter RF-DETR. No camera may be previewed, scored or
+rejected on the basis of how well the model does on it.
+
+The eight are frozen to `data/selected_cameras.json`, with the camera manifest's
+SHA-256, **before** `run_baseline.py` is ever run.
+
+### Sample completeness is structural
+
+The sample is complete only when **each** of the eight frozen cameras holds at
+least 20 **unique** frames (unique by content hash: Madrid republishes a capture
+roughly every five minutes, and byte-identical repeats add no observation).
+
+A frame total of 160 **does not** by itself satisfy completeness. 160 frames
+from two cameras, or spread 40/30/30/20/20/10/10/0, is a different sample that
+happens to share a headline number, and it would destroy the per-camera
+stratification the gate's camera rules rest on. Frames from a camera outside the
+frozen eight also break completeness rather than padding it.
 
 Required per-frame metadata: `image_id`, `camera_id`, `camera_name`,
 `source_url`, `retrieved_at_utc`, `source_timestamp`, `latitude`, `longitude`,
@@ -104,15 +159,22 @@ never feed the gate. The formal verdict always uses 0.35.
 | Parameter | Value |
 | --- | --- |
 | Images per camera | 10 |
-| Total | 80 |
-| Stratification | By `camera_id` |
+| Total | **exactly 80** |
+| Stratification | Over exactly the eight frozen cameras |
 | Random seed | **20260824** |
 
-The draw visits cameras in sorted `camera_id` order, sorts each camera's frames
-by `image_id`, and samples with a single `random.Random(20260824)`. It is
-byte-identical on any machine given the same manifest. The manifest's SHA-256 is
-recorded alongside the drawn ids so that later manifest drift is detectable
-rather than silent.
+The draw visits the frozen cameras in the order they were frozen, sorts each
+camera's frames by `image_id`, and samples with a single
+`random.Random(20260824)`. It is byte-identical on any machine given the same
+manifest and the same frozen cameras. Frames from an unselected camera are
+ignored entirely, so a stray acquisition can neither dilute nor enlarge the set.
+The manifest's SHA-256 is recorded alongside the drawn ids so that later drift
+is detectable rather than silent.
+
+**A formal verdict requires the evaluation set to be exactly 80 images: 10 from
+each of the 8 frozen cameras.** 79 is not 80. A camera contributing 9 is not
+back-filled from another camera — that would preserve the headline count while
+breaking stratification. Any deviation forces **NO VERDICT**.
 
 The remaining 80 frames stay **outside** the baseline evaluation. They may
 become development or training candidates in a separate experiment.
@@ -181,6 +243,20 @@ that made no prediction has not been shown to be imprecise; a frame set with no
 ground truth has no counting error. Reporting those as zero would read as
 "perfect" and is forbidden.
 
+### Class coverage is mandatory
+
+**All four target classes must be evaluable for a formal verdict.** If the F1 of
+`person`, `bicycle`, `car` or `bus` is undefined — no ground truth *and* no
+prediction for it anywhere in the evaluation set — the gate is not applied and
+the result is **NO VERDICT — INSUFFICIENT CLASS COVERAGE**.
+
+The undefined class is **never** silently dropped from the macro average. The
+classes most likely to go undefined (`bus`, `bicycle`) are precisely the rare
+ones a counting benchmark most needs to have measured, so averaging the three
+that worked would both redefine the metric mid-experiment and bias it upward.
+A benchmark that never saw a bus has not measured three-quarters of the
+question; it has failed to measure the question.
+
 ## 9. Decision gate — frozen
 
 Precedence is fixed and total: **KILL is checked first, ADVANCE second,
@@ -227,11 +303,20 @@ honestly obtained is a successful VIS-001.
 
 ### No verdict
 
-If the frozen evaluation set is not fully annotated, or predictions are absent,
-or macro F1 / WAPE are undefined, the gate is **not applied**. The verdict is
-`null`, the blocking reasons are listed explicitly, and the report states
-**NO VERDICT — MISSING EVIDENCE**. An incomplete evaluation is never converted
-into a positive result.
+The gate is **not applied** — verdict `null`, blocking reasons listed
+explicitly, report stating **NO VERDICT — MISSING EVIDENCE** — whenever any of
+the following holds:
+
+* the eight benchmark cameras are not frozen;
+* the sample is structurally incomplete (§3);
+* the evaluation set is not exactly 80 images, 10 per frozen camera;
+* the frozen evaluation set is not fully annotated;
+* predictions are absent;
+* any of the four target classes is not evaluable, which is reported as
+  **NO VERDICT — INSUFFICIENT CLASS COVERAGE**;
+* macro F1 or WAPE is undefined.
+
+An incomplete evaluation is never converted into a positive result.
 
 ## 10. Evidence semantics
 
@@ -302,6 +387,47 @@ A stop is reported as: **BLOCKER · EVIDENCE · WHAT WAS COMPLETED · MINIMUM NE
 HUMAN ACTION**.
 
 Official Madrid data is never silently replaced with random internet images.
+
+---
+
+## Amendments
+
+Numbered and dated. An amendment is only legitimate **before** the data it
+governs exists; once a result has been observed, a change to this document is a
+protocol deviation instead (next section) and must be recorded as one.
+
+### A1 — Pre-data audit corrections (2026-08-24)
+
+Recorded while **zero frames had been acquired, zero annotations existed and the
+model had never been run**, so no result could have motivated any of it. Six
+loopholes were closed:
+
+1. **Camera discovery is structural.** Cameras are parsed from the official
+   KML's `<Placemark>` structure at
+   `https://informo.madrid.es/informo/tmadrid/CCTV.kml`, with provenance and
+   licence verified against the `datos.madrid.es` catalogue page. The previous
+   approach — harvesting anything ending in `.jpg` from page markup — is
+   forbidden: it cannot distinguish a camera from a logo.
+2. **A real camera manifest is frozen** from the KML (id, published name,
+   coordinates, image endpoint, source document) before selection.
+3. **Camera selection is a documented pre-model procedure** (§3, version 1.0):
+   eight compass sectors, median distance within each. It replaces "the first
+   eight sorted camera ids", which clusters geographically because ids track
+   installation batches.
+4. **Sample completeness is structural** — at least 20 unique frames from each
+   of the eight frozen cameras. A matching frame total no longer satisfies it.
+5. **The evaluation set must be exactly 80** — 10 from each frozen camera.
+   Anything else forces NO VERDICT.
+6. **All four target classes must be evaluable.** An undefined class F1 forces
+   NO VERDICT — INSUFFICIENT CLASS COVERAGE instead of being dropped from the
+   macro average.
+
+**No scientific gate or threshold changed.** The model, the confidence
+threshold (0.35), the IoU threshold (0.50), the four classes, the sample size
+(8 × 20), the evaluation-set size (80), the seed (20260824) and every ADVANCE /
+LOCAL_FINE_TUNE / KILL_OR_REPOSITION boundary are exactly as first registered.
+Every correction makes the gate **harder** to satisfy, never easier: each one
+adds a way to reach NO VERDICT that did not previously exist.
 
 ---
 

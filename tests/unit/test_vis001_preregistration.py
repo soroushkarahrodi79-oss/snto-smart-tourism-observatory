@@ -132,6 +132,64 @@ def test_model_is_rf_detr_small_everywhere(prereg_text, yaml_text):
     assert "RF-DETR Small" in yaml_text
 
 
+# --- pre-data audit corrections (amendment A1) -----------------------------
+
+
+def test_official_kml_endpoint_is_frozen(prereg_text, yaml_text):
+    assert config.MADRID_CCTV_KML_URL == (
+        "https://informo.madrid.es/informo/tmadrid/CCTV.kml"
+    )
+    assert config.MADRID_CCTV_KML_URL in prereg_text
+    assert config.MADRID_CCTV_KML_URL in yaml_text
+
+
+def test_structural_kml_discovery_is_declared(prereg_text, yaml_text):
+    """Cameras come from Placemark structure, never from scanned markup."""
+    assert "scanning a page for anything ending in" in prereg_text
+    assert "never harvested by scanning arbitrary HTML" in yaml_text
+
+
+def test_camera_selection_procedure_is_declared(prereg_text, yaml_text):
+    from vis001.cameras import SELECTION_PROCEDURE_VERSION
+
+    assert SELECTION_PROCEDURE_VERSION == "1.0"
+    assert "compass sector" in prereg_text.lower()
+    assert "median" in prereg_text.lower()
+    assert "first eight sorted camera ids" in prereg_text
+    assert "camera_selection:" in yaml_text
+    assert "uses_model_output: false" in yaml_text
+
+
+def test_structural_completeness_is_declared(prereg_text, yaml_text):
+    assert config.REQUIRE_PER_CAMERA_QUOTA is True
+    assert "does not** by itself satisfy completeness" in prereg_text
+    assert "completeness: per_camera_quota" in yaml_text
+
+
+def test_exact_evaluation_set_is_declared(prereg_text, yaml_text):
+    assert config.REQUIRE_EXACT_EVAL_SET is True
+    assert "exactly 80 images" in prereg_text
+    assert "79 is not 80" in prereg_text
+    assert "exact_required: true" in yaml_text
+    assert "backfill_permitted: false" in yaml_text
+
+
+def test_class_coverage_requirement_is_declared(prereg_text, yaml_text):
+    from vis001.metrics import INSUFFICIENT_CLASS_COVERAGE
+
+    assert config.REQUIRE_ALL_CLASSES_EVALUABLE is True
+    assert INSUFFICIENT_CLASS_COVERAGE in prereg_text
+    assert "class_coverage_required: true" in yaml_text
+
+
+def test_amendment_is_recorded_and_states_no_threshold_changed(prereg_text):
+    """A pre-data correction is legitimate only if it is written down as one."""
+    assert "## Amendments" in prereg_text
+    assert "A1 — Pre-data audit corrections" in prereg_text
+    assert "No scientific gate or threshold changed." in prereg_text
+    assert "harder** to satisfy, never easier" in prereg_text
+
+
 def test_no_second_architecture_is_introduced(prereg_text, yaml_text):
     """A YOLO comparison is a future experiment, not this one."""
     assert "no YOLO comparison in VIS-001" in prereg_text

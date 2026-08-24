@@ -35,18 +35,21 @@ The model's output is a derived prediction; it is never ground truth.
 | Axis | State |
 | --- | --- |
 | Implementation | Complete — pipeline, metrics, gate, tests |
-| Preregistration | Frozen, gate version 1.0 |
-| Data acquired | **None.** See *Blocker* below |
+| Preregistration | Frozen, gate version 1.0 (amendment A1: pre-data audit corrections) |
+| Camera manifest | **Empty** — the KML is unreachable here. See *Blocker* below |
+| Benchmark cameras frozen | **No** — cannot be selected from an empty manifest |
+| Data acquired | **None** |
 | Human ground truth | **None** — annotation cannot begin without frames |
 | Baseline run | Not executed — no images to run on |
 | Verdict | **NO VERDICT — MISSING EVIDENCE** |
 
 ### Blocker: the official Madrid sources are unreachable from this environment
 
-`datos.madrid.es`, `informo.madrid.es` and the DGT national access point
-(`nap.dgt.es`) are all refused at the network egress proxy (`403` to `CONNECT`)
-in the environment where this experiment was implemented. That is an
-organisation-level network policy, not a fault in the source or in this code.
+`informo.madrid.es` (which serves the authoritative `CCTV.kml`),
+`datos.madrid.es` and the DGT national access point (`nap.dgt.es`) are all
+refused at the network egress proxy (`403` to `CONNECT`) in the environment
+where this experiment was implemented. That is an organisation-level network
+policy, not a fault in the source or in this code.
 
 Per the protocol's stop conditions, VIS-001 **stops the data claim, not the
 implementation**. The acquisition pipeline ships and is reproducible; it has
@@ -54,9 +57,11 @@ simply never had a reachable source to run against. No frame was invented, no
 mirror was substituted, and no generic internet imagery was used in place of
 official Madrid data.
 
-The frozen manifest at `data/sample_manifest.csv` is therefore **header-only**.
-That is deliberate: it states the schema without asserting a single row of
-evidence that does not exist.
+Both `data/camera_manifest.csv` and `data/sample_manifest.csv` are therefore
+**header-only**, and `data/selected_cameras.json` does not exist. That is
+deliberate: they state the schema without asserting a single row of evidence
+that does not exist. The eight benchmark cameras cannot be frozen from an empty
+camera manifest, and every downstream step refuses to run without them.
 
 ## Frozen parameters
 
@@ -67,9 +72,28 @@ evidence that does not exist.
 | Classes | `person`, `bicycle`, `car`, `bus` — exactly four, no additions after results |
 | Confidence threshold | 0.35 |
 | Evaluation IoU | 0.50 |
-| Sample | 8 cameras × 20 frames = 160 |
-| Evaluation set | 10 images × 8 cameras = 80, seed `20260824` |
+| Camera list | `https://informo.madrid.es/informo/tmadrid/CCTV.kml`, parsed structurally |
+| Licence / terms | Verified against the `datos.madrid.es` catalogue page |
+| Camera selection | 8 compass sectors, median distance — procedure version 1.0 |
+| Sample | ≥ 20 **unique** frames from **each** of the 8 frozen cameras |
+| Evaluation set | **exactly** 10 × 8 = 80, seed `20260824` |
+| Class coverage | all four classes evaluable, or NO VERDICT |
 | Gate version | 1.0 |
+
+### What forces NO VERDICT
+
+The gate is never applied on partial structure. Any one of these is enough:
+
+- the eight benchmark cameras are not frozen;
+- a frozen camera holds fewer than 20 unique frames (**a matching total of 160
+  spread unevenly does not count** — that is a different sample sharing a
+  headline number);
+- the evaluation set is not exactly 80 images, 10 from each frozen camera —
+  79 is not 80, and a short camera is never back-filled from another;
+- any of `person` / `bicycle` / `car` / `bus` is not evaluable → **NO VERDICT —
+  INSUFFICIENT CLASS COVERAGE**. The undefined class is never dropped from the
+  macro average;
+- the evaluation set is not fully annotated, or predictions are absent.
 
 ## Setup
 
@@ -94,33 +118,45 @@ is standard library only and runs in the repository's ordinary test suite.
 Run them in this order. Each refuses to proceed on evidence that does not exist.
 
 ```bash
-# 1. Verify the official source: reachability, licence text, declared image URLs.
-#    Writes data/source_resolution.json. Nothing is downloaded here.
+# 1. Resolve the official source and build the camera manifest by parsing the
+#    KML structurally. Verifies licence text against the catalogue page.
+#    Writes data/source_resolution.json + data/camera_manifest.csv.
+#    No imagery is downloaded here.
 python experiments/vis001_madrid_counting/scripts/resolve_sources.py
 
-# 2. Acquire frames. One pass = one frame per camera. Refuses to run unless
-#    step 1 reported RESOLVED. Frames land in data/raw/ (git-ignored).
+# 2. Freeze the eight benchmark cameras (compass sectors, median distance).
+#    Geographic metadata only — no imagery, no model. MUST run before step 5.
+python experiments/vis001_madrid_counting/scripts/select_cameras.py
+python experiments/vis001_madrid_counting/scripts/select_cameras.py --check
+
+# 3. Acquire frames from exactly those eight. One pass = one frame per camera.
+#    Frames land in data/raw/ (git-ignored); byte-identical repeats are skipped.
 python experiments/vis001_madrid_counting/scripts/acquire_frames.py --once
 python experiments/vis001_madrid_counting/scripts/acquire_frames.py \
     --samples 20 --interval-seconds 300
 
-# 3. Freeze the 80-image evaluation set (stratified, seed 20260824).
+# 4. Freeze the 80-image evaluation set (10 per frozen camera, seed 20260824).
 python experiments/vis001_madrid_counting/scripts/select_eval_set.py
 python experiments/vis001_madrid_counting/scripts/select_eval_set.py --check
 
-# 4. Validate blind human annotations (produced externally — see
+# 5. Validate blind human annotations (produced externally — see
 #    data/annotations/README.md).
 python experiments/vis001_madrid_counting/scripts/validate_annotations.py
 
-# 5. Run the frozen zero-shot baseline. Needs the CV stack.
+# 6. Run the frozen zero-shot baseline. Needs the CV stack.
 python experiments/vis001_madrid_counting/scripts/run_baseline.py --eval-set-only
 
-# 6. Evaluate and apply the gate.
+# 7. Evaluate and apply the gate.
 python experiments/vis001_madrid_counting/scripts/evaluate.py
 ```
 
-Step 2 runs its passes in the **foreground** and exits. It never launches a
+Step 3 runs its passes in the **foreground** and exits. It never launches a
 long-running background collector.
+
+Steps 1–2 must complete before step 3: acquisition targets the frozen eight and
+refuses to run against an unfrozen camera set. Step 2 must complete before step
+6 — the whole point of freezing the cameras is that they are chosen before the
+model has ever been run.
 
 ### Order matters
 
@@ -153,16 +189,18 @@ experiments/vis001_madrid_counting/
 ├── requirements.txt           ← experiment-local CV stack
 ├── .gitignore                 ← raw imagery, outputs and weights never committed
 ├── data/
+│   ├── camera_manifest.csv    ← cameras from the KML (header-only until resolved)
 │   ├── sample_manifest.csv    ← frame chain of custody (header-only until acquired)
 │   └── annotations/README.md  ← how to produce and place blind COCO ground truth
 ├── vis001/
 │   ├── config.py              ← every frozen constant
-│   ├── manifest.py            ← manifest I/O, validation, evaluation-set draw
+│   ├── cameras.py             ← structural KML parsing + the frozen camera choice
+│   ├── manifest.py            ← frame manifest, completeness, evaluation-set draw
 │   ├── annotations.py         ← COCO ground-truth loading and validation
 │   ├── inference.py           ← RF-DETR adapter (lazy imports) + run manifest
 │   ├── metrics.py             ← IoU, matching, detection/counting metrics, the gate
 │   └── reporting.py           ← report rendering
-└── scripts/                   ← the six commands above
+└── scripts/                   ← the seven commands above
 ```
 
 ## Tests
@@ -171,18 +209,19 @@ The pure logic runs in the repository's normal suite — no PyTorch, no weights,
 no network:
 
 ```bash
-python -m pytest tests/unit/test_vis001_metrics.py \
-                 tests/unit/test_vis001_manifest.py \
-                 tests/unit/test_vis001_annotations.py \
-                 tests/unit/test_vis001_gate.py \
-                 tests/unit/test_vis001_reporting.py \
-                 tests/unit/test_vis001_preregistration.py -q
+python -m pytest tests/unit/ -k vis001 -q
 ```
 
 They cover IoU, one-to-one matching, precision/recall/F1, count MAE and WAPE,
 zero-ground-truth edge cases, manifest and annotation validation, the
 reproducible evaluation split, and every branch of the verdict logic — including
 its refusal to issue a verdict on incomplete evidence.
+
+`test_vis001_cameras.py` and `test_vis001_structural_gates.py` are the pre-data
+audit regressions. Each names the loophole it closes: image URLs harvested from
+outside a Placemark, a KML served as an error page, cameras picked by sorted id,
+160 frames from two cameras, 79 images passing as 80, a short camera
+back-filled from another, and an undefined class quietly averaged away.
 
 `test_vis001_preregistration.py` additionally asserts that `config.py`,
 `experiment.yaml` and `PREREGISTRATION.md` still agree on every frozen number,

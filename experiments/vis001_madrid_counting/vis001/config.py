@@ -76,6 +76,25 @@ TARGET_FRAMES: Final[int] = TARGET_CAMERAS * TARGET_FRAMES_PER_CAMERA  # 160
 EVAL_IMAGES_PER_CAMERA: Final[int] = 10
 EVAL_SET_SIZE: Final[int] = TARGET_CAMERAS * EVAL_IMAGES_PER_CAMERA  # 80
 
+#: The sample is complete only when EACH of the eight selected cameras holds at
+#: least TARGET_FRAMES_PER_CAMERA unique frames. A total of 160 frames spread
+#: unevenly — 100 from one camera, 60 from another — is NOT complete: it would
+#: destroy the per-camera stratification the gate's camera rules depend on.
+#: Completeness is therefore structural, never a headline count.
+REQUIRE_PER_CAMERA_QUOTA: Final[bool] = True
+
+#: A formal verdict requires the evaluation set to be exactly EVAL_SET_SIZE
+#: images, EVAL_IMAGES_PER_CAMERA from each of the eight selected cameras.
+#: Anything less forces NO VERDICT.
+REQUIRE_EXACT_EVAL_SET: Final[bool] = True
+
+#: A formal verdict requires all four target classes to be evaluable. A class
+#: whose F1 is undefined is NOT quietly dropped from the macro average — the
+#: gate stops with NO VERDICT — INSUFFICIENT CLASS COVERAGE instead. Dropping
+#: it would let a benchmark that never saw a bus report a macro F1 as though it
+#: had measured all four.
+REQUIRE_ALL_CLASSES_EVALUABLE: Final[bool] = True
+
 #: Seed for the stratified evaluation-set draw. Fixed by the protocol.
 RANDOM_SEED: Final[int] = 20260824
 
@@ -128,6 +147,7 @@ OUTPUTS_DIR: Final[Path] = EXPERIMENT_ROOT / "outputs"
 
 SOURCE_RESOLUTION_PATH: Final[Path] = DATA_DIR / "source_resolution.json"
 CAMERA_MANIFEST_PATH: Final[Path] = DATA_DIR / "camera_manifest.csv"
+SELECTED_CAMERAS_PATH: Final[Path] = DATA_DIR / "selected_cameras.json"
 SAMPLE_MANIFEST_PATH: Final[Path] = DATA_DIR / "sample_manifest.csv"
 EVAL_SET_PATH: Final[Path] = DATA_DIR / "eval_set.json"
 GROUND_TRUTH_PATH: Final[Path] = ANNOTATIONS_DIR / "ground_truth_coco.json"
@@ -137,6 +157,23 @@ RUN_MANIFEST_PATH: Final[Path] = OUTPUTS_DIR / "run_manifest.json"
 METRICS_PATH: Final[Path] = OUTPUTS_DIR / "metrics.json"
 VERDICT_PATH: Final[Path] = OUTPUTS_DIR / "verdict.json"
 REPORT_PATH: Final[Path] = OUTPUTS_DIR / "report.md"
+
+# --------------------------------------------------------------------------
+# Official source endpoints (§6 of the protocol)
+# --------------------------------------------------------------------------
+
+#: The authoritative camera list: the municipal traffic portal's KML. This is
+#: the document VIS-001 parses structurally to build the camera manifest.
+MADRID_CCTV_KML_URL: Final[str] = "https://informo.madrid.es/informo/tmadrid/CCTV.kml"
+
+#: The open-data catalogue page for "Tráfico. Cámaras". Carries the licence and
+#: terms-of-use statement; provenance is verified against it, not against the
+#: KML alone, because the KML itself ships no licence header.
+MADRID_DATASET_PAGE_URL: Final[str] = (
+    "https://datos.madrid.es/portal/site/egob/menuitem."
+    "c05c1f754a33a9fbe4b2e4b284f1a5a0/"
+    "?vgnextoid=8803c23866b93410VgnVCM1000000b205a0aRCRD"
+)
 
 # --------------------------------------------------------------------------
 # Evidence semantics — experiment-local on purpose (§13 of the protocol)

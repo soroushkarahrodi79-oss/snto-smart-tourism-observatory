@@ -151,7 +151,13 @@ def test_coverage_reports_incompleteness_honestly():
         for c in range(1, 3)
         for i in range(3)
     ]
-    state = coverage(records, target_frames=160, target_cameras=8)
+    state = coverage(
+        records,
+        target_frames=160,
+        target_cameras=8,
+        selected_cameras=[f"cam0{c}" for c in range(1, 3)],
+        frames_per_camera=20,
+    )
     assert not state.is_complete
     assert state.frames == 6
     assert state.cameras == 2
@@ -168,7 +174,13 @@ def test_coverage_reports_completeness():
         for c in range(8)
         for i in range(20)
     ]
-    state = coverage(records, target_frames=160, target_cameras=8)
+    state = coverage(
+        records,
+        target_frames=160,
+        target_cameras=8,
+        selected_cameras=[f"c{c}" for c in range(8)],
+        frames_per_camera=20,
+    )
     assert state.is_complete
     assert state.summary().startswith("COMPLETE")
 
@@ -197,9 +209,16 @@ def _sample(cameras: int = 8, per_camera: int = 20) -> list[FrameRecord]:
     ]
 
 
+def _camera_ids(cameras: int = 8) -> list[str]:
+    return [f"cam{c:02d}" for c in range(cameras)]
+
+
 def test_eval_draw_is_stratified_by_camera():
     selected = select_evaluation_set(
-        _sample(), per_camera=EVAL_IMAGES_PER_CAMERA, seed=RANDOM_SEED
+        _sample(),
+        per_camera=EVAL_IMAGES_PER_CAMERA,
+        seed=RANDOM_SEED,
+        selected_cameras=_camera_ids(),
     )
     assert len(selected) == 80
     per_camera = {}
@@ -211,31 +230,37 @@ def test_eval_draw_is_stratified_by_camera():
 
 def test_eval_draw_is_reproducible():
     records = _sample()
-    first = select_evaluation_set(records, per_camera=10, seed=RANDOM_SEED)
-    second = select_evaluation_set(records, per_camera=10, seed=RANDOM_SEED)
-    assert first == second
+    kwargs = dict(per_camera=10, seed=RANDOM_SEED, selected_cameras=_camera_ids())
+    assert select_evaluation_set(records, **kwargs) == select_evaluation_set(
+        records, **kwargs
+    )
 
 
 def test_eval_draw_is_independent_of_manifest_row_order():
     """Re-ordering rows must not silently change what is being evaluated."""
     records = _sample()
-    forward = select_evaluation_set(records, per_camera=10, seed=RANDOM_SEED)
-    backward = select_evaluation_set(
-        list(reversed(records)), per_camera=10, seed=RANDOM_SEED
-    )
+    kwargs = dict(per_camera=10, seed=RANDOM_SEED, selected_cameras=_camera_ids())
+    forward = select_evaluation_set(records, **kwargs)
+    backward = select_evaluation_set(list(reversed(records)), **kwargs)
     assert sorted(forward) == sorted(backward)
 
 
 def test_eval_draw_selects_only_real_image_ids():
     records = _sample()
     known = {record.image_id for record in records}
-    assert set(select_evaluation_set(records, per_camera=10, seed=RANDOM_SEED)) <= known
+    drawn = select_evaluation_set(
+        records, per_camera=10, seed=RANDOM_SEED, selected_cameras=_camera_ids()
+    )
+    assert set(drawn) <= known
 
 
 def test_a_different_seed_gives_a_different_draw():
     records = _sample()
-    assert select_evaluation_set(records, per_camera=10, seed=RANDOM_SEED) != (
-        select_evaluation_set(records, per_camera=10, seed=RANDOM_SEED + 1)
+    cameras = _camera_ids()
+    assert select_evaluation_set(
+        records, per_camera=10, seed=RANDOM_SEED, selected_cameras=cameras
+    ) != select_evaluation_set(
+        records, per_camera=10, seed=RANDOM_SEED + 1, selected_cameras=cameras
     )
 
 
@@ -244,6 +269,11 @@ def test_short_camera_contributes_everything_it_has_without_backfilling():
     records = _sample(cameras=2, per_camera=20)[:20] + [
         _record(image_id="cam09__only", camera_id="cam09", sha256="9" * 64)
     ]
-    selected = select_evaluation_set(records, per_camera=10, seed=RANDOM_SEED)
+    selected = select_evaluation_set(
+        records,
+        per_camera=10,
+        seed=RANDOM_SEED,
+        selected_cameras=["cam00", "cam09"],
+    )
     assert "cam09__only" in selected
     assert sum(1 for image_id in selected if image_id.startswith("cam09")) == 1

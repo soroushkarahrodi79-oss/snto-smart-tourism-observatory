@@ -38,11 +38,11 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urlparse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from vis001 import config  # noqa: E402
+from vis001.cameras import read_camera_manifest  # noqa: E402
 from vis001.manifest import (  # noqa: E402
     FrameRecord,
     coverage,
@@ -51,23 +51,37 @@ from vis001.manifest import (  # noqa: E402
     write_manifest,
 )
 
+
+def load_selected_cameras() -> list[dict[str, str]]:
+    """The frozen eight, in the order they were frozen.
+
+    Acquisition targets exactly these. There is no "take the first N sorted
+    ids" path any more: the benchmark cameras are chosen once, before any
+    inference, by the documented geographic procedure in select_cameras.py.
+    """
+    path = config.SELECTED_CAMERAS_PATH
+    if not path.exists():
+        raise SystemExit(
+            f"missing {path}\n"
+            "Freeze the benchmark cameras first:\n"
+            "  python .../scripts/resolve_sources.py\n"
+            "  python .../scripts/select_cameras.py\n"
+            "VIS-001 does not acquire from an unfrozen camera set."
+        )
+    frozen = json.loads(path.read_text(encoding="utf-8"))
+    selected = frozen.get("selected_cameras") or []
+    if len(selected) != config.TARGET_CAMERAS:
+        raise SystemExit(
+            f"{path} freezes {len(selected)} cameras, but the preregistration "
+            f"requires exactly {config.TARGET_CAMERAS}. Re-run "
+            "select_cameras.py against a complete camera manifest."
+        )
+    return selected
+
 _USER_AGENT = (
     "SNTO-VIS001/1.0 (research feasibility benchmark; "
     "contact via project repository)"
 )
-
-
-def camera_id_for(url: str) -> str:
-    """Derive a stable camera id from its image URL.
-
-    The last path segment without its extension: for Madrid's endpoints this is
-    the municipal camera identifier. It is *derived*, never guessed — if the
-    source changes its URL shape, the ids change with it and the manifest shows
-    that plainly instead of silently remapping.
-    """
-    path = urlparse(url).path
-    stem = Path(path).stem
-    return stem or urlparse(url).netloc
 
 
 def image_dimensions(payload: bytes) -> tuple[int, int] | None:
@@ -116,19 +130,23 @@ def load_source_resolution(path: Path) -> dict[str, object]:
 
 
 def acquire_pass(
-    image_urls: list[str],
+    cameras: list[tuple[str, str]],
     *,
     raw_dir: Path,
     licence_note: str,
     known_hashes: set[str],
     timeout: int,
 ) -> tuple[list[FrameRecord], list[str]]:
-    """One sampling pass: at most one frame per camera. Returns (new, skipped)."""
+    """One sampling pass: at most one frame per camera. Returns (new, skipped).
+
+    ``cameras`` is ``(camera_id, image_url)`` taken from the frozen selection,
+    so a frame's ``camera_id`` always matches the camera that was benchmarked
+    rather than being re-derived from whatever the URL happens to look like.
+    """
     acquired: list[FrameRecord] = []
     skipped: list[str] = []
 
-    for url in image_urls:
-        camera_id = camera_id_for(url)
+    for camera_id, url in cameras:
         payload = fetch(url, timeout=timeout)
         if payload is None or not payload:
             skipped.append(f"{camera_id}: no response")
@@ -207,21 +225,22 @@ def main() -> int:
 
     passes = 1 if args.once else (args.samples or config.TARGET_FRAMES_PER_CAMERA)
 
-    resolution = load_source_resolution(config.SOURCE_RESOLUTION_PATH)
-    image_urls = list(resolution.get("image_urls_discovered") or [])
-    if not image_urls:
+    load_source_resolution(config.SOURCE_RESOLUTION_PATH)
+    if not config.CAMERA_MANIFEST_PATH.exists():
         raise SystemExit(
-            "the resolved source declares no image endpoints; nothing to acquire"
+            f"missing {config.CAMERA_MANIFEST_PATH}; run resolve_sources.py first"
         )
+    read_camera_manifest(config.CAMERA_MANIFEST_PATH)  # validates the CSV shape
 
-    # Take the first N distinct cameras in URL order. Camera choice is NOT
-    # optimised for detector performance — no camera is previewed, scored or
-    # rejected on how well RF-DETR happens to do on it.
-    by_camera: dict[str, str] = {}
-    for url in image_urls:
-        by_camera.setdefault(camera_id_for(url), url)
-    selected = [by_camera[key] for key in sorted(by_camera)][: args.max_cameras]
-    print(f"sampling {len(selected)} cameras × {passes} passes")
+    frozen_cameras = load_selected_cameras()
+    if args.max_cameras != config.TARGET_CAMERAS:
+        raise SystemExit(
+            f"--max-cameras must be {config.TARGET_CAMERAS}: the preregistered "
+            "sample is 20 frames from each of exactly eight frozen cameras, so "
+            "sampling a subset produces an incomplete sample, not a smaller one."
+        )
+    selected = [(entry["camera_id"], entry["image_url"]) for entry in frozen_cameras]
+    print(f"sampling {len(selected)} frozen cameras × {passes} passes")
 
     existing: list[FrameRecord] = []
     if config.SAMPLE_MANIFEST_PATH.exists():
@@ -258,11 +277,16 @@ def main() -> int:
         existing,
         target_frames=config.TARGET_FRAMES,
         target_cameras=config.TARGET_CAMERAS,
+        selected_cameras=[camera_id for camera_id, _ in selected],
+        frames_per_camera=config.TARGET_FRAMES_PER_CAMERA,
     )
     print()
     print(state.summary())
     for camera, count in state.frames_per_camera.items():
-        print(f"  {camera}: {count}")
+        marker = "" if count >= config.TARGET_FRAMES_PER_CAMERA else "  <- short"
+        print(f"  {camera}: {count}/{config.TARGET_FRAMES_PER_CAMERA}{marker}")
+    for reason in state.shortfalls():
+        print(f"  ! {reason}")
     print(f"manifest: {config.SAMPLE_MANIFEST_PATH}")
     return 0 if state.is_complete else 2
 

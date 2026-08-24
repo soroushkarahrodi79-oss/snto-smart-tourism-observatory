@@ -275,13 +275,39 @@ def counting_metrics(pairs: Iterable[tuple[int, int]]) -> CountingMetrics:
 # --------------------------------------------------------------------------
 
 
-def macro_f1(per_class_f1: Mapping[str, float | None]) -> float | None:
-    """Unweighted mean of the defined per-class F1 scores.
+def undefined_classes(
+    per_class_f1: Mapping[str, float | None], required: Sequence[str]
+) -> tuple[str, ...]:
+    """Required classes whose F1 could not be computed at all."""
+    return tuple(
+        name for name in required if per_class_f1.get(name) is None
+    )
 
-    Classes whose F1 is undefined (no ground truth *and* no prediction) are
-    excluded from the mean rather than counted as zero. If every class is
-    undefined the macro score is ``None``, and no verdict can be issued.
+
+def macro_f1(
+    per_class_f1: Mapping[str, float | None],
+    required: Sequence[str] | None = None,
+) -> float | None:
+    """Unweighted mean of the per-class F1 scores.
+
+    When ``required`` is given, **every** named class must be defined or the
+    macro score is ``None``. This is the honest behaviour for VIS-001: a
+    benchmark whose evaluation set happened to contain no bus has not measured
+    three-quarters of the question, it has failed to measure the question.
+    Averaging the three classes it did see and reporting that as "macro F1"
+    would quietly redefine the metric mid-experiment — a class that is hard to
+    detect is exactly the class most likely to go undefined, so dropping it
+    biases the score upward.
+
+    With ``required`` omitted the mean is taken over whatever is defined, which
+    is only appropriate for exploratory slices, never for the gate.
     """
+    if required is not None:
+        if undefined_classes(per_class_f1, required):
+            return None
+        values = [per_class_f1[name] for name in required]
+        return sum(value for value in values if value is not None) / len(values)
+
     defined = [value for value in per_class_f1.values() if value is not None]
     if not defined:
         return None
@@ -420,7 +446,8 @@ def evaluate(
         overall_detection=DetectionMetrics.from_counts(total_tp, total_fp, total_fn),
         overall_counting=counting_metrics(overall_pairs),
         macro_f1=macro_f1(
-            {name: value.f1 for name, value in per_class_detection.items()}
+            {name: value.f1 for name, value in per_class_detection.items()},
+            required=list(classes),
         ),
     )
 
@@ -476,12 +503,17 @@ def _camera_wapes(result: EvaluationResult) -> dict[str, float]:
     }
 
 
+#: Emitted verbatim when a required class could not be evaluated at all.
+INSUFFICIENT_CLASS_COVERAGE = "NO VERDICT — INSUFFICIENT CLASS COVERAGE"
+
+
 def decide(
     result: EvaluationResult,
     *,
     thresholds,
     gate_version: str,
     blocking_reasons: Sequence[str] = (),
+    required_classes: Sequence[str] = (),
 ) -> Verdict:
     """Apply the frozen gate. See ``PREREGISTRATION.md`` §Gate.
 
@@ -493,6 +525,13 @@ def decide(
     3. Otherwise, if every ADVANCE condition holds → ``ADVANCE``.
     4. Otherwise → ``LOCAL_FINE_TUNE`` (the residual band).
 
+    ``required_classes`` closes the class-coverage loophole: if any of the four
+    frozen target classes has an undefined F1, the gate stops at step 1 with
+    ``NO VERDICT — INSUFFICIENT CLASS COVERAGE``. It is never silently dropped
+    from the macro average, because the classes most likely to go undefined
+    (bus, bicycle) are precisely the rare ones a counting benchmark most needs
+    to have measured.
+
     KILL is checked before ADVANCE so that the bands cannot both claim a result;
     they are disjoint by construction anyway, but the explicit order removes any
     ambiguity about which rule was applied.
@@ -502,7 +541,20 @@ def decide(
     wape = overall_count.wape if overall_count is not None else None
 
     reasons = list(blocking_reasons)
-    if macro is None:
+
+    missing_classes = undefined_classes(
+        {name: metrics.f1 for name, metrics in result.per_class_detection.items()},
+        required_classes,
+    )
+    if missing_classes:
+        reasons.append(
+            f"{INSUFFICIENT_CLASS_COVERAGE}: no F1 could be computed for "
+            f"{', '.join(missing_classes)} — the evaluation set contains "
+            "neither ground truth nor predictions for "
+            f"{'them' if len(missing_classes) > 1 else 'it'}"
+        )
+
+    if macro is None and not missing_classes:
         reasons.append(
             "macro F1 is undefined: no target class has both predictions and "
             "ground truth on the evaluation set"

@@ -32,7 +32,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from vis001 import config  # noqa: E402
 from vis001.annotations import declared_image_ids, load_coco_ground_truth  # noqa: E402
-from vis001.manifest import coverage, read_manifest  # noqa: E402
+from vis001.manifest import (  # noqa: E402
+    coverage,
+    evaluation_set_integrity,
+    read_manifest,
+)
 from vis001.metrics import Prediction, Truth, Verdict, decide, evaluate  # noqa: E402
 from vis001.reporting import render_report, write_json  # noqa: E402
 
@@ -72,6 +76,26 @@ def main() -> int:
     blocking: list[str] = []
     missing_evidence: list[str] = []
 
+    # --- frozen benchmark cameras ---------------------------------------
+    frozen_cameras: list[str] = []
+    if config.SELECTED_CAMERAS_PATH.exists():
+        frozen = json.loads(
+            config.SELECTED_CAMERAS_PATH.read_text(encoding="utf-8")
+        )
+        frozen_cameras = [
+            entry["camera_id"] for entry in frozen.get("selected_cameras", [])
+        ]
+    if len(frozen_cameras) != config.TARGET_CAMERAS:
+        missing_evidence.append(
+            f"The {config.TARGET_CAMERAS} benchmark cameras are not frozen "
+            f"({len(frozen_cameras)} found). Run resolve_sources.py, then "
+            "select_cameras.py."
+        )
+        blocking.append(
+            f"exactly {config.TARGET_CAMERAS} benchmark cameras must be frozen "
+            f"before inference; {len(frozen_cameras)} are"
+        )
+
     # --- sample ---------------------------------------------------------
     records = (
         read_manifest(config.SAMPLE_MANIFEST_PATH)
@@ -82,18 +106,19 @@ def main() -> int:
         records,
         target_frames=config.TARGET_FRAMES,
         target_cameras=config.TARGET_CAMERAS,
+        selected_cameras=frozen_cameras,
+        frames_per_camera=config.TARGET_FRAMES_PER_CAMERA,
     )
     if not sample.is_complete:
         missing_evidence.append(
             f"TARGET SAMPLE NOT YET COMPLETE — {sample.frames}/"
             f"{config.TARGET_FRAMES} frames across {sample.cameras}/"
-            f"{config.TARGET_CAMERAS} cameras."
+            f"{config.TARGET_CAMERAS} cameras. The preregistered structure is "
+            f"at least {config.TARGET_FRAMES_PER_CAMERA} unique frames from "
+            f"EACH of the {config.TARGET_CAMERAS} frozen cameras; a matching "
+            "total spread unevenly does not satisfy it."
         )
-        blocking.append(
-            "the preregistered sample of "
-            f"{config.TARGET_FRAMES} frames from {config.TARGET_CAMERAS} "
-            f"cameras is not complete ({sample.frames} frames acquired)"
-        )
+        blocking.extend(sample.shortfalls())
 
     camera_of_image = {record.image_id: record.camera_id for record in records}
 
@@ -103,6 +128,22 @@ def main() -> int:
         eval_ids = sorted(
             json.loads(config.EVAL_SET_PATH.read_text(encoding="utf-8"))["image_ids"]
         )
+        integrity = evaluation_set_integrity(
+            eval_ids,
+            camera_of_image=camera_of_image,
+            selected_cameras=frozen_cameras,
+            required_per_camera=config.EVAL_IMAGES_PER_CAMERA,
+            required_cameras=config.TARGET_CAMERAS,
+        )
+        if not integrity.is_exact:
+            missing_evidence.append(
+                f"The evaluation set is not the preregistered "
+                f"{config.EVAL_SET_SIZE} images "
+                f"({config.EVAL_IMAGES_PER_CAMERA} from each of the "
+                f"{config.TARGET_CAMERAS} frozen cameras). No verdict can be "
+                "issued on a partial evaluation set."
+            )
+            blocking.extend(integrity.shortfalls())
     else:
         missing_evidence.append(
             "The frozen evaluation set has not been drawn "
@@ -187,6 +228,7 @@ def main() -> int:
             thresholds=config.GATE,
             gate_version=config.GATE_VERSION,
             blocking_reasons=blocking,
+            required_classes=config.TARGET_CLASSES,
         )
 
     write_json(
