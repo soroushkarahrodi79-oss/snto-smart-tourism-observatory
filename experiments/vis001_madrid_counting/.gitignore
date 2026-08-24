@@ -1,0 +1,32 @@
+# VIS-001 — experiment-local ignores.
+#
+# The scientific artifacts of this experiment are its code, its manifests, its
+# preregistration and its aggregated report. Raw camera imagery, model weights
+# and per-run outputs are NOT committed: they are large, they are reproducible
+# from the pipeline, and (in the case of imagery) they may contain incidental
+# images of people who never consented to being stored in a public repository.
+
+# --- Raw public camera imagery (never committed) ---------------------------
+data/raw/
+data/frames/
+
+# --- Per-run outputs (predictions, metrics, verdict, report) ---------------
+outputs/
+
+# --- Model weights and inference caches ------------------------------------
+weights/
+*.pth
+*.pt
+*.onnx
+
+# --- Annotated previews / crops (may contain people; keep local) -----------
+previews/
+crops/
+*_annotated.jpg
+*_annotated.png
+
+# --- Resolved source probes (environment-specific, regenerated) ------------
+data/source_resolution.json
+
+# --- Experiment-local virtualenv -------------------------------------------
+.venv-vis001/

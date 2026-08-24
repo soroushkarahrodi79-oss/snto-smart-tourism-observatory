@@ -1,0 +1,158 @@
+# VIS-001 — machine-readable summary of the frozen experiment.
+#
+# This file mirrors PREREGISTRATION.md and vis001/config.py. All three must
+# agree; tests/unit/test_vis001_preregistration.py enforces that they do, so a
+# threshold cannot be quietly changed in one place after results are seen.
+
+experiment_id: VIS-001
+title: Madrid Visual Counting Benchmark
+gate_version: "1.0"
+status: preregistered
+
+question: >-
+  Can an off-the-shelf foundation object-detection model, with zero local
+  fine-tuning, produce sufficiently reliable counts of selected mobility objects
+  from real public Madrid traffic-camera imagery to justify further work on a
+  Visual Evidence Layer?
+
+model:
+  name: RF-DETR Small
+  entrypoint: rfdetr.RFDETRSmall
+  package: rfdetr
+  fine_tuning: forbidden
+  confidence_threshold: 0.35
+  evaluation_iou_threshold: 0.50
+
+classes:
+  - person
+  - bicycle
+  - car
+  - bus
+
+sample:
+  cameras: 8
+  frames_per_camera: 20
+  total_frames: 160
+  mirrors_permitted: false
+  # Completeness is structural: at least frames_per_camera UNIQUE frames from
+  # EACH frozen camera. A matching total spread unevenly does NOT satisfy it.
+  completeness: per_camera_quota
+  unique_by: sha256
+
+source:
+  camera_list: https://informo.madrid.es/informo/tmadrid/CCTV.kml
+  licence_and_terms: >-
+    https://datos.madrid.es catalogue page for "Tráfico. Cámaras"
+  discovery: >-
+    structural KML <Placemark> parsing (name, Point/coordinates, and the image
+    endpoint attached to that Placemark). Image URLs are never harvested by
+    scanning arbitrary HTML for .jpg/.png.
+
+camera_selection:
+  procedure_version: "1.0"
+  method: >-
+    eight 45-degree compass sectors around the centroid of all published
+    cameras; the median-distance camera within each sector; empty sectors
+    backfilled from the richest remaining sector
+  inputs: published geographic metadata only
+  uses_imagery: false
+  uses_model_output: false
+  frozen_to: data/selected_cameras.json
+  frozen_before: inference
+  rejected_alternative: >-
+    first N sorted camera ids — municipal ids track installation batches, so
+    the lowest eight cluster on the same few roads
+
+evaluation_set:
+  images_per_camera: 10
+  total_images: 80
+  exact_required: true          # 79 is not 80; anything else forces NO VERDICT
+  stratified_by: frozen selected cameras
+  backfill_permitted: false
+  random_seed: 20260824
+
+metrics:
+  detection:
+    matching: greedy confidence-ordered one-to-one at IoU >= 0.50
+    reported: [tp, fp, fn, ground_truth_support, precision, recall, f1, macro_f1]
+    # F1 from counts, not from precision/recall: the two agree wherever both
+    # are defined, but the count form stays defined when precision is not.
+    # GT=10, predictions=0 is a MEASURED total miss (F1 = 0), not missing data.
+    f1: 2*TP / (2*TP + FP + FN)
+    f1_undefined_only_when: TP == 0 and FP == 0 and FN == 0
+  counting:
+    reported: [absolute_error, mae, mean_signed_error, wape,
+               total_ground_truth, total_predicted]
+    wape: sum(abs(predicted - ground_truth)) / sum(ground_truth)
+    mape: excluded — frames legitimately contain zero objects of a class
+  slices: [class, camera]
+  class_coverage_required: true   # all four classes evaluable, or NO VERDICT
+  class_coverage_test: TP + FN > 0        # human ground-truth support
+  class_coverage_is_not: f1 is not None   # that would hide a measured total miss
+  class_coverage_cases:
+    gt_positive_no_predictions: evaluable — F1 = 0, normal gate applies
+    gt_zero_no_predictions: NO VERDICT — INSUFFICIENT CLASS COVERAGE
+    gt_zero_with_predictions: NO VERDICT — INSUFFICIENT CLASS COVERAGE
+  undefined_class_handling: >-
+    NO VERDICT — INSUFFICIENT CLASS COVERAGE. A class without human ground
+    truth is never dropped from the macro average: bus and bicycle are the
+    classes most likely to lack support and the ones a counting benchmark most
+    needs measured.
+  camera_coverage_required: true  # all eight frozen cameras need a defined WAPE
+  undefined_camera_handling: >-
+    NO VERDICT — INSUFFICIENT CAMERA COVERAGE, naming the camera(s). The
+    preregistered "every camera subgroup WAPE <= 0.35" applies to all eight;
+    letting an undefined camera vanish would silently weaken it. No replacement
+    metric, no new threshold, and no redraw after labels are seen.
+
+gate:
+  advance:
+    macro_f1_min: 0.80
+    count_wape_max: 0.20
+    class_f1_min: 0.65
+    camera_wape_max: 0.35
+  kill_or_reposition:
+    macro_f1_below: 0.65
+    count_wape_above: 0.35
+    class_f1_below: 0.50
+    min_failing_classes: 2
+    camera_wape_spread_above: 0.50
+  local_fine_tune: residual band — neither ADVANCE nor KILL_OR_REPOSITION
+  precedence: [kill_or_reposition, advance, local_fine_tune]
+  no_verdict_when:
+    - the eight benchmark cameras are not frozen
+    - the sample is structurally incomplete
+    - the evaluation set is not exactly 80 images, 10 per frozen camera
+    - the frozen evaluation set is not fully annotated
+    - predictions are absent
+    - any of the four target classes has no human-annotated positive
+    - any of the eight frozen cameras has an undefined counting WAPE
+    - macro F1 or WAPE is undefined
+  # NOT a no-verdict condition: a class the model missed entirely. That is a
+  # measured result and goes to the gate.
+
+privacy:
+  object_counting_only: true
+  forbidden:
+    - face detection for identification
+    - face recognition
+    - face embeddings
+    - person re-identification
+    - age inference
+    - gender inference
+    - ethnicity inference
+    - emotion detection
+    - tourist-vs-resident classification
+    - licence-plate recognition
+    - optical character recognition
+    - persistent individual tracking
+  raw_imagery_committed_to_git: false
+
+non_goals:
+  - a dashboard or any UI
+  - a camera-management platform
+  - a backend, database or cloud infrastructure
+  - real-time streaming or temporal tracking
+  - alerts, agents or LLM interpretation
+  - fine-tuning of any kind within VIS-001
+  - a second detector architecture as a comparison baseline

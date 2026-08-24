@@ -10,7 +10,10 @@ dependencies = []
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["."]
+# "experiments/vis001_madrid_counting" puts the isolated VIS-001 package on the
+# path so its pure metric/manifest/gate tests run in normal CI. The experiment
+# imports nothing from src/, and its CV stack stays out of requirements.txt.
+pythonpath = [".", "experiments/vis001_madrid_counting"]
 markers = [
     "live_ee: makes real Earth Engine calls; skipped unless opted in (manual only, never in blocking CI)",
 ]
