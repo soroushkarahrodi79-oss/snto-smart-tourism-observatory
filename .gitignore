@@ -5,6 +5,13 @@
 # --- Datos geoespaciales pesados (NUNCA subir a GitHub) -----
 data/
 
+# Excepción: VIS-001 (experimento aislado) tiene su propio data/ que solo
+# contiene manifiestos, el esquema de anotación y metadatos de procedencia —
+# nunca imágenes. El .gitignore del experimento excluye data/raw/ y outputs/.
+# Sin esta reinclusión la regla data/ de arriba se traga el manifiesto, que es
+# justamente la cadena de custodia que sí debe versionarse.
+!experiments/vis001_madrid_counting/data/
+
 # --- Formatos raster y archivos satelitales (por si escapan) -
 *.tif
 *.tiff

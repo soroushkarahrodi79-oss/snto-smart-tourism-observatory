@@ -1,0 +1,95 @@
+# VIS-001 — machine-readable summary of the frozen experiment.
+#
+# This file mirrors PREREGISTRATION.md and vis001/config.py. All three must
+# agree; tests/unit/test_vis001_preregistration.py enforces that they do, so a
+# threshold cannot be quietly changed in one place after results are seen.
+
+experiment_id: VIS-001
+title: Madrid Visual Counting Benchmark
+gate_version: "1.0"
+status: preregistered
+
+question: >-
+  Can an off-the-shelf foundation object-detection model, with zero local
+  fine-tuning, produce sufficiently reliable counts of selected mobility objects
+  from real public Madrid traffic-camera imagery to justify further work on a
+  Visual Evidence Layer?
+
+model:
+  name: RF-DETR Small
+  entrypoint: rfdetr.RFDETRSmall
+  package: rfdetr
+  fine_tuning: forbidden
+  confidence_threshold: 0.35
+  evaluation_iou_threshold: 0.50
+
+classes:
+  - person
+  - bicycle
+  - car
+  - bus
+
+sample:
+  cameras: 8
+  frames_per_camera: 20
+  total_frames: 160
+  source: Ayuntamiento de Madrid open data (datos.madrid.es / informo.madrid.es)
+  mirrors_permitted: false
+
+evaluation_set:
+  images_per_camera: 10
+  total_images: 80
+  stratified_by: camera_id
+  random_seed: 20260824
+
+metrics:
+  detection:
+    matching: greedy confidence-ordered one-to-one at IoU >= 0.50
+    reported: [tp, fp, fn, precision, recall, f1, macro_f1]
+  counting:
+    reported: [absolute_error, mae, mean_signed_error, wape,
+               total_ground_truth, total_predicted]
+    wape: sum(abs(predicted - ground_truth)) / sum(ground_truth)
+    mape: excluded — frames legitimately contain zero objects of a class
+  slices: [class, camera]
+
+gate:
+  advance:
+    macro_f1_min: 0.80
+    count_wape_max: 0.20
+    class_f1_min: 0.65
+    camera_wape_max: 0.35
+  kill_or_reposition:
+    macro_f1_below: 0.65
+    count_wape_above: 0.35
+    class_f1_below: 0.50
+    min_failing_classes: 2
+    camera_wape_spread_above: 0.50
+  local_fine_tune: residual band — neither ADVANCE nor KILL_OR_REPOSITION
+  precedence: [kill_or_reposition, advance, local_fine_tune]
+
+privacy:
+  object_counting_only: true
+  forbidden:
+    - face detection for identification
+    - face recognition
+    - face embeddings
+    - person re-identification
+    - age inference
+    - gender inference
+    - ethnicity inference
+    - emotion detection
+    - tourist-vs-resident classification
+    - licence-plate recognition
+    - optical character recognition
+    - persistent individual tracking
+  raw_imagery_committed_to_git: false
+
+non_goals:
+  - a dashboard or any UI
+  - a camera-management platform
+  - a backend, database or cloud infrastructure
+  - real-time streaming or temporal tracking
+  - alerts, agents or LLM interpretation
+  - fine-tuning of any kind within VIS-001
+  - a second detector architecture as a comparison baseline

@@ -74,7 +74,14 @@ jobs:
             tests/unit/test_change_animation_service.py \
             tests/unit/test_change_animation_cache.py \
             scripts/smoke_test_change_animation_live.py \
-            tests/live tests/unit/test_smoke_script.py
+            tests/live tests/unit/test_smoke_script.py \
+            experiments/vis001_madrid_counting tests/unit/test_vis001_metrics.py \
+            tests/unit/test_vis001_manifest.py \
+            tests/unit/test_vis001_annotations.py \
+            tests/unit/test_vis001_gate.py \
+            tests/unit/test_vis001_reporting.py \
+            tests/unit/test_vis001_preregistration.py \
+            tests/unit/test_vis001_inference_adapter.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github

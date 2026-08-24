@@ -1,0 +1,24 @@
+# VIS-001 experiment-local dependencies.
+#
+# Deliberately NOT added to the repository's core requirements.txt: the SNTO
+# test suite, the Streamlit app and the CI pipeline must keep running without a
+# ~900 MB deep-learning stack. Nothing under src/ imports any of these.
+#
+# Install into a throwaway environment:
+#     python -m venv .venv-vis001
+#     . .venv-vis001/bin/activate
+#     pip install -r experiments/vis001_madrid_counting/requirements.txt
+#
+# CPU-only is fully supported (slower, but the sample is 160 images). A CUDA
+# device is used opportunistically if torch finds one; none is required.
+# For a CPU-only install, add the PyTorch CPU index:
+#     pip install --extra-index-url https://download.pytorch.org/whl/cpu \
+#         -r experiments/vis001_madrid_counting/requirements.txt
+
+rfdetr>=1.9,<2.0              # RF-DETR Small, the frozen zero-shot baseline
+supervision>=0.25,<1.0        # normalised Detections container returned by predict()
+Pillow>=10.0,<12.0            # image decode + dimensions for the frame manifest
+
+# opencv-python-headless is intentionally absent: nothing in vis001/ imports it.
+# Add it only if a future step actually needs OpenCV, and headless only — the
+# GUI build pulls in X11 for no benefit here.

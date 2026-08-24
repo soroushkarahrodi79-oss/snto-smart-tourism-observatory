@@ -1,0 +1,151 @@
+"""VIS-001 frozen configuration.
+
+Everything in this module is **preregistered** (see ``PREREGISTRATION.md``) and
+was fixed *before* any evaluation result existed. Changing any value here after
+results have been observed invalidates the formal gate: record a numbered
+protocol deviation in ``PREREGISTRATION.md`` and re-run the evaluation instead.
+
+This module imports only the standard library on purpose. The metric, manifest
+and gate logic must stay testable in the repository's normal CI, which does not
+install PyTorch or RF-DETR.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Final
+
+# --------------------------------------------------------------------------
+# Identity
+# --------------------------------------------------------------------------
+
+EXPERIMENT_ID: Final[str] = "VIS-001"
+EXPERIMENT_TITLE: Final[str] = "Madrid Visual Counting Benchmark"
+
+#: Bumped only when a gate threshold or the verdict algebra changes. A result
+#: is only comparable with another result carrying the same gate version.
+GATE_VERSION: Final[str] = "1.0"
+
+# --------------------------------------------------------------------------
+# Frozen target classes (§4 of the protocol)
+# --------------------------------------------------------------------------
+
+#: The four COCO-style classes VIS-001 evaluates. No fifth class may be added
+#: after results are seen. Any other class the model emits is discarded before
+#: the gate is computed.
+TARGET_CLASSES: Final[tuple[str, ...]] = ("person", "bicycle", "car", "bus")
+
+#: Canonical COCO category ids for the target classes. RF-DETR's pretrained
+#: COCO checkpoints emit raw (sparse) COCO category ids, so this is a lookup
+#: table, not a contiguous index.
+COCO_CATEGORY_IDS: Final[dict[str, int]] = {
+    "person": 1,
+    "bicycle": 2,
+    "car": 3,
+    "bus": 6,
+}
+
+# --------------------------------------------------------------------------
+# Frozen model and inference parameters (§5 of the protocol)
+# --------------------------------------------------------------------------
+
+MODEL_NAME: Final[str] = "RF-DETR Small"
+MODEL_ENTRYPOINT: Final[str] = "rfdetr.RFDETRSmall"
+MODEL_PACKAGE: Final[str] = "rfdetr"
+
+#: Zero-shot only. VIS-001 performs no fine-tuning of any kind.
+FINE_TUNING_ALLOWED: Final[bool] = False
+
+#: Detection confidence floor. Frozen at 0.35 before any result was observed.
+#: A threshold sweep may be reported as a clearly labelled secondary
+#: diagnostic, but the formal gate always uses this value.
+CONFIDENCE_THRESHOLD: Final[float] = 0.35
+
+#: IoU at which a prediction may be matched to a ground-truth box.
+EVAL_IOU_THRESHOLD: Final[float] = 0.50
+
+# --------------------------------------------------------------------------
+# Frozen sample design (§7 and §10 of the protocol)
+# --------------------------------------------------------------------------
+
+TARGET_CAMERAS: Final[int] = 8
+TARGET_FRAMES_PER_CAMERA: Final[int] = 20
+TARGET_FRAMES: Final[int] = TARGET_CAMERAS * TARGET_FRAMES_PER_CAMERA  # 160
+
+EVAL_IMAGES_PER_CAMERA: Final[int] = 10
+EVAL_SET_SIZE: Final[int] = TARGET_CAMERAS * EVAL_IMAGES_PER_CAMERA  # 80
+
+#: Seed for the stratified evaluation-set draw. Fixed by the protocol.
+RANDOM_SEED: Final[int] = 20260824
+
+# --------------------------------------------------------------------------
+# Frozen decision gate (§15 of the protocol)
+# --------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class GateThresholds:
+    """The preregistered decision thresholds.
+
+    ``ADVANCE`` requires every ``advance_*`` condition to hold simultaneously.
+    ``KILL_OR_REPOSITION`` fires if any ``kill_*`` condition holds and takes
+    precedence over everything else. ``LOCAL_FINE_TUNE`` is the residual: the
+    baseline is neither good enough to advance on nor bad enough to abandon.
+    """
+
+    # --- ADVANCE (all must hold) ---
+    advance_min_macro_f1: float = 0.80
+    advance_max_count_wape: float = 0.20
+    advance_min_class_f1: float = 0.65
+    advance_max_camera_wape: float = 0.35
+
+    # --- KILL_OR_REPOSITION (any is sufficient) ---
+    kill_below_macro_f1: float = 0.65
+    kill_above_count_wape: float = 0.35
+    kill_class_f1_below: float = 0.50
+    #: Number of target classes below ``kill_class_f1_below`` that triggers a kill.
+    kill_min_failing_classes: int = 2
+    #: Operationalisation of "performance varies so strongly across ordinary
+    #: camera views that aggregate performance is misleading": the spread
+    #: between the best and worst camera counting WAPE. Preregistered so the
+    #: qualitative clause cannot be reinterpreted after seeing results.
+    kill_above_camera_wape_spread: float = 0.50
+
+
+GATE: Final[GateThresholds] = GateThresholds()
+
+# --------------------------------------------------------------------------
+# Paths (all relative to this experiment; nothing is written outside it)
+# --------------------------------------------------------------------------
+
+EXPERIMENT_ROOT: Final[Path] = Path(__file__).resolve().parent.parent
+
+DATA_DIR: Final[Path] = EXPERIMENT_ROOT / "data"
+RAW_FRAMES_DIR: Final[Path] = DATA_DIR / "raw"
+ANNOTATIONS_DIR: Final[Path] = DATA_DIR / "annotations"
+OUTPUTS_DIR: Final[Path] = EXPERIMENT_ROOT / "outputs"
+
+SOURCE_RESOLUTION_PATH: Final[Path] = DATA_DIR / "source_resolution.json"
+CAMERA_MANIFEST_PATH: Final[Path] = DATA_DIR / "camera_manifest.csv"
+SAMPLE_MANIFEST_PATH: Final[Path] = DATA_DIR / "sample_manifest.csv"
+EVAL_SET_PATH: Final[Path] = DATA_DIR / "eval_set.json"
+GROUND_TRUTH_PATH: Final[Path] = ANNOTATIONS_DIR / "ground_truth_coco.json"
+
+PREDICTIONS_PATH: Final[Path] = OUTPUTS_DIR / "predictions.jsonl"
+RUN_MANIFEST_PATH: Final[Path] = OUTPUTS_DIR / "run_manifest.json"
+METRICS_PATH: Final[Path] = OUTPUTS_DIR / "metrics.json"
+VERDICT_PATH: Final[Path] = OUTPUTS_DIR / "verdict.json"
+REPORT_PATH: Final[Path] = OUTPUTS_DIR / "report.md"
+
+# --------------------------------------------------------------------------
+# Evidence semantics — experiment-local on purpose (§13 of the protocol)
+# --------------------------------------------------------------------------
+
+#: VIS-001 deliberately does NOT reuse ``src.platform.provenance.DataStatus``.
+#: A real public camera image is a real *input*; it does not make an
+#: algorithmic detection over it "REAL evidence". These three labels are local
+#: to the experiment and are never written into SNTO's global enum.
+EVIDENCE_RAW_INPUT: Final[str] = "REAL_PUBLIC_IMAGE"
+EVIDENCE_HUMAN_REFERENCE: Final[str] = "HUMAN_ANNOTATION"
+EVIDENCE_MODEL_OUTPUT: Final[str] = "MODEL_PREDICTION"
