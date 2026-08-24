@@ -209,6 +209,33 @@ derived from the three pillars plus a comparator, and is **out of scope for Phas
 - **Permitted outputs:** with no real target series → none beyond declaring the
   gap. With MITMA → macro-territorial context only, never a pressure figure.
 
+#### Proxy hierarchy (what may become the pressure *target*, and what may not)
+
+Pressure evidence is not one thing. The weakest-link rule (§B) applies to the
+*instrument*, not only to the datum. Ranked from strongest:
+
+| Rank | Source kind | Example | Standing |
+|---|---|---|---|
+| 1 | **Direct count** | trail counter, turnstile, ticketed entry | candidate pressure **target** |
+| 2 | **Instrumented proxy** | parking sensor, reservation system | candidate **target**, with a stated coverage caveat |
+| 3 | **Passive mobility proxy** | MITMA municipal inbound trips | **L4 macro-context only** — never the target |
+| 4 | **Digital activity proxy** | route/fitness apps (Wikiloc, AllTrails, Strava-like traces) | **not a count.** Self-selected, activity-biased and platform-dependent. Usable only with a documented, validated calibration relationship to a direct or official observation |
+| 5 | **Official park-level estimate** | OAPN *Informe de Visitantes de la Red de Parques Nacionales* | REAL-provenance **+ ESTIMATED** ⇒ enters at **L2**; an institutional baseline and cross-park denominator, **never** trail-level |
+
+**Rules.** (a) Only ranks 1–2 can change `ReadinessStatus` for the pressure
+*target variable*; ranks 3–5 leave it at `INSUFFICIENT_EVIDENCE` however real
+they are. (b) A rank-4 digital trace may **never** be recorded under a person- or
+pedestrian-count target — that is the same category error the contract already
+forbids for environmental indices (`visitor_pressure/contracts.py` rejects
+`ENVIRONMENTAL_OBSERVATION` as a target). (c) A rank-5 official estimate is
+produced by an estimation *method*, so its epistemic axis is ESTIMATED even
+though its provenance is official — see §C. (d) Ranks 3 and 5 measure different
+universes (municipal trips vs. park visitors); an order-of-magnitude agreement
+between them is a sanity check, **not** a calibration.
+
+*No such source is ingested today.* This hierarchy is stated so that acquiring
+one cannot silently upgrade a claim.
+
 ### Pillar 2 — Ecosystem State
 - **Minimum data:** Sentinel-2 L2A observation with valid-pixel accounting.
 - **Current status:** **REAL and operational** for PNSG / Monfragüe / Tablas
@@ -322,6 +349,12 @@ Phase 1.0 is **done** when:
 3. The Phase-1 product audit (§F above + `EVIDENCE_DECISION_MATRIX.md`) records
    no RED surface (no product surface implies more than its authorized level);
    any AMBER has a tracked follow-up.
+
+   > **Not yet satisfied.** The audit records **two** RED-RISK surfaces: the TIS
+   > euro-efficiency verdict (C-10) and the LAC/ROS capacity-at-standard figure.
+   > Both are runtime issues, out of scope for the docs-only WP-1, and tracked as
+   > **WP-C10** and **WP-C11**. This criterion closes when both land — it is not
+   > weakened, and neither surface is downgraded to AMBER to make it close sooner.
 4. Canonical multi-agent guidance (`CLAUDE.md`) points to this contract as the
    current phase authority.
 5. #26 remains the sole open hard gate; no fabricated data, invented threshold,

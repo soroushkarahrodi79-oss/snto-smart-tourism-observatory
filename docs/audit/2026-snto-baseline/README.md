@@ -47,6 +47,7 @@ see [`CONTRADICTIONS_AND_OPEN_QUESTIONS.md`](CONTRADICTIONS_AND_OPEN_QUESTIONS.m
 | [`CONTRADICTIONS_AND_OPEN_QUESTIONS.md`](CONTRADICTIONS_AND_OPEN_QUESTIONS.md) | Doc↔code disagreements and questions only the owner can settle. |
 | [`PHASE_1_RECOMMENDATIONS.md`](PHASE_1_RECOMMENDATIONS.md) | Filename preserved from the original audit deliverable; content now documents the **Phase 0.5 — Integrity Stabilization** plan (five corrective PRs + four integrity items) with acceptance criteria, plus a scope-only note on the later Phase 1 scientific/product contract. Neither phase is implemented. |
 | [`PHASE_0_5_DELTA.md`](PHASE_0_5_DELTA.md) | **Not a Phase 0 baseline document** — an **additive Phase 0.5 closeout delta** recording the ten corrective items, the final Tier-1 claim status, and verification results after Phase 0.5 landed. It supplements, and does not rewrite, the historical baseline above. |
+| [`PHASE_1_DATA_SOURCE_DELTA.md`](PHASE_1_DATA_SOURCE_DELTA.md) | **Not a Phase 0 baseline document** — an **additive Phase 1 delta** registering data sources identified after the baseline was published (currently **D-10**, the OAPN official visitor statistics, registered as *not ingested*). It supplements, and does not rewrite, `DATA_SOURCE_INVENTORY.md`. |
 
 ## The three things a reader should take away
 

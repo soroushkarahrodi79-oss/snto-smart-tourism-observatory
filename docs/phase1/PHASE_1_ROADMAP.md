@@ -114,6 +114,33 @@ WP-5 ── depends on ──> #26
 - **Code required:** yes (text/label only). **Blocked-by:** none.
 - **Deliverable / DoD:** C-10 surface verified/fixed; register updated.
 
+## WP-C11 — LAC/ROS capacity-at-standard: attribution precondition (corrective, small)
+- **Objective:** stop emitting `capacity_at_standard` for assets whose attribution
+  does not support it, and gate the surface that renders it.
+- **Why:** the **second RED-RISK** surface (see `EVIDENCE_DECISION_MATRIX.md` §2).
+  `capacity_at_standard` (`src/platform/lac_ros.py:107`) computes
+  `P_std = P·(100−standard)/(100−EHS)`; the denominator is the *entire* health
+  deficit, so the formula attributes **all** degradation to visitor use — while the
+  system's own SCM classifies **165 of 218** real PNSG trails `LANDSCAPE_DRIVEN`.
+  For those, a climate/landscape deficit is converted into a visitor threshold. It
+  is rendered per asset (`src/ui/tabs/tab_portfolio.py:219`) from **SYNTHETIC**
+  fixture inputs **with no `supports()` gate**, producing a quota-shaped number
+  under an L5a ceiling that forbids restrictive recommendations.
+- **Prerequisite:** none (independent, like WP-C10).
+- **Files:** `src/platform/lac_ros.py`, `src/platform/pressure_capacity.py`,
+  `src/ui/tabs/tab_portfolio.py`, a test module beside the existing LAC/ROS tests.
+- **Approach:** return `None` when attribution is not `LOCALIZED_IMPACT` — the
+  function **already** returns `None` for the near-pristine case, so absence is an
+  established, honest output here. Apply the canonical `supports()` gate. State the
+  attribution precondition in the docstring and the UI caption.
+- **Deliverable / DoD:** no capacity figure shown for an asset whose attribution
+  does not support it; surface re-audited from RED to GREEN; ladder ceiling
+  unchanged at L5a; no new index, enum, threshold or dependency.
+- **Stop condition:** if the fix would require inventing a dose-response or a
+  non-visitor deficit share, **stop and escalate**. The correct output is absence,
+  not a fabricated decomposition.
+- **Code required:** yes. **Blocked-by:** none.
+
 ### Deliberately excluded from Phase 1 (see contract §J)
 Forecasting/ML · PostGIS prod migration · API deployment · Experience Builder
 Batch C · management-record *migration* · regenerative-outcome evaluation surface

@@ -58,16 +58,26 @@ contract / overclaim · **GREY** — future capability, no evidence.
 | Visitor-pressure readiness | 🟡 AMBER | Correctly `INSUFFICIENT_EVIDENCE`; AMBER only because no real *target* feed yet |
 | Synthetic fixtures | 🟢 GREEN | Classified `SYNTHETIC`; decision gates block them (Phase 0.5E) |
 | **TIS / intervention euro-efficiency verdict** | 🔴 **RED-RISK** | Register item **C-10 (OVERSTATED)**: a benefit-per-euro verdict derived from unsourced SIMULATED elasticity constants. Owner decision Q-05 declares the coefficients illustrative-only; **the live UI text must be re-verified** to ensure it does not present them as observed/forecast effect. Not fixable in this docs PR — tracked as a corrective follow-up. |
+| **LAC/ROS capacity at standard** | 🔴 **RED-RISK** | `capacity_at_standard` (`lac_ros.py:107`) computes `P_std = P·(100−standard)/(100−EHS)`. The denominator is the **entire** health deficit, so the formula attributes all degradation to visitor use — while the system's own SCM classifies **165 of 218** real PNSG trails `LANDSCAPE_DRIVEN` (29 MIXED, 24 LOCALIZED_IMPACT; verified against `data/outputs/pnsg/pipeline_a_results.geojson`). It is rendered per asset at `tab_portfolio.py:219` from **SYNTHETIC** fixture inputs (28/28, Phase 0.5 §5) **with no `supports()` gate** — `tab_portfolio.py` is not among the gated modules. A quota-shaped per-asset number under an L5a ceiling that forbids restrictive recommendations. Corrective WP; not fixable in this docs PR. |
 | "Economía Regenerativa" (socioeconomic tab title) | 🟡 AMBER | A socioeconomic *vision framing* label (SVI/jobs), not an evaluated ecological outcome — borderline; recommend a scope caveat or rename so a standing header is not read as a regeneration claim |
 | Effectiveness / regenerative-outcome evaluation | ⚪ GREY | Not built; L6–L7 blocked by #26 + Pillars 1&3 |
 | Management-response record | ⚪ GREY | Schema stub only; recording contract is WP-3 |
 
-**One RED-RISK surface (corrected from the initial "no RED" finding).** The TIS
-euro-efficiency verdict (C-10) is a pre-existing `OVERSTATED` claims-register item
-whose live UI text must be re-verified against this contract; because that is a
-**runtime-text** issue it is out of scope for this docs-only PR and is logged as a
-corrective follow-up (candidate WP), **not** downgraded to AMBER to avoid the work.
-The remaining AMBERs are label-dependent, not overclaiming today.
+**Two RED-RISK surfaces.** (1) The TIS euro-efficiency verdict (C-10) is a
+pre-existing `OVERSTATED` claims-register item whose live UI text must be
+re-verified against this contract. (2) The **LAC/ROS capacity-at-standard** figure
+embeds a causal assumption the system's own attribution layer contradicts for
+three quarters of the real trail record, and is displayed ungated from SYNTHETIC
+inputs — this surface was **missing from the initial surface audit** and is added
+here. Both are **runtime** issues (UI text / formula precondition), so both are out
+of scope for this docs-only PR and are logged as corrective follow-ups, **not**
+downgraded to AMBER to avoid the work. The remaining AMBERs are label-dependent,
+not overclaiming today.
+
+> **Exit-criterion consequence (§J.3).** The contract's Definition of Done requires
+> that the audit record **no RED surface**. It records two. Phase 1.0 therefore does
+> **not** close on this criterion until both corrective WPs land; the criterion is
+> not weakened to fit the finding.
 
 ## 3. What cannot currently be authorized (explicit)
 
@@ -76,4 +86,6 @@ The remaining AMBERs are label-dependent, not overclaiming today.
 - Any satellite↔field "**validated**" claim.
 - Any **restrictive** management action (closure / quota / access limit).
 - Any **trail-level footfall** figure derived from municipal mobility.
+- Any asset-level **capacity or quota figure** derived from an ecological deficit
+  that the system's own attribution does not assign to visitor use.
 - Any forecasting/ML output presented as decision-grade for visitor pressure.
