@@ -1,0 +1,77 @@
+{
+  "camera_manifest_sha256": "3dc0a89a521d9659b8a2c40f671bd82fa146406e64e5252fcef06323cab15ecd",
+  "cameras_considered": 357,
+  "experiment_id": "VIS-001",
+  "frozen_at_utc": "2026-08-24T23:11:06+00:00",
+  "procedure": "Eight 45° compass sectors around the centroid of every camera published in the official KML; the median-distance camera in each sector; empty sectors backfilled from the richest remaining sector. Geographic metadata only — no imagery, no model output.",
+  "procedure_version": "1.0",
+  "required_cameras": 8,
+  "sectors_empty": [],
+  "selected_cameras": [
+    {
+      "camera_id": "camara05324",
+      "camera_name": "",
+      "image_url": "https://informo.madrid.es/cameras/Camara05324.jpg?v=51444",
+      "latitude": "40.480975",
+      "longitude": "-3.675852",
+      "sector": "N"
+    },
+    {
+      "camera_id": "camara16304",
+      "camera_name": "",
+      "image_url": "https://informo.madrid.es/cameras/Camara16304.jpg?v=51444",
+      "latitude": "40.468408",
+      "longitude": "-3.646599",
+      "sector": "NE"
+    },
+    {
+      "camera_id": "camara14302",
+      "camera_name": "",
+      "image_url": "https://informo.madrid.es/cameras/Camara14302.jpg?v=51444",
+      "latitude": "40.414374",
+      "longitude": "-3.627562",
+      "sector": "E"
+    },
+    {
+      "camera_id": "camara14308",
+      "camera_name": "",
+      "image_url": "https://informo.madrid.es/cameras/Camara14308.jpg?v=51444",
+      "latitude": "40.408067",
+      "longitude": "-3.646136",
+      "sector": "SE"
+    },
+    {
+      "camera_id": "camara13311",
+      "camera_name": "",
+      "image_url": "https://informo.madrid.es/cameras/Camara13311.jpg?v=51444",
+      "latitude": "40.397349",
+      "longitude": "-3.667340",
+      "sector": "S"
+    },
+    {
+      "camera_id": "camara11315",
+      "camera_name": "",
+      "image_url": "https://informo.madrid.es/cameras/Camara11315.jpg?v=51444",
+      "latitude": "40.393543",
+      "longitude": "-3.723558",
+      "sector": "SW"
+    },
+    {
+      "camera_id": "camara07306",
+      "camera_name": "",
+      "image_url": "https://informo.madrid.es/cameras/Camara07306.jpg?v=87325",
+      "latitude": "40.439200",
+      "longitude": "-3.717647",
+      "sector": "W"
+    },
+    {
+      "camera_id": "camara09321",
+      "camera_name": "",
+      "image_url": "https://informo.madrid.es/cameras/Camara09321.jpg?v=51444",
+      "latitude": "40.457196",
+      "longitude": "-3.729816",
+      "sector": "NW"
+    }
+  ],
+  "selected_count": 8
+}
