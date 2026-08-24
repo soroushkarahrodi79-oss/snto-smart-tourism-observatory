@@ -83,7 +83,8 @@ jobs:
             tests/unit/test_vis001_preregistration.py \
             tests/unit/test_vis001_inference_adapter.py \
             tests/unit/test_vis001_cameras.py \
-            tests/unit/test_vis001_structural_gates.py
+            tests/unit/test_vis001_structural_gates.py \
+            tests/unit/test_vis001_a2_gates.py
       - name: Ruff — full repo (report-only, lint debt)
         continue-on-error: true
         run: ruff check src tests *.py --output-format=github

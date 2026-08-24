@@ -174,12 +174,49 @@ def recall(true_positives: int, false_negatives: int) -> float | None:
 
 
 def f1(precision_value: float | None, recall_value: float | None) -> float | None:
-    """Harmonic mean; ``None`` if either component is undefined."""
+    """Harmonic mean of precision and recall; ``None`` if either is undefined.
+
+    This is the *presentational* form. It is not what the gate uses, because it
+    inherits precision's undefinedness: a model that predicted nothing has an
+    undefined precision, which would drag F1 to ``None`` even when the misses
+    are perfectly well measured. :func:`f1_from_counts` is the authoritative
+    definition; the two agree exactly wherever both are defined, since
+    ``2pr/(p+r)`` expands to ``2TP/(2TP+FP+FN)``.
+    """
     if precision_value is None or recall_value is None:
         return None
     if precision_value + recall_value == 0.0:
         return 0.0
     return 2 * precision_value * recall_value / (precision_value + recall_value)
+
+
+def f1_from_counts(
+    true_positives: int, false_positives: int, false_negatives: int
+) -> float | None:
+    """``2TP / (2TP + FP + FN)``; ``None`` only when all three counts are zero.
+
+    The authoritative F1 for VIS-001. Computing it from counts rather than from
+    precision and recall fixes a real hole in the gate:
+
+    * ``TP=0, FP=0, FN=10`` — the model predicted no bus and there were ten.
+      Precision is undefined, so the harmonic-mean form returns ``None`` and the
+      class silently leaves the gate. That is exactly backwards: this is a
+      **measured total detection failure** and must score ``F1 = 0.0``, which is
+      eligible for KILL. A model must never be protected from a negative verdict
+      by predicting nothing.
+    * ``TP=0, FP=0, FN=0`` — nothing annotated and nothing predicted. This is
+      the only case with no class evidence at all, and the only one that stays
+      ``None``.
+
+    Note that ``None`` here means "no observations of any kind", which is *not*
+    the same as the formal class-coverage test — see
+    :func:`classes_without_ground_truth`, which requires a human-annotated
+    positive (``TP + FN > 0``).
+    """
+    denominator = 2 * true_positives + false_positives + false_negatives
+    if denominator == 0:
+        return None
+    return 2 * true_positives / denominator
 
 
 @dataclass(frozen=True)
@@ -191,17 +228,34 @@ class DetectionMetrics:
     recall: float | None
     f1: float | None
 
+    @property
+    def ground_truth_support(self) -> int:
+        """Human-annotated positives for this class: ``TP + FN``.
+
+        The formal class-coverage quantity. Predictions contribute nothing to
+        it, because a false positive is not evidence that the class was there.
+        """
+        return self.true_positives + self.false_negatives
+
     @classmethod
     def from_counts(cls, tp: int, fp: int, fn: int) -> "DetectionMetrics":
-        p = precision(tp, fp)
-        r = recall(tp, fn)
-        return cls(tp, fp, fn, p, r, f1(p, r))
+        """Build from raw counts.
+
+        Precision and recall stay ``None`` where they are genuinely undefined,
+        which is honest and useful for reading a diagnostic table. F1 is
+        computed from the counts instead (:func:`f1_from_counts`), so a
+        measured total miss scores ``0.0`` rather than disappearing.
+        """
+        return cls(
+            tp, fp, fn, precision(tp, fp), recall(tp, fn), f1_from_counts(tp, fp, fn)
+        )
 
     def as_dict(self) -> dict[str, object]:
         return {
             "tp": self.true_positives,
             "fp": self.false_positives,
             "fn": self.false_negatives,
+            "ground_truth_support": self.ground_truth_support,
             "precision": self.precision,
             "recall": self.recall,
             "f1": self.f1,
@@ -278,9 +332,68 @@ def counting_metrics(pairs: Iterable[tuple[int, int]]) -> CountingMetrics:
 def undefined_classes(
     per_class_f1: Mapping[str, float | None], required: Sequence[str]
 ) -> tuple[str, ...]:
-    """Required classes whose F1 could not be computed at all."""
+    """Required classes whose F1 could not be computed at all.
+
+    Kept for reporting a diagnostic table. It is **not** the class-coverage
+    test — see :func:`classes_without_ground_truth`.
+    """
+    return tuple(name for name in required if per_class_f1.get(name) is None)
+
+
+def classes_without_ground_truth(
+    per_class_detection: Mapping[str, "DetectionMetrics"],
+    required: Sequence[str],
+) -> tuple[str, ...]:
+    """Required classes with no human-annotated positive: ``TP + FN == 0``.
+
+    This is the formal class-coverage test, and it is deliberately defined on
+    **ground-truth support**, never on whether F1 happens to be ``None``:
+
+    ===================  ===========  ==========================================
+    Ground truth         Predictions  Outcome
+    ===================  ===========  ==========================================
+    ``> 0``              ``0``        Evaluable. ``F1 = 0``. A measured total
+                                      miss, eligible for the normal gate.
+    ``0``                ``0``        Not evaluable. Nothing was annotated, so
+                                      nothing was asked of the model.
+    ``0``                ``> 0``      Not evaluable. False positives are worth
+                                      reporting diagnostically, but with no
+                                      human positive there is nothing to assess
+                                      detection against.
+    ===================  ===========  ==========================================
+
+    Using ``F1 is None`` instead would collapse row 1 into row 2 and let a model
+    escape a KILL by predicting nothing at all.
+    """
     return tuple(
-        name for name in required if per_class_f1.get(name) is None
+        name
+        for name in required
+        if name not in per_class_detection
+        or per_class_detection[name].ground_truth_support == 0
+    )
+
+
+def cameras_without_defined_wape(
+    per_camera_counting: Mapping[str, "CountingMetrics"],
+    required: Sequence[str],
+) -> tuple[str, ...]:
+    """Required cameras whose counting WAPE is undefined.
+
+    A camera's WAPE is undefined when its evaluated frames hold zero
+    ground-truth objects of the four target classes, so the denominator of
+    ``sum|pred - gt| / sum gt`` is zero.
+
+    The preregistered ADVANCE gate reads "every camera subgroup WAPE ≤ 0.35".
+    A frozen benchmark camera cannot quietly drop out of that rule: dropping it
+    would silently weaken a preregistered condition from "all eight" to "however
+    many happened to have objects in them". The honest response is to preserve
+    the metric and refuse the verdict.
+    """
+    return tuple(
+        name
+        for name in required
+        if name not in per_camera_counting
+        or per_camera_counting[name].wape is None
     )
 
 
@@ -445,9 +558,13 @@ def evaluate(
         },
         overall_detection=DetectionMetrics.from_counts(total_tp, total_fp, total_fn),
         overall_counting=counting_metrics(overall_pairs),
-        macro_f1=macro_f1(
-            {name: value.f1 for name, value in per_class_detection.items()},
-            required=list(classes),
+        macro_f1=(
+            None
+            if classes_without_ground_truth(per_class_detection, list(classes))
+            else macro_f1(
+                {name: value.f1 for name, value in per_class_detection.items()},
+                required=list(classes),
+            )
         ),
     )
 
@@ -503,8 +620,11 @@ def _camera_wapes(result: EvaluationResult) -> dict[str, float]:
     }
 
 
-#: Emitted verbatim when a required class could not be evaluated at all.
+#: Emitted verbatim when a required class has no human-annotated positive.
 INSUFFICIENT_CLASS_COVERAGE = "NO VERDICT — INSUFFICIENT CLASS COVERAGE"
+
+#: Emitted verbatim when a frozen benchmark camera has an undefined WAPE.
+INSUFFICIENT_CAMERA_COVERAGE = "NO VERDICT — INSUFFICIENT CAMERA COVERAGE"
 
 
 def decide(
@@ -514,6 +634,7 @@ def decide(
     gate_version: str,
     blocking_reasons: Sequence[str] = (),
     required_classes: Sequence[str] = (),
+    required_cameras: Sequence[str] = (),
 ) -> Verdict:
     """Apply the frozen gate. See ``PREREGISTRATION.md`` §Gate.
 
@@ -526,11 +647,19 @@ def decide(
     4. Otherwise → ``LOCAL_FINE_TUNE`` (the residual band).
 
     ``required_classes`` closes the class-coverage loophole: if any of the four
-    frozen target classes has an undefined F1, the gate stops at step 1 with
-    ``NO VERDICT — INSUFFICIENT CLASS COVERAGE``. It is never silently dropped
-    from the macro average, because the classes most likely to go undefined
-    (bus, bicycle) are precisely the rare ones a counting benchmark most needs
-    to have measured.
+    frozen target classes has **no human-annotated positive** (``TP + FN == 0``),
+    the gate stops at step 1 with ``NO VERDICT — INSUFFICIENT CLASS COVERAGE``.
+    Coverage is measured on ground-truth support, never on ``F1 is None`` — a
+    class with ten annotated buses and zero predictions scores ``F1 = 0`` and
+    goes to the gate, because that is a measured failure and a model must not
+    escape a KILL by predicting nothing.
+
+    ``required_cameras`` closes the matching camera loophole: every frozen
+    benchmark camera must have a defined counting WAPE, or the gate stops with
+    ``NO VERDICT — INSUFFICIENT CAMERA COVERAGE``. The preregistered condition
+    is "every camera subgroup WAPE ≤ 0.35"; letting an undefined camera vanish
+    would quietly rewrite that as "every camera that happened to contain
+    objects", which is a different and weaker rule.
 
     KILL is checked before ADVANCE so that the bands cannot both claim a result;
     they are disjoint by construction anyway, but the explicit order removes any
@@ -542,19 +671,33 @@ def decide(
 
     reasons = list(blocking_reasons)
 
-    missing_classes = undefined_classes(
-        {name: metrics.f1 for name, metrics in result.per_class_detection.items()},
-        required_classes,
+    unsupported_classes = classes_without_ground_truth(
+        result.per_class_detection, required_classes
     )
-    if missing_classes:
+    if unsupported_classes:
+        subject = "those classes" if len(unsupported_classes) > 1 else "that class"
         reasons.append(
-            f"{INSUFFICIENT_CLASS_COVERAGE}: no F1 could be computed for "
-            f"{', '.join(missing_classes)} — the evaluation set contains "
-            "neither ground truth nor predictions for "
-            f"{'them' if len(missing_classes) > 1 else 'it'}"
+            f"{INSUFFICIENT_CLASS_COVERAGE}: the frozen evaluation set holds no "
+            f"human-annotated instance of {', '.join(unsupported_classes)}, so "
+            f"detection of {subject} cannot be assessed at all"
         )
 
-    if macro is None and not missing_classes:
+    uncovered_cameras = cameras_without_defined_wape(
+        result.per_camera_counting, required_cameras
+    )
+    if uncovered_cameras:
+        subject = (
+            "those cameras hold" if len(uncovered_cameras) > 1 else "that camera holds"
+        )
+        reasons.append(
+            f"{INSUFFICIENT_CAMERA_COVERAGE}: counting WAPE is undefined for "
+            f"{', '.join(uncovered_cameras)} — {subject} no ground-truth target "
+            "objects across their frozen evaluation images, and the "
+            "preregistered per-camera condition applies to all "
+            f"{len(required_cameras)} frozen cameras"
+        )
+
+    if macro is None and not unsupported_classes:
         reasons.append(
             "macro F1 is undefined: no target class has both predictions and "
             "ground truth on the evaluation set"

@@ -268,8 +268,16 @@ def test_verdict_serialises_without_fabricating_metrics():
 # --------------------------------------------------------------------------
 
 
-def test_cameras_without_ground_truth_are_excluded_from_the_camera_rules():
-    """A camera with no annotated objects says nothing about counting accuracy."""
+def test_undefined_camera_wape_is_skipped_only_when_no_camera_set_is_required():
+    """Arithmetic-level behaviour, with no frozen camera set supplied.
+
+    An undefined WAPE contributes nothing to a max or a spread, so it is
+    skipped here. That is *not* the formal gate: amendment A2 requires every
+    frozen benchmark camera to have a defined WAPE, and
+    tests/unit/test_vis001_a2_gates.py pins that a required camera with no
+    ground truth forces NO VERDICT — INSUFFICIENT CAMERA COVERAGE instead of
+    disappearing from the per-camera rule.
+    """
     result = _result(
         class_f1={name: 0.85 for name in CLASSES},
         overall_wape=0.15,

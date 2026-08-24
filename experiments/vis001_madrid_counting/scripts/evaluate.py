@@ -229,6 +229,7 @@ def main() -> int:
             gate_version=config.GATE_VERSION,
             blocking_reasons=blocking,
             required_classes=config.TARGET_CLASSES,
+            required_cameras=frozen_cameras,
         )
 
     write_json(

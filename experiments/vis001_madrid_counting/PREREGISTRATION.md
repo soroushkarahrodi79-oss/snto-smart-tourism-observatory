@@ -206,6 +206,24 @@ ids are unique, and image ids are valid.
 
 `TP`, `FP`, `FN`, precision, recall, F1 — per class and overall.
 
+**F1 is computed from counts**, not from precision and recall:
+
+```
+F1 = 2·TP / (2·TP + FP + FN)
+```
+
+The two forms are algebraically identical wherever both are defined, but the
+count form stays defined when precision is not. That matters for one case that
+must never be lost: `TP=0, FP=0, FN=10` — the model predicted no bus and there
+were ten. Precision is undefined there, so the harmonic-mean form returns
+`null` and the class leaves the gate. That is a **measured total detection
+failure** and scores `F1 = 0.0`, eligible for the normal gate. A model must
+never be protected from a negative verdict by predicting nothing.
+
+`F1` is `null` only for `TP=0, FP=0, FN=0` — no observations of any kind.
+Precision and recall remain `null` where they are genuinely undefined; they are
+diagnostic, and the gate does not read them.
+
 **Matching algorithm** (fixed, because the verdict depends on it): predictions
 are sorted by descending confidence, ties broken by input order. Each is matched
 to the highest-IoU ground-truth box **not already claimed**; if that IoU is
@@ -243,19 +261,50 @@ that made no prediction has not been shown to be imprecise; a frame set with no
 ground truth has no counting error. Reporting those as zero would read as
 "perfect" and is forbidden.
 
-### Class coverage is mandatory
+### Class coverage is mandatory, and is defined by ground-truth support
 
-**All four target classes must be evaluable for a formal verdict.** If the F1 of
-`person`, `bicycle`, `car` or `bus` is undefined — no ground truth *and* no
-prediction for it anywhere in the evaluation set — the gate is not applied and
-the result is **NO VERDICT — INSUFFICIENT CLASS COVERAGE**.
+**All four target classes must be evaluable for a formal verdict.** A class is
+evaluable when the frozen evaluation set contains at least one human-annotated
+instance of it:
+
+```
+TP + FN > 0
+```
+
+Coverage is **not** defined as "F1 is not null". The three cases:
+
+| Ground truth | Predictions | Outcome |
+| --- | --- | --- |
+| `> 0` | `0` | **Evaluable.** `F1 = 0`. A measured total miss, eligible for the normal gate — including KILL. |
+| `0` | `0` | **Not evaluable.** Nothing was annotated, so nothing was asked of the model. |
+| `0` | `> 0` | **Not evaluable.** False positives are reported diagnostically, but with no human positive there is nothing to assess detection against. |
+
+Rows 2 and 3 give **NO VERDICT — INSUFFICIENT CLASS COVERAGE**, naming the
+affected classes.
 
 The undefined class is **never** silently dropped from the macro average. The
-classes most likely to go undefined (`bus`, `bicycle`) are precisely the rare
+classes most likely to lack support (`bus`, `bicycle`) are precisely the rare
 ones a counting benchmark most needs to have measured, so averaging the three
 that worked would both redefine the metric mid-experiment and bias it upward.
 A benchmark that never saw a bus has not measured three-quarters of the
 question; it has failed to measure the question.
+
+### Camera coverage is mandatory
+
+The ADVANCE gate reads "every camera subgroup counting WAPE ≤ 0.35". That
+condition applies to **all eight** frozen benchmark cameras.
+
+A camera's WAPE is undefined when its ten frozen evaluation images hold zero
+ground-truth objects of the four target classes, so the denominator of
+`sum|pred − gt| / sum gt` is zero. Such a camera does **not** drop out of the
+rule — dropping it would quietly rewrite a preregistered condition as "every
+camera that happened to contain objects", which is a different and weaker rule.
+A frozen camera missing from the results entirely is treated the same way:
+silence is not coverage.
+
+Instead the gate stops with **NO VERDICT — INSUFFICIENT CAMERA COVERAGE**,
+naming the affected camera(s). No replacement metric is invented, no threshold
+is added, and the camera is **never** redrawn after labels have been seen.
 
 ## 9. Decision gate — frozen
 
@@ -312,9 +361,14 @@ the following holds:
 * the evaluation set is not exactly 80 images, 10 per frozen camera;
 * the frozen evaluation set is not fully annotated;
 * predictions are absent;
-* any of the four target classes is not evaluable, which is reported as
-  **NO VERDICT — INSUFFICIENT CLASS COVERAGE**;
+* any of the four target classes has no human-annotated positive, which is
+  reported as **NO VERDICT — INSUFFICIENT CLASS COVERAGE**;
+* any of the eight frozen benchmark cameras has an undefined counting WAPE,
+  which is reported as **NO VERDICT — INSUFFICIENT CAMERA COVERAGE**;
 * macro F1 or WAPE is undefined.
+
+Note what is **not** on this list: a class the model missed entirely. That is a
+measured result, and it goes to the gate.
 
 An incomplete evaluation is never converted into a positive result.
 
@@ -428,6 +482,50 @@ threshold (0.35), the IoU threshold (0.50), the four classes, the sample size
 LOCAL_FINE_TUNE / KILL_OR_REPOSITION boundary are exactly as first registered.
 Every correction makes the gate **harder** to satisfy, never easier: each one
 adds a way to reach NO VERDICT that did not previously exist.
+
+### A2 — Pre-data statistical correctness (2026-08-24)
+
+Recorded, like A1, while **zero real frames had been acquired, zero human
+annotations existed, and no formal RF-DETR evaluation result existed**. A1 is
+left exactly as written; A2 is a separate, later amendment and does not revise
+it. Three defects, all of the same shape — a *measured failure* being mistaken
+for *absent evidence*, or an absent subgroup silently leaving a preregistered
+rule:
+
+1. **The zero-prediction F1 bug.** `GT = 10, predictions = 0` yielded an
+   undefined F1 (precision is undefined with no predictions, and F1 was derived
+   from precision and recall). The class then left the gate as "no evidence".
+   F1 is now computed from counts, `2·TP / (2·TP + FP + FN)`, so that case
+   scores `TP=0, FP=0, FN=10, recall=0, F1=0` and remains fully eligible for
+   KILL / LOCAL_FINE_TUNE / ADVANCE. **A model must never be protected from a
+   negative verdict merely because it predicted nothing.** Only
+   `TP=FP=FN=0` stays undefined.
+2. **Class coverage redefined on ground-truth support.** Coverage was tested as
+   "F1 is not null", which collapsed the case above into "insufficient
+   evidence". It is now `TP + FN > 0` — at least one human-annotated instance
+   in the frozen evaluation set. `GT=0, predictions>0` is also insufficient:
+   false positives are worth reporting, but with no human positive there is
+   nothing to assess detection against.
+3. **Camera coverage.** A frozen benchmark camera whose counting WAPE was
+   undefined simply disappeared from the preregistered "every camera subgroup
+   WAPE ≤ 0.35" condition, weakening it to "every camera that happened to
+   contain objects". All eight frozen cameras must now have a defined WAPE, or
+   the gate stops with **NO VERDICT — INSUFFICIENT CAMERA COVERAGE**, naming
+   the affected camera(s). The preregistered metric is preserved rather than
+   replaced: no substitute statistic is invented, no threshold is added, and no
+   camera is redrawn after labels have been seen.
+
+**No numeric threshold changed.** The model, the confidence threshold (0.35),
+the IoU threshold (0.50), the four classes, the sample structure (8 × 20), the
+evaluation-set size (80), the seed (20260824) and every ADVANCE /
+LOCAL_FINE_TUNE / KILL_OR_REPOSITION boundary are exactly as first registered.
+
+A2 differs from A1 in direction, and this is worth stating plainly. Every A1
+correction made the gate strictly harder to satisfy. A2 does **both**: defect 1
+makes a negative verdict *reachable* where it previously escaped into NO
+VERDICT, while defects 2 and 3 add new routes to NO VERDICT. What unites them
+is not severity but correctness — each closes a path by which the gate would
+have reported something other than what was actually measured.
 
 ---
 

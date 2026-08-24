@@ -35,7 +35,7 @@ The model's output is a derived prediction; it is never ground truth.
 | Axis | State |
 | --- | --- |
 | Implementation | Complete — pipeline, metrics, gate, tests |
-| Preregistration | Frozen, gate version 1.0 (amendment A1: pre-data audit corrections) |
+| Preregistration | Frozen, gate version 1.0 (amendments A1, A2 — pre-data) |
 | Camera manifest | **Empty** — the KML is unreachable here. See *Blocker* below |
 | Benchmark cameras frozen | **No** — cannot be selected from an empty manifest |
 | Data acquired | **None** |
@@ -90,10 +90,21 @@ The gate is never applied on partial structure. Any one of these is enough:
   headline number);
 - the evaluation set is not exactly 80 images, 10 from each frozen camera —
   79 is not 80, and a short camera is never back-filled from another;
-- any of `person` / `bicycle` / `car` / `bus` is not evaluable → **NO VERDICT —
-  INSUFFICIENT CLASS COVERAGE**. The undefined class is never dropped from the
-  macro average;
+- any of `person` / `bicycle` / `car` / `bus` has **no human-annotated
+  instance** (`TP + FN == 0`) → **NO VERDICT — INSUFFICIENT CLASS COVERAGE**.
+  Coverage is ground-truth support, not "F1 happened to be null";
+- any frozen camera has an **undefined counting WAPE** → **NO VERDICT —
+  INSUFFICIENT CAMERA COVERAGE**, naming it. The preregistered per-camera
+  condition applies to all eight; a camera never quietly leaves it;
 - the evaluation set is not fully annotated, or predictions are absent.
+
+### What does *not* force NO VERDICT
+
+A class the model missed entirely. `GT bus = 10, predicted bus = 0` is a
+**measured total detection failure**: `TP=0, FP=0, FN=10, recall=0, F1=0`, and
+it goes to the gate like any other result — including to KILL. F1 is computed
+from counts (`2·TP / (2·TP + FP + FN)`) precisely so that a model cannot escape
+a negative verdict by predicting nothing. Only `TP=FP=FN=0` is undefined.
 
 ## Setup
 
@@ -217,11 +228,17 @@ zero-ground-truth edge cases, manifest and annotation validation, the
 reproducible evaluation split, and every branch of the verdict logic — including
 its refusal to issue a verdict on incomplete evidence.
 
-`test_vis001_cameras.py` and `test_vis001_structural_gates.py` are the pre-data
-audit regressions. Each names the loophole it closes: image URLs harvested from
-outside a Placemark, a KML served as an error page, cameras picked by sorted id,
-160 frames from two cameras, 79 images passing as 80, a short camera
-back-filled from another, and an undefined class quietly averaged away.
+`test_vis001_cameras.py` and `test_vis001_structural_gates.py` are the A1
+pre-data audit regressions. Each names the loophole it closes: image URLs
+harvested from outside a Placemark, a KML served as an error page, cameras
+picked by sorted id, 160 frames from two cameras, 79 images passing as 80, and
+a short camera back-filled from another.
+
+`test_vis001_a2_gates.py` holds the A2 statistical-correctness regressions: a
+total miss scoring `F1 = 0` rather than vanishing, two such misses still being
+able to reach KILL through the unchanged thresholds, the three ground-truth
+support cases, and a frozen camera with no ground truth forcing
+INSUFFICIENT CAMERA COVERAGE instead of leaving the per-camera rule.
 
 `test_vis001_preregistration.py` additionally asserts that `config.py`,
 `experiment.yaml` and `PREREGISTRATION.md` still agree on every frozen number,

@@ -190,6 +190,55 @@ def test_amendment_is_recorded_and_states_no_threshold_changed(prereg_text):
     assert "harder** to satisfy, never easier" in prereg_text
 
 
+# --- pre-data statistical correctness (amendment A2) -----------------------
+
+
+def test_count_based_f1_is_declared(prereg_text, yaml_text):
+    assert "2·TP / (2·TP + FP + FN)" in prereg_text
+    assert "f1: 2*TP / (2*TP + FP + FN)" in yaml_text
+
+
+def test_measured_total_miss_is_declared_as_measured(prereg_text):
+    """The rule that keeps a silent model killable."""
+    assert "measured total detection failure" in prereg_text
+    assert "never be protected from a negative verdict by predicting nothing" in (
+        prereg_text
+    )
+
+
+def test_class_coverage_is_declared_as_ground_truth_support(prereg_text, yaml_text):
+    assert "TP + FN > 0" in prereg_text
+    assert 'not** defined as "F1 is not null"' in prereg_text
+    assert "class_coverage_test: TP + FN > 0" in yaml_text
+    assert "class_coverage_is_not: f1 is not None" in yaml_text
+
+
+def test_camera_coverage_requirement_is_declared(prereg_text, yaml_text):
+    from vis001.metrics import INSUFFICIENT_CAMERA_COVERAGE
+
+    assert INSUFFICIENT_CAMERA_COVERAGE in prereg_text
+    assert "applies to **all eight** frozen benchmark cameras" in prereg_text
+    assert "silence is not coverage" in prereg_text
+    assert "camera_coverage_required: true" in yaml_text
+
+
+def test_amendment_a2_is_recorded_separately_from_a1(prereg_text):
+    """A2 must not be folded into A1 — they are different dates of record."""
+    assert "A1 — Pre-data audit corrections" in prereg_text
+    assert "A2 — Pre-data statistical correctness" in prereg_text
+    assert prereg_text.index("A1 — Pre-data") < prereg_text.index("A2 — Pre-data")
+    assert "A1 is left exactly as written" in prereg_text
+
+
+def test_amendment_a2_states_the_pre_data_conditions(prereg_text):
+    a2 = prereg_text.split("A2 — Pre-data statistical correctness")[1]
+    a2 = a2.split("## Protocol deviations")[0]
+    assert "zero real frames had been acquired" in a2
+    assert "zero human annotations existed" in a2
+    assert "no formal RF-DETR evaluation result existed" in a2
+    assert "No numeric threshold changed." in a2
+
+
 def test_no_second_architecture_is_introduced(prereg_text, yaml_text):
     """A YOLO comparison is a future experiment, not this one."""
     assert "no YOLO comparison in VIS-001" in prereg_text
