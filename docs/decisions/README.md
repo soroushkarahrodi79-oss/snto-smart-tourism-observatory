@@ -28,6 +28,8 @@ ADR source material is the 2026 review archive.
 - [ADR-012: Deploying the /api/v2 HTTP Surface](ADR-012.md)
 - [ADR-013: Fundación del cliente móvil SNTO](ADR-013-mobile-client.md)
 - [ADR-014: Contrato de lectura /api/v2 para el cliente móvil (Fase 2)](ADR-014-mobile-read-api-contract.md)
+- [ADR-015: Earth Engine Visual Change Explorer](ADR-015-earth-engine-change-explorer.md)
+- [ADR-016: SNTO Claim Ladder & Evidence→Decision Gates (Phase 1.0)](ADR-016-claim-ladder-and-decision-gates.md)
 
 ## Recommendations
 Use ADRs for any future decision that changes architecture, product category, scientific claims, or institutional readiness.

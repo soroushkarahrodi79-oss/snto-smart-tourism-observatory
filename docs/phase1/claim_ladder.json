@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.1",
+  "title": "SNTO Claim Ladder",
+  "authority": "ADR-016",
+  "status": "defined-not-enforced",
+  "enforcement_work_package": "WP-2",
+  "generated_for_phase": "1.0",
+  "notes": "Machine-readable mirror of docs/phase1/SCIENTIFIC_PRODUCT_CONTRACT.md. Not imported by src/ yet; wiring into src/platform/evidence.py is WP-2. Source-provenance classes reference src/platform/evidence.py::EvidenceClass. No numeric field-validation threshold (rho/kappa/p/DI) is canonized as product policy; those belong to the approved field-validation protocol and pre-registration (see field_validation_gate).",
+  "source_evidence_classes": ["REAL", "CALIBRATED", "SIMULATED", "SYNTHETIC", "MISSING"],
+  "epistemic_transformation_axis": ["OBSERVED", "DERIVED", "MODELLED", "HYPOTHESIZED"],
+  "invariants": [
+    "SIMULATED, SYNTHETIC and MISSING authorize nothing above L0.",
+    "REAL provenance alone never authorizes L6 or L7.",
+    "REAL is not the same as OBSERVED: a REAL-provenance DERIVED value (EHS/NDVI) enters at L2, never L1; a MODELLED/HYPOTHESIZED value (SCM) is capped at an L2 hypothesis.",
+    "Field validation (#26) is a hard gate for L7 causal attribution.",
+    "Restrictive recommendations (closure/quota/access limit) live at L5b and need >=L6 evidence plus owner policy; resource-committing interventions are also L5b.",
+    "Municipal MITMA mobility is macro-territorial context only and does not satisfy the visitor-pressure target-variable gate.",
+    "No numeric agreement threshold is product policy; L6/L7 require the approved field-validation protocol and pre-registration.",
+    "Regenerative Outcome is an evaluation layer, not an evidence pillar, and is out of scope for Phase 1."
+  ],
+  "field_validation_gate": {
+    "rule": "L6/L7 require satisfying the approved, tracked field-validation protocol (docs/field_validation_protocol.md) and the campaign pre-registration when #26 runs.",
+    "tracked_parameters": {
+      "cliffs_delta_large_effect_label": {"value": 0.474, "source": "src/validation/agreement.py; Romano et al. (2006)", "role": "effect-size label, NOT a causal pass/fail gate"},
+      "spearman_display_gate": {"value": 0.3, "source": "src/ui/services/field_agreement.py", "role": "UI agreement display gate (with n>=3 and direction_ok)"}
+    },
+    "not_canonized": {
+      "note": "The following appear only in the uncommitted docs/paper1/ draft (another agent) and have no tracked source; they are NOT adopted as product policy.",
+      "values": ["spearman_rho>=0.60", "cohen_kappa>=0.60", "p<0.01", "field_degradation_index>=50"]
+    }
+  },
+  "levels": [
+    {
+      "id": "L0",
+      "name": "Availability",
+      "statement": "We hold data X.",
+      "permitted_source_classes": ["REAL", "CALIBRATED", "SIMULATED", "SYNTHETIC", "MISSING"],
+      "authorizes": [],
+      "uncertainty_required": false,
+      "field_validation_required": false,
+      "permitted_language": ["available", "we hold", "dataset present"],
+      "prohibited_language": ["observed", "shows", "indicates", "recommends"]
+    },
+    {
+      "id": "L1",
+      "name": "Observation",
+      "statement": "We observed X.",
+      "permitted_source_classes": ["REAL"],
+      "required_transformation": "OBSERVED",
+      "authorizes": ["monitor"],
+      "uncertainty_required": true,
+      "field_validation_required": false,
+      "permitted_language": ["observed", "measured (satellite reflectance)", "recorded (official cartography)"],
+      "prohibited_language": ["caused", "regenerated", "validated in field", "effective", "derived index as observed"]
+    },
+    {
+      "id": "L2",
+      "name": "Derived condition",
+      "statement": "Indicator Y, derived from X, suggests state S.",
+      "permitted_source_classes": ["REAL"],
+      "required_transformation": "DERIVED",
+      "requires": ["documented transform", "quality metadata", "valid provenance"],
+      "modelled_hypothesized_cap": "SIMULATED/MODELLED values (SCM) may only be shown as an explicit hypothesis at this level.",
+      "authorizes": ["monitor", "contextualise"],
+      "uncertainty_required": true,
+      "field_validation_required": false,
+      "permitted_language": ["suggests", "consistent with", "derived condition", "hypothesis (if modelled)"],
+      "prohibited_language": ["proves", "caused", "validated", "observed (for derived indices)"]
+    },
+    {
+      "id": "L3",
+      "name": "Association",
+      "statement": "X and Y are associated in this dataset.",
+      "permitted_source_classes": ["REAL"],
+      "requires": ["two measured variables", "temporal/spatial alignment", "explicit statistical method", "uncertainty"],
+      "sample_note": "Minimum plot count follows the tracked field convention (>=3 co-located plots, field_agreement.py); not invented here.",
+      "authorizes": ["monitor", "flag"],
+      "uncertainty_required": true,
+      "field_validation_required": false,
+      "permitted_language": ["associated", "correlated", "co-varies", "rank correlation"],
+      "prohibited_language": ["caused", "because of", "driven by", "attributable to"]
+    },
+    {
+      "id": "L4",
+      "name": "Decision-support signal",
+      "statement": "Evidence is sufficient to flag or prioritize investigation / field inspection.",
+      "permitted_source_classes": ["REAL", "CALIBRATED"],
+      "calibrated_use": "context and prioritization only; must be labelled non-observational",
+      "authorizes": ["flag", "monitor", "prioritize_investigation", "prioritize_field_inspection"],
+      "explicitly_not_authorized": ["prioritize_intervention", "allocate_budget", "restrict_access"],
+      "uncertainty_required": true,
+      "field_validation_required": false,
+      "permitted_language": ["flag", "prioritize investigation", "early warning", "worth inspecting"],
+      "prohibited_language": ["recommend closure", "confirmed impact", "validated", "caused"]
+    },
+    {
+      "id": "L5a",
+      "name": "Observational recommendation",
+      "statement": "Evidence is sufficient to recommend monitoring / inspection / field verification.",
+      "permitted_source_classes": ["REAL"],
+      "authorizes": ["recommend_monitoring", "recommend_field_inspection", "recommend_field_verification"],
+      "uncertainty_required": true,
+      "field_validation_required": false,
+      "is_current_product_ceiling": true,
+      "permitted_language": ["recommend monitoring", "recommend field inspection", "recommend verification"],
+      "prohibited_language": ["recommend closure", "recommend quota", "recommend restoration budget", "caused"]
+    },
+    {
+      "id": "L5b",
+      "name": "Committing recommendation",
+      "statement": "Evidence is sufficient to recommend a resource-committing intervention or a restrictive action.",
+      "permitted_source_classes": ["REAL"],
+      "authorizes_when_unblocked": ["recommend_intervention", "recommend_restriction"],
+      "blocked_today": true,
+      "blocked_reason": "Requires >=L6-grade evidence; the restrictive sub-type additionally requires explicit owner policy sign-off.",
+      "restrictive_actions_authorized": false,
+      "uncertainty_required": true,
+      "field_validation_required": true,
+      "management_record_required": true,
+      "permitted_language": [],
+      "prohibited_language": ["recommend closure", "recommend quota", "recommend access restriction", "recommend budget commitment"]
+    },
+    {
+      "id": "L6",
+      "name": "Effectiveness assessment",
+      "statement": "After intervention Z, outcome Y changed relative to a comparator.",
+      "permitted_source_classes": ["REAL"],
+      "requires": ["complete management record", "pre AND post REAL measurement", "temporal alignment", "comparator/counterfactual", "confounder discussion", "field validation", "uncertainty"],
+      "management_record_completeness": ["intervention_id", "asset", "spatial_footprint", "decision_date", "implementation_start", "implementation_end", "intervention_type", "authorized_by", "target", "intended_mechanism", "planned_cost", "actual_cost", "completion_state", "monitoring_window", "evidence_links"],
+      "note": "A bare before/after difference without a comparator is only an L2 observation of change, not effectiveness.",
+      "blocked_today": true,
+      "uncertainty_required": true,
+      "field_validation_required": true,
+      "permitted_language": ["outcome changed vs comparator after intervention"],
+      "prohibited_language": ["intervention caused", "regenerative outcome achieved", "proven effective", "before/after alone = effective"]
+    },
+    {
+      "id": "L7",
+      "name": "Causal attribution (high-confidence, BACI-supported)",
+      "statement": "Under stated assumptions, intervention or pressure X is attributed as the high-confidence cause of outcome Y.",
+      "permitted_source_classes": ["REAL"],
+      "requires": ["L6 satisfied", "control/impact (BACI) design", "explicit assumptions and confounder treatment", "approved field-validation pre-registration"],
+      "no_mechanical_rule": "BACI + a p-value does not by itself establish causality; attribution is quasi-experimental under stated assumptions, not proof.",
+      "blocked_today": true,
+      "uncertainty_required": true,
+      "field_validation_required": true,
+      "permitted_language": ["attributed (BACI-supported, under stated assumptions)", "high-confidence attribution"],
+      "prohibited_language": ["any causal or regenerative claim before #26 field validation is ingested", "proven cause", "mechanical p-value causality"]
+    }
+  ]
+}

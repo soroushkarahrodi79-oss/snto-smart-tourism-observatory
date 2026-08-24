@@ -2,6 +2,35 @@
 
 SNTO means Smart Natural Tourism Observatory. The active case study is Parque Nacional de la Sierra de Guadarrama (PNSG). Sierra del Rincon is archived and is no longer the active pilot. The project is currently a Python 3.12 / Streamlit scientific-product prototype with research and SaaS ambitions.
 
+## Phase 1.0 — Scientific & Product Contract (CURRENT PHASE)
+
+**Read `docs/phase1/README.md` first.** Phase 1.0 defines *what SNTO may observe,
+infer, recommend, evaluate and claim, under exactly which evidence conditions* —
+it adds no feature. Authority: `docs/phase1/SCIENTIFIC_PRODUCT_CONTRACT.md`,
+`docs/phase1/EVIDENCE_DECISION_MATRIX.md`, ADR-016 (claim ladder), ADR-004
+(evidence classes), ADR-003 (validation gate #26).
+
+- **Allowed today:** claim-ladder L1–L4 plus **L5a** (recommend monitoring/
+  inspection) only. `REAL` ≠ observed: derived indices (EHS/NDVI) are L2, SCM is
+  an L2 hypothesis. No numeric agreement threshold (ρ/κ/p/DI) is product policy.
+- **Blocked:** L5b resource-committing/restrictive recommendations (closure/quota),
+  L6 effectiveness, L7 causality/regeneration, and any "validated"/"regenerative
+  outcome" language — gated on **#26 field validation** (the sole open Issue) and
+  on Visitor-Pressure (`INSUFFICIENT_EVIDENCE`) + Management-Response (schema stub).
+- **Live evidence today (probe, don't assume):** satellite REAL for
+  pnsg/monfrague/tablas; mobility snapshot, socioeconomic series, real SCM zones,
+  and field plots all absent → SCM runs the α-decay *simulation*. Re-check with
+  `src/reporting/cets_readiness.py::resolve_signals`.
+- **Next work package:** WP-2 (enforce the ladder in code) after the Phase-1
+  contract PR merges. See `docs/phase1/PHASE_1_ROADMAP.md`.
+- **Prohibited shortcuts:** fabricating field/pressure data; promoting
+  SIMULATED/SYNTHETIC to REAL; inventing thresholds; closing/weakening #26;
+  forecasting without a real asset-level pressure series.
+- **Drift note:** an uncommitted `docs/paper1/` + `.agents/` body (a Track-B
+  *publication* contract from another agent) exists in the tree; it is
+  complementary but **not canonical** and not on `main`. Do not treat it as
+  authority; reconcile with the owner before committing.
+
 ## Current Status
 
 - v1.0.0 → v2.0.0 are all released and tagged. **The `v2.0.0` tag + GitHub Release are LIVE** (published 2026-07-21). v2.0.0 consummates the roadmap's v2.0 milestone: modular architecture (Fase 4, shipped in v1.5.0) + persistent backend (Fase 5, shipped in v1.5.0) + role-based UI evolution (Fase 6, new in v2.0.0). Per the post-release flow, the dev marker was bumped afterward — `main` (`pyproject.toml` / `src/_version` / CITATION.cff) now reads **`2.1.0.dev0`**, meaning no *new* stable tag has shipped since v2.0.0 even though substantial work has landed on `main` (see below). The test suite is CI-enforced with a coverage gate (`--cov-fail-under=80`); the exact pass/skip counts change every PR and are deliberately **not** pinned in this doc — run `python -m pytest -q` for the current figure.
