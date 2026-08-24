@@ -158,7 +158,12 @@ def _assess_asset(
     ehs = max(0.0, min(100.0, float(asset.ehs)))
     ros = classify_ros(getattr(asset, "accessibility_score", None))
     standard = lac_standard_ehs(ros)
-    threshold = capacity_at_standard(annual_proxy, ehs, standard)
+    # A capacity-at-standard number is only emitted where the SCM attributes the
+    # ecological deficit to localized visitor use (WP-C11). For LANDSCAPE_DRIVEN /
+    # MIXED trails this stays None — the field is nullable and rendered as absence.
+    threshold = capacity_at_standard(
+        annual_proxy, ehs, standard, attribution=scm_classification
+    )
     source = (
         "Movilidad MITMA (proxy municipal)"
         if municipal_inbound is not None
