@@ -204,11 +204,18 @@ def test_territory_health_critical_drops_irreversible_and_restriction() -> None:
     _assert_no_phrases(_emitted_kpi_text(kpi), RESTRICTIVE_ACTION_PHRASES, "KPI territory health")
 
 
-def test_visitor_capacity_high_risk_softens_redirection_action() -> None:
+def test_visitor_capacity_kpi_is_frozen_not_a_false_visitor_count() -> None:
+    # WP-2 / K-10: the KPI is frozen — visitor_capacity_annual is a capacity
+    # constant, not a measured visitor count, so it must not render "visitors/yr"
+    # or drive a RED alert, and must never carry a restrictive action.
     assets = [_asset(tier=1, visitor_capacity_annual=90_000)]
     kpi = _kpi_visitor_capacity_at_risk(assets)
-    assert kpi.status == "RED"
-    _assert_no_phrases(kpi.recommended_action, RESTRICTIVE_ACTION_PHRASES, "KPI capacity action")
+    assert kpi.status == "BLUE" and kpi.status_label == "FROZEN"
+    assert "visitors/yr" not in kpi.value
+    assert "90,000" not in kpi.value and "90,000" not in kpi.what_it_means
+    _assert_no_phrases(
+        kpi.recommended_action, RESTRICTIVE_ACTION_PHRASES, "KPI capacity action"
+    )
 
 
 # ── 2. Call to action ────────────────────────────────────────────────────────
