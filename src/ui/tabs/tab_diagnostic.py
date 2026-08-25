@@ -89,8 +89,8 @@ def render_tab_diagnostic(
             "perder sensibilidad."
         )
         st.markdown(
-            "**EHS por senda (Δ estacional):** se ancla en percentiles de la *propia "
-            "escena*, no en constantes arbitrarias:"
+            "**EHS por senda (Δ entre dos escenas):** se ancla en percentiles de la "
+            "*propia escena*, no en constantes arbitrarias:"
         )
         st.latex(r"D_x = \mathrm{clamp}\!\left(\frac{P_{90} - \bar{x}}{P_{90} - P_{10}}\right)"
                  r"\qquad EHS = 100\,(w_{NDVI}\,D_{NDVI} + w_{NDMI}\,D_{NDMI})")
@@ -101,8 +101,12 @@ def render_tab_diagnostic(
             "**Convención de signo (clave para auditar):** el Pipeline A calcula *estrés* "
             "(0 = sano, 100 = degradado); el dashboard habla *salud* (0 = crítico, 100 = sano). "
             "La conversión es **única**, en `src/platform/real_trails.py` (`stress_to_health`), "
-            "de modo que todo el dashboard usa **alto = sano**. El **ΔEHS = salud_primavera − "
-            "salud_verano**: ΔEHS negativo = deterioro estival.\n\n"
+            "de modo que todo el dashboard usa **alto = sano**. El **ΔEHS = diferencia "
+            "de salud entre dos escenas fechadas** (`health_spring − health_summer`, "
+            "nombres del código): un ΔEHS negativo indica menor salud en la escena "
+            "más tardía. **No es una lectura estacional ni una tendencia** — las dos "
+            "escenas están separadas ~8 meses, en años distintos y con dos sensores "
+            "(S2A/S2B); sus fechas y sensores reales se muestran arriba (Q-03).\n\n"
             "**Override conservador (Fase 2):** cuando el EHS satelital de la senda es *más "
             "degradado* que el juicio experto, **sobreescribe** al curado y escala tier/alerta; "
             "cuando es *más verde*, se mantiene el curado (posible geología, no degradación)."
@@ -255,7 +259,7 @@ def render_tab_diagnostic(
         "produce a partir de la **cartografía real de senderos × Sentinel-2** "
         "(NDVI/NDMI) aplicando las fórmulas EHS / ΔEHS / SCM del proyecto. "
         "Cada línea es el trazado cartográfico verdadero, coloreado por su Salud "
-        "Ecológica (EHS) de verano."
+        "Ecológica (EHS) de la escena analizada."
     )
 
     _real = get_real_trails(selected_key)
@@ -335,16 +339,18 @@ def render_tab_diagnostic(
             st.metric("Longitud total", f"{s.get('total_length_km', 0):.0f} km")
         with k3:
             st.markdown(
-                f'<div style="font-size:0.78rem;color:#7a8899">EHS verano medio</div>'
+                f'<div style="font-size:0.78rem;color:#7a8899">EHS medio (escena)</div>'
                 f'<div style="font-size:1.6rem;font-weight:700;color:{_ehs_color}">'
                 f'{_ehs_mean if _ehs_mean is not None else "—"}'
                 f'<span style="font-size:0.8rem;color:#9aa4af">/100</span></div>',
                 unsafe_allow_html=True,
             )
         with k4:
-            st.metric("Sendas en deterioro", s.get("n_degrading_positive_delta", 0),
-                      help="Sendas cuya salud ecológica cae de primavera a verano "
-                           "(ΔEHS de salud < 0, equivalente a un aumento del estrés).")
+            st.metric("Sendas con ΔEHS < 0 (2 escenas)",
+                      s.get("n_degrading_positive_delta", 0),
+                      help="Sendas con menor salud en la escena más tardía "
+                           "(ΔEHS < 0). Diferencia entre dos escenas fechadas, "
+                           "NO un deterioro estacional ni una tendencia (Q-03).")
         with k5:
             st.metric("Presupuesto indicativo",
                       f"€{s.get('total_budget_eur', 0):,.0f}",
@@ -436,9 +442,9 @@ def render_tab_diagnostic(
             row = {
                 "Senda":          t.name,
                 "Long. (km)":     t.length_km,
-                "EHS primavera":  round(t.health_spring, 1) if t.health_spring is not None else None,
-                "EHS verano":     round(t.health_summer, 1) if t.health_summer is not None else None,
-                "ΔEHS":           round(t.delta_health, 1) if t.delta_health is not None else None,
+                "EHS escena temprana": round(t.health_summer, 1) if t.health_summer is not None else None,
+                "EHS escena tardía":   round(t.health_spring, 1) if t.health_spring is not None else None,
+                "ΔEHS":                round(t.delta_health, 1) if t.delta_health is not None else None,
                 "Prioridad":      t.priority_label,
                 "Atribución SCM": (
                     f"🧭 {t.scm_label_es}" if t.scm_class else t.scm_label_es
@@ -452,12 +458,13 @@ def render_tab_diagnostic(
         _df = pd.DataFrame(_rows)
 
         _colcfg = {
-            "EHS verano": st.column_config.ProgressColumn(
-                "EHS verano", min_value=0, max_value=100, format="%.0f"),
-            "EHS primavera": st.column_config.NumberColumn(format="%.0f"),
+            "EHS escena temprana": st.column_config.ProgressColumn(
+                "EHS escena temprana", min_value=0, max_value=100, format="%.0f"),
+            "EHS escena tardía": st.column_config.NumberColumn(format="%.0f"),
             "ΔEHS": st.column_config.NumberColumn(
                 "ΔEHS", format="%.1f",
-                help="Negativo = empeora en verano (caída de NDVI estacional)."),
+                help="Negativo = menor salud en la escena más tardía; diferencia "
+                     "entre dos escenas fechadas, no estacional (Q-03)."),
             "Atribución SCM": st.column_config.TextColumn(
                 "Atribución SCM",
                 help=(

@@ -19,7 +19,7 @@ THE 10 KPIs
  6. Promotion Pipeline           -- How many sites are ready to grow tourism?
  7. Human Pressure Alerts        -- How many sites are being damaged by visitors?
  8. Budget Efficiency Index      -- What return are we getting on conservation spend?
- 9. Recovery Progress            -- How many sites are improving?
+ 9. Trend Direction              -- Improving vs declining trend counts.
 10. Evidence Coverage Gap        -- How many sites still lack enough data to manage?
 """
 from __future__ import annotations
@@ -520,10 +520,17 @@ def _kpi_budget_efficiency(budget_result, comparisons: list) -> DashboardKPI:
 
 
 def _kpi_recovery_progress(assets: list) -> DashboardKPI:
-    """KPI 9: Assets on an improving trend."""
+    """KPI 9: Assets on an improving vs declining multi-year trend.
+
+    Named "Trend Direction", not "Recovery" (WP-2 / K-16): the underlying signal
+    is the Mann-Kendall direction of the multi-year series, which supports an
+    *increasing/decreasing trend* statement but not a *recovery* claim (recovery
+    implies return from a prior degraded state — an evaluation the two-scene and
+    single-trend records cannot license; cf. Q-03).
+    """
     if not assets:
         return _no_data_kpi(
-            9, "Recovery Progress",
+            9, "Trend Direction",
             "Mann-Kendall trend direction per asset (Phase 3 output).",
         )
     improving = [a for a in assets if a.trend_direction == "increasing"]
@@ -562,7 +569,7 @@ def _kpi_recovery_progress(assets: list) -> DashboardKPI:
         action = "Urgent management review required. Prioritise arrest of declining trends."
 
     return DashboardKPI(
-        number=9, name="Recovery Progress",
+        number=9, name="Trend Direction",
         value=value, status=status, status_label=label,
         what_it_means=meaning, recommended_action=action,
         technical_basis="Mann-Kendall trend direction per asset (Phase 3 output).",
