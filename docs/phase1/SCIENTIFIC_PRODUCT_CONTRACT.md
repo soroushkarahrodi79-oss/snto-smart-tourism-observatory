@@ -350,11 +350,12 @@ Phase 1.0 is **done** when:
    no RED surface (no product surface implies more than its authorized level);
    any AMBER has a tracked follow-up.
 
-   > **Not yet satisfied.** The audit records **two** RED-RISK surfaces: the TIS
-   > euro-efficiency verdict (C-10) and the LAC/ROS capacity-at-standard figure.
-   > Both are runtime issues, out of scope for the docs-only WP-1, and tracked as
-   > **WP-C10** and **WP-C11**. This criterion closes when both land — it is not
-   > weakened, and neither surface is downgraded to AMBER to make it close sooner.
+   > **Not yet satisfied — one RED remains.** The audit found two RED-RISK
+   > surfaces. The LAC/ROS capacity-at-standard figure (**WP-C11**) was fixed in
+   > PR #158 and is now GREEN. The TIS euro-efficiency verdict (C-10 / **WP-C10**),
+   > a runtime-text issue, is still open. This criterion closes when WP-C10 lands —
+   > it is not weakened, and neither surface was downgraded to AMBER to make it
+   > close sooner.
 4. Canonical multi-agent guidance (`CLAUDE.md`) points to this contract as the
    current phase authority.
 5. #26 remains the sole open hard gate; no fabricated data, invented threshold,

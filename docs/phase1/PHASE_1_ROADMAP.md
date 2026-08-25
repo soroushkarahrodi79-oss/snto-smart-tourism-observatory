@@ -114,7 +114,7 @@ WP-5 ── depends on ──> #26
 - **Code required:** yes (text/label only). **Blocked-by:** none.
 - **Deliverable / DoD:** C-10 surface verified/fixed; register updated.
 
-## WP-C11 — LAC/ROS capacity-at-standard: attribution precondition (corrective, small)
+## WP-C11 — LAC/ROS capacity-at-standard: attribution precondition (corrective, small) — ✅ DONE (PR #158)
 - **Objective:** stop emitting `capacity_at_standard` for assets whose attribution
   does not support it, and gate the surface that renders it.
 - **Why:** the **second RED-RISK** surface (see `EVIDENCE_DECISION_MATRIX.md` §2).
