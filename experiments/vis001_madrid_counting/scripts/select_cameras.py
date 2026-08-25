@@ -37,6 +37,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from vis001 import config  # noqa: E402
 from vis001.cameras import (  # noqa: E402
     SELECTION_PROCEDURE_VERSION,
+    canonical_image_endpoint,
     read_camera_manifest,
     select_cameras,
     validate_camera_manifest,
@@ -109,16 +110,48 @@ def main() -> int:
         if not config.SELECTED_CAMERAS_PATH.exists():
             raise SystemExit(f"no frozen selection at {config.SELECTED_CAMERAS_PATH}")
         frozen = json.loads(config.SELECTED_CAMERAS_PATH.read_text(encoding="utf-8"))
+        frozen_entries = frozen.get("selected_cameras", [])
+        frozen_ids = [entry["camera_id"] for entry in frozen_entries]
+        fresh_ids = list(selection.camera_ids)
+
+        # The raw manifest SHA is kept as audit metadata, but it is NOT the
+        # sole blocking condition: Madrid's official KML embeds a volatile
+        # cache/version query token (?v=...) in every camera's image URL, so
+        # the raw SHA changes on essentially every catalogue refresh even when
+        # no camera identity actually changed. Blocking on it alone would make
+        # --check permanently red.
+        raw_sha_changed = (
+            frozen.get("camera_manifest_sha256") != payload["camera_manifest_sha256"]
+        )
+
         drifted: list[str] = []
-        if frozen.get("camera_manifest_sha256") != payload["camera_manifest_sha256"]:
-            drifted.append("the camera manifest changed since the selection was frozen")
-        frozen_ids = [
-            entry["camera_id"] for entry in frozen.get("selected_cameras", [])
-        ]
-        if frozen_ids != list(selection.camera_ids):
+        if frozen_ids != fresh_ids:
             drifted.append("a fresh run selects a different set of cameras")
         if frozen.get("procedure_version") != SELECTION_PROCEDURE_VERSION:
             drifted.append("the selection procedure version changed")
+
+        for entry in frozen_entries:
+            camera_id = entry["camera_id"]
+            fresh_camera = by_id.get(camera_id)
+            if fresh_camera is None:
+                drifted.append(
+                    f"{camera_id}: no longer present in the current camera manifest"
+                )
+                continue
+            if fresh_camera.camera_name != entry.get("camera_name", ""):
+                drifted.append(f"{camera_id}: camera_name changed")
+            if fresh_camera.latitude != entry.get("latitude", ""):
+                drifted.append(f"{camera_id}: latitude changed")
+            if fresh_camera.longitude != entry.get("longitude", ""):
+                drifted.append(f"{camera_id}: longitude changed")
+            frozen_endpoint = canonical_image_endpoint(entry.get("image_url", ""))
+            fresh_endpoint = canonical_image_endpoint(fresh_camera.image_url)
+            if frozen_endpoint != fresh_endpoint:
+                drifted.append(
+                    f"{camera_id}: canonical image endpoint changed "
+                    f"({frozen_endpoint!r} -> {fresh_endpoint!r})"
+                )
+
         if drifted:
             for item in drifted:
                 print(f"DRIFT: {item}")
@@ -128,6 +161,13 @@ def main() -> int:
                 "deviation in PREREGISTRATION.md before re-freezing."
             )
             return 1
+
+        if raw_sha_changed:
+            print(
+                "raw manifest SHA changed, but frozen camera identities and "
+                "deterministic selection remain stable; volatile image URL "
+                "query parameters are ignored for identity."
+            )
         print("frozen camera selection is consistent with the manifest")
         return 0
 

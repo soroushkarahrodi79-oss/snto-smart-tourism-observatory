@@ -26,6 +26,7 @@ from dataclasses import asdict, dataclass, fields
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Iterable, Sequence
+from urllib.parse import urlsplit, urlunsplit
 from xml.etree import ElementTree
 
 #: KML 2.2 and the older 2.0/2.1 namespaces Madrid has published over time.
@@ -135,6 +136,24 @@ def is_image_url(url: str) -> bool:
         return False
     path = url.split("?", 1)[0].split("#", 1)[0]
     return path.lower().endswith(_IMAGE_SUFFIXES)
+
+
+def canonical_image_endpoint(url: str) -> str:
+    """Stable identity for a camera image endpoint: scheme + host + path only.
+
+    Madrid's official KML puts a volatile cache/version token in the image
+    URL's query string (``?v=51444``), which changes on essentially every
+    catalogue refresh without the camera itself changing. Stripping the query
+    string and fragment gives an identity that is stable across that churn,
+    while still distinguishing one camera's endpoint from another's — only the
+    path is compared, never normalised away.
+
+    ``https://informo.madrid.es/cameras/Camara05324.jpg?v=51444`` and
+    ``…Camara05324.jpg?v=76738`` canonicalise to the same value;
+    ``…Camara05324.jpg`` and ``…Camara09999.jpg`` do not.
+    """
+    parts = urlsplit(url)
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
 
 
 def _extended_data(placemark: ElementTree.Element) -> dict[str, str]:

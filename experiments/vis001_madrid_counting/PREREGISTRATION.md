@@ -567,3 +567,59 @@ model, confidence threshold, IoU threshold, random seed, metric, verdict algebra
 gate threshold, gate version or privacy rule. The resolver still reaches
 `RESOLVED` only when licence-bearing evidence is retrieved and remains
 `PARTIAL`/`UNRESOLVED` otherwise; `status = RESOLVED` is never forced by hand.
+
+### PD-002 — Volatile Madrid image-URL query tokens (2026-08-25)
+
+Discovered **after** the eight benchmark cameras had been deterministically
+frozen (procedure version 1.0) but **before any frame acquisition**: zero image
+frames, zero human annotations and zero formal RF-DETR Madrid benchmark/
+evaluation results existed at the time this was recorded.
+
+What happened, exactly:
+
+- A read-only re-run of camera discovery against the current official KML
+  produced the **same eight camera ids** as the frozen selection, in the same
+  order: `camara05324`, `camara16304`, `camara14302`, `camara14308`,
+  `camara13311`, `camara11315`, `camara07306`, `camara09321`.
+- For all eight, `camera_name`, `latitude`, `longitude` and the image URL's
+  **path** were unchanged. Only the URL's **query string** (`?v=...`) differed
+  — e.g. `.../Camara05324.jpg?v=51444` (frozen) vs. `.../Camara05324.jpg?v=76738`
+  (current). With the query string removed, the URLs are identical.
+- Because that token is embedded in the KML's published image URL, the **raw
+  camera-manifest SHA-256 changed** (`3dc0a89a…` → `9b84f2c8…`) even though no
+  benchmark camera's identity changed. `select_cameras.py --check` had been
+  blocking on raw-SHA equality alone, so it reported `DRIFT` on this
+  volatile-token change with no actual selection drift behind it.
+
+What was done:
+
+- **Camera selection is NOT being rerun or altered.** The frozen eight above
+  remain the benchmark cameras.
+- A **stable camera endpoint identity** was defined
+  (`vis001.cameras.canonical_image_endpoint`): scheme + hostname + path only,
+  with the query string and fragment stripped via `urllib.parse`. Frozen
+  camera identity is `camera_id` + published stable metadata (name,
+  coordinates) + this canonical image endpoint — **not** the volatile
+  cache/version query token.
+- `select_cameras.py --check` now treats the raw manifest SHA as audit
+  metadata only, not the sole blocking condition. It PASSES when: fresh
+  selected ids exactly equal the frozen ids; the procedure version is
+  unchanged; every frozen camera still exists in the current manifest; and
+  each frozen camera's name, coordinates and canonical image endpoint are
+  unchanged. It still FAILS closed on any real drift: a different selected id,
+  a disappeared camera, a changed coordinate, or a changed canonical endpoint
+  path.
+- `acquire_frames.py` now resolves, for each frozen `camera_id`, the endpoint
+  to fetch from the **current** official camera manifest — after re-verifying
+  that camera's canonical image endpoint still matches what was frozen — and
+  uses the current full URL (including its current `?v=` token) to retrieve
+  the frame. If a frozen id is no longer in the current manifest, or its
+  canonical endpoint has changed, acquisition **fails closed** for that
+  camera; no substitute camera is ever selected in its place.
+
+What did **not** change: no class, camera-selection algorithm, the 8×20 sample
+design, the 80-image evaluation set, the random seed, the model, the
+confidence threshold, the IoU threshold, any metric, the verdict algebra, any
+gate threshold, the gate version or any privacy rule. This is an
+operational/provenance correctness fix — a stable identity definition for a
+volatile source field — not a result-driven change.

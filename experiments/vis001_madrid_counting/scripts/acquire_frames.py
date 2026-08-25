@@ -42,7 +42,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from vis001 import config  # noqa: E402
-from vis001.cameras import read_camera_manifest  # noqa: E402
+from vis001.cameras import canonical_image_endpoint, read_camera_manifest  # noqa: E402
 from vis001.manifest import (  # noqa: E402
     FrameRecord,
     coverage,
@@ -77,6 +77,64 @@ def load_selected_cameras() -> list[dict[str, str]]:
             "select_cameras.py against a complete camera manifest."
         )
     return selected
+
+
+def resolve_current_endpoints(
+    frozen_cameras: list[dict[str, str]],
+) -> list[tuple[str, str]]:
+    """Resolve where to fetch each frozen camera from, right now.
+
+    FROZEN decides *which* camera is benchmarked (``camera_id``, fixed by
+    ``select_cameras.py``). The CURRENT official camera manifest decides *how*
+    to retrieve that same camera today: Madrid rewrites the image URL's
+    ``?v=...`` query token on essentially every catalogue refresh, so using the
+    URL frozen at selection time would eventually fetch a stale/expired
+    endpoint instead of the live one.
+
+    For each frozen id, this looks the id up in the current manifest and
+    checks its canonical image endpoint (scheme+host+path, query/fragment
+    stripped) still matches what was frozen. Only then is the CURRENT full URL
+    — including its current ``?v=`` token — used to fetch the frame. A camera
+    that has disappeared from the current manifest, or whose canonical
+    endpoint path has changed, fails the whole acquisition closed: no other
+    camera is ever substituted or selected in its place.
+    """
+    cameras = read_camera_manifest(config.CAMERA_MANIFEST_PATH)
+    by_id = {camera.camera_id: camera for camera in cameras}
+
+    resolved: list[tuple[str, str]] = []
+    problems: list[str] = []
+    for entry in frozen_cameras:
+        camera_id = entry["camera_id"]
+        current = by_id.get(camera_id)
+        if current is None:
+            problems.append(
+                f"{camera_id}: no longer present in the current camera manifest"
+            )
+            continue
+
+        frozen_endpoint = canonical_image_endpoint(entry["image_url"])
+        current_endpoint = canonical_image_endpoint(current.image_url)
+        if frozen_endpoint != current_endpoint:
+            problems.append(
+                f"{camera_id}: canonical image endpoint changed "
+                f"({frozen_endpoint!r} -> {current_endpoint!r})"
+            )
+            continue
+
+        resolved.append((camera_id, current.image_url))
+
+    if problems:
+        raise SystemExit(
+            "refusing to acquire: frozen camera identity could not be "
+            "validated against the current official camera manifest.\n"
+            + "\n".join(f"  - {problem}" for problem in problems)
+            + "\nVIS-001 never substitutes another camera and never acquires "
+            "from an endpoint that has not been validated against the frozen "
+            "camera identity."
+        )
+    return resolved
+
 
 _USER_AGENT = (
     "SNTO-VIS001/1.0 (research feasibility benchmark; "
@@ -239,7 +297,7 @@ def main() -> int:
             "sample is 20 frames from each of exactly eight frozen cameras, so "
             "sampling a subset produces an incomplete sample, not a smaller one."
         )
-    selected = [(entry["camera_id"], entry["image_url"]) for entry in frozen_cameras]
+    selected = resolve_current_endpoints(frozen_cameras)
     print(f"sampling {len(selected)} frozen cameras × {passes} passes")
 
     existing: list[FrameRecord] = []

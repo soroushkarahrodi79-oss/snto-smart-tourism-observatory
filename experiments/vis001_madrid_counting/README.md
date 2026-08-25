@@ -145,10 +145,16 @@ python experiments/vis001_madrid_counting/scripts/resolve_sources.py
 
 # 2. Freeze the eight benchmark cameras (compass sectors, median distance).
 #    Geographic metadata only — no imagery, no model. MUST run before step 5.
+#    Camera identity ignores the volatile ?v= cache token Madrid rewrites on
+#    most catalogue refreshes (canonical_image_endpoint strips query/fragment,
+#    see PD-002) — --check does not fail merely because that token changed.
 python experiments/vis001_madrid_counting/scripts/select_cameras.py
 python experiments/vis001_madrid_counting/scripts/select_cameras.py --check
 
 # 3. Acquire frames from exactly those eight. One pass = one frame per camera.
+#    Acquisition refreshes the full official URL (incl. current ?v=) for each
+#    SAME frozen camera_id, after re-validating its canonical endpoint; it
+#    never substitutes another camera and never re-selects.
 #    Frames land in data/raw/ (git-ignored); byte-identical repeats are skipped.
 python experiments/vis001_madrid_counting/scripts/acquire_frames.py --once
 python experiments/vis001_madrid_counting/scripts/acquire_frames.py \

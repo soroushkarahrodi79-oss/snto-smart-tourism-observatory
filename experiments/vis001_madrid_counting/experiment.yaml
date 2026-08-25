@@ -71,6 +71,18 @@ camera_selection:
   rejected_alternative: >-
     first N sorted camera ids — municipal ids track installation batches, so
     the lowest eight cluster on the same few roads
+  endpoint_identity: >-
+    scheme + hostname + path only (query string and fragment stripped via
+    vis001.cameras.canonical_image_endpoint). Madrid's KML embeds a volatile
+    cache/version token (?v=...) that changes on most catalogue refreshes; that
+    token is never part of camera identity, so its change alone never
+    constitutes drift and never justifies re-selection (see PD-002).
+  acquisition_url_semantics: >-
+    frozen camera_id decides WHICH camera is benchmarked; acquisition re-reads
+    the CURRENT official manifest for the SAME frozen id and uses its current
+    full URL (including the current ?v= token) after re-verifying the
+    canonical endpoint still matches. Fails closed, never substitutes another
+    camera, if the id is gone or the canonical endpoint path changed.
 
 evaluation_set:
   images_per_camera: 10
