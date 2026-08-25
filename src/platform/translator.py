@@ -329,32 +329,37 @@ def translate_tier(tier: int, scm_classification: str) -> tuple[str, str]:
 # ── TIS translation ────────────────────────────────────────────────────────
 
 def translate_tis(tis: float) -> tuple[str, str]:
-    """Returns (investment_label, investment_sentence)."""
+    """Returns (priority_label, priority_sentence).
+
+    TIS is a **simulated** planning score (0-100) that *ranks* interventions by
+    modelled benefit relative to cost. It is **not** a measured ROI or an
+    observed/forecast efficiency: the visitor-response coefficients behind it are
+    illustrative scenario assumptions, not measured elasticities (register C-10,
+    owner decision Q-05). The text below therefore states a scenario priority
+    ranking, never a delivered benefit-per-euro.
+    """
+    caveat = "TIS is a simulated priority score, not a measured ROI or forecast effect."
     if tis >= 15:
         return (
-            "EXCELLENT ROI",
-            f"Investment efficiency is excellent (TIS={tis:.1f}/100). "
-            "This intervention delivers outstanding territorial benefit per euro invested. "
-            "Prioritise for immediate funding.",
+            "TOP PRIORITY (SCENARIO)",
+            f"Simulated priority is highest (TIS={tis:.1f}/100). {caveat} "
+            "Rank first for funding consideration; verify before committing capital.",
         )
     if tis >= 8:
         return (
-            "GOOD ROI",
-            f"Investment efficiency is good (TIS={tis:.1f}/100). "
-            "Funding this intervention is well justified. "
-            "Prioritise when budget allows after higher-TIS items.",
+            "HIGH PRIORITY (SCENARIO)",
+            f"Simulated priority is high (TIS={tis:.1f}/100). {caveat} "
+            "Consider after top-ranked items.",
         )
     if tis >= 3:
         return (
-            "MODERATE ROI",
-            f"Investment efficiency is moderate (TIS={tis:.1f}/100). "
-            "The intervention delivers value but less efficiently than higher-priority items. "
-            "Consider if budget remains after urgent interventions are funded.",
+            "MODERATE PRIORITY (SCENARIO)",
+            f"Simulated priority is moderate (TIS={tis:.1f}/100). {caveat} "
+            "Consider after higher-ranked interventions.",
         )
     return (
-        "LOW ROI",
-        f"Investment efficiency is low (TIS={tis:.1f}/100). "
-        "This intervention delivers limited territorial benefit per euro. "
+        "LOW PRIORITY (SCENARIO)",
+        f"Simulated priority is low (TIS={tis:.1f}/100). {caveat} "
         "Defer until budget and conditions improve.",
     )
 
