@@ -103,7 +103,7 @@ WP-5 ── depends on ──> #26
 - Management-response (WP-3) is **not** required before MITMA context (WP-4).
 - Only WP-5 is truly gated (on #26).
 
-## WP-C10 — Re-verify the TIS euro-efficiency UI text (corrective, small)
+## WP-C10 — Re-verify the TIS euro-efficiency UI text (corrective, small) — ✅ DONE (PR #160)
 - **Objective:** confirm the live intervention/TIS UI does not present SIMULATED
   scenario coefficients (register item **C-10**, Q-05 illustrative-only) as
   observed or forecast effect; correct the text if it does.
