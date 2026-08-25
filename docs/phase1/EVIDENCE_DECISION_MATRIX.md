@@ -57,23 +57,22 @@ contract / overclaim · **GREY** — future capability, no evidence.
 | Visual Change Explorer / temporal GIF | 🟡 AMBER | REAL imagery; must keep "visual change ≠ validated impact" framing |
 | Visitor-pressure readiness | 🟡 AMBER | Correctly `INSUFFICIENT_EVIDENCE`; AMBER only because no real *target* feed yet |
 | Synthetic fixtures | 🟢 GREEN | Classified `SYNTHETIC`; decision gates block them (Phase 0.5E) |
-| **TIS / intervention euro-efficiency verdict** | 🔴 **RED-RISK** | Register item **C-10 (OVERSTATED)**: a benefit-per-euro verdict derived from unsourced SIMULATED elasticity constants. Owner decision Q-05 declares the coefficients illustrative-only; **the live UI text must be re-verified** to ensure it does not present them as observed/forecast effect. Not fixable in this docs PR — tracked as a corrective follow-up. |
+| **TIS / intervention euro-efficiency verdict** | 🟢 GREEN | **Fixed in PR #160 (WP-C10).** Register item **C-10 (OVERSTATED)** is resolved: the live TIS text no longer presents the SIMULATED elasticity coefficients (Q-05, illustrative-only) as observed or forecast effect. `translate_tis` and dashboard KPI 8 now label TIS a *simulated priority ranking (SCENARIO)*, not a measured ROI/efficiency; `maturity`, the intervention reporter, and the `impact`/`models` docstrings carry the same framing. The ranking is kept; only the euro-efficiency claim is dropped (per `KPI_INVENTORY.md` K-06). *History:* recorded RED-RISK, then corrected. |
 | **LAC/ROS capacity at standard** | 🟢 GREEN | **Fixed in PR #158 (WP-C11).** `capacity_at_standard` now requires an `attribution` argument and returns `None` unless the SCM class is `LOCALIZED_IMPACT`, so the quota-shaped figure is withheld for the **165/218** `LANDSCAPE_DRIVEN` trails (and the 29 MIXED) whose deficit the formula cannot attribute to visitors; the `tab_portfolio` surface now applies the canonical `supports()` gate, so SYNTHETIC inputs authorize nothing. *History:* the initial audit missed this surface; it was recorded RED-RISK, then corrected. |
 | "Economía Regenerativa" (socioeconomic tab title) | 🟡 AMBER | A socioeconomic *vision framing* label (SVI/jobs), not an evaluated ecological outcome — borderline; recommend a scope caveat or rename so a standing header is not read as a regeneration claim |
 | Effectiveness / regenerative-outcome evaluation | ⚪ GREY | Not built; L6–L7 blocked by #26 + Pillars 1&3 |
 | Management-response record | ⚪ GREY | Schema stub only; recording contract is WP-3 |
 
-**One RED-RISK surface remains.** The TIS euro-efficiency verdict (C-10) is a
-pre-existing `OVERSTATED` claims-register item whose live UI text must be
-re-verified against this contract — tracked as **WP-C10**, a runtime-text issue.
-The **LAC/ROS capacity-at-standard** surface — the second RED-RISK finding, which
-the initial audit had missed — was **resolved in PR #158 (WP-C11)** and is now
-GREEN. The remaining AMBERs are label-dependent, not overclaiming today.
+**No RED-RISK surface remains.** Both surfaces the audit flagged are resolved:
+the **LAC/ROS capacity-at-standard** figure (WP-C11 / PR #158) and the **TIS
+euro-efficiency verdict** (C-10 / WP-C10 / PR #160) are now GREEN. Neither was
+downgraded to AMBER to make the criterion close — each was fixed in code. The
+remaining AMBERs are label-dependent, not overclaiming today.
 
 > **Exit-criterion consequence (§J.3).** The contract's Definition of Done requires
-> that the audit record **no RED surface**. One remains (C-10 / WP-C10). Phase 1.0
-> therefore does **not** close on this criterion until WP-C10 lands; the criterion
-> is not weakened to fit the finding.
+> that the audit record **no RED surface**. As of PR #160 that holds: the two
+> RED-RISK surfaces were fixed (WP-C11, WP-C10), not re-labelled. This criterion is
+> **met**; #26 remains the sole open hard gate.
 
 ## 3. What cannot currently be authorized (explicit)
 
