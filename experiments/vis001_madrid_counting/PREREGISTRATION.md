@@ -623,3 +623,47 @@ confidence threshold, the IoU threshold, any metric, the verdict algebra, any
 gate threshold, the gate version or any privacy rule. This is an
 operational/provenance correctness fix — a stable identity definition for a
 volatile source field — not a result-driven change.
+
+### PD-003 — Per-camera acquisition quota enforcement (2026-08-25)
+
+Identified after **114 of the target 160 real frames** had been collected
+across the eight frozen cameras (14–15 unique frames per camera at the time),
+with **no camera having exceeded 20**, **zero human annotations** and **zero
+formal RF-DETR Madrid results** — so nothing here was motivated by a result.
+
+What was found: `acquire_frames.py` polled all eight frozen cameras on every
+pass regardless of how many unique frames each already held. A camera that
+reached its 20-frame quota before the others would keep being fetched on every
+subsequent pass, producing 21/20 or more for that camera while another camera
+was still short — oversampling one camera relative to the preregistered
+per-camera quota that the sample-completeness rule (§3) and the gate's
+per-camera WAPE rule (§9) both depend on.
+
+What was done:
+
+- `cameras_under_quota()` recomputes, from the current manifest, the unique
+  (by SHA-256) frame count held for each frozen camera **before every pass**,
+  and returns only the cameras still below `TARGET_FRAMES_PER_CAMERA` (20).
+  Only those are passed to `acquire_pass()`.
+- The quota check is fail-closed: if any frozen camera's manifest count is
+  **already above** 20, acquisition refuses to run rather than silently
+  proceeding. It never deletes, truncates, or otherwise repairs an existing
+  surplus automatically — that stays a human decision.
+- A camera that reaches 20 unique frames — whether mid-run or in an earlier,
+  already-completed run — is excluded from every later pass, in the same
+  invocation and in any resumed one, because the check reads the on-disk
+  manifest state fresh each time rather than a value cached at start-up.
+- If all eight frozen cameras already hold 20 unique frames, acquisition
+  performs **no network fetch at all** and reports the sample complete.
+- The **existing 114 real observations were left untouched**: no frame was
+  deleted, no `sample_manifest.csv` row was altered, and no camera in the
+  current data (14–15/20 each) was above quota, so the fail-closed path was
+  not triggered by this correction.
+
+What did **not** change: the eight frozen camera ids, the 20-frames-per-camera
+target, the 160-frame total, the 300-second sampling interval, SHA-256
+deduplication semantics, source/provenance recording, camera selection, the
+evaluation-set design, the model, any confidence/IoU threshold, any metric, or
+any gate threshold or verdict rule. This is a collection-control fix that
+enforces the already-preregistered 8×20 structure more strictly than before;
+it does not loosen or add a new sample requirement.

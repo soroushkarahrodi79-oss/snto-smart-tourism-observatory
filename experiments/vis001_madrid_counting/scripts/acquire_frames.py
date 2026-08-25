@@ -18,6 +18,11 @@ Design rules, all of them protocol requirements:
 * **Deduplicate by content.** Madrid publishes a new capture roughly every five
   minutes. Re-downloading the same bytes adds a row but no evidence, so
   byte-identical repeats are skipped and reported.
+* **Stop polling a camera once it holds 20 unique frames.** The per-camera
+  quota is recomputed from the manifest before every pass, so a camera that
+  fills early is excluded from every later pass, in this run or a resumed
+  one (PD-003). A camera already holding more than 20 fails acquisition
+  closed rather than being silently trimmed.
 
 Repeated sampling is supported but is *not* launched as a background daemon:
 ``--samples N --interval-seconds S`` runs N passes in the foreground and exits.
@@ -134,6 +139,53 @@ def resolve_current_endpoints(
             "camera identity."
         )
     return resolved
+
+
+def cameras_under_quota(
+    selected: list[tuple[str, str]],
+    existing: list[FrameRecord],
+    *,
+    quota: int,
+) -> list[tuple[str, str]]:
+    """The subset of ``selected`` that has not yet reached the per-camera quota.
+
+    Recomputed from the manifest before every pass, so a camera that fills its
+    quota — mid-run, or in an earlier, separate run — is never polled again.
+    "Reached" is unique frames by content hash, matching
+    :func:`vis001.manifest.coverage`; a repeated capture of the same bytes does
+    not count toward the quota, so it never falsely retires an under-quota
+    camera.
+
+    Fails closed, rather than silently proceeding, if any frozen camera
+    already holds *more* than ``quota`` unique frames: that is exactly the
+    oversampling this function exists to prevent, and the fix must never
+    repair it by deleting or truncating frames automatically — only a human
+    resolves a surplus.
+    """
+    unique_per_camera: dict[str, set[str]] = {}
+    for record in existing:
+        unique_per_camera.setdefault(record.camera_id, set()).add(record.sha256)
+
+    over_quota = [
+        f"{camera_id}: {len(unique_per_camera[camera_id])}/{quota} unique frames "
+        "already held — exceeds the per-camera quota"
+        for camera_id, _ in selected
+        if len(unique_per_camera.get(camera_id, set())) > quota
+    ]
+    if over_quota:
+        raise SystemExit(
+            "refusing to acquire: a frozen camera already holds more unique "
+            "frames than the preregistered per-camera quota. VIS-001 never "
+            "deletes or truncates frames automatically to fix this — resolve "
+            "it by hand before acquiring again.\n"
+            + "\n".join(f"  - {item}" for item in over_quota)
+        )
+
+    return [
+        (camera_id, url)
+        for camera_id, url in selected
+        if len(unique_per_camera.get(camera_id, set())) < quota
+    ]
 
 
 _USER_AGENT = (
@@ -298,12 +350,27 @@ def main() -> int:
             "sampling a subset produces an incomplete sample, not a smaller one."
         )
     selected = resolve_current_endpoints(frozen_cameras)
-    print(f"sampling {len(selected)} frozen cameras × {passes} passes")
 
     existing: list[FrameRecord] = []
     if config.SAMPLE_MANIFEST_PATH.exists():
         existing = read_manifest(config.SAMPLE_MANIFEST_PATH)
     known_hashes = {record.sha256 for record in existing}
+
+    quota = config.TARGET_FRAMES_PER_CAMERA
+    # Fails closed here if a camera is already over quota; otherwise this is
+    # also the "does this run have anything left to fetch at all" check.
+    active = cameras_under_quota(selected, existing, quota=quota)
+    if not active:
+        print(
+            f"all {len(selected)} frozen cameras already hold {quota} unique "
+            "frames — sample complete, no network fetch performed"
+        )
+    else:
+        at_quota = len(selected) - len(active)
+        print(
+            f"sampling {len(active)}/{len(selected)} frozen cameras still under "
+            f"quota ({at_quota} already at {quota}/{quota}) × up to {passes} passes"
+        )
 
     licence_note = (
         "Ayuntamiento de Madrid open data (informo.madrid.es KML; licence via "
@@ -314,9 +381,23 @@ def main() -> int:
     )
 
     for index in range(passes):
+        # Recomputed every pass: a camera that reached quota in an earlier
+        # pass — or in an earlier, separate run — must never be polled again.
+        active = cameras_under_quota(selected, existing, quota=quota)
+        if not active:
+            print(
+                f"\nall {len(selected)} frozen cameras reached {quota} unique "
+                "frames — stopping early, no further acquisition needed"
+            )
+            break
+
         print(f"\npass {index + 1}/{passes}")
+        at_quota_ids = {c for c, _ in selected} - {c for c, _ in active}
+        if at_quota_ids:
+            print(f"  at quota, not polled: {', '.join(sorted(at_quota_ids))}")
+
         acquired, skipped = acquire_pass(
-            selected,
+            active,
             raw_dir=config.RAW_FRAMES_DIR,
             licence_note=licence_note,
             known_hashes=known_hashes,
@@ -330,6 +411,13 @@ def main() -> int:
         write_manifest(config.SAMPLE_MANIFEST_PATH, existing)
 
         if index + 1 < passes:
+            if not cameras_under_quota(selected, existing, quota=quota):
+                print(
+                    f"\nall {len(selected)} frozen cameras reached {quota} "
+                    "unique frames after this pass — stopping early, no "
+                    "further acquisition needed"
+                )
+                break
             print(f"  waiting {args.interval_seconds}s for the next capture …")
             time.sleep(args.interval_seconds)
 
