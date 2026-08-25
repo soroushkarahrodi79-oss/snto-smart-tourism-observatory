@@ -46,7 +46,7 @@ def render_tab_kpis(dashboard, ranked_assets, base_comps, calibration, _view) ->
     # below, but must not present any of it as an authorized real-world action.
     _can_prioritize = _portfolio_supports(ranked_assets, DecisionUse.PRIORITIZATION)
     _authorized = _can_prioritize and _portfolio_supports(
-        ranked_assets, DecisionUse.INTERVENTION
+        ranked_assets, DecisionUse.FIELD_INSPECTION
     )
     if ranked_assets and not _authorized:
         st.warning(

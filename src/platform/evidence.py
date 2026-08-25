@@ -49,10 +49,21 @@ class EvidenceClass(str, Enum):
 
 
 class DecisionUse(str, Enum):
-    """The kinds of decision an evidence class may (or may not) support."""
-    MONITORING = "monitoring"            # observe / contextualise state
-    PRIORITIZATION = "prioritization"    # where to look first (early warning)
-    INTERVENTION = "intervention"        # commit budget / order field action
+    """The kinds of decision an evidence class may (or may not) support.
+
+    WP-2 splits the former coarse ``INTERVENTION`` — which conflated a low-regret
+    *"order a field inspection"* (claim ladder L4/L5a) with a resource-committing
+    *"commit intervention budget / restrict access"* (L5b) — into two, so the gate
+    can be stricter on the latter (ADR-016; contract §E). ``RESOURCE_COMMITMENT``
+    is authorized by **no** evidence class in this matrix: L5b is blocked, needing
+    ≥L6-grade evidence (field validation, #26) that a class×use matrix cannot
+    express. The canonical ladder lives in ``docs/phase1/claim_ladder.json`` and is
+    reconciled with this gate by ``src/platform/claim_ladder.py``.
+    """
+    MONITORING = "monitoring"              # observe / contextualise state (L1-L2)
+    PRIORITIZATION = "prioritization"      # where to look first / early warning (L4)
+    FIELD_INSPECTION = "field_inspection"  # order / recommend field inspection (L4/L5a)
+    RESOURCE_COMMITMENT = "resource_commitment"  # commit budget / restrict (L5b)
     PUBLIC_REPORTING = "public_reporting"  # institutional / public communication
 
 
@@ -74,10 +85,12 @@ _DESCRIPTORS: dict[EvidenceClass, EvidenceDescriptor] = {
     EvidenceClass.REAL: EvidenceDescriptor(
         EvidenceClass.REAL, "🛰️", "Dato satelital real", "#0F6E56",
         "Observación directa Sentinel-2 L2A / cartografía oficial.",
-        "Apta para diagnóstico, alerta y decisión, con su nivel de confianza.",
+        "Apta para diagnóstico, alerta, inspección de campo y reporte con su nivel "
+        "de confianza; por sí sola NO autoriza comprometer gasto ni restringir "
+        "acceso (L5b requiere validación de campo #26).",
         frozenset({
             DecisionUse.MONITORING, DecisionUse.PRIORITIZATION,
-            DecisionUse.INTERVENTION, DecisionUse.PUBLIC_REPORTING,
+            DecisionUse.FIELD_INSPECTION, DecisionUse.PUBLIC_REPORTING,
         }),
     ),
     EvidenceClass.CALIBRATED: EvidenceDescriptor(
