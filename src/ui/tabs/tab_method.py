@@ -45,7 +45,8 @@ def _render_evidence_legend() -> None:
     _use_es = {
         DecisionUse.MONITORING: "Monitorización",
         DecisionUse.PRIORITIZATION: "Priorización",
-        DecisionUse.INTERVENTION: "Intervención",
+        DecisionUse.FIELD_INSPECTION: "Inspección de campo",
+        DecisionUse.RESOURCE_COMMITMENT: "Compromiso de recursos",
         DecisionUse.PUBLIC_REPORTING: "Reporte público",
     }
     _labels = {d.evidence: d.label for d in evidence_legend()}

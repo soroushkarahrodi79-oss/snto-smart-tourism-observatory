@@ -2,10 +2,11 @@
   "schema_version": "1.1",
   "title": "SNTO Claim Ladder",
   "authority": "ADR-016",
-  "status": "defined-not-enforced",
+  "status": "enforced",
   "enforcement_work_package": "WP-2",
+  "enforced_by": "src/platform/claim_ladder.py (evidence_gate_violations); tests/unit/test_claim_ladder.py",
   "generated_for_phase": "1.0",
-  "notes": "Machine-readable mirror of docs/phase1/SCIENTIFIC_PRODUCT_CONTRACT.md. Not imported by src/ yet; wiring into src/platform/evidence.py is WP-2. Source-provenance classes reference src/platform/evidence.py::EvidenceClass. No numeric field-validation threshold (rho/kappa/p/DI) is canonized as product policy; those belong to the approved field-validation protocol and pre-registration (see field_validation_gate).",
+  "notes": "Machine-readable mirror of docs/phase1/SCIENTIFIC_PRODUCT_CONTRACT.md. Loaded and reconciled with src/platform/evidence.py by src/platform/claim_ladder.py (WP-2); the agreement is CI-enforced by tests/unit/test_claim_ladder.py. Source-provenance classes reference src/platform/evidence.py::EvidenceClass. No numeric field-validation threshold (rho/kappa/p/DI) is canonized as product policy; those belong to the approved field-validation protocol and pre-registration (see field_validation_gate).",
   "source_evidence_classes": ["REAL", "CALIBRATED", "SIMULATED", "SYNTHETIC", "MISSING"],
   "epistemic_transformation_axis": ["OBSERVED", "DERIVED", "MODELLED", "HYPOTHESIZED"],
   "invariants": [

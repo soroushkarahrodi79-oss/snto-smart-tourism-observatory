@@ -130,7 +130,7 @@ def compute_executive_dashboard(
         ]
     if not (
         _portfolio_supports(assets, DecisionUse.PRIORITIZATION)
-        and _portfolio_supports(assets, DecisionUse.INTERVENTION)
+        and _portfolio_supports(assets, DecisionUse.FIELD_INSPECTION)
     ):
         kpis = [replace(k, recommended_action=_SYNTHETIC_ACTION_NOTE) for k in kpis]
 
@@ -649,7 +649,7 @@ def _generate_call_to_action(assets: list) -> str:
     """
     if not (
         _portfolio_supports(assets, DecisionUse.PRIORITIZATION)
-        and _portfolio_supports(assets, DecisionUse.INTERVENTION)
+        and _portfolio_supports(assets, DecisionUse.FIELD_INSPECTION)
     ):
         return _SYNTHETIC_ACTION_NOTE
 

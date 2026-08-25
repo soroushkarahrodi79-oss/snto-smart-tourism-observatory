@@ -34,15 +34,27 @@ def test_legend_is_complete_and_ordered():
         assert d.label and d.caveat and d.color.startswith("#")
 
 
-def test_real_supports_every_decision_use():
-    for use in DecisionUse:
+def test_real_supports_low_regret_uses_but_not_resource_commitment():
+    # WP-2: REAL backs monitoring, prioritization, field inspection and reporting
+    # (its L5a ceiling), but a resource-committing / restrictive recommendation
+    # (L5b) is blocked for REAL alone — it needs >=L6 evidence (#26).
+    for use in (
+        DecisionUse.MONITORING,
+        DecisionUse.PRIORITIZATION,
+        DecisionUse.FIELD_INSPECTION,
+        DecisionUse.PUBLIC_REPORTING,
+    ):
         assert supports(EvidenceClass.REAL, use) is True
+    assert supports(EvidenceClass.REAL, DecisionUse.RESOURCE_COMMITMENT) is False
 
 
-def test_calibrated_gates_out_intervention_and_public_reporting():
+def test_calibrated_gates_out_field_inspection_and_public_reporting():
     assert supports(EvidenceClass.CALIBRATED, DecisionUse.MONITORING) is True
     assert supports(EvidenceClass.CALIBRATED, DecisionUse.PRIORITIZATION) is True
-    assert supports(EvidenceClass.CALIBRATED, DecisionUse.INTERVENTION) is False
+    assert supports(EvidenceClass.CALIBRATED, DecisionUse.FIELD_INSPECTION) is False
+    assert supports(
+        EvidenceClass.CALIBRATED, DecisionUse.RESOURCE_COMMITMENT
+    ) is False
     assert supports(
         EvidenceClass.CALIBRATED, DecisionUse.PUBLIC_REPORTING
     ) is False
@@ -75,8 +87,13 @@ def test_gating_matrix_shape_and_content():
     matrix = gating_matrix()
     assert set(matrix) == set(EvidenceClass)
     assert all(set(row) == set(DecisionUse) for row in matrix.values())
-    # REAL row all True; SYNTHETIC row all False
-    assert all(matrix[EvidenceClass.REAL].values())
+    # REAL backs every use EXCEPT the L5b resource-commitment (WP-2); SYNTHETIC
+    # backs none.
+    real_row = matrix[EvidenceClass.REAL]
+    assert real_row[DecisionUse.RESOURCE_COMMITMENT] is False
+    assert all(
+        v for u, v in real_row.items() if u is not DecisionUse.RESOURCE_COMMITMENT
+    )
     assert not any(matrix[EvidenceClass.SYNTHETIC].values())
 
 
