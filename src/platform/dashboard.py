@@ -271,39 +271,38 @@ def _kpi_assets_requiring_action(assets: list) -> DashboardKPI:
 
 
 def _kpi_visitor_capacity_at_risk(assets: list) -> DashboardKPI:
-    """KPI 3: Annual visitor experiences at degraded sites."""
-    at_risk = sum(a.visitor_capacity_annual for a in assets if a.tier in (1, 2))
-    pct = round(at_risk / max(1, sum(a.visitor_capacity_annual for a in assets)) * 100)
-    value = f"{at_risk:,} visitors/yr ({pct}%)"
+    """KPI 3: FROZEN (WP-2 / K-10).
 
-    if pct >= 40:
-        status, label = "RED", "HIGH RISK"
-        meaning = (
-            f"{at_risk:,} annual visitors -- {pct}% of total -- are visiting sites in "
-            "deteriorating or poor environmental condition. Their experience is compromised "
-            "and they may become carriers of negative destination reputation."
-        )
-        action = "Prioritise assessment and intensified monitoring of the highest-traffic stressed sites as a matter of urgency."
-    elif pct >= 20:
-        status, label = "AMBER", "MODERATE RISK"
-        meaning = (
-            f"{at_risk:,} annual visitors ({pct}%) are at sites under environmental stress. "
-            "While not yet a crisis, the experience quality at these sites needs attention."
-        )
-        action = "Prioritise intervention at highest-traffic stressed sites first."
-    else:
-        status, label = "GREEN", "LOW RISK"
-        meaning = (
-            f"Only {at_risk:,} annual visitors ({pct}%) are at sites requiring management "
-            "attention. The majority of visitor experiences are at healthy sites."
-        )
-        action = "Monitor stressed sites closely during peak season."
-
+    Previously summed ``visitor_capacity_annual`` for Tier 1-2 assets and rendered
+    it as "N visitors/yr". But ``visitor_capacity_annual`` is an **authored capacity
+    constant, not a measured visitor count**, so the unit was false and the "annual
+    visitors at deteriorating sites" narrative unsupported. Visitor pressure is
+    ``INSUFFICIENT_EVIDENCE`` (no real per-asset target series). The KPI is therefore
+    **frozen**: it declares the gap instead of emitting a fabricated visitor figure,
+    and returns to a real metric only once an asset-level footfall series exists.
+    """
+    n_stressed = sum(1 for a in assets if a.tier in (1, 2))
     return DashboardKPI(
         number=3, name="Visitor Capacity at Risk",
-        value=value, status=status, status_label=label,
-        what_it_means=meaning, recommended_action=action,
-        technical_basis="Sum of visitor_capacity_annual for Tier 1+2 assets.",
+        value="frozen (no real visitor series)",
+        status="BLUE", status_label="FROZEN",
+        what_it_means=(
+            "Indicator frozen (WP-2 / K-10). The previous figure ('N visitors/yr') "
+            "summed visitor_capacity_annual -- a curated capacity constant, not a "
+            "measured visitor count -- so 'visitors/yr' was a false unit. Visitor "
+            "pressure is INSUFFICIENT_EVIDENCE (no real per-asset series). Ecological "
+            f"stress at the {n_stressed} Tier 1-2 site(s) is covered by the health "
+            "indicators; visitor volume cannot be asserted without a counter or the "
+            "#26 field campaign."
+        ),
+        recommended_action=(
+            "Do not read as a visitor count. Restore only with a real per-asset "
+            "footfall series (counters/reservations) or the #26 field campaign."
+        ),
+        technical_basis=(
+            "FROZEN: visitor_capacity_annual is a curated capacity constant, not a "
+            "measured visitor count (visitor pressure = INSUFFICIENT_EVIDENCE)."
+        ),
     )
 
 
