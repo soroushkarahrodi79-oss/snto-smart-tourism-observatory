@@ -2,22 +2,19 @@
 
 # 🏔 SNTO — Smart Nature Tourism Observatory
 
-**Capa de inteligencia para la decisión en espacios naturales protegidos.** Código abierto, para uso académico.
+**Evidence-first decision intelligence for protected areas.**
 
-De la teledetección Sentinel-2 a la decisión de inversión pública: indicadores ambientales calibrados, atribución causal de la degradación y priorización presupuestaria sobre el **Parque Nacional Sierra de Guadarrama (PNSG)**, primer territorio de la Red de Parques Nacionales (OAPN) integrado.
+De la teledetección Sentinel-2 a la decisión de inversión pública: indicadores ambientales calibrados, atribución causal de la degradación y priorización presupuestaria sobre el **Parque Nacional Sierra de Guadarrama (PNSG)**.
 
-> SNTO **no reemplaza** a ArcGIS, Google Earth Engine, Sentinel Hub, Tableau ni Power BI: se sitúa **por encima** de las plataformas GIS, de observación de la Tierra y de BI, y traduce su señal en decisiones de conservación defendibles (riesgo de presión de visitantes, prioridad e inversión, con nivel de confianza).
-
-[![Tests](https://img.shields.io/badge/tests-1059%20passing-brightgreen)](#8-tests)
-[![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue)](https://www.python.org/)
 [![CI](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml)
-[![Deploy](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/deploy-azure-container-apps.yml)
-[![Deploy target](https://img.shields.io/badge/deploy-Azure%20Container%20Apps-0078D4?logo=microsoftazure&logoColor=white)](#7-despliegue)
-[![Status](https://img.shields.io/badge/estado-investigaci%C3%B3n%20activa-blue)](#1-estado-del-proyecto)
-[![License](https://img.shields.io/badge/uso-acad%C3%A9mico-lightgrey)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-1058%20passing%20%C2%B7%201%20skipped-brightgreen)](#8-tests)
+[![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/uso-acad%C3%A9mico%20%2F%20source--available-lightgrey)](LICENSE)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20818269-1682D4?logo=zenodo&logoColor=white)](https://doi.org/10.5281/zenodo.20818269)
 
-**🔴 [Dashboard en vivo](https://snto-observatory.happyground-be027676.swedencentral.azurecontainerapps.io/)** · 📄 [Whitepaper](WHITEPAPER_SNTO_Architecture_Blueprint.md) · 🏗 [Arquitectura](ARCHITECTURE.md)
+**🔴 [Dashboard en vivo](https://snto-observatory.happyground-be027676.swedencentral.azurecontainerapps.io/)** · 🧾 [DOI](https://doi.org/10.5281/zenodo.20818269) · 📄 [Whitepaper](WHITEPAPER_SNTO_Architecture_Blueprint.md) · 🏗 [Arquitectura](ARCHITECTURE.md)
+
+**218 senderos analizados** (cartografía oficial OAPN, PNSG) · **1058 tests passing, 0 regresiones** · **serie Sentinel-2 real 2021–2026** sobre 21 activos · **DOI Zenodo permanente**
 
 </div>
 
@@ -27,9 +24,7 @@ De la teledetección Sentinel-2 a la decisión de inversión pública: indicador
 
 La mayoría de los espacios naturales protegidos gestionan el impacto del turismo de forma **reactiva**: actúan cuando la degradación ya es visible. El SNTO transforma ese paradigma en **gobernanza regenerativa proactiva** — detecta el estrés ecológico desde el satélite antes de que sea irreversible, distingue si la causa es el uso turístico o el clima, y traduce cada hallazgo en una **prioridad de inversión con presupuesto y nivel de confianza**.
 
-> **Para evaluadores y revisores:** este repositorio es un proyecto de investigación académica de la **Universidad Complutense de Madrid (UCM)**: un observatorio que evalúa el estado de senderos y enclaves de turismo natural por teledetección satelital, detecta zonas de riesgo de degradación y prioriza la intervención con fórmulas financieras. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (218 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases, con capas de **andamiaje temporal (serie 2021–2026), trazabilidad/confianza del dato, baselines estratificados, incertidumbre del ranking y validación de campo**. **1059 tests, CI separado del deploy, dos pipelines arquitectónicamente desacoplados.** La gobernanza se alinea con los marcos europeos de reporte de espacios protegidos (Natura 2000 / EUROPARC / SISMOTUR), validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
-
-> **Estado de versión:** [`v2.0.0`](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/releases/tag/v2.0.0) es la última release estable; `main` está en `v2.1.0.dev0` (marcador de desarrollo, no una release final). v2.0.0 consuma la visión v2.0 del roadmap (arquitectura modular + backend persistente + evolución de UI por roles). Se apoya en los cimientos ya publicados en v1.5.0 — la **modularización de `app.py`** (#27: de ~3.170 a ~285 líneas, UI extraída a `src/ui/`), las **vistas por audiencia** (#28: Técnica/Gestor/Auditoría con cifras financieras invariantes) y los **fundamentos del backend persistente** (Fase 5, ADR-011: persistencia SQLAlchemy+Alembic, API `/api/v2`, ciclo de vida, auditoría; producción sobre Azure PostgreSQL desde el cutover 2026-07-18) — y añade la **evolución de UI por roles** (Fase 6): la información se reorganiza en **cuatro capas de decisión** (Decidir · Diagnosticar · Evidenciar · Gobernar) con *home* por audiencia, el **activo como página**, triaje de alertas en «Acciones Urgentes», y los módulos de simulación, presión/capacidad, confianza, proveniencia, informes/exportaciones y configuración territorial. Ningún cambio relaja la separación de evidencia ni afirma validación de campo (campaña #26 aún pendiente). En `main` (sin nueva release estable todavía) ya han aterrizado además los primeros hitos post-v2.0: **v2.1** (activación y gobernanza — deploy gateado por CI, CI endurecido, `DataStatus` de la capa curada), **v2.2** (profundidad analítica — forecasting `SIMULATED` y capacidad LAC/ROS operativos; las vías de dato real —movilidad MITMA, zonas SCM, serie SVI— implementadas con puerta de disponibilidad pero **aún sin dato ingerido**), la **puerta de validación v2.5** (runner de concordancia y captura de parcelas; la campaña de campo sigue pendiente) y los primeros cimientos de **v3.0** (identidad y multi-tenancy, aprovisionamiento, registro territorial editable y autorización de escritura en `/api/v2`; SSO/Entra ID sigue pendiente).
+> SNTO **no reemplaza** a ArcGIS, Google Earth Engine, Sentinel Hub, Tableau ni Power BI: se sitúa **por encima** de las plataformas GIS, de observación de la Tierra y de BI, y traduce su señal en decisiones de conservación defendibles (riesgo de presión de visitantes, prioridad e inversión, con nivel de confianza).
 
 ---
 
@@ -42,6 +37,12 @@ La mayoría de los espacios naturales protegidos gestionan el impacto del turism
 _Shell de 4 capas de decisión (Fase 6, v2.0) — Decidir · Diagnosticar · Evidenciar · **Gobernar**, aquí en la vista **Auditoría científica** sobre «Metodología y auditoría», con la puerta de validación satélite↔campo (v2.5) y el panel de alertas activas del PNSG. Desplegado en Azure Container Apps (Sweden Central)._
 
 </div>
+
+---
+
+> **Para evaluadores y revisores:** este repositorio es un proyecto de investigación académica de la **Universidad Complutense de Madrid (UCM)**: un observatorio que evalúa el estado de senderos y enclaves de turismo natural por teledetección satelital, detecta zonas de riesgo de degradación y prioriza la intervención con fórmulas financieras. Demuestra un pipeline geoespacial real sobre el **Parque Nacional Sierra de Guadarrama** (218 senderos analizados con cartografía oficial OAPN) y un sistema completo de inteligencia territorial de 7 fases, con capas de **andamiaje temporal (serie 2021–2026), trazabilidad/confianza del dato, baselines estratificados, incertidumbre del ranking y validación de campo**. **1059 tests, CI separado del deploy, dos pipelines arquitectónicamente desacoplados.** La gobernanza se alinea con los marcos europeos de reporte de espacios protegidos (Natura 2000 / EUROPARC / SISMOTUR), validada inicialmente sobre la Reserva de la Biosfera Sierra del Rincón como piloto de calibración.
+
+> **Estado de versión:** [`v2.0.0`](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/releases/tag/v2.0.0) es la última release estable; `main` está en `v2.1.0.dev0` (marcador de desarrollo, no una release final). v2.0.0 consuma la visión v2.0 del roadmap (arquitectura modular + backend persistente + evolución de UI por roles). Se apoya en los cimientos ya publicados en v1.5.0 — la **modularización de `app.py`** (#27: de ~3.170 a ~285 líneas, UI extraída a `src/ui/`), las **vistas por audiencia** (#28: Técnica/Gestor/Auditoría con cifras financieras invariantes) y los **fundamentos del backend persistente** (Fase 5, ADR-011: persistencia SQLAlchemy+Alembic, API `/api/v2`, ciclo de vida, auditoría; producción sobre Azure PostgreSQL desde el cutover 2026-07-18) — y añade la **evolución de UI por roles** (Fase 6): la información se reorganiza en **cuatro capas de decisión** (Decidir · Diagnosticar · Evidenciar · Gobernar) con *home* por audiencia, el **activo como página**, triaje de alertas en «Acciones Urgentes», y los módulos de simulación, presión/capacidad, confianza, proveniencia, informes/exportaciones y configuración territorial. Ningún cambio relaja la separación de evidencia ni afirma validación de campo (campaña #26 aún pendiente). En `main` (sin nueva release estable todavía) ya han aterrizado además los primeros hitos post-v2.0: **v2.1** (activación y gobernanza — deploy gateado por CI, CI endurecido, `DataStatus` de la capa curada), **v2.2** (profundidad analítica — forecasting `SIMULATED` y capacidad LAC/ROS operativos; las vías de dato real —movilidad MITMA, zonas SCM, serie SVI— implementadas con puerta de disponibilidad pero **aún sin dato ingerido**), la **puerta de validación v2.5** (runner de concordancia y captura de parcelas; la campaña de campo sigue pendiente) y los primeros cimientos de **v3.0** (identidad y multi-tenancy, aprovisionamiento, registro territorial editable y autorización de escritura en `/api/v2`; SSO/Entra ID sigue pendiente).
 
 ---
 
