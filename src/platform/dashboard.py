@@ -481,28 +481,36 @@ def _kpi_budget_efficiency(budget_result, comparisons: list) -> DashboardKPI:
     pct   = round(alloc / total * 100) if total > 0 else 0
 
     value = f"TIS={tis:.1f}/100 ({pct}% budget deployed)"
+    # TIS is a SIMULATED priority score, not a measured euro-efficiency (register
+    # C-10 / Q-05): the visitor-response coefficients are illustrative scenario
+    # assumptions. The labels rank the plan; they never assert delivered benefit.
+    _tis_caveat = (
+        "TIS is a simulated benefit-to-cost ranking, not a measured efficiency "
+        "or a forecast effect; its visitor-response coefficients are illustrative."
+    )
     if tis >= 12:
-        status, label = "GREEN", "EXCELLENT EFFICIENCY"
+        status, label = "GREEN", "TOP-RANKED PLAN (SCENARIO)"
         meaning = (
-            f"The recommended investment plan achieves a portfolio efficiency score of "
-            f"{tis:.1f}/100 -- every euro invested delivers strong territorial benefit. "
-            f"{pct}% of the available budget is deployed."
+            f"The recommended plan is the highest-ranked by the simulated priority "
+            f"score (TIS={tis:.1f}/100), with {pct}% of the budget deployed. "
+            f"{_tis_caveat}"
         )
-        action = "Approve recommended investment plan. High efficiency justifies immediate action."
+        action = "Review the recommended plan; verify assets before committing capital."
     elif tis >= 7:
-        status, label = "GREEN", "GOOD EFFICIENCY"
+        status, label = "GREEN", "HIGH-RANKED PLAN (SCENARIO)"
         meaning = (
-            f"Investment efficiency is good (TIS={tis:.1f}/100). The allocation plan "
-            "delivers solid territorial benefit per euro invested."
+            f"The allocation plan ranks high on the simulated priority score "
+            f"(TIS={tis:.1f}/100). {_tis_caveat}"
         )
-        action = "Proceed with recommended allocation. Consider increasing budget for deferred items."
+        action = "Review the recommended allocation; consider funding deferred items."
     else:
-        status, label = "AMBER", "MODERATE EFFICIENCY"
+        status, label = "AMBER", "MID-RANKED PLAN (SCENARIO)"
         meaning = (
-            f"Investment efficiency is moderate (TIS={tis:.1f}/100). "
-            "Evidence constraints (low DCS on several assets) are limiting investment effectiveness."
+            f"The allocation plan ranks moderate on the simulated priority score "
+            f"(TIS={tis:.1f}/100). Evidence constraints (low DCS on several assets) "
+            f"lower the modelled ranking. {_tis_caveat}"
         )
-        action = "Invest in evidence improvement (monitoring) to unlock more efficient future allocations."
+        action = "Invest in evidence (monitoring) to strengthen future planning."
 
     return DashboardKPI(
         number=8, name="Budget Efficiency Index",

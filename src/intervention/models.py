@@ -91,7 +91,8 @@ class ScenarioResult:
     Projected outcome of applying one scenario (A-E) to one asset.
 
     projected_* fields are post-intervention values (current + delta, clamped).
-    tis is the Territorial Impact Score (0-100): benefit per euro invested.
+    tis is the Territorial Impact Score (0-100): a simulated benefit-to-cost
+    priority ranking, not a measured ROI (register C-10 / Q-05).
     """
     asset_id: str
     scenario_code: str         # "A" | "B" | "C" | "D" | "E"

@@ -152,14 +152,15 @@ MATURITY_LEVELS: dict[int, MaturityLevel] = {
         description=(
             "The destination uses a fully integrated territorial intelligence "
             "platform that translates environmental data into strategic decisions "
-            "for multiple stakeholder audiences. Investment is optimised for "
-            "maximum territorial benefit per euro. Inaction costs are quantified."
+            "for multiple stakeholder audiences. Investment is prioritised by a "
+            "simulated benefit-to-cost score (a scenario ranking, not a measured "
+            "efficiency); inaction costs are modelled counterfactuals."
         ),
         capabilities=[
             "Territory-level health score and portfolio view.",
             "Territorial Priority Index (TPI): rank all assets on one scale.",
             "Intervention scenario comparison (A-E) per asset.",
-            "Territorial Impact Score (TIS): investment efficiency ranking.",
+            "Territorial Impact Score (TIS): simulated investment-priority ranking.",
             "TIS-optimised budget allocation with transparent rules.",
             "Counterfactual reasoning: 3-year no-intervention trajectories.",
             "Stakeholder-adapted communications (5 audience profiles).",

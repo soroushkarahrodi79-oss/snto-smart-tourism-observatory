@@ -325,7 +325,9 @@ def compute_tis(
 ) -> float:
     """
     Territorial Impact Score (TIS) in [0, 100].
-    Higher = more territorial benefit per euro invested.
+    A simulated benefit-to-cost ranking (higher = higher modelled priority) —
+    not a measured ROI or forecast effect; the visitor-response coefficients are
+    illustrative scenario assumptions (register C-10 / Q-05).
 
     Three weighted benefit dimensions:
       Environmental (55%)  : EHS improvement + risk reduction

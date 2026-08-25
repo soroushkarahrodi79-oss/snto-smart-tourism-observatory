@@ -123,13 +123,15 @@ def _s1_intervention_model() -> Phase6ReportSection:
         "  Tier 3 assets   : Monitoring only           (EUR 4,500)",
         "",
         "TERRITORIAL IMPACT SCORE (TIS) -- 0 to 100:",
-        "  Measures benefit delivered per euro invested.",
+        "  Simulated ranking of modelled benefit relative to cost -- NOT a",
+        "  measured ROI or forecast effect (visitor-response coefficients are",
+        "  illustrative scenario assumptions, register C-10 / Q-05).",
         "  Weighted benefit: Environmental 55% | Economic 30% | Evidence 15%",
         "  Cost modifier: square-root penalty (expensive high-impact scores well).",
-        "  TIS > 15 : excellent return -- prioritise this asset.",
-        "  TIS 8-15 : good return -- fund when budget permits.",
-        "  TIS 3-8  : moderate return -- consider after higher-TIS items.",
-        "  TIS < 3  : low return -- defer or use lower-cost option.",
+        "  TIS > 15 : top-ranked (scenario) -- prioritise this asset.",
+        "  TIS 8-15 : high-ranked (scenario) -- fund when budget permits.",
+        "  TIS 3-8  : mid-ranked (scenario) -- consider after higher-TIS items.",
+        "  TIS < 3  : low-ranked (scenario) -- defer or use lower-cost option.",
     ]
     return Phase6ReportSection(title="1. INTERVENTION MODEL OVERVIEW", content=lines)
 
@@ -654,7 +656,7 @@ def _rejection_reason(
     if scenario.tis < best_scenario.tis:
         return (
             f"TIS={scenario.tis:.1f} is lower than chosen scenario "
-            f"(TIS={best_scenario.tis:.1f}). Less territorial impact per euro."
+            f"(TIS={best_scenario.tis:.1f}). Lower simulated priority ranking."
         )
     return f"TIS={scenario.tis:.1f} -- equivalent to chosen, but chosen has better evidence basis."
 
