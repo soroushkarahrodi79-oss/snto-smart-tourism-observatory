@@ -601,7 +601,7 @@ def build_real_trails_deck(
             "<span style='font-size:9px;font-weight:700;letter-spacing:.05em;"
             "color:#7fd4b0;text-transform:uppercase'>Indicador derivado · "
             "Sentinel-2</span><br/>"
-            "<b>EHS verano</b> {health_summer}/100 &nbsp;·&nbsp; "
+            "<b>EHS (escena)</b> {health_summer}/100 &nbsp;·&nbsp; "
             "<b>ΔEHS</b> {delta_health}<br/>"
             "<span style='display:inline-block;margin-top:6px;border:1px solid #e0b25a;"
             "border-radius:3px;color:#f0c674;font-size:9px;font-weight:700;"
