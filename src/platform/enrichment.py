@@ -31,15 +31,14 @@ real a todo el pipeline derivado sin cablear pestaña por pestaña.
 """
 from __future__ import annotations
 
-from src.config.constants import ALERT_CRITICAL, ALERT_PREVENTIVE, ALERT_URGENT
+from src.alerts.engine import ALERT_SEVERITY, classify_alert_level
 from src.platform.calibration import CalibrationResult, calibrate_territory
 
-# Severidad de alerta: índice menor = más severa. Espeja src/alerts/engine.py.
+# Severidad de alerta (índice menor = más severa). Fuente única: la definición
+# canónica vive en ``src/alerts/engine.py``; aquí solo se re-teclea por su valor
+# string, en lugar de reescribir el orden a mano (K-23).
 _ALERT_SEVERITY: dict[str, int] = {
-    "CRITICAL_INTERVENTION": 0,
-    "URGENT_MONITORING": 1,
-    "PREVENTIVE_ACTION": 2,
-    "NORMAL": 3,
+    level.value: severity for level, severity in ALERT_SEVERITY.items()
 }
 
 
@@ -49,20 +48,14 @@ def _clamp(x: float, lo: float = 0.0, hi: float = 1.0) -> float:
 
 def _alert_from_risk(risk: float, trend_direction: str) -> str:
     """Reclasifica el nivel de alerta a partir del riesgo (0-1) y la dirección
-    de tendencia, reproduciendo los umbrales de ``src/alerts/engine.py``
-    (``AlertEngine._classify_level``).
+    de tendencia, reutilizando el clasificador único de ``src/alerts/engine.py``
+    (``classify_alert_level``) en vez de duplicar el escalón de umbrales (K-23).
 
-    Se usa el ``trend_direction`` (string ya gated por Mann-Kendall en el
-    activo) en lugar de reconstruir un ``TrendResult``: la condición de
-    "declive" del nivel URGENTE equivale a ``trend_direction == "decreasing"``.
+    Se usa el ``trend_direction`` (string ya gated por Mann-Kendall en el activo)
+    en lugar de reconstruir un ``TrendResult``: la condición de "declive" del
+    nivel URGENTE equivale a ``trend_direction == "decreasing"``.
     """
-    if risk > ALERT_CRITICAL:
-        return "CRITICAL_INTERVENTION"
-    if risk >= ALERT_URGENT and trend_direction == "decreasing":
-        return "URGENT_MONITORING"
-    if risk >= ALERT_PREVENTIVE:
-        return "PREVENTIVE_ACTION"
-    return "NORMAL"
+    return classify_alert_level(risk, trend_direction == "decreasing").value
 
 
 def _more_severe(current: str, candidate: str) -> str:

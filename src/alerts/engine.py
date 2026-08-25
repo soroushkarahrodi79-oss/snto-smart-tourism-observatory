@@ -19,6 +19,36 @@ class AlertLevel(str, Enum):
     NORMAL = "NORMAL"
 
 
+# Canonical alert-severity ordering (lower index = more severe). The single
+# source for any consumer that must rank or escalate alerts (e.g.
+# ``src/platform/enrichment.py``), so the ordering is defined exactly once (K-23).
+ALERT_SEVERITY: dict[AlertLevel, int] = {
+    AlertLevel.CRITICAL_INTERVENTION: 0,
+    AlertLevel.URGENT_MONITORING: 1,
+    AlertLevel.PREVENTIVE_ACTION: 2,
+    AlertLevel.NORMAL: 3,
+}
+
+
+def classify_alert_level(score: float, is_declining_trend: bool) -> AlertLevel:
+    """Map a risk score (0-1) and a declining-trend flag to an alert level.
+
+    The **single source** of the alert threshold ladder (K-23): both
+    :class:`AlertEngine` and ``src/platform/enrichment.py`` classify through this,
+    so the cut-points live once in ``src/config/constants.py`` and the ladder is
+    written once. Callers supply the declining-trend condition in whatever form
+    they hold it (a ``TrendResult`` via ``is_declining``, or a gated
+    ``trend_direction == "decreasing"`` string).
+    """
+    if score > ALERT_CRITICAL:
+        return AlertLevel.CRITICAL_INTERVENTION
+    if score >= ALERT_URGENT and is_declining_trend:
+        return AlertLevel.URGENT_MONITORING
+    if score >= ALERT_PREVENTIVE:
+        return AlertLevel.PREVENTIVE_ACTION
+    return AlertLevel.NORMAL
+
+
 OPERATIONAL_ACTIONS: dict[AlertLevel, list[str]] = {
     AlertLevel.CRITICAL_INTERVENTION: [
         "immediate_site_inspection",
@@ -72,22 +102,21 @@ class AlertEngine:
         score: float,
         trend: TrendResult,
     ) -> tuple[AlertLevel, list[str]]:
-        if score > ALERT_CRITICAL:
-            return AlertLevel.CRITICAL_INTERVENTION, [
-                f"score={score:.3f} > critical_threshold={ALERT_CRITICAL}"
-            ]
-
-        # Worsening = NDVI actively declining (statistically credible negative slope)
-        # while score is already high. Requires R² >= 0.30 to avoid noise artefacts.
-        if score >= ALERT_URGENT and is_declining(trend):
-            return AlertLevel.URGENT_MONITORING, [
+        # Level from the single-source ladder; the human-readable rules (which
+        # cite the exact thresholds and, for URGENT, the trend statistics) are
+        # built here because only the engine has the full TrendResult.
+        level = classify_alert_level(score, is_declining(trend))
+        if level is AlertLevel.CRITICAL_INTERVENTION:
+            rules = [f"score={score:.3f} > critical_threshold={ALERT_CRITICAL}"]
+        elif level is AlertLevel.URGENT_MONITORING:
+            # Worsening = NDVI actively declining (statistically credible negative
+            # slope) while score is already high; is_declining requires R² >= 0.30.
+            rules = [
                 f"score={score:.3f} >= urgent_threshold={ALERT_URGENT}",
                 f"trend_slope={trend.slope:.4f} (R²={trend.r_squared:.2f}) — declining vegetation confirmed",
             ]
-
-        if score >= ALERT_PREVENTIVE:
-            return AlertLevel.PREVENTIVE_ACTION, [
-                f"score={score:.3f} >= preventive_threshold={ALERT_PREVENTIVE}"
-            ]
-
-        return AlertLevel.NORMAL, [f"score={score:.3f} < preventive_threshold={ALERT_PREVENTIVE}"]
+        elif level is AlertLevel.PREVENTIVE_ACTION:
+            rules = [f"score={score:.3f} >= preventive_threshold={ALERT_PREVENTIVE}"]
+        else:
+            rules = [f"score={score:.3f} < preventive_threshold={ALERT_PREVENTIVE}"]
+        return level, rules
