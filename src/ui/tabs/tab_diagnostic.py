@@ -26,6 +26,7 @@ from src.platform.provenance import (
     snapshot_provenance,
     snapshot_status_badge,
 )
+from src.platform.ehs_presentation import CONDITION_COLOR, condition_legend_items
 from src.platform.real_trails import (
     SCM_ATTRIBUTION_CAVEAT,
     SCM_ATTRIBUTION_LABEL,
@@ -34,6 +35,7 @@ from src.platform.real_trails import (
     get_real_trails,
 )
 from src.platform.views import ConfidenceDetail
+from src.risk_engine.ehs import EHS_CONDITION_BANDS
 from src.ui.kpi_sections import diagnostic_kpis
 from src.ui.render_widgets import render_kpi_grid
 
@@ -143,11 +145,14 @@ def render_tab_diagnostic(
     spectral_mode = "Espectral" in map_mode
 
     if spectral_mode:
+        _poor_low = EHS_CONDITION_BANDS[1][0]
+        _moderate_low = EHS_CONDITION_BANDS[2][0]
+        _excellent_low = EHS_CONDITION_BANDS[4][0]
         st.caption(
             "🛰️ Color = gradiente RdYlGn (ColorBrewer) anclado en el valor EHS del registro del activo. "
-            "**Rojo intenso** → EHS < 30 (degradación crítica) · "
-            "**Amarillo** → EHS ≈ 60 (zona de transición) · "
-            "**Verde saturado** → EHS > 80 (salud óptima). "
+            f"**Rojo intenso** → EHS < {_poor_low:.0f} (degradación crítica) · "
+            f"**Amarillo** → EHS ≈ {_moderate_low:.0f} (zona de transición) · "
+            f"**Verde saturado** → EHS > {_excellent_low:.0f} (salud óptima). "
             "Simula el contraste espectral NDVI/NDMI a lo largo del corredor del sendero; "
             "no es una medición espectral directa sobre este activo."
         )
@@ -188,16 +193,11 @@ def render_tab_diagnostic(
     with col_info:
         if spectral_mode:
             # ── Leyenda espectral continua ────────────────────────────────────
+            # K-24: deriva de la partición canónica de condición EHS
+            # (src.risk_engine.ehs.EHS_CONDITION_BANDS) en vez de una tabla
+            # de cortes literal propia de este widget.
             st.markdown("#### Escala EHS Espectral")
-            _spectral_legend = [
-                ("#a50026", "EHS < 30 — Crítico"),
-                ("#d73027", "EHS 30-45 — Degradado"),
-                ("#fdae61", "EHS 45-60 — Alerta"),
-                ("#ffffbf", "EHS 60-75 — Moderado"),
-                ("#a6d96a", "EHS 75-85 — Bueno"),
-                ("#1a9850", "EHS > 85 — Óptimo"),
-            ]
-            for hex_c, label in _spectral_legend:
+            for hex_c, label in condition_legend_items():
                 st.markdown(
                     f'<div style="margin-bottom:7px;">'
                     f'<span class="legend-chip" style="background:{hex_c};'
@@ -211,9 +211,10 @@ def render_tab_diagnostic(
             ehs_vals = [a.ehs for a in ranked_assets]
             st.caption(f"EHS medio: **{sum(ehs_vals)/len(ehs_vals):.1f}**")
             st.caption(f"EHS mín: **{min(ehs_vals):.0f}** · máx: **{max(ehs_vals):.0f}**")
+            _critical_ceiling = EHS_CONDITION_BANDS[1][0]  # POOR band lower bound
             st.caption(
-                f"Activos en zona crítica (EHS<45): "
-                f"**{sum(1 for v in ehs_vals if v < 45)}**"
+                f"Activos en zona crítica (EHS<{_critical_ceiling:.0f}): "
+                f"**{sum(1 for v in ehs_vals if v < _critical_ceiling)}**"
             )
         else:
             # ── Leyenda de tiers (prioridad de inversión, escala neutra) ─────
@@ -374,12 +375,18 @@ def render_tab_diagnostic(
                 st.error("pydeck no instalado — `pip install pydeck`", icon="⚠️")
         with _leg_c:
             st.markdown("**EHS (Salud Ecológica)**")
+            # K-24: deriva de la partición canónica de condición EHS en vez de
+            # una tabla de cortes literal propia de este widget.
+            _excellent_low, _good_low, _moderate_low, _poor_low = (
+                EHS_CONDITION_BANDS[4][0], EHS_CONDITION_BANDS[3][0],
+                EHS_CONDITION_BANDS[2][0], EHS_CONDITION_BANDS[1][0],
+            )
             _legend = [
-                ("#1a9850", "≥ 75 · Saludable"),
-                ("#a6d96a", "60–75 · Estable"),
-                ("#ffffbf", "45–60 · Alerta"),
-                ("#fdae61", "30–45 · Estrés"),
-                ("#d73027", "< 30 · Crítico"),
+                (CONDITION_COLOR[EHS_CONDITION_BANDS[4][1]], f"≥ {_excellent_low:.0f} · Saludable"),
+                (CONDITION_COLOR[EHS_CONDITION_BANDS[3][1]], f"{_good_low:.0f}–{_excellent_low:.0f} · Estable"),
+                (CONDITION_COLOR[EHS_CONDITION_BANDS[2][1]], f"{_moderate_low:.0f}–{_good_low:.0f} · Alerta"),
+                (CONDITION_COLOR[EHS_CONDITION_BANDS[1][1]], f"{_poor_low:.0f}–{_moderate_low:.0f} · Estrés"),
+                (CONDITION_COLOR[EHS_CONDITION_BANDS[0][1]], f"< {_poor_low:.0f} · Crítico"),
                 ("#9e9e9e", "Sin dato"),
             ]
             for hexc, lbl in _legend:

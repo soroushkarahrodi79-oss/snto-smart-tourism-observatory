@@ -38,6 +38,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from src.metrics.semantics import delta_stress_to_delta_health, stress_to_health
+from src.platform.ehs_presentation import ehs_to_rgba, priority_for_health
 
 # Raíz del proyecto: .../src/platform/real_trails.py → subir 3 niveles
 _ROOT = Path(__file__).resolve().parents[2]
@@ -51,16 +52,12 @@ _DASHBOARD_TO_TERRITORY: dict[str, str] = {
 }
 
 # ── Clasificación de prioridad por SALUD de verano ────────────────────────────
-# Coherente con las bandas ecológicas del proyecto (constants.py: degradado<30,
-# sano≥55). Salud baja = vegetación estresada = prioridad alta de intervención.
-PRIORITY_BANDS: list[tuple[float, str, str]] = [
-    # (umbral_inferior_salud, etiqueta, color_hex)
-    (0.0,  "Crítica",     "#c62828"),   # EHS < 30  — degradación severa
-    (30.0, "Alta",        "#e65100"),   # 30–45     — estrés marcado
-    (45.0, "Media",       "#f9a825"),   # 45–60     — señales de alerta
-    (60.0, "Baja",        "#558b2f"),   # 60–75     — estable
-    (75.0, "Mínima",      "#2e7d32"),   # ≥ 75      — saludable
-]
+# Salud baja = vegetación estresada = prioridad alta de intervención. La
+# vocabulario (Crítica/Alta/Media/Baja/Mínima) y los colores se preservan tal
+# cual; los umbrales ahora derivan de la partición canónica de condición EHS
+# (K-24, src.risk_engine.ehs.EHS_CONDITION_BANDS) vía
+# src.platform.ehs_presentation.priority_for_health(), en vez de llevar su
+# propia tabla de cortes independiente.
 
 _SCM_LABEL_ES: dict[str, str] = {
     "LOCALIZED_IMPACT": "Impacto localizado (uso del sendero)",
@@ -126,13 +123,7 @@ class RealTrail:
 
 def _priority_for_health(health: Optional[float]) -> tuple[str, str]:
     """Devuelve (etiqueta, color) de prioridad para una salud de verano."""
-    if health is None:
-        return ("Sin dato", "#9e9e9e")
-    label, color = PRIORITY_BANDS[0][1], PRIORITY_BANDS[0][2]
-    for low, lbl, col in PRIORITY_BANDS:
-        if health >= low:
-            label, color = lbl, col
-    return (label, color)
+    return priority_for_health(health)
 
 
 @dataclass(frozen=True)
@@ -268,26 +259,14 @@ def _summary_to_health(summary: dict[str, Any]) -> dict[str, Any]:
 # ── Construcción del GeoJSON coloreado por EHS para el mapa ────────────────────
 
 def _health_to_rgba(health: Optional[float], alpha: int = 230) -> list[int]:
-    """Color RdYlGn por salud (rojo=degradado, verde=sano). Gris si no hay dato."""
-    if health is None:
-        return [158, 158, 158, alpha]
-    # Rampa diverging de 5 clases anclada a las bandas ecológicas.
-    ramp = [
-        (0.0,   [165,  0,  38]),
-        (30.0,  [215, 48,  39]),
-        (45.0,  [253, 174, 97]),
-        (60.0,  [255, 255, 191]),
-        (75.0,  [166, 217, 106]),
-        (100.0, [ 26, 152,  80]),
-    ]
-    e = max(0.0, min(100.0, health))
-    for i in range(len(ramp) - 1):
-        lo_v, lo_c = ramp[i]
-        hi_v, hi_c = ramp[i + 1]
-        if lo_v <= e <= hi_v:
-            t = (e - lo_v) / (hi_v - lo_v) if hi_v != lo_v else 0.0
-            return [int(lo_c[j] + t * (hi_c[j] - lo_c[j])) for j in range(3)] + [alpha]
-    return [128, 128, 128, alpha]
+    """Color RdYlGn por salud (rojo=degradado, verde=sano). Gris si no hay dato.
+
+    Delega en el ramp espectral canónico compartido (K-24,
+    src.platform.ehs_presentation.ehs_to_rgba), anclado en la misma partición
+    de condición EHS que usa map_layers._ehs_to_rgba, en vez de llevar su
+    propia copia literal de los puntos de corte.
+    """
+    return ehs_to_rgba(health, alpha=alpha)
 
 
 _OAPN_DIR = _ROOT / "data" / "raw_assets" / "vector_data" / "oapn"

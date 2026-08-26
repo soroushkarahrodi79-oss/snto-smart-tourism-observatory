@@ -88,7 +88,14 @@ INTERPRETATION SCALE
 """
 
 from dataclasses import dataclass
+from enum import Enum
 
+from src.config.constants import (
+    EHS_CONDITION_EXCELLENT,
+    EHS_CONDITION_GOOD,
+    EHS_CONDITION_MODERATE,
+    EHS_CONDITION_POOR,
+)
 from src.time_series.mann_kendall import MannKendallResult
 
 
@@ -235,14 +242,60 @@ def compute_ehs(
     )
 
 
+class EHSCondition(str, Enum):
+    """Canonical EHS(health) condition partition (K-24).
+
+    This is the single source of truth for the EHS condition ladder. Every
+    PURE-EHS classification/presentation surface across the codebase (map
+    legends, colour ramps, distribution summaries, the qualitative label
+    below) must derive from :data:`EHS_CONDITION_BANDS` /
+    :func:`classify_ehs_condition` rather than carrying its own literal
+    cut-points. Boundaries live in ``src.config.constants`` (mirrors the
+    K-23 alert-threshold pattern in ``src/alerts/engine.py``).
+
+    DECLARED PRODUCT / INTERPRETATION POLICY, approved by the owner pending
+    stronger validation — NOT scientifically validated, empirically
+    established, field-validated, causal, or universally applicable
+    ecological thresholds. See issue #26 for the hard validation gate.
+
+    Distinct from the territorial Tier classifier
+    (``src.territorial.tpi._classify_tier``), which is multi-factor (EHS,
+    risk, DCS, alert level, trend, TPI) and is not part of this partition.
+    """
+    CRITICAL = "CRITICAL"
+    POOR = "POOR"
+    MODERATE = "MODERATE"
+    GOOD = "GOOD"
+    EXCELLENT = "EXCELLENT"
+
+
+# Ascending lower bounds on the EHS health scale (0 = critical, 100 = healthy).
+EHS_CONDITION_BANDS: list[tuple[float, EHSCondition]] = [
+    (0.0,                    EHSCondition.CRITICAL),
+    (EHS_CONDITION_POOR,     EHSCondition.POOR),
+    (EHS_CONDITION_MODERATE, EHSCondition.MODERATE),
+    (EHS_CONDITION_GOOD,     EHSCondition.GOOD),
+    (EHS_CONDITION_EXCELLENT, EHSCondition.EXCELLENT),
+]
+
+_CONDITION_EN_LABEL: dict[EHSCondition, str] = {
+    EHSCondition.EXCELLENT: "Excellent",
+    EHSCondition.GOOD:      "Good",
+    EHSCondition.MODERATE:  "Moderate",
+    EHSCondition.POOR:      "Poor",
+    EHSCondition.CRITICAL:  "Critical",
+}
+
+
+def classify_ehs_condition(ehs: float) -> EHSCondition:
+    """Classify an EHS(health) value into the canonical condition partition."""
+    condition = EHS_CONDITION_BANDS[0][1]
+    for low, cond in EHS_CONDITION_BANDS:
+        if ehs >= low:
+            condition = cond
+    return condition
+
+
 def interpret_ehs(ehs: float) -> str:
-    """Qualitative label for the EHS score."""
-    if ehs >= 90:
-        return "Excellent"
-    if ehs >= 75:
-        return "Good"
-    if ehs >= 60:
-        return "Moderate"
-    if ehs >= 40:
-        return "Poor"
-    return "Critical"
+    """Qualitative label for the EHS score (declared interpretation policy, K-24)."""
+    return _CONDITION_EN_LABEL[classify_ehs_condition(ehs)]
