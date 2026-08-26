@@ -51,6 +51,9 @@ urgent, some represent untapped potential.
 from __future__ import annotations
 
 import statistics
+
+from src.risk_engine.ehs import classify_ehs_condition
+
 from .models import TerritorialAsset, PortfolioKPIs
 
 
@@ -144,26 +147,32 @@ def tier_summary(assets: list[TerritorialAsset]) -> dict[int, list[TerritorialAs
     return groups
 
 
+# Display labels for the canonical EHS condition partition (K-24), matching
+# the pre-existing band-range wording verbatim. Kept local to this reporting
+# function; the boundaries themselves come from EHS_CONDITION_BANDS, not from
+# a second independent threshold table.
+_EHS_DISTRIBUTION_LABELS: dict[str, str] = {
+    "EXCELLENT": "Excellent (90-100)",
+    "GOOD":       "Good (75-89)",
+    "MODERATE":   "Moderate (60-74)",
+    "POOR":       "Poor (40-59)",
+    "CRITICAL":   "Critical (0-39)",
+}
+
+
 def ehs_distribution(assets: list[TerritorialAsset]) -> dict[str, int]:
-    """Classify assets into EHS bands for portfolio overview."""
+    """Classify assets into EHS bands for portfolio overview.
+
+    Derives from the canonical EHS condition partition (K-24,
+    src.risk_engine.ehs.classify_ehs_condition) rather than carrying its own
+    independent threshold table.
+    """
     bands: dict[str, int] = {
-        "Excellent (90-100)": 0,
-        "Good (75-89)":       0,
-        "Moderate (60-74)":   0,
-        "Poor (40-59)":       0,
-        "Critical (0-39)":    0,
+        label: 0 for label in _EHS_DISTRIBUTION_LABELS.values()
     }
     for a in assets:
-        if a.ehs >= 90:
-            bands["Excellent (90-100)"] += 1
-        elif a.ehs >= 75:
-            bands["Good (75-89)"] += 1
-        elif a.ehs >= 60:
-            bands["Moderate (60-74)"] += 1
-        elif a.ehs >= 40:
-            bands["Poor (40-59)"] += 1
-        else:
-            bands["Critical (0-39)"] += 1
+        condition = classify_ehs_condition(a.ehs)
+        bands[_EHS_DISTRIBUTION_LABELS[condition.value]] += 1
     return bands
 
 

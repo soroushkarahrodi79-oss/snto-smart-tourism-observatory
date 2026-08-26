@@ -1,6 +1,13 @@
 from __future__ import annotations
 
-from src.risk_engine.ehs import EHSComponents, compute_ehs, interpret_ehs
+from src.risk_engine.ehs import (
+    EHS_CONDITION_BANDS,
+    EHSComponents,
+    EHSCondition,
+    classify_ehs_condition,
+    compute_ehs,
+    interpret_ehs,
+)
 from src.time_series.mann_kendall import MannKendallResult
 
 
@@ -158,6 +165,56 @@ def test_dense_canopy_ehs_still_in_range():
         residual_std=0.030, mean_evi=0.25,
     )
     assert 0.0 <= comp.ehs <= 100.0
+
+
+# ── K-24: canonical EHS condition partition — boundary + regression tests ────
+
+def test_ehs_condition_bands_are_the_canonical_partition():
+    """Regression guard: the boundaries must stay 0/40/60/75/90. If this ever
+    needs to change, it is an owner decision (K-24), not a silent drift."""
+    assert EHS_CONDITION_BANDS == [
+        (0.0, EHSCondition.CRITICAL),
+        (40.0, EHSCondition.POOR),
+        (60.0, EHSCondition.MODERATE),
+        (75.0, EHSCondition.GOOD),
+        (90.0, EHSCondition.EXCELLENT),
+    ]
+
+
+def test_classify_ehs_condition_boundaries_are_half_open_lower_inclusive():
+    """Each band is [low, next_low) — the lower bound is inclusive, so a value
+    exactly on a boundary belongs to the higher band."""
+    assert classify_ehs_condition(39.999) == EHSCondition.CRITICAL
+    assert classify_ehs_condition(40.0) == EHSCondition.POOR
+
+    assert classify_ehs_condition(59.999) == EHSCondition.POOR
+    assert classify_ehs_condition(60.0) == EHSCondition.MODERATE
+
+    assert classify_ehs_condition(74.999) == EHSCondition.MODERATE
+    assert classify_ehs_condition(75.0) == EHSCondition.GOOD
+
+    assert classify_ehs_condition(89.999) == EHSCondition.GOOD
+    assert classify_ehs_condition(90.0) == EHSCondition.EXCELLENT
+
+
+def test_classify_ehs_condition_extremes():
+    assert classify_ehs_condition(0.0) == EHSCondition.CRITICAL
+    assert classify_ehs_condition(100.0) == EHSCondition.EXCELLENT
+
+
+def test_interpret_ehs_derives_from_classify_ehs_condition():
+    """interpret_ehs() must not carry its own literal cut-points — it derives
+    from the same canonical classifier used everywhere else."""
+    for value in (0.0, 39.9, 40.0, 59.9, 60.0, 74.9, 75.0, 89.9, 90.0, 100.0):
+        condition = classify_ehs_condition(value)
+        expected = {
+            EHSCondition.CRITICAL: "Critical",
+            EHSCondition.POOR: "Poor",
+            EHSCondition.MODERATE: "Moderate",
+            EHSCondition.GOOD: "Good",
+            EHSCondition.EXCELLENT: "Excellent",
+        }[condition]
+        assert interpret_ehs(value) == expected
 
 
 def test_backward_compat_no_evi_parameter():

@@ -79,6 +79,26 @@ EHS_DENSE_CANOPY_NDVI_THRESHOLD: float = 0.80  # saturation onset
 EHS_W_NDVI_DENSE: float = 0.20  # NDVI weight in dense-canopy mode
 EHS_W_NDMI_DENSE: float = 0.80  # NDMI weight in dense-canopy mode
 
+# ── EHS condition partition (K-24) — declared interpretation policy ──────────
+# Single source of truth for the EHS(health) condition ladder. Every PURE-EHS
+# classification/presentation surface (one that partitions EHS alone, with no
+# other engine input) must derive from these boundaries via
+# src.risk_engine.ehs.classify_ehs_condition(), mirroring the K-23
+# alert-threshold pattern (src/alerts/engine.py). Multi-factor classifiers
+# (e.g. the territorial Tier assignment in src/territorial/tpi.py, which also
+# weighs risk, DCS, alert level and trend) are NOT part of this partition and
+# keep their own thresholds.
+#
+# These cut-points are DECLARED PRODUCT / INTERPRETATION POLICY, approved by
+# the owner pending stronger validation. They are NOT scientifically
+# validated, empirically established, field-validated, causal, or universally
+# applicable ecological thresholds — see issue #26 for the hard validation
+# gate before any such claim can be made.
+EHS_CONDITION_POOR: float = 40.0       # POOR band lower bound
+EHS_CONDITION_MODERATE: float = 60.0   # MODERATE band lower bound
+EHS_CONDITION_GOOD: float = 75.0       # GOOD band lower bound
+EHS_CONDITION_EXCELLENT: float = 90.0  # EXCELLENT band lower bound
+
 # ── Decision Confidence Score — minimum quality gates for can_act ─────────────
 # Prevents issuing an actionable recommendation when foundational data quality
 # or time-series robustness falls below minimum thresholds, even if the total

@@ -39,10 +39,21 @@ def test_is_degrading_uses_health_delta_sign():
 
 
 def test_priority_label_tracks_summer_health():
-    critical = _trail("C", spring=40.0, summer=20.0)    # salud < 30
-    healthy = _trail("D", spring=82.0, summer=88.0)     # salud >= 75
+    # K-24: priority bands now derive from the canonical EHS condition
+    # partition (0/40/60/75/90) instead of the old 0/30/45/60/75 ladder.
+    # Vocabulary/colours are unchanged; only the boundaries moved.
+    critical = _trail("C", spring=40.0, summer=20.0)    # salud < 40 (CRITICAL)
+    healthy = _trail("D", spring=92.0, summer=95.0)     # salud >= 90 (EXCELLENT)
     assert critical.priority_label == "Crítica"
     assert healthy.priority_label == "Mínima"
+
+
+def test_priority_label_good_band_maps_to_baja():
+    # 75 <= health < 90 is now GOOD (not EXCELLENT) — distinct from the
+    # >= 90 EXCELLENT band above, and from the pre-K-24 behaviour where a
+    # health of 88 mapped to "Mínima".
+    good = _trail("E", spring=80.0, summer=82.0)
+    assert good.priority_label == "Baja"
 
 
 def test_ranked_by_priority_puts_lowest_health_first():

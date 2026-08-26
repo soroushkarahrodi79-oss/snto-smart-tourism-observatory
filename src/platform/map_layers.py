@@ -37,6 +37,8 @@ import hashlib
 import math
 from typing import Any
 
+from src.platform import ehs_presentation as _ehs_presentation
+
 try:
     import pydeck as pdk
     _PYDECK_AVAILABLE = True
@@ -668,21 +670,13 @@ def build_real_trails_deck(
 
 
 # ── Spectral diagnostic view ──────────────────────────────────────────────────
-
-# RdYlGn colour ramp anchored at EHS breakpoints (ColorBrewer 5-class diverging).
-# Each entry: (ehs_threshold, [R, G, B]).  Values between stops are interpolated.
-_SPECTRAL_RAMP: list[tuple[float, list[int]]] = [
-    (0.0,   [165,   0,  38]),   # deep red    — critical degradation
-    (30.0,  [215,  48,  39]),   # red
-    (45.0,  [253, 174,  97]),   # orange
-    (60.0,  [255, 255, 191]),   # pale yellow — transitional
-    (75.0,  [166, 217, 106]),   # yellow-green
-    (100.0, [ 26, 152,  80]),   # deep green  — excellent health
-]
-
+# Colour ramp anchored at the canonical EHS condition partition (K-24,
+# src.risk_engine.ehs.EHS_CONDITION_BANDS) — shared with
+# src.platform.real_trails so the two map views (synthetic-geometry and
+# real-trace) agree on one ramp instead of two independently literal copies.
 
 def _ehs_to_rgba(ehs: float, alpha: int = 220) -> list[int]:
-    """Interpolate an RGBA colour from the RdYlGn spectral ramp for a given EHS.
+    """Interpolate an RGBA colour from the canonical-anchored spectral ramp.
 
     Args:
         ehs   : Ecological Health Score 0-100.
@@ -691,19 +685,7 @@ def _ehs_to_rgba(ehs: float, alpha: int = 220) -> list[int]:
     Returns:
         [R, G, B, A] list ready for Deck.gl colour accessors.
     """
-    ehs = max(0.0, min(100.0, ehs))
-    # Find the two surrounding stops
-    for i in range(len(_SPECTRAL_RAMP) - 1):
-        lo_val, lo_rgb = _SPECTRAL_RAMP[i]
-        hi_val, hi_rgb = _SPECTRAL_RAMP[i + 1]
-        if lo_val <= ehs <= hi_val:
-            t = (ehs - lo_val) / (hi_val - lo_val) if hi_val != lo_val else 0.0
-            r = int(lo_rgb[0] + t * (hi_rgb[0] - lo_rgb[0]))
-            g = int(lo_rgb[1] + t * (hi_rgb[1] - lo_rgb[1]))
-            b = int(lo_rgb[2] + t * (hi_rgb[2] - lo_rgb[2]))
-            return [r, g, b, alpha]
-    # Fallback — should not be reached
-    return [128, 128, 128, alpha]
+    return _ehs_presentation.ehs_to_rgba(ehs, alpha=alpha)
 
 
 def _assets_to_geojson_spectral(assets: list, real_geoms: "dict[str, list[dict]] | None" = None) -> dict[str, Any]:
