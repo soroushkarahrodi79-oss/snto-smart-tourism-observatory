@@ -72,13 +72,23 @@ raises defensible evidence, not by what the codebase *could* do.
   pressure target (contract §F Pillar 1, §I gate 2). A separate future WP is
   needed for a real *asset-level* counter series.
 
-## HARD GATE — #26 Field Validation Campaign (INDEPENDENT — can start now, owner/manual)
+## HARD GATE — #26 Field Validation Campaign (INDEPENDENT — owner/manual)
+
+> **Owner decision 2026-09-02 — OPTION B: physical field campaign intentionally
+> DEFERRED.** This is not cancellation. Issue #26 remains scientifically
+> unresolved. The v2.5 validation gate is unmet. Existing tooling is preserved
+> and ready. Re-activation requires an explicit future owner decision to run or
+> delegate a real field campaign. While deferred, SNTO continues as a
+> research/decision-support prototype. No field-validated, satellite↔field-
+> agreement, causal, or cross-park validation claims may be made until real
+> empirical field data exist.
+
 - **Objective:** collect real ground-truth (compaction/cover/erosion) on PNSG
   priority plots per `docs/field_validation_protocol.md`.
 - **Why:** the only path to L6/L7; blocks all validated/causal/regenerative claims.
 - **Status:** tooling, protocol, agreement runner all merged; **field data not
-  collected.** Manual field work — **no repository prerequisite**; it does **not**
-  depend on WP-2/3/4 and should begin as early as the owner can mobilise it.
+  collected.** Manual field work — **no repository prerequisite**; does **not**
+  depend on WP-2/3/4. Campaign deferred (see decision box above).
 - **Unlocks:** WP-5 (satellite↔field agreement), then L6/L7 evaluation.
 - **Do not close, weaken, or simulate.**
 
@@ -96,7 +106,7 @@ raises defensible evidence, not by what the codebase *could* do.
 ### Dependency graph (reality, not narrative order)
 ```
 WP-1 (this PR) ──unlocks──> { WP-2 , WP-3 , WP-4 }   (mutually independent)
-#26 field campaign ─────── independent; startable NOW; no code prerequisite
+#26 field campaign ─────── independent; no code prerequisite; DEFERRED 2026-09-02 (re-activation required)
 WP-5 ── depends on ──> #26
 ```
 - WP-2 does **not** need WP-3 or WP-4; #26 does **not** wait for any WP.

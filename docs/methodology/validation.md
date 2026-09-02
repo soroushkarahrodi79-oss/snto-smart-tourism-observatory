@@ -37,6 +37,12 @@ sembrados en la plantilla):
 | Escalada Maliciosa-Porrones | escalada | ↓ decreciente (τ=−0.37, p≈0) → **alerta** | degradación esperada en el corredor |
 | Vuelo libre El Nevero | vuelo libre | ↑ creciente (τ=+0.23, p≈0.01) → recuperación | sin degradación esperada |
 
+**Owner decision 2026-09-02 — OPTION B: campo físico DEFERRED.** La campaña no
+ha sido ejecutada. Issue #26 permanece científicamente abierto. La puerta de
+validación v2.5 no está satisfecha. El utillaje está preservado. No se afirman
+resultados campo↔satélite; ningún agente futuro puede simular, inferir o
+retiquetar verdad-terreno hasta que existan observaciones reales.
+
 Pendiente (requiere trabajo de campo, no automatizable): recoger las parcelas
 impacto/control con penetrómetro, cobertura y erosión; ejecutar el informe;
 consignar la matriz de confusión resultante y sus límites aquí.
