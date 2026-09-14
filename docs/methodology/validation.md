@@ -32,10 +32,15 @@ Listo:
 **Activos prioritarios** (los dos del PNSG con tendencia NDVI significativa,
 sembrados en la plantilla):
 
-| Activo | Categoría | Tendencia satelital | Expectativa de campo |
+| Activo | Categoría | Señal de teledetección observada | Hipótesis a verificar en campo (#26) |
 |---|---|---|---|
-| Escalada Maliciosa-Porrones | escalada | ↓ decreciente (τ=−0.37, p≈0) → **alerta** | degradación esperada en el corredor |
-| Vuelo libre El Nevero | vuelo libre | ↑ creciente (τ=+0.23, p≈0.01) → recuperación | sin degradación esperada |
+| Escalada Maliciosa-Porrones | escalada | NDVI ↓ significativo (τ=−0.37, p≈0), pero **NDMI ↑** (τ=+0.22, p=0.01) — señal internamente contradictoria | Cambio ambiental a verificar; **no** es impacto turístico establecido. Atribución de causa no determinada |
+| Vuelo libre El Nevero | vuelo libre | NDVI ↑ significativo (τ=+0.23, p≈0.01) — reverdecimiento | Sin señal de deterioro; atribución no aplicable |
+
+> **Lectura correcta (regla claim ≤ evidencia):** estas son *señales de cambio
+> ambiental* a escala de huella del activo, no medidas de presión ni de impacto
+> turístico. La dirección de la señal no implica su causa. Ver el marco de decisión
+> en [`docs/PNSG_DECISION_EVIDENCE_BRIEF.md`](../PNSG_DECISION_EVIDENCE_BRIEF.md).
 
 **Owner decision 2026-09-02 — OPTION B: campo físico DEFERRED.** La campaña no
 ha sido ejecutada. Issue #26 permanece científicamente abierto. La puerta de
