@@ -45,12 +45,21 @@ def test_results_block_matches_the_real_trail_summary() -> None:
     assert f"{summary['scm_landscape']} a escala de paisaje" in block
 
 
-def test_budget_is_rendered_from_the_live_total_not_a_literal() -> None:
+def test_no_per_trail_monetary_allocation_is_rendered() -> None:
+    """The dossier must not present a satellite-derived budget as an allocation.
+
+    An environmental (Sentinel-2) signal does not, on its own, support a per-trail
+    spending recommendation; the results block states this explicitly and shows
+    no euro figure.
+    """
     from src.platform.real_trails import get_real_trails
 
     total = get_real_trails("pnsg").summary["total_budget_eur"]
-    expected = f"{total:,.0f} €".replace(",", ".")
-    assert expected in build_dossier_blocks("pnsg")[BLOCK_RESULTS]
+    block = build_dossier_blocks("pnsg")[BLOCK_RESULTS]
+    # The live total (e.g. the ≈1.44 M€ figure) is no longer rendered.
+    assert f"{total:,.0f} €".replace(",", ".") not in block
+    assert "€" not in block
+    assert "no deriva ninguna asignación monetaria" in block.lower()
 
 
 def test_the_retired_stale_figures_are_gone_from_the_committed_dossier() -> None:

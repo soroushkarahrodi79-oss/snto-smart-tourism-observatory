@@ -257,14 +257,15 @@ def build_prug_monitoring(
             "medición causal ni causa confirmada. El ΔEHS de dos escenas es una "
             "**alerta temprana estacional**, no una tendencia plurianual ni un "
             "veredicto de cumplimiento del Plan; ninguna senda está validada en "
-            "campo (campaña #26 pendiente); el presupuesto es orientativo."
+            "campo (campaña #26 pendiente). **SNTO no deriva ninguna asignación "
+            "monetaria por sendero a partir de esta señal.**"
         ),
         "mismatch_note": (
-            "«Índice de prioridad» = (100 − salud) × peso de protección: pondera "
-            "el deterioro por el nivel de protección que el PRUG asigna a la "
-            "zona. Un deterioro en Uso Restringido pesa más que el mismo "
-            "deterioro en Uso Especial — señala dónde mirar primero, no un "
-            "incumplimiento."
+            "«Índice de señal × sensibilidad» = (100 − salud) × peso de protección: "
+            "pondera la señal de cambio por el nivel de protección que el PRUG "
+            "asigna a la zona. Una señal en Uso Restringido pesa más que la misma "
+            "señal en Uso Especial — es un descriptor de **dónde mirar primero**, "
+            "no un incumplimiento ni un orden de gasto."
         ),
         "summary": {
             "n_zones": len(zones),
@@ -322,24 +323,19 @@ def render_prug_monitoring_markdown(report: dict) -> str:
         "",
         f"- Zonas PRUG con sendas: **{s['n_zones']}**",
         f"- Sendas analizadas: **{s['n_trails']}** ({s['total_length_km']} km)",
-        f"- Sendas con deterioro estacional: **{s['n_degrading']}**",
+        f"- Sendas con señal de cambio (ΔEHS) estacional: **{s['n_degrading']}**",
     ]
     if s["priority_zone"]:
         lines.append(
-            f"- Zona de atención prioritaria (más protegida con deterioro "
-            f"activo): **{s['priority_zone']}**"
-        )
-    if s["total_indicative_budget_eur"]:
-        lines.append(
-            f"- Presupuesto orientativo total: "
-            f"**{s['total_indicative_budget_eur']:,.0f} €**"
+            f"- Zona a vigilar primero (más protegida con señal de cambio "
+            f"activa): **{s['priority_zone']}** — dónde mirar, no un orden de gasto"
         )
     lines += ["", "## Estado por zona de gestión (más protegida primero)", ""]
 
     cols = [
         "Zona PRUG", "Peso protección", "Sendas", "km", "EHS verano medio",
-        "Deteriorándose", "Atribución SCM (modelo) · uso / mixto / paisaje",
-        "Índice prioridad medio", "Coste orientativo (€)",
+        "Con señal de cambio", "Atribución SCM (modelo) · local / mixto / paisaje",
+        "Índice señal × sensibilidad (medio)",
     ]
     lines.append("| " + " | ".join(cols) + " |")
     lines.append("|" + "|".join("---" for _ in cols) + "|")
@@ -365,12 +361,9 @@ def render_prug_monitoring_markdown(report: dict) -> str:
             if z["priority_index_mean"] is not None
             else "—"
         )
-        budget = (
-            f"{z['budget_eur']:,.0f}" if z["budget_eur"] is not None else "—"
-        )
         lines.append(
             f"| {z['zone']} | {weight} | {z['n_trails']} | {z['length_km']:.0f} | "
-            f"{ehs} | {degr} | {scm} | {prio} | {budget} |"
+            f"{ehs} | {degr} | {scm} | {prio} |"
         )
 
     lines += [

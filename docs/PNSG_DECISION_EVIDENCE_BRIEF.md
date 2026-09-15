@@ -245,3 +245,33 @@ Proportionate to the evidence, the only defensible recommendations are:
 No closure, quota, restoration, or budget commitment is recommended. The success
 of this brief is a **defensible decision proportionate to the evidence**, not a
 ranking.
+
+---
+
+## Update 2026-09-15 — per-trail budget & priority neutralised in code
+
+The brief above (PR #172) flagged that the repository still surfaced a per-trail
+restoration `budget_eur` (≈ €1.44M) and a `priority_index`, which together
+implied the chain *environmental signal → degradation → management priority → €
+allocation* — a chain the evidence does not support. A follow-up cleanup PR
+removed that implication from the institutional- and user-facing surfaces:
+
+- **No monetary allocation is derived from the Sentinel-2 signal on any
+  institutional/user-facing surface.** The OAPN/EUROPARC dossier
+  (`src/reporting/institutional_dossier.py`), the PRUG monitoring roll-up
+  (`prug_monitoring.py`), the exportable director and executive briefs
+  (`risk_brief.py`, `territorial_brief.py`), and the real-trail diagnostic table
+  (`src/ui/tabs/tab_diagnostic.py`) no longer show a `€` recommendation.
+- **`budget_eur` / `priority_index` are retained only as legacy, non-decision
+  fields** for Pipeline-A reproducibility (`src/platform/real_trails.py`); they
+  are computed but not surfaced.
+- **"Degradation" wording was reframed** to *observed environmental change /
+  remote-sensing signal* where degradation had not been established; SCM classes
+  are described by spatial scale, not as confirmed tourism pressure.
+- The **synthetic budget simulator** (Pipeline B, `tab_simulator.py`) remains as a
+  labelled *what-if* — it takes a user-entered budget over synthetic assets and is
+  explicitly not a recommendation derived from satellite evidence.
+
+A future per-asset budget recommendation would require a **separate evidence and
+costing protocol** (measured public use + field validation #26), which does not
+exist today.

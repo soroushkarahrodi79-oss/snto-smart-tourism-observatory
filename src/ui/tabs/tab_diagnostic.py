@@ -353,9 +353,12 @@ def render_tab_diagnostic(
                            "(ΔEHS < 0). Diferencia entre dos escenas fechadas, "
                            "NO un deterioro estacional ni una tendencia (Q-03).")
         with k5:
-            st.metric("Presupuesto indicativo",
-                      f"€{s.get('total_budget_eur', 0):,.0f}",
-                      help="Σ longitud × coste/m × (EHS/100) × factor causal SCM.")
+            st.metric("Cambios a escala local (SCM)",
+                      s.get("scm_localized", 0),
+                      help="Clasificación SIG por escala espacial del cambio "
+                           "(local/mixto/paisaje). No confirma la causa ni equivale "
+                           "a presión turística. SNTO no deriva presupuesto de la "
+                           "señal satelital.")
 
         st.divider()
 
@@ -410,8 +413,9 @@ def render_tab_diagnostic(
                 f'<span class="snto-micro-label">⛰ Zonificación PRUG oficial</span><br/>'
                 f'<span class="snto-body-copy">'
                 f'{_prot} de {len(_real.trails)} sendas discurren por zonas de alta protección '
-                f'(Reserva / Uso Restringido). La prioridad de intervención pondera la '
-                f'degradación por el nivel de protección del PRUG.</span></div>',
+                f'(Reserva / Uso Restringido). El orden de seguimiento pondera la '
+                f'señal de cambio ambiental por el nivel de protección del PRUG '
+                f'(dónde mirar primero, no un orden de gasto).</span></div>',
                 unsafe_allow_html=True,
             )
 
@@ -438,10 +442,10 @@ def render_tab_diagnostic(
         # ── Tabla priorizada ──
         _has_prug = _real.has_prug
         if _has_prug:
-            st.markdown("**Ranking de intervención · degradación × protección PRUG (prioridad combinada)**")
+            st.markdown("**Sendas por señal de cambio ambiental (ΔEHS) × sensibilidad de zona PRUG — para seguimiento, no orden de gasto**")
             _ranked = _real.ranked_by_priority_index()
         else:
-            st.markdown("**Ranking de intervención · peor salud ecológica primero**")
+            st.markdown("**Sendas por señal de cambio ambiental (peor salud ecológica primero) — para seguimiento, no orden de gasto**")
             _ranked = _real.ranked_by_priority()
 
         _rows = []
@@ -456,11 +460,9 @@ def render_tab_diagnostic(
                 "Atribución SCM": (
                     f"🧭 {t.scm_label_es}" if t.scm_class else t.scm_label_es
                 ),
-                "Presupuesto (€)": round(t.budget_eur, 0) if t.budget_eur is not None else None,
             }
             if _has_prug:
                 row["Zona PRUG"] = (t.prug_zone or "—").replace("Zona de ", "")
-                row["Prioridad PRUG"] = t.priority_index
             _rows.append(row)
         _df = pd.DataFrame(_rows)
 
@@ -480,12 +482,7 @@ def render_tab_diagnostic(
                     "medición causal ni una causa confirmada."
                 ),
             ),
-            "Presupuesto (€)": st.column_config.NumberColumn(format="€%d"),
         }
-        if _has_prug:
-            _colcfg["Prioridad PRUG"] = st.column_config.ProgressColumn(
-                "Prioridad PRUG", min_value=0, max_value=100, format="%.0f",
-                help="(100 − salud) × peso de protección PRUG. Mayor = más urgente.")
         st.dataframe(_df, use_container_width=True, hide_index=True, column_config=_colcfg)
         _terr_folder = "sierra_del_rincon" if selected_key == "snr" else "pnsg"
         _carto = ("Cartografía oficial OAPN (sendas homologadas + límite + zonificación PRUG)"

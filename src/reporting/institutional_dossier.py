@@ -167,19 +167,19 @@ def _render_results(facts: DossierFacts | None) -> str:
             "resultados hasta que el Pipeline A produzca su salida."
         )
 
-    budget = (
-        f"{facts.budget_eur:,.0f} €".replace(",", ".")
-        if facts.budget_eur
-        else "pendiente de estimar"
-    )
     lines = [
-        f"- **{facts.n_degrading} de {facts.n_with_delta} senderos** muestran "
-        "deterioro estacional activo (ΔEHS de degradación).",
-        f"- Clasificación causal SCM: **{facts.scm_localized} localizados** "
-        f"(señal de uso) · **{facts.scm_mixed} mixtos** · "
-        f"**{facts.scm_landscape} a escala de paisaje** (señal climática).",
-        f"- **Presupuesto indicativo de intervención: {budget}**, modulado por el "
-        "factor causal de cada tramo.",
+        f"- **{facts.n_degrading} de {facts.n_with_delta} senderos** muestran una "
+        "señal de cambio ambiental (ΔEHS negativo entre dos escenas fechadas) que "
+        "justifica seguimiento; no es degradación validada ni impacto turístico "
+        "confirmado (la atribución de causa no está establecida).",
+        f"- Clasificación SCM por **escala espacial** del cambio: "
+        f"**{facts.scm_localized} localizados** · **{facts.scm_mixed} mixtos** · "
+        f"**{facts.scm_landscape} a escala de paisaje**. La escala del cambio no "
+        "confirma su causa (uso público vs. clima).",
+        "- **SNTO no deriva ninguna asignación monetaria por sendero a partir de la "
+        "señal satelital.** Un presupuesto de intervención exigiría un protocolo de "
+        "evidencia y costes propio (uso público medido + validación de campo #26), "
+        "aún no ejecutado. Marco de decisión: `docs/PNSG_DECISION_EVIDENCE_BRIEF.md`.",
     ]
     if facts.ehs_summer_mean is not None:
         lines.append(
@@ -188,8 +188,9 @@ def _render_results(facts: DossierFacts | None) -> str:
         )
     if facts.priority_zone:
         lines.append(
-            f"- Zona PRUG de atención prioritaria (mayor protección con deterioro "
-            f"activo): **{facts.priority_zone}**."
+            f"- Zona PRUG a vigilar primero (mayor nivel de protección con señal de "
+            f"cambio activa): **{facts.priority_zone}**. Señala dónde mirar, no un "
+            "incumplimiento ni una asignación de gasto."
         )
     if facts.n_municipalities:
         lines.append(

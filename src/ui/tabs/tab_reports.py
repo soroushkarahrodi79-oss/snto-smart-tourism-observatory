@@ -100,8 +100,9 @@ def render_tab_reports(
     )
     st.caption(
         f"Cartera curada del panel ({len(ranked_assets)} activos de decisión). "
-        "Recoge las mismas cifras ya visibles en «Decidir»; acción y "
-        "presupuesto son orientativos y no hay validación de campo (#26)."
+        "Recoge las mismas cifras ya visibles en «Decidir»; la acción es de "
+        "seguimiento/investigación. SNTO no deriva asignación monetaria por activo "
+        "de estas señales, y no hay validación de campo (#26)."
     )
     brief = build_territorial_brief(
         list(ranked_assets),

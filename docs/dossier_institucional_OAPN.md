@@ -45,11 +45,11 @@ Análisis ejecutado con **dos escenas Sentinel-2 reales** (primavera 2026-04-10 
 tile T30TVL) sobre **218 senderos** reconstruidos desde cartografía oficial:
 
 <!-- SNTO:AUTO:resultados -->
-- **46 de 218 senderos** muestran deterioro estacional activo (ΔEHS de degradación).
-- Clasificación causal SCM: **24 localizados** (señal de uso) · **29 mixtos** · **165 a escala de paisaje** (señal climática).
-- **Presupuesto indicativo de intervención: 1.435.721 €**, modulado por el factor causal de cada tramo.
+- **46 de 218 senderos** muestran una señal de cambio ambiental (ΔEHS negativo entre dos escenas fechadas) que justifica seguimiento; no es degradación validada ni impacto turístico confirmado (la atribución de causa no está establecida).
+- Clasificación SCM por **escala espacial** del cambio: **24 localizados** · **29 mixtos** · **165 a escala de paisaje**. La escala del cambio no confirma su causa (uso público vs. clima).
+- **SNTO no deriva ninguna asignación monetaria por sendero a partir de la señal satelital.** Un presupuesto de intervención exigiría un protocolo de evidencia y costes propio (uso público medido + validación de campo #26), aún no ejecutado. Marco de decisión: `docs/PNSG_DECISION_EVIDENCE_BRIEF.md`.
 - Salud ecológica media en verano: **88.5/100** sobre 1.035 km analizados.
-- Zona PRUG de atención prioritaria (mayor protección con deterioro activo): **Zona de Uso Restringido**.
+- Zona PRUG a vigilar primero (mayor nivel de protección con señal de cambio activa): **Zona de Uso Restringido**. Señala dónde mirar, no un incumplimiento ni una asignación de gasto.
 - Cobertura socioeconómica: **34 municipios** del entorno del Parque.
 <!-- /SNTO:AUTO:resultados -->
 

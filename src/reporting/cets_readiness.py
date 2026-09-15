@@ -299,7 +299,10 @@ _PRINCIPLES: tuple[_Requirement, ...] = (
         key="p03_patrimonio",
         title="3 · Proteger y potenciar el patrimonio natural y cultural",
         snto_module="`src/metrics/`, `src/spatial_causality/`, `src/intervention/`",
-        indicator="EHS + atribución causal + presupuesto de restauración",
+        indicator=(
+            "EHS + señal de cambio ambiental (sin atribución causal automatizada "
+            "ni asignación presupuestaria por sendero)"
+        ),
         coverage=Coverage.CORE,
         signal=SIGNAL_SATELLITE,
         note="Aportación diferencial máxima del sistema.",
