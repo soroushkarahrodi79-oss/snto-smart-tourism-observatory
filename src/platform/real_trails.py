@@ -105,7 +105,8 @@ class RealTrail:
     # Enriquecimiento PRUG (solo PNSG; None en territorios sin zonificación)
     prug_zone: Optional[str] = None
     prug_protection_weight: Optional[float] = None
-    priority_index: Optional[float] = None   # LEGACY (100−salud)×peso: descriptor, no gasto
+    # LEGACY (100−salud)×peso: descriptor, no un orden de gasto (ver budget_eur arriba)
+    priority_index: Optional[float] = None
 
     # ── Derivados ──
     @property
