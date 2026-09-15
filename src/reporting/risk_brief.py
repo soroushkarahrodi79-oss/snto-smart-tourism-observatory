@@ -15,7 +15,11 @@ ranking (``src/ranking``) and the real satellite trend with its v1.3.0
 confidence layer (``src/platform/satellite_trends``) — into that brief. It
 chains, per priority asset:
 
-    ecological state → probable cause → confidence → priority → budget
+    ecological state → probable cause → confidence → priority → follow-up action
+
+SNTO deliberately does **not** chain this to a per-asset monetary allocation:
+an environmental signal, even a real one, does not by itself support a spending
+recommendation (see docs/PNSG_DECISION_EVIDENCE_BRIEF.md).
 
 The **confidence** column is the v1.3.0 contribution: it is derived from the
 statistical evidence (trend significance + Sen's-slope 95% CI), not asserted.
@@ -85,7 +89,6 @@ class BriefEntry:
     confidence: Confidence
     confidence_basis: str        # one line explaining the confidence verdict
     recommended_action: str
-    budget_eur: float | None
     owner: str | None
 
 
@@ -173,7 +176,6 @@ def build_risk_brief(
     alerts: list[Alert],
     ranked: list[RankedAsset],
     trends: list[AssetTrend] | None = None,
-    budgets: dict[str, float] | None = None,
     owners: dict[str, str] | None = None,
     *,
     park_label: str = "PNSG",
@@ -184,12 +186,11 @@ def build_risk_brief(
 
     Only assets at or above ``min_percentile`` (worst half by default) become
     brief entries — a director wants the short list, not the portfolio dump.
-    ``trends``/``budgets``/``owners`` are optional; missing data degrades to an
-    explicit "sin datos"/"pendiente" rather than a fabricated value.
+    ``trends``/``owners`` are optional; missing data degrades to an explicit
+    "sin datos"/"pendiente" rather than a fabricated value.
     """
     if report_date is None:
         report_date = date.today().isoformat()
-    budgets = budgets or {}
     owners = owners or {}
 
     scores_by_id = {s.asset_id: s for s in scores}
@@ -236,12 +237,10 @@ def build_risk_brief(
                 confidence=confidence,
                 confidence_basis=confidence_basis,
                 recommended_action=action,
-                budget_eur=budgets.get(r.asset_id),
                 owner=owners.get(r.asset_id),
             )
         )
 
-    total_budget = sum(e.budget_eur for e in entries if e.budget_eur is not None)
     return {
         "metadata": {
             "report_date": report_date,
@@ -255,11 +254,11 @@ def build_risk_brief(
             "Estado ecológico y prioridad derivan del EHS y del ranking de riesgo. "
             "La confianza se calcula sobre la evidencia estadística de la tendencia "
             "satelital real (significancia + IC 95% de Sen, v1.3.0). La causa probable "
-            "es una atribución preliminar no validada en campo. El presupuesto es "
-            "orientativo y requiere calibración local."
+            "es una atribución preliminar no validada en campo. SNTO no deriva "
+            "ninguna asignación monetaria por activo de estas señales: un "
+            "presupuesto exigiría un protocolo de evidencia y costes propio."
         ),
         "portfolio_worst_ndvi_year": portfolio_worst_year,
-        "total_indicative_budget_eur": round(total_budget, 2) if total_budget else None,
         "entries": [e.__dict__ | {
             "probable_cause": e.probable_cause.value,
             "confidence": e.confidence.value,
@@ -283,27 +282,18 @@ def render_risk_brief_markdown(brief: dict) -> str:
     ]
     _cols = [
         "#", "Activo", "Estado ecológico", "Causa probable", "Confianza",
-        "Prioridad", "Acción", "Coste (€)", "Responsable",
+        "Prioridad", "Acción", "Responsable",
     ]
     lines.append("| " + " | ".join(_cols) + " |")
     lines.append("|" + "|".join("---" for _ in _cols) + "|")
     for e in brief["entries"]:
-        budget = (
-            f"{e['budget_eur']:,.0f}" if e["budget_eur"] is not None else "pendiente"
-        )
         owner = e["owner"] or "sin asignar"
         lines.append(
             f"| {e['rank']} | {e['asset_id']} | {e['ecological_state']} | "
             f"{e['probable_cause']} | {e['confidence']} | {e['priority_level']} | "
-            f"{e['recommended_action']} | {budget} | {owner} |"
+            f"{e['recommended_action']} | {owner} |"
         )
     lines.append("")
-    if brief["total_indicative_budget_eur"]:
-        lines.append(
-            f"**Presupuesto orientativo total:** "
-            f"{brief['total_indicative_budget_eur']:,.0f} €"
-        )
-        lines.append("")
     lines.append("### Notas de confianza y causa (por activo)")
     lines.append("")
     for e in brief["entries"]:

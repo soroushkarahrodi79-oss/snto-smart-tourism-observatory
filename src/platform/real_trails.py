@@ -95,12 +95,17 @@ class RealTrail:
     health_summer: Optional[float]
     delta_health: Optional[float]
     scm_class: Optional[str]
+    # LEGACY / NO-DECISIÓN: budget_eur y priority_index se conservan sólo para
+    # reproducibilidad del Pipeline A. NO se exponen como recomendación de gasto
+    # ni como ranking de gestión en ninguna superficie institucional: SNTO no
+    # deriva asignación monetaria por sendero de la señal satelital
+    # (ver docs/PNSG_DECISION_EVIDENCE_BRIEF.md).
     budget_eur: Optional[float]
     geometry: dict[str, Any]   # GeoJSON geometry (LineString/MultiLineString) WGS84
     # Enriquecimiento PRUG (solo PNSG; None en territorios sin zonificación)
     prug_zone: Optional[str] = None
     prug_protection_weight: Optional[float] = None
-    priority_index: Optional[float] = None   # (100−salud) × peso_protección
+    priority_index: Optional[float] = None   # LEGACY (100−salud)×peso: descriptor, no gasto
 
     # ── Derivados ──
     @property
@@ -312,7 +317,6 @@ def build_real_trails_geojson(dataset: RealTrailDataset) -> dict[str, Any]:
                 "delta_health": round(t.delta_health, 1) if t.delta_health is not None else "—",
                 "scm": t.scm_label_es,
                 "priority": t.priority_label,
-                "budget": f"€{t.budget_eur:,.0f}" if t.budget_eur is not None else "—",
                 "prug": t.prug_zone or "—",
                 "line_color": color,
             },

@@ -156,20 +156,20 @@ def test_brief_carries_confidence_and_cause():
     assert climate["probable_cause"] == ProbableCause.CLIMATE.value
 
 
-def test_brief_budget_and_owner_optional():
+def test_brief_owner_optional_and_no_monetary_allocation():
     scores, alerts, ranked, trends = _fixture()
     brief = build_risk_brief(
         scores, alerts, ranked, trends,
-        budgets={"high_risk": 12000.0},
         owners={"high_risk": "Guardería PNSG"},
         min_percentile=50.0,
     )
-    assert brief["total_indicative_budget_eur"] == 12000.0
+    # SNTO no longer derives any per-asset monetary allocation from these signals.
+    assert "total_indicative_budget_eur" not in brief
+    assert all("budget_eur" not in e for e in brief["entries"])
+    assert "no deriva" in brief["evidence_note"].lower()
     top = brief["entries"][0]
-    assert top["budget_eur"] == 12000.0
     assert top["owner"] == "Guardería PNSG"
-    # missing budget/owner degrade explicitly, not fabricated
-    assert brief["entries"][1]["budget_eur"] is None
+    # missing owner degrades explicitly, not fabricated
     assert brief["entries"][1]["owner"] is None
 
 
@@ -185,8 +185,10 @@ def test_render_markdown_contains_director_columns():
     md = render_risk_brief_markdown(brief)
     assert "Informe de riesgo para dirección" in md
     for col in [
-        "Estado ecológico", "Causa probable", "Confianza", "Prioridad", "Coste",
+        "Estado ecológico", "Causa probable", "Confianza", "Prioridad", "Acción",
     ]:
         assert col in md
     assert "high_risk" in md
-    assert "pendiente" in md  # climate_case has no budget → explicit placeholder
+    # No monetary column is rendered; missing owner degrades to an explicit label.
+    assert "Coste (€)" not in md
+    assert "sin asignar" in md

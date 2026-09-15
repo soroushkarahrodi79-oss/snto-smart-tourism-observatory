@@ -78,7 +78,6 @@ class BriefRow:
     alert_label: str
     trend_label: str
     recommended_action: str
-    budget_eur: float | None
 
 
 def _priority_key(asset: TerritorialAsset) -> tuple:
@@ -139,11 +138,9 @@ def build_territorial_brief(
                 alert_label=_alert_label(a.alert_level),
                 trend_label=_trend_label(a.trend_direction),
                 recommended_action=a.recommended_action_label or "pendiente de definir",
-                budget_eur=a.budget_estimate_eur,
             )
         )
 
-    total_budget = sum(r.budget_eur for r in rows if r.budget_eur is not None)
     brief = {
         "metadata": {
             "report_date": report_date,
@@ -155,13 +152,13 @@ def build_territorial_brief(
         },
         "evidence_note": (
             "EHS y riesgo son las señales calibradas del panel (EHS curado con "
-            "inyección Sentinel-2 real donde el satélite observa más degradación); "
-            "el tier y la alerta derivan de ellas. La acción recomendada y el "
-            "presupuesto son orientativos y requieren calibración local. Ningún "
-            "activo está validado en campo (campaña #26 pendiente): «tendencia "
-            "satelital real» no equivale a «validado en campo»."
+            "inyección Sentinel-2 real donde el satélite observa más cambio "
+            "ambiental); el tier y la alerta derivan de ellas. La acción "
+            "recomendada es de seguimiento/investigación. **SNTO no deriva ninguna "
+            "asignación monetaria por activo de estas señales.** Ningún activo está "
+            "validado en campo (campaña #26 pendiente): «tendencia satelital real» "
+            "no equivale a «validado en campo»."
         ),
-        "total_indicative_budget_eur": round(total_budget, 2) if total_budget else None,
         "entries": [r.__dict__ for r in rows],
     }
     if not public_reporting_authorized:
@@ -171,8 +168,7 @@ def build_territorial_brief(
         brief["demo_warning"] = (
             "🧪 SINTÉTICO · DEMO · NO PUBLICAR — La clase de evidencia de esta "
             "cartera no autoriza reporte público. Las entradas son salidas del "
-            "motor SNTO sobre datos de demostración, no hallazgos institucionales; "
-            "los importes son cálculos sintéticos, no gasto público propuesto."
+            "motor SNTO sobre datos de demostración, no hallazgos institucionales."
         )
     return brief
 
@@ -204,14 +200,9 @@ def render_territorial_brief_markdown(brief: dict) -> str:
     _action_col = (
         "Acción recomendada" if _authorized else "Salida sintética (motor)"
     )
-    _budget_col = (
-        "Coste orientativo (€)"
-        if _authorized
-        else "Cálculo sintético (€, no gasto propuesto)"
-    )
     cols = [
         "#", "Activo", "EHS", "Riesgo", "Tier", "Alerta", "Tendencia",
-        _action_col, _budget_col,
+        _action_col,
     ]
     lines.append("| " + " | ".join(cols) + " |")
     lines.append("|" + "|".join("---" for _ in cols) + "|")
@@ -223,26 +214,11 @@ def render_territorial_brief_markdown(brief: dict) -> str:
             if e["tier"] is not None
             else "sin clasificar"
         )
-        budget = (
-            f"{e['budget_eur']:,.0f}" if e["budget_eur"] is not None else "pendiente"
-        )
         lines.append(
             f"| {e['rank']} | {e['name']} | {ehs} | {risk} | {tier} | "
-            f"{e['alert_label']} | {e['trend_label']} | {e['recommended_action']} | "
-            f"{budget} |"
+            f"{e['alert_label']} | {e['trend_label']} | {e['recommended_action']} |"
         )
     lines.append("")
-    if brief["total_indicative_budget_eur"]:
-        _budget_lbl = (
-            "Presupuesto orientativo total"
-            if _authorized
-            else "Suma sintética total (demostración, no gasto propuesto)"
-        )
-        lines.append(
-            f"**{_budget_lbl}:** "
-            f"{brief['total_indicative_budget_eur']:,.0f} €"
-        )
-        lines.append("")
     if _authorized:
         lines.append(
             "_Informe orientativo generado por SNTO. No sustituye la inspección de "

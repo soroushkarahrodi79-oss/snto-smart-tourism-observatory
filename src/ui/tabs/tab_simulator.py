@@ -32,6 +32,14 @@ def render_tab_simulator(base_comps, assets_by_id, base_budget, ranked_assets, _
         "anual queda protegida frente al riesgo de degradación. La asignación se "
         "optimiza por TIS con verificación de evidencia (DCS Gate)."
     )
+    st.info(
+        "🧪 **Simulación sintética (Pipeline B), no una recomendación.** Opera sobre "
+        "activos sintéticos calibrados y un presupuesto que tú introduces. **No es una "
+        "asignación de gasto derivada de la señal satelital** ni una recomendación de "
+        "inversión por sendero; es una herramienta *what-if* de planificación. "
+        "Marco de decisión con datos reales: `docs/PNSG_DECISION_EVIDENCE_BRIEF.md`.",
+        icon="🧪",
+    )
 
     # ── Supuestos editables y comparación de carteras ─────────────────────────
     with st.expander("⚙️ Supuestos editables del escenario", expanded=True):

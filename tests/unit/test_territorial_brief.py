@@ -66,21 +66,16 @@ def test_brief_orders_worst_first_by_tier() -> None:
     assert brief["entries"][0]["rank"] == 1
 
 
-def test_missing_budget_and_action_degrade_explicitly() -> None:
+def test_no_per_asset_monetary_allocation_is_surfaced() -> None:
     brief = build_territorial_brief(
         _portfolio(), territory_name="PNSG", report_date="2026-07-20"
     )
-    low = next(e for e in brief["entries"] if e["asset_id"] == "a-low")
-    assert low["budget_eur"] is None  # never fabricated
+    # SNTO no longer surfaces a per-asset budget as a recommended allocation.
+    assert all("budget_eur" not in e for e in brief["entries"])
+    assert "total_indicative_budget_eur" not in brief
     md = render_territorial_brief_markdown(brief)
-    assert "pendiente" in md  # missing budget rendered as placeholder
-
-
-def test_total_budget_sums_only_present_values() -> None:
-    brief = build_territorial_brief(
-        _portfolio(), territory_name="PNSG", report_date="2026-07-20"
-    )
-    assert brief["total_indicative_budget_eur"] == 12000.0
+    assert "Coste orientativo (€)" not in md
+    assert "no deriva ninguna asignación monetaria" in md.lower()
 
 
 def test_metadata_carries_territory_and_count() -> None:
@@ -93,14 +88,16 @@ def test_metadata_carries_territory_and_count() -> None:
 
 def test_markdown_never_claims_field_validation() -> None:
     # Use a REAL portfolio so the authorized institutional rendering (with its
-    # "Coste"/"Acción recomendada" columns) is what is exercised here.
+    # "Acción recomendada" column) is what is exercised here.
     brief = build_territorial_brief(_real_portfolio(), territory_name="PNSG")
     md = render_territorial_brief_markdown(brief)
     assert "Resumen ejecutivo del panel" in md
     # honesty guardrail: the evidence note explicitly denies field validation
     assert "validado en campo" in md
-    for col in ["EHS", "Riesgo", "Tier", "Alerta", "Coste"]:
+    for col in ["EHS", "Riesgo", "Tier", "Alerta"]:
         assert col in md
+    # no monetary column is surfaced
+    assert "Coste orientativo (€)" not in md
 
 
 # ── Public-reporting evidence gate (Phase 0.5E / I-5) ────────────────────────
@@ -115,7 +112,6 @@ def test_synthetic_portfolio_not_public_reporting_authorized() -> None:
     assert "SINTÉTICO" in md
     # Action/budget columns are reframed as synthetic engine output.
     assert "Salida sintética (motor)" in md
-    assert "no gasto propuesto" in md
 
 
 def test_real_portfolio_is_public_reporting_authorized() -> None:
@@ -124,15 +120,15 @@ def test_real_portfolio_is_public_reporting_authorized() -> None:
     assert "demo_warning" not in brief
     md = render_territorial_brief_markdown(brief)
     assert "NO PUBLICAR" not in md
-    # Existing institutional framing preserved.
+    # Existing institutional framing preserved (minus any monetary allocation).
     assert "Acción recomendada" in md
-    assert "Presupuesto orientativo total" in md
+    assert "Presupuesto orientativo total" not in md
 
 
 def test_empty_portfolio_is_safe() -> None:
     brief = build_territorial_brief([], territory_name="PNSG")
     assert brief["entries"] == []
-    assert brief["total_indicative_budget_eur"] is None
+    assert "total_indicative_budget_eur" not in brief
     md = render_territorial_brief_markdown(brief)
     assert "Cartera de decisión" in md
 
