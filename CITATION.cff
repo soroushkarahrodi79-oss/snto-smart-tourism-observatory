@@ -2,12 +2,15 @@ cff-version: 1.2.0
 message: "Si utilizas este software o sus resultados, por favor cítalo como se indica a continuación."
 title: "SNTO — Smart Nature Tourism Observatory"
 abstract: >-
-  Observatorio de inteligencia territorial de código abierto para uso académico,
-  para la gobernanza regenerativa de destinos de turismo natural. Transforma teledetección
-  Sentinel-2 (NDVI/NDMI) en indicadores ambientales calibrados, atribución
-  causal de la degradación (uso turístico vs. clima) y priorización
-  presupuestaria con nivel de confianza, aplicado al Parque Nacional Sierra de
-  Guadarrama (PNSG) con cartografía oficial OAPN.
+  Observatorio de inteligencia territorial de código abierto para uso académico y
+  apoyo a la gestión de destinos naturales protegidos. Procesa observaciones
+  Sentinel-2 y cartografía oficial para derivar señales ambientales
+  (NDVI/NDMI/EHS) y priorizar seguimiento, investigación e inspección de campo
+  con procedencia e incertidumbre explícitas. En el Parque Nacional Sierra de
+  Guadarrama (PNSG), el techo actual de recomendación es L5a:
+  seguimiento/inspección. El sistema no atribuye causalmente la degradación al
+  uso turístico, no valida impacto turístico, no recomienda cierres o cuotas y
+  no asigna presupuesto; la validación de campo sigue pendiente.
 type: software
 authors:
   - given-names: Soroush
