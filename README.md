@@ -30,9 +30,9 @@ La mayoría de los espacios naturales protegidos gestionan el impacto del turism
 
 <div align="center">
 
-![Dashboard ejecutivo SNTO](docs/screenshot-dashboard.png)
+![SNTO audit dashboard for Sierra de Guadarrama showing alert cards and environmental condition indicators; the alert and budget scenario values are synthetic.](docs/screenshot-dashboard.png)
 
-_Vista de auditoría del prototipo. Las alertas y las cifras de presupuesto del escenario son sintéticas; no representan condiciones observadas del PNSG ni recomendaciones de gestión. Desplegado en Azure Container Apps (Sweden Central)._
+_Vista de auditoría del prototipo. EHS/NDVI se deriva de observaciones reales de Sentinel‑2; las alertas y cifras de presupuesto del escenario mostradas aquí son sintéticas y no representan condiciones observadas del PNSG ni recomendaciones de gestión. Desplegado en Azure Container Apps (Sweden Central)._ 
 
 </div>
 
