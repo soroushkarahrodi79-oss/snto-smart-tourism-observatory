@@ -2,19 +2,15 @@
 
 # 🏔 SNTO — Smart Nature Tourism Observatory
 
-**Evidence-first decision intelligence for protected areas.**
+**Sentinel-2 environmental signals for protected-area monitoring and field-inspection scoping.**
 
-Observaciones Sentinel-2 e índices ambientales derivados (EHS/NDVI) sobre el **Parque Nacional Sierra de Guadarrama (PNSG)**, con priorización de seguimiento e inspección de campo — sin atribución causal automatizada del origen de la degradación ni asignación presupuestaria.
+For Sierra de Guadarrama, SNTO derives EHS/NDVI environmental-condition and change indicators from Sentinel-2 observations alongside official spatial context. These signals can inform where to investigate; they do not measure visitor pressure, establish tourism causation, validate field conditions, or authorize management action.
 
 [![CI](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml/badge.svg)](https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-1058%20passing%20%C2%B7%201%20skipped-brightgreen)](#8-tests)
-[![Python](https://img.shields.io/badge/python-%E2%89%A53.12-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/uso-acad%C3%A9mico%20%2F%20source--available-lightgrey)](LICENSE)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20818269-1682D4?logo=zenodo&logoColor=white)](https://doi.org/10.5281/zenodo.20818269)
 
-**🔴 [Dashboard en vivo](https://snto-observatory.happyground-be027676.swedencentral.azurecontainerapps.io/)** · 🧾 [DOI](https://doi.org/10.5281/zenodo.20818269) · 📄 [Whitepaper](WHITEPAPER_SNTO_Architecture_Blueprint.md) · 🏗 [Arquitectura](ARCHITECTURE.md)
-
-**218 senderos analizados** (cartografía oficial OAPN, PNSG) · **1058 tests passing, 0 regresiones** · **serie Sentinel-2 real 2021–2026** sobre 21 activos · **DOI Zenodo permanente**
+**[Open the live dashboard](https://snto-observatory.happyground-be027676.swedencentral.azurecontainerapps.io/)** · [DOI record](https://doi.org/10.5281/zenodo.20818269) · [Method and evidence limits](docs/PNSG_DECISION_EVIDENCE_BRIEF.md)
 
 </div>
 
@@ -36,7 +32,7 @@ La mayoría de los espacios naturales protegidos gestionan el impacto del turism
 
 ![Dashboard ejecutivo SNTO](docs/screenshot-dashboard.png)
 
-_Shell de 4 capas de decisión (Fase 6, v2.0) — Decidir · Diagnosticar · Evidenciar · **Gobernar**, aquí en la vista **Auditoría científica** sobre «Metodología y auditoría», con la puerta de validación satélite↔campo (v2.5) y el panel de alertas activas del PNSG. Desplegado en Azure Container Apps (Sweden Central)._
+_Vista de auditoría del prototipo. Las alertas y las cifras de presupuesto del escenario son sintéticas; no representan condiciones observadas del PNSG ni recomendaciones de gestión. Desplegado en Azure Container Apps (Sweden Central)._
 
 </div>
 

@@ -1,6 +1,6 @@
 """
-SNTO — Smart Natural Tourism Observatory
-Executive Destination Intelligence Dashboard  (Phase 7)
+SNTO — Smart Nature Tourism Observatory
+Sentinel-2 environmental monitoring and field-inspection evidence for protected areas.
 
 Levanta el servidor con:
     streamlit run app.py
