@@ -42,10 +42,15 @@ on:
   # checkout del HEAD por defecto en vez del SHA del run de CI; ambos se
   # corrigen aquí (branches: [main] + condición de conclusión + DEPLOY_SHA).
   # workflow_dispatch queda como vía manual de emergencia/rollback.
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
-    branches: [main]
+  # SUSPENDIDO (2026-11): el despliegue en Azure se detuvo por coste. El
+  # disparador automático encadenado a CI queda DESACTIVADO para que un merge a
+  # main no reconstruya imágenes en ACR ni haga `az containerapp update`.
+  # Para reactivarlo, restaurar el bloque workflow_run de abajo (decisión del
+  # propietario, con coste asumido):
+  #   workflow_run:
+  #     workflows: [CI]
+  #     types: [completed]
+  #     branches: [main]
   workflow_dispatch: {}
 
 permissions:
