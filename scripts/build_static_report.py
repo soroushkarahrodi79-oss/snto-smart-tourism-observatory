@@ -61,6 +61,11 @@ _DEFAULT_TREND = ("Sin tendencia significativa", "dot")
 _COLOR = {"up": "#1b7f5c", "down": "#b4531a", "dot": "#6b7280"}
 
 
+def _fmt_p(p: float) -> str:
+    """p to 3 decimals; below 0.001 show ``<0.001`` (never a misleading 0.000)."""
+    return "<0.001" if p < 0.001 else f"{p:.3f}"
+
+
 def _trend_label(t: AssetTrend) -> tuple[str, str]:
     if not t.significant:
         return _DEFAULT_TREND
@@ -198,14 +203,14 @@ def build_html() -> str:
             f'<td><span class="tag {shape}">{_marker_html(shape)} {html.escape(label)}</span></td>'
             f"<td>{_spark(years, shape)}</td>"
             f'<td class="num">{t.n_observations}</td>'
-            f'<td class="num">{t.p_value:.3f}</td>'
+            f'<td class="num">{html.escape(_fmt_p(t.p_value))}</td>'
             f'<td class="num">{slope}<span class="sub">IC95 {ci}</span></td>'
             "</tr>"
         )
 
     return _TEMPLATE.format(
         version=html.escape(__version__),
-        d0=d0, d1=d1, n_rows=n_rows,
+        d0=d0, d1=d1, y0=d0[:4], y1=d1[:4], n_rows=n_rows,
         n_assets=len(trends), n_up=n_up, n_down=n_down, n_flat=n_flat,
         map_svg=_map_svg(fc["features"], shapes),
         rows="\n".join(rows),
@@ -311,7 +316,7 @@ a{{color:inherit}}
 </ul>
 
 <footer>
-Contiene datos Copernicus Sentinel-2 modificados (2025-2026). Software y documentación bajo la licencia del repositorio (ver LICENSE); los datos de terceros conservan sus licencias originales.
+Contiene datos Copernicus Sentinel-2 modificados ({y0}-{y1}). Software y documentación bajo la licencia del repositorio (ver LICENSE); los datos de terceros conservan sus licencias originales.
 </footer>
 </main>
 </body>

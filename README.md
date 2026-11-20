@@ -89,7 +89,7 @@ _Vista de auditoría del prototipo. EHS/NDVI se deriva de observaciones reales d
 | **v3.0 — Contrato OpenAPI publicado** (`main`, dev) | — | ✅ [`docs/api/openapi.json`](docs/api/openapi.json) (OpenAPI 3.1, 21 rutas, 38 esquemas) generado desde el código y verificado en CI, con [guía de integración](docs/api/README.md). Habilita evaluar la integración GIS/BI (ADR-008) **sin desplegar**: el despliegue sigue gobernado por ADR-012 |
 | **Cliente móvil** (`mobile/`, Expo + TypeScript) | PNSG | ✅ Fase 1 (ADR-013) shell nativo sobre fixtures sintéticas + Fase 2 (ADR-014) repositorio HTTP real sobre `/api/v2`; **por defecto en modo sintético** salvo `EXPO_PUBLIC_SNTO_USE_REMOTE_API=true`. CI propia, desacoplada de la de Python |
 | **Dashboard ejecutivo** | PNSG | ✅ Código completo (shell de 4 capas), se ejecuta en local. ⏸️ **Despliegue público en Azure suspendido** por coste; no hay URL pública operativa |
-| **CI/CD** | — | ✅ GitHub Actions → CI verde **gatea** el deploy → ACR build → roll Container App |
+| **CI/CD** | — | ✅ CI en GitHub Actions (activo). ⏸️ Deploy a Azure (ACR build → roll Container App) **suspendido y solo manual**; el encadenado «CI verde → deploy» era el diseño histórico |
 | **Tests** | — | ✅ 1058 passing, 1 skipped, 0 regresiones (suite verde, ver §8) |
 
 El Pipeline A produce indicadores ambientales reales: el **PNSG** es el territorio principal del observatorio y la **Reserva de la Biosfera Sierra del Rincón** se conserva como piloto de calibración metodológica — **el pipeline se ha ejecutado sobre escenas Sentinel-2 reales de un segundo territorio, lo que no equivale a una validación de campo del método**. El Pipeline B demuestra el sistema de gobernanza de extremo a extremo sobre activos sintéticos. Ambos pipelines están diseñados para integrarse; el Pipeline A ya dispone de una serie temporal real 2021–2026 para 21 activos (v1.1.0, §9), pero la integración con el Pipeline B —aplicar su capa de gobernanza de 7 fases sobre activos reales del PNSG, en vez de los 20 activos sintéticos de Villuercas-Ibores-Jara— sigue pendiente. Desde v1.2.0, el método **se ha aplicado y ejecutado** en un piloto de dos biomas contrastados de la **Red de Parques Nacionales (OAPN)** (Tablas de Daimiel, Monfragüe) — series Sentinel-2 procesadas, sin validación de campo ni confirmación de transferencia entre biomas; el resto de la Red queda preparado como plantillas GEE para fases posteriores.
@@ -204,7 +204,7 @@ class F,G,H,I,J dash;
 - **Persistencia:** SQLAlchemy 2.0 + Alembic (PostgreSQL en producción, SQLite en dev/CI)
 - **Modelado / análisis:** NumPy, pydantic; capa de forecasting propia (`src/forecasting/`)
 - **Test / calidad:** pytest, pytest-cov, ruff
-- **Infra:** Docker · Azure Container Apps · GitHub Actions (CI/CD)
+- **Infra:** Docker · GitHub Actions (CI) · Azure Container Apps (histórico, despliegue suspendido)
 
 ---
 
@@ -310,7 +310,7 @@ streamlit run app.py          # lanzar el dashboard en local
 
 ## 7. Despliegue
 
-**CI separado del deploy.** El workflow [`ci.yml`](.github/workflows/ci.yml) (lint de módulos mantenidos + import smoke + suite pytest) es la puerta de salud del código y corre en cada `push` y `pull_request` a `main`, **independiente de Azure**. El despliegue [`deploy-azure-container-apps.yml`](.github/workflows/deploy-azure-container-apps.yml) se dispara por `workflow_run` **solo si CI concluye con éxito** (o por dispatch manual): nunca se despliega sobre tests en rojo.
+**CI separado del deploy.** El workflow [`ci.yml`](.github/workflows/ci.yml) (lint de módulos mantenidos + import smoke + suite pytest) es la puerta de salud del código y corre en cada `push` y `pull_request` a `main`, **independiente de Azure**. El workflow de despliegue [`deploy-azure-container-apps.yml`](.github/workflows/deploy-azure-container-apps.yml) está **suspendido: solo se ejecuta manualmente (`workflow_dispatch`)** y ya no se encadena a CI. _Histórico (hasta la suspensión):_ se disparaba por `workflow_run` solo si CI concluía con éxito, de modo que nunca se desplegaba sobre tests en rojo (ADR-009); ese bloque queda comentado en el workflow por si el propietario decide reactivarlo.
 
 > **⏸️ Estado actual (2026-11): despliegue público suspendido.** El propietario detuvo el despliegue en Azure por costes. La suspensión es **operativa, no científica**: el código, las pruebas, los datos derivados versionados (`clean_assets/`), la metodología y el DOI siguen disponibles, y el dashboard se ejecuta en local sin Azure ni PostgreSQL (`streamlit run app.py`; SQLite por defecto). El workflow de despliegue es ahora **solo manual** (`workflow_dispatch`) para que un merge a `main` no reconstruya imágenes ni toque recursos de pago. Alternativas sin coste recurrente evaluadas en [`docs/product/static-demo-options.md`](docs/product/static-demo-options.md); la instantánea estática se regenera con `python scripts/build_static_report.py`.
 
@@ -323,7 +323,7 @@ bash deploy/azure-bootstrap.sh
 # Después, el despliegue se lanza manualmente (workflow_dispatch); ya NO es automático.
 ```
 
-Secrets requeridos en GitHub (`Settings ▸ Secrets and variables ▸ Actions`): `AZURE_CREDENTIALS`, `ACR_NAME`. Ver cabecera de [`.github/workflows/deploy-azure-container-apps.yml`](.github/workflows/deploy-azure-container-apps.yml) para el detalle.
+_Histórico:_ secretos que usaba el workflow en GitHub (`Settings ▸ Secrets and variables ▸ Actions`): `ACR_LOGIN_SERVER`, `ACR_USERNAME`, `ACR_PASSWORD` y, para OIDC, `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` (no existe `AZURE_CREDENTIALS` ni `ACR_NAME`). Ver cabecera de [`.github/workflows/deploy-azure-container-apps.yml`](.github/workflows/deploy-azure-container-apps.yml) para el detalle.
 
 > **Dashboard en vivo:** _ninguno operativo._ La URL antigua en `azurecontainerapps.io` corresponde al despliegue suspendido y no debe darse por funcional.
 

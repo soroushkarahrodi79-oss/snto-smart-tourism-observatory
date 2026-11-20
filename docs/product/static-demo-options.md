@@ -27,7 +27,7 @@
 | Reproducibilidad científica | Alta | Media | **Alta** (determinista, sin red) | Media |
 | Limitación | Requiere instalar | Reconstrucción de front: **no** ahora | Solo evidencia L2; no interactivo | Dependencia de terceros; ya hubo un coste «≈0» que no lo fue |
 
-**Recomendación: C (informe estático autónomo), publicable luego vía B sin cambios** (es un único `site/index.html` sin dependencias), más A como vía de reproducción. D se descarta de momento: añade una dependencia de plataforma para mostrar lo mismo.
+**Recomendación: C (informe estático autónomo), publicable luego vía B sin cambios** (es un único `site/index.html` sin dependencias; ver procedimiento en §6), más A como vía de reproducción. D se descarta de momento: añade una dependencia de plataforma para mostrar lo mismo.
 
 ## 3. Prototipo incluido
 
@@ -53,5 +53,17 @@ Detener la app **no** garantiza coste cero. Comprobar en Azure Portal (solo lect
 
 1. Revisar y fusionar esta PR (manual).
 2. Ejecutar la comprobación de facturación de §5.
-3. Si se quiere URL pública: GitHub Pages (Settings → Pages → carpeta `site/`) — gratuito en repos públicos; decisión del propietario.
+3. Si se quiere URL pública (decisión del propietario; **no ejecutado en esta PR**): GitHub Pages desde una rama dedicada. Pages «desde rama» solo admite la raíz o `/docs`, no `site/`, así que el HTML va en la raíz de `gh-pages`:
+   ```bash
+   python scripts/build_static_report.py            # regenera site/index.html
+   git worktree add --detach ../snto-pages          # copia de trabajo aparte
+   cd ../snto-pages
+   git switch --orphan gh-pages                     # rama sin historial; árbol vacío
+   cp ../snto-smart-tourism-observatory/site/index.html index.html
+   touch .nojekyll
+   git add index.html .nojekyll
+   git commit -m "Publish static snapshot"
+   git push -u origin gh-pages
+   ```
+   Después: **Settings → Pages → Build and deployment → Source: Deploy from a branch → `gh-pages` / `/ (root)`**. Para actualizar: repetir copia + commit + push en `gh-pages`. Los repos privados requieren un plan de pago para Pages; en uno público es gratuito. Para retirarlo: borrar la rama `gh-pages` o desactivar Pages.
 4. Campaña de campo #26 (independiente de todo lo anterior).

@@ -37,3 +37,20 @@ def test_evidence_caveats_present_and_no_overclaim():
 def test_all_assets_rendered():
     assert HTML.count("<tr>") == 22  # header + 21 assets
     assert HTML.count("<polygon") + HTML.count("<circle") == 21
+
+
+def test_small_p_not_shown_as_zero():
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from build_static_report import _fmt_p
+
+    assert _fmt_p(0.0) == "<0.001"
+    assert _fmt_p(0.0009) == "<0.001"
+    assert _fmt_p(0.001) == "0.001"
+    assert _fmt_p(0.0425) == "0.043"
+    cells = re.findall(r'<td class="num">([^<]*)</td>', HTML)
+    assert "0.000" not in cells
+    assert "&lt;0.001" in cells
+
+
+def test_copernicus_years_match_data_span():
+    assert "modificados (2021-2026)" in HTML
