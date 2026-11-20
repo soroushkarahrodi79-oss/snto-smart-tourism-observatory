@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SNTO — Instantánea estática de evidencia Sentinel-2 (PNSG)</title>
+<meta name="description" content="Instantánea estática y reproducible de las tendencias NDVI Sentinel-2 de 21 activos del PNSG. No es el dashboard interactivo ni una validación de campo.">
+<style>
+:root{--bg:#fafaf7;--fg:#1c2330;--mut:#5b6472;--line:#d9dde3;--card:#fff;--warn:#fff4e0;--warnb:#e0b46b}
+@media (prefers-color-scheme:dark){:root{--bg:#14181f;--fg:#e8ebf0;--mut:#a1a9b6;--line:#2c3340;--card:#1b2029;--warn:#2b2417;--warnb:#7a5f2c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1040px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.5rem;margin:.2em 0} h2{font-size:1.15rem;margin:1.6em 0 .5em}
+.lead{color:var(--mut);margin:.2em 0 1em}
+.notice{background:var(--warn);border:1px solid var(--warnb);border-radius:8px;padding:12px 14px;margin:14px 0}
+.notice ul{margin:.4em 0 0;padding-left:1.2em}
+.grid{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:820px){.grid{grid-template-columns:minmax(0,5fr) minmax(0,4fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.kpis{display:flex;flex-wrap:wrap;gap:10px;margin:0;padding:0;list-style:none}
+.kpis li{flex:1 1 130px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.kpis b{display:block;font-size:1.4rem}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.92rem}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+thead th{position:sticky;top:0;background:var(--card);font-size:.8rem;color:var(--mut);text-transform:uppercase;letter-spacing:.03em}
+th[scope=row]{font-weight:600}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.sub{display:block;font-weight:400;color:var(--mut);font-size:.78rem}
+.tag.up{color:#1b7f5c} .tag.down{color:#b4531a} .tag.dot{color:var(--mut)}
+.tag{white-space:nowrap;font-weight:600}
+.spark{width:120px;height:30px}
+svg{max-width:100%;height:auto}
+footer{color:var(--mut);font-size:.85rem;margin-top:28px;border-top:1px solid var(--line);padding-top:14px}
+a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+<h1>SNTO — Instantánea estática de evidencia Sentinel-2</h1>
+<p class="lead">Parque Nacional de la Sierra de Guadarrama (PNSG) · 21 activos · serie mensual 2021-01-01 → 2026-06-01 · generada desde el código v2.1.0.dev0</p>
+
+<div class="notice" role="note">
+<strong>Qué es y qué no es esta página.</strong> Es una instantánea reproducible, sin servidor ni base de datos, de los resultados ya calculados. <strong>No</strong> es el dashboard interactivo (suspendido por coste de alojamiento; el estado de la ciencia no depende de él).
+<ul>
+<li>Muestra <strong>solo evidencia derivada de Sentinel-2</strong> (índice NDVI; nivel L2 del contrato científico). No incluye alertas, presupuestos, simulaciones ni proyecciones.</li>
+<li>Un cambio de NDVI <strong>no</strong> es presión de visitantes ni impacto turístico: no existe serie de uso a escala de activo y la causa no está establecida.</li>
+<li><strong>Sin validación de campo</strong> (issue #26 pendiente). No es una recomendación de cierre, cupo ni gasto.</li>
+</ul>
+</div>
+
+<ul class="kpis" aria-label="Resumen">
+<li><b>21</b>activos con serie</li>
+<li><b>6</b>NDVI en aumento (p&lt;0,05)</li>
+<li><b>14</b>sin tendencia significativa</li>
+<li><b>1</b>NDVI en descenso (p&lt;0,05)</li>
+</ul>
+
+<h2>Localización y tendencia</h2>
+<div class="grid">
+<div class="card"><svg viewBox="0 0 520 420" role="img" aria-labelledby="mapt mapd" xmlns="http://www.w3.org/2000/svg">
+<title id="mapt">Croquis de localización de los 21 activos del PNSG</title>
+<desc id="mapd">Un punto representativo por activo, sin mapa base; la forma indica la tendencia NDVI (triángulo arriba: aumento, abajo: descenso, círculo: sin tendencia significativa).</desc>
+<rect width="520" height="420" fill="none" stroke="#c9ced6"/>
+<polygon points="326.5,51.5 320.5,63.5 332.5,63.5" fill="#1b7f5c"/>
+<polygon points="383.3,29.8 377.3,41.8 389.3,41.8" fill="#1b7f5c"/>
+<circle cx="312.8" cy="209.8" r="4.8" fill="#6b7280"/>
+<circle cx="192.4" cy="150.6" r="4.8" fill="#6b7280"/>
+<circle cx="181.9" cy="350.8" r="4.8" fill="#6b7280"/>
+<circle cx="278.9" cy="365.9" r="4.8" fill="#6b7280"/>
+<polygon points="234.1,398.0 228.1,386.0 240.1,386.0" fill="#b4531a"/>
+<polygon points="198.8,251.7 192.8,263.7 204.8,263.7" fill="#1b7f5c"/>
+<circle cx="146.3" cy="349.9" r="4.8" fill="#6b7280"/>
+<polygon points="138.3,266.1 132.3,278.1 144.3,278.1" fill="#1b7f5c"/>
+<circle cx="238.6" cy="350.1" r="4.8" fill="#6b7280"/>
+<circle cx="310.9" cy="251.9" r="4.8" fill="#6b7280"/>
+<circle cx="242.8" cy="175.4" r="4.8" fill="#6b7280"/>
+<circle cx="415.6" cy="28.0" r="4.8" fill="#6b7280"/>
+<polygon points="246.5,131.6 240.5,143.6 252.5,143.6" fill="#1b7f5c"/>
+<circle cx="151.1" cy="259.4" r="4.8" fill="#6b7280"/>
+<polygon points="124.1,324.2 118.1,336.2 130.1,336.2" fill="#1b7f5c"/>
+<circle cx="231.5" cy="142.1" r="4.8" fill="#6b7280"/>
+<circle cx="104.4" cy="320.5" r="4.8" fill="#6b7280"/>
+<circle cx="218.1" cy="175.4" r="4.8" fill="#6b7280"/>
+<circle cx="209.8" cy="242.8" r="4.8" fill="#6b7280"/>
+</svg>
+<p class="sub">Croquis sin mapa base (sin teselas externas); cada activo se dibuja en un punto representativo (media de vértices de su geometría real, no su huella). ▲ aumento · ▼ descenso · ● sin tendencia significativa. Forma y color codifican lo mismo.</p></div>
+<div class="card">
+<strong>Cómo leerlo</strong>
+<ul>
+<li>Tendencia: Mann-Kendall sobre NDVI mensual <em>desestacionalizado</em>, con corrección de empates y pendiente de Sen (IC 95 %).</li>
+<li><code>p</code> es aproximada y <strong>no</strong> está corregida por comparaciones múltiples (21 activos).</li>
+<li>El año en curso es parcial y se excluye de la línea anual.</li>
+<li>Es un índice agregado sobre la huella del activo (píxeles Sentinel-2 de 10 m): sensible a nubes residuales, nieve y fenología. Úsese como señal de <em>dónde mirar</em>, no como diagnóstico.</li>
+</ul>
+</div>
+</div>
+
+<h2>Detalle por activo</h2>
+<p class="sub">Orden: primero descensos, luego por p creciente. Línea = NDVI medio anual (años completos).</p>
+<div class="wrap" tabindex="0" aria-label="Tabla de activos (desplazable)">
+<table>
+<thead><tr><th>Activo</th><th>Tendencia NDVI</th><th>Media anual</th><th class="num">N meses</th><th class="num">p</th><th class="num">Pendiente de Sen (NDVI/mes)</th></tr></thead>
+<tbody>
+<tr><th scope="row">Escuela de escalada MALICIOSA-PORRONES<span class="sub">escalada</span></th><td><span class="tag down">▼ NDVI en descenso</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.234, 2022: 0.234, 2023: 0.227, 2024: 0.233, 2025: 0.216"><polyline points="0.0,3.4 30.0,3.0 60.0,12.0 90.0,4.6 120.0,27.0" fill="none" stroke="#b4531a" stroke-width="1.8"/></svg></td><td class="num">65</td><td class="num">&lt;0.001</td><td class="num">-0.00037<span class="sub">IC95 [-0.00050, -0.00023]</span></td></tr>
+<tr><th scope="row">Escuela de escalada VALSAIN<span class="sub">escalada</span></th><td><span class="tag up">▲ NDVI en aumento</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.735, 2022: 0.706, 2023: 0.755, 2024: 0.763, 2025: 0.771"><polyline points="0.0,16.1 30.0,27.0 60.0,9.0 90.0,5.8 120.0,3.0" fill="none" stroke="#1b7f5c" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">0.002</td><td class="num">+0.00060<span class="sub">IC95 [+0.00018, +0.00105]</span></td></tr>
+<tr><th scope="row">El Nevero<span class="sub">vuelo_libre</span></th><td><span class="tag up">▲ NDVI en aumento</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.393, 2022: 0.388, 2023: 0.417, 2024: 0.419, 2025: 0.419"><polyline points="0.0,22.8 30.0,27.0 60.0,4.4 90.0,3.0 120.0,3.2" fill="none" stroke="#1b7f5c" stroke-width="1.8"/></svg></td><td class="num">60</td><td class="num">0.011</td><td class="num">+0.00077<span class="sub">IC95 [+0.00019, +0.00132]</span></td></tr>
+<tr><th scope="row">Umbría de Siete Picos<span class="sub">reserva</span></th><td><span class="tag up">▲ NDVI en aumento</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.560, 2022: 0.582, 2023: 0.672, 2024: 0.659, 2025: 0.646"><polyline points="0.0,27.0 30.0,22.4 60.0,3.0 90.0,5.8 120.0,8.6" fill="none" stroke="#1b7f5c" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">0.014</td><td class="num">+0.00128<span class="sub">IC95 [+0.00026, +0.00232]</span></td></tr>
+<tr><th scope="row">Escuela de escalada PEÑALARA<span class="sub">escalada</span></th><td><span class="tag up">▲ NDVI en aumento</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.226, 2022: 0.204, 2023: 0.234, 2024: 0.251, 2025: 0.241"><polyline points="0.0,15.5 30.0,27.0 60.0,11.8 90.0,3.0 120.0,8.0" fill="none" stroke="#1b7f5c" stroke-width="1.8"/></svg></td><td class="num">65</td><td class="num">0.023</td><td class="num">+0.00055<span class="sub">IC95 [+0.00009, +0.00096]</span></td></tr>
+<tr><th scope="row">Calderuelas - Collado Vihuelas Ramal Circular<span class="sub">ciclismo</span></th><td><span class="tag up">▲ NDVI en aumento</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.627, 2022: 0.605, 2023: 0.650, 2024: 0.649, 2025: 0.658"><polyline points="0.0,17.1 30.0,27.0 60.0,6.7 90.0,6.9 120.0,3.0" fill="none" stroke="#1b7f5c" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">0.024</td><td class="num">+0.00074<span class="sub">IC95 [+0.00009, +0.00126]</span></td></tr>
+<tr><th scope="row">La Nevera<span class="sub">vuelo_libre</span></th><td><span class="tag up">▲ NDVI en aumento</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.420, 2022: 0.395, 2023: 0.440, 2024: 0.471, 2025: 0.436"><polyline points="0.0,18.9 30.0,27.0 60.0,12.6 90.0,3.0 120.0,13.9" fill="none" stroke="#1b7f5c" stroke-width="1.8"/></svg></td><td class="num">63</td><td class="num">0.043</td><td class="num">+0.00068<span class="sub">IC95 [+0.00001, +0.00150]</span></td></tr>
+<tr><th scope="row">Turberas de El Reventón<span class="sub">reserva</span></th><td><span class="tag dot">● Sin tendencia significativa</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.508, 2022: 0.473, 2023: 0.512, 2024: 0.539, 2025: 0.507"><polyline points="0.0,14.3 30.0,27.0 60.0,12.6 90.0,3.0 120.0,14.4" fill="none" stroke="#6b7280" stroke-width="1.8"/></svg></td><td class="num">64</td><td class="num">0.072</td><td class="num">+0.00097<span class="sub">IC95 [-0.00010, +0.00188]</span></td></tr>
+<tr><th scope="row">Charcas de los Llanos de Peñalara<span class="sub">reserva</span></th><td><span class="tag dot">● Sin tendencia significativa</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.312, 2022: 0.261, 2023: 0.321, 2024: 0.338, 2025: 0.304"><polyline points="0.0,10.9 30.0,27.0 60.0,8.4 90.0,3.0 120.0,13.6" fill="none" stroke="#6b7280" stroke-width="1.8"/></svg></td><td class="num">58</td><td class="num">0.088</td><td class="num">+0.00106<span class="sub">IC95 [-0.00017, +0.00232]</span></td></tr>
+<tr><th scope="row">Vivero - Prado Redondillo<span class="sub">ciclismo</span></th><td><span class="tag dot">● Sin tendencia significativa</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.745, 2022: 0.707, 2023: 0.763, 2024: 0.747, 2025: 0.761"><polyline points="0.0,10.6 30.0,27.0 60.0,3.0 90.0,9.9 120.0,4.0" fill="none" stroke="#6b7280" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">0.211</td><td class="num">+0.00034<span class="sub">IC95 [-0.00027, +0.00086]</span></td></tr>
+<tr><th scope="row">La Horizontal - San Mames 10.000<span class="sub">ciclismo</span></th><td><span class="tag dot">● Sin tendencia significativa</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.715, 2022: 0.702, 2023: 0.726, 2024: 0.723, 2025: 0.727"><polyline points="0.0,15.0 30.0,27.0 60.0,4.5 90.0,7.2 120.0,3.0" fill="none" stroke="#6b7280" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">0.336</td><td class="num">+0.00025<span class="sub">IC95 [-0.00028, +0.00084]</span></td></tr>
+<tr><th scope="row">Calderuelas - Carro del Diablo<span class="sub">ciclismo</span></th><td><span class="tag dot">● Sin tendencia significativa</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.691, 2022: 0.663, 2023: 0.689, 2024: 0.680, 2025: 0.699"><polyline points="0.0,8.4 30.0,27.0 60.0,9.6 90.0,15.5 120.0,3.0" fill="none" stroke="#6b7280" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">0.341</td><td class="num">+0.00022<span class="sub">IC95 [-0.00028, +0.00072]</span></td></tr>
+<tr><th scope="row">La Morcuera GR 10.4 PR-M 12<span class="sub">ciclismo</span></th><td><span class="tag dot">● Sin tendencia significativa</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.652, 2022: 0.628, 2023: 0.673, 2024: 0.659, 2025: 0.669"><polyline points="0.0,14.6 30.0,27.0 60.0,3.0 90.0,10.8 120.0,5.2" fill="none" stroke="#6b7280" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">0.352</td><td class="num">+0.00030<span class="sub">IC95 [-0.00028, +0.00099]</span></td></tr>
+<tr><th scope="row">Escuela de escalada PUERTO DE NAVACERRADA<span class="sub">escalada</span></th><td><span class="tag dot">● Sin tendencia significativa</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.636, 2022: 0.642, 2023: 0.655, 2024: 0.653, 2025: 0.664"><polyline points="0.0,27.0 30.0,21.8 60.0,10.6 90.0,12.7 120.0,3.0" fill="none" stroke="#6b7280" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">0.588</td><td class="num">+0.00017<span class="sub">IC95 [-0.00052, +0.00087]</span></td></tr>
+<tr><th scope="row">Escuela de escalada LA PEDRIZA<span class="sub">escalada</span></th><td><span class="tag dot">● Sin tendencia significativa</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.508, 2022: 0.512, 2023: 0.521, 2024: 0.515, 2025: 0.517"><polyline points="0.0,27.0 30.0,18.2 60.0,3.0 90.0,14.0 120.0,10.0" fill="none" stroke="#6b7280" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">0.674</td><td class="num">+0.00008<span class="sub">IC95 [-0.00031, +0.00043]</span></td></tr>
+<tr><th scope="row">Las Zetas de La Pedriza<span class="sub">ciclismo</span></th><td><span class="tag dot">● Sin tendencia significativa</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.663, 2022: 0.665, 2023: 0.664, 2024: 0.665, 2025: 0.670"><polyline points="0.0,27.0 30.0,18.1 60.0,21.5 90.0,19.6 120.0,3.0" fill="none" stroke="#6b7280" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">0.732</td><td class="num">+0.00008<span class="sub">IC95 [-0.00044, +0.00058]</span></td></tr>
+<tr><th scope="row">Afloramientos metamórficos del Collado de la Flecha y cabecera del Artiñuelo<span class="sub">reserva</span></th><td><span class="tag dot">● Sin tendencia significativa</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.590, 2022: 0.553, 2023: 0.607, 2024: 0.593, 2025: 0.592"><polyline points="0.0,10.3 30.0,27.0 60.0,3.0 90.0,9.2 120.0,9.3" fill="none" stroke="#6b7280" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">0.732</td><td class="num">+0.00014<span class="sub">IC95 [-0.00050, +0.00087]</span></td></tr>
+<tr><th scope="row">Umbría de Cerro Ventoso<span class="sub">reserva</span></th><td><span class="tag dot">● Sin tendencia significativa</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.654, 2022: 0.653, 2023: 0.702, 2024: 0.692, 2025: 0.689"><polyline points="0.0,26.1 30.0,27.0 60.0,3.0 90.0,8.0 120.0,9.1" fill="none" stroke="#6b7280" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">0.740</td><td class="num">+0.00021<span class="sub">IC95 [-0.00077, +0.00130]</span></td></tr>
+<tr><th scope="row">Escuela de escalada EL CHORRO<span class="sub">escalada</span></th><td><span class="tag dot">● Sin tendencia significativa</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.411, 2022: 0.379, 2023: 0.399, 2024: 0.414, 2025: 0.410"><polyline points="0.0,5.2 30.0,27.0 60.0,13.4 90.0,3.0 120.0,6.0" fill="none" stroke="#6b7280" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">0.808</td><td class="num">-0.00006<span class="sub">IC95 [-0.00048, +0.00038]</span></td></tr>
+<tr><th scope="row">Escuela de escalada LA BARRANCA Y MALICIOSA<span class="sub">escalada</span></th><td><span class="tag dot">● Sin tendencia significativa</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.351, 2022: 0.352, 2023: 0.356, 2024: 0.364, 2025: 0.363"><polyline points="0.0,27.0 30.0,25.8 60.0,17.5 90.0,3.0 120.0,3.8" fill="none" stroke="#6b7280" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">0.859</td><td class="num">-0.00004<span class="sub">IC95 [-0.00045, +0.00037]</span></td></tr>
+<tr><th scope="row">El Espartal<span class="sub">vuelo_libre</span></th><td><span class="tag dot">● Sin tendencia significativa</span></td><td><svg class="spark" viewBox="0 0 120 30" role="img" aria-label="NDVI medio anual — 2021: 0.414, 2022: 0.396, 2023: 0.418, 2024: 0.417, 2025: 0.400"><polyline points="0.0,7.0 30.0,27.0 60.0,3.0 90.0,4.2 120.0,22.2" fill="none" stroke="#6b7280" stroke-width="1.8"/></svg></td><td class="num">66</td><td class="num">1.000</td><td class="num">+0.00001<span class="sub">IC95 [-0.00079, +0.00070]</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>Procedencia y límites</h2>
+<ul>
+<li><strong>Fuente:</strong> Sentinel-2 L2A (colección GEE <code>S2_SR_HARMONIZED</code>), 1365 observaciones activo-mes; exportación versionada en <code>clean_assets/</code>. Fecha de la última observación: 2026-06-01.</li>
+<li><strong>Clase de evidencia:</strong> derivada de observación satelital real (L2). No es observación de campo.</li>
+<li><strong>Reproducir:</strong> <code>python scripts/build_static_report.py</code> regenera este archivo desde los datos del repositorio, sin red.</li>
+<li><strong>Cita y metodología:</strong> <a href="https://doi.org/10.5281/zenodo.20818269">DOI 10.5281/zenodo.20818269</a> · <a href="https://github.com/soroushkarahrodi79-oss/snto-smart-tourism-observatory">repositorio</a>.</li>
+</ul>
+
+<footer>
+Contiene datos Copernicus Sentinel-2 modificados (2021-2026). Software y documentación bajo la licencia del repositorio (ver LICENSE); los datos de terceros conservan sus licencias originales.
+</footer>
+</main>
+</body>
+</html>

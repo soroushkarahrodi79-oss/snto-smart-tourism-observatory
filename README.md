@@ -10,7 +10,7 @@ For Sierra de Guadarrama, SNTO derives EHS/NDVI environmental-condition and chan
 [![License](https://img.shields.io/badge/uso-acad%C3%A9mico%20%2F%20source--available-lightgrey)](LICENSE)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20818269-1682D4?logo=zenodo&logoColor=white)](https://doi.org/10.5281/zenodo.20818269)
 
-**[Open the live dashboard](https://snto-observatory.happyground-be027676.swedencentral.azurecontainerapps.io/)** · [DOI record](https://doi.org/10.5281/zenodo.20818269) · [Method and evidence limits](docs/PNSG_DECISION_EVIDENCE_BRIEF.md)
+**Estado del alojamiento: dashboard público _suspendido_** (no hay demo en vivo) · [Instantánea estática reproducible](site/index.html) · [Cómo ejecutarlo en local](#instalación-local) · [DOI record](https://doi.org/10.5281/zenodo.20818269) · [Method and evidence limits](docs/PNSG_DECISION_EVIDENCE_BRIEF.md)
 
 </div>
 
@@ -32,7 +32,7 @@ La mayoría de los espacios naturales protegidos gestionan el impacto del turism
 
 ![SNTO audit dashboard for Sierra de Guadarrama showing alert cards and environmental condition indicators; the alert and budget scenario values are synthetic.](docs/screenshot-dashboard.png)
 
-_Vista de auditoría del prototipo. EHS/NDVI se deriva de observaciones reales de Sentinel‑2; las alertas y cifras de presupuesto del escenario mostradas aquí son sintéticas y no representan condiciones observadas del PNSG ni recomendaciones de gestión. Desplegado en Azure Container Apps (Sweden Central)._
+_Vista de auditoría del prototipo. EHS/NDVI se deriva de observaciones reales de Sentinel‑2; las alertas y cifras de presupuesto del escenario mostradas aquí son sintéticas y no representan condiciones observadas del PNSG ni recomendaciones de gestión. Captura histórica del dashboard cuando estuvo desplegado en Azure Container Apps; ese despliegue está hoy suspendido (ver §7)._
 
 </div>
 
@@ -75,7 +75,7 @@ _Vista de auditoría del prototipo. EHS/NDVI se deriva de observaciones reales d
 | **Capa socioeconómica (ALMUDENA / INE)** | PNSG — 34 municipios | ✅ SVI + impacto en comunidad + empleos en riesgo, integrado en el dashboard |
 | **Arquitectura modular del dashboard (Fase 4, #27)** | — | ✅ `app.py` de ~3.170 → ~285 líneas (solo composición); UI extraída a `src/ui/` (`layout.py`, `render_helpers.py`, `render_widgets.py`, un módulo por pestaña en `src/ui/tabs/`) |
 | **Vistas por audiencia (#28)** | — | ✅ Técnica / Gestor / Auditoría con divulgación por capas (`ViewProfile.section()`), pestaña Fundamento modulada, telemetría local opt-in; cifras financieras idénticas entre vistas (verificado) |
-| **Backend persistente (Fase 5, v1.5.0, ADR-011)** | — | ✅ `src/persistence/` (SQLAlchemy 2.0 + Alembic, repositorios tipados), `/api/v2` de lectura+escritura, máquinas de estado de ciclo de vida, rastro de auditoría y auth mínima por API-key; **producción sobre Azure PostgreSQL** (cutover 2026-07-18). El `/api/v2` existe como código + tests, aún no desplegado como servicio |
+| **Backend persistente (Fase 5, v1.5.0, ADR-011)** | — | ✅ `src/persistence/` (SQLAlchemy 2.0 + Alembic, repositorios tipados), `/api/v2` de lectura+escritura, máquinas de estado de ciclo de vida, rastro de auditoría y auth mínima por API-key; en su día **producción sobre Azure PostgreSQL** (cutover 2026-07-18; entorno hoy suspendido, el código funciona con SQLite por defecto). El `/api/v2` existe como código + tests, aún no desplegado como servicio |
 | **UI por roles (Fase 6, v2.0.0)** | — | ✅ 4 capas de decisión (Decidir · Diagnosticar · Evidenciar · Gobernar), *home* por audiencia, activo-como-página, triaje de alertas; **14 módulos** analíticos (`src/ui/navigation.py`) |
 | **v2.1 — Activación y gobernanza** (`main`, `2.1.0.dev0`) | — | ✅ deploy gateado por CI verde (ADR-009) + runbook de rollback, CI endurecido (cobertura, `mypy`, job Postgres real), `DataStatus` máquina-legible en la capa curada |
 | **v2.2 — Profundidad analítica** (`main`, dev) | PNSG | ✅ **forecasting** (proyección con banda de incertidumbre, siempre `SIMULATED`) y marco de capacidad de carga **LAC/ROS** operativos sobre el proxy curado. 🟡 Las **tres vías de dato real** (movilidad MITMA, zonas SCM multiescala, serie temporal SVI) están **implementadas con su puerta de disponibilidad**, pero **ninguna tiene aún el dato ingerido**: sin él el sistema mantiene, etiquetado, el comportamiento curado/simulado previo |
@@ -88,8 +88,8 @@ _Vista de auditoría del prototipo. EHS/NDVI se deriva de observaciones reales d
 | **v3.0 — Paquete de piloto (A07)** (`main`, dev) | — | 🟡 [`docs/product/pilot-package.md`](docs/product/pilot-package.md): alcance, entregables, hitos y criterios de aceptación **cerrados y verificados** contra el sistema; las 7 decisiones comerciales/jurídicas quedan como huecos `🔲` para el responsable — un test verifica que **no aparece ninguna cifra económica inventada** |
 | **v3.0 — Contrato OpenAPI publicado** (`main`, dev) | — | ✅ [`docs/api/openapi.json`](docs/api/openapi.json) (OpenAPI 3.1, 21 rutas, 38 esquemas) generado desde el código y verificado en CI, con [guía de integración](docs/api/README.md). Habilita evaluar la integración GIS/BI (ADR-008) **sin desplegar**: el despliegue sigue gobernado por ADR-012 |
 | **Cliente móvil** (`mobile/`, Expo + TypeScript) | PNSG | ✅ Fase 1 (ADR-013) shell nativo sobre fixtures sintéticas + Fase 2 (ADR-014) repositorio HTTP real sobre `/api/v2`; **por defecto en modo sintético** salvo `EXPO_PUBLIC_SNTO_USE_REMOTE_API=true`. CI propia, desacoplada de la de Python |
-| **Dashboard ejecutivo** | PNSG | ✅ Desplegado en Azure Container Apps (scale-to-zero); sirve el shell de 4 capas |
-| **CI/CD** | — | ✅ GitHub Actions → CI verde **gatea** el deploy → ACR build → roll Container App |
+| **Dashboard ejecutivo** | PNSG | ✅ Código completo (shell de 4 capas), se ejecuta en local. ⏸️ **Despliegue público en Azure suspendido** por coste; no hay URL pública operativa |
+| **CI/CD** | — | ✅ CI en GitHub Actions (activo). ⏸️ Deploy a Azure (ACR build → roll Container App) **suspendido y solo manual**; el encadenado «CI verde → deploy» era el diseño histórico |
 | **Tests** | — | ✅ 1058 passing, 1 skipped, 0 regresiones (suite verde, ver §8) |
 
 El Pipeline A produce indicadores ambientales reales: el **PNSG** es el territorio principal del observatorio y la **Reserva de la Biosfera Sierra del Rincón** se conserva como piloto de calibración metodológica — **el pipeline se ha ejecutado sobre escenas Sentinel-2 reales de un segundo territorio, lo que no equivale a una validación de campo del método**. El Pipeline B demuestra el sistema de gobernanza de extremo a extremo sobre activos sintéticos. Ambos pipelines están diseñados para integrarse; el Pipeline A ya dispone de una serie temporal real 2021–2026 para 21 activos (v1.1.0, §9), pero la integración con el Pipeline B —aplicar su capa de gobernanza de 7 fases sobre activos reales del PNSG, en vez de los 20 activos sintéticos de Villuercas-Ibores-Jara— sigue pendiente. Desde v1.2.0, el método **se ha aplicado y ejecutado** en un piloto de dos biomas contrastados de la **Red de Parques Nacionales (OAPN)** (Tablas de Daimiel, Monfragüe) — series Sentinel-2 procesadas, sin validación de campo ni confirmación de transferencia entre biomas; el resto de la Red queda preparado como plantillas GEE para fases posteriores.
@@ -204,7 +204,7 @@ class F,G,H,I,J dash;
 - **Persistencia:** SQLAlchemy 2.0 + Alembic (PostgreSQL en producción, SQLite en dev/CI)
 - **Modelado / análisis:** NumPy, pydantic; capa de forecasting propia (`src/forecasting/`)
 - **Test / calidad:** pytest, pytest-cov, ruff
-- **Infra:** Docker · Azure Container Apps · GitHub Actions (CI/CD)
+- **Infra:** Docker · GitHub Actions (CI) · Azure Container Apps (histórico, despliegue suspendido)
 
 ---
 
@@ -310,20 +310,22 @@ streamlit run app.py          # lanzar el dashboard en local
 
 ## 7. Despliegue
 
-**CI separado del deploy.** El workflow [`ci.yml`](.github/workflows/ci.yml) (lint de módulos mantenidos + import smoke + suite pytest) es la puerta de salud del código y corre en cada `push` y `pull_request` a `main`, **independiente de Azure**. El despliegue [`deploy-azure-container-apps.yml`](.github/workflows/deploy-azure-container-apps.yml) se dispara por `workflow_run` **solo si CI concluye con éxito** (o por dispatch manual): nunca se despliega sobre tests en rojo.
+**CI separado del deploy.** El workflow [`ci.yml`](.github/workflows/ci.yml) (lint de módulos mantenidos + import smoke + suite pytest) es la puerta de salud del código y corre en cada `push` y `pull_request` a `main`, **independiente de Azure**. El workflow de despliegue [`deploy-azure-container-apps.yml`](.github/workflows/deploy-azure-container-apps.yml) está **suspendido: solo se ejecuta manualmente (`workflow_dispatch`)** y ya no se encadena a CI. _Histórico (hasta la suspensión):_ se disparaba por `workflow_run` solo si CI concluía con éxito, de modo que nunca se desplegaba sobre tests en rojo (ADR-009); ese bloque queda comentado en el workflow por si el propietario decide reactivarlo.
 
-El dashboard se despliega en **Azure Container Apps** con `scale-to-zero` (coste ≈ 0 €/mes en Azure for Students). Tras pasar CI, el deploy reconstruye la imagen en Azure Container Registry (ACR) y actualiza el Container App.
+> **⏸️ Estado actual (2026-11): despliegue público suspendido.** El propietario detuvo el despliegue en Azure por costes. La suspensión es **operativa, no científica**: el código, las pruebas, los datos derivados versionados (`clean_assets/`), la metodología y el DOI siguen disponibles, y el dashboard se ejecuta en local sin Azure ni PostgreSQL (`streamlit run app.py`; SQLite por defecto). El workflow de despliegue es ahora **solo manual** (`workflow_dispatch`) para que un merge a `main` no reconstruya imágenes ni toque recursos de pago. Alternativas sin coste recurrente evaluadas en [`docs/product/static-demo-options.md`](docs/product/static-demo-options.md); la instantánea estática se regenera con `python scripts/build_static_report.py`.
+
+Diseño original (histórico): **Azure Container Apps** con `scale-to-zero`; el deploy reconstruía la imagen en Azure Container Registry (ACR) y actualizaba el Container App. Un «coste ≈ 0 €/mes» supuesto en su día **no** resultó sostenible.
 
 ```bash
 # Bootstrap único de los recursos Azure:
 bash deploy/azure-bootstrap.sh
 
-# Después, el despliegue es automático en cada push a main.
+# Después, el despliegue se lanza manualmente (workflow_dispatch); ya NO es automático.
 ```
 
-Secrets requeridos en GitHub (`Settings ▸ Secrets and variables ▸ Actions`): `AZURE_CREDENTIALS`, `ACR_NAME`. Ver cabecera de [`.github/workflows/deploy-azure-container-apps.yml`](.github/workflows/deploy-azure-container-apps.yml) para el detalle.
+_Histórico:_ secretos que usaba el workflow en GitHub (`Settings ▸ Secrets and variables ▸ Actions`): `ACR_LOGIN_SERVER`, `ACR_USERNAME`, `ACR_PASSWORD` y, para OIDC, `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` (no existe `AZURE_CREDENTIALS` ni `ACR_NAME`). Ver cabecera de [`.github/workflows/deploy-azure-container-apps.yml`](.github/workflows/deploy-azure-container-apps.yml) para el detalle.
 
-> **🔴 Dashboard en vivo:** https://snto-observatory.happyground-be027676.swedencentral.azurecontainerapps.io/
+> **Dashboard en vivo:** _ninguno operativo._ La URL antigua en `azurecontainerapps.io` corresponde al despliegue suspendido y no debe darse por funcional.
 
 ---
 

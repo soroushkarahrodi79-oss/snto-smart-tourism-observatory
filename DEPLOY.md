@@ -1,5 +1,7 @@
 # Deploying SNTO to Azure Container Apps
 
+> **⏸️ STATUS: SUSPENDED (2026-11).** The Azure deployment was stopped by the owner because of cost. This document is kept as **history/reference**; do not follow it without an explicit cost decision. The deploy workflow is now manual-only. To run SNTO without Azure see the README (`streamlit run app.py`, SQLite default) and `docs/product/static-demo-options.md`.
+
 This deploys the **Streamlit dashboard** (`app.py`) to Azure Container Apps on an
 **Azure for Students** subscription, in **mock-data mode** (no database required).
 
