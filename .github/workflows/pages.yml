@@ -1,0 +1,86 @@
+name: Pages
+
+# Publishes the self-contained static evidence snapshot (site/index.html) to
+# GitHub Pages. Zero cost, no Azure, no secrets, no backend.
+#
+# - validate: runs on every PR/push touching the report inputs. Fails if
+#   site/index.html is out of date with its generator (--check) or if the
+#   report's evidence/overclaim/offline tests fail.
+# - deploy:   runs ONLY on main (push or manual dispatch from main), and only
+#   after validate succeeds. Publishes exactly the site/ directory.
+#
+# One-time owner step: Settings -> Pages -> Source: "GitHub Actions".
+# See docs/product/static-demo-options.md.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "scripts/build_static_report.py"
+      - "clean_assets/pnsg_assets.geojson"
+      - "clean_assets/timeseries/**"
+      - "src/platform/satellite_trends.py"
+      - "src/_version.py"
+      - "pyproject.toml"
+      - ".github/workflows/pages.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "scripts/build_static_report.py"
+      - "clean_assets/pnsg_assets.geojson"
+      - "clean_assets/timeseries/**"
+      - "src/platform/satellite_trends.py"
+      - "src/_version.py"
+      - "pyproject.toml"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        # src.platform's package __init__ pulls the scientific stack, so the
+        # generator needs the same requirements as the main CI job.
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+      - name: Static report is in sync with its generator
+        run: python scripts/build_static_report.py --check
+      - name: Static report tests (offline, evidence caveats, no overclaim)
+        run: python -m pytest tests/unit/test_static_report.py -q
+
+  deploy:
+    needs: validate
+    # Production deploy only from main; PRs and other branches never publish.
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
