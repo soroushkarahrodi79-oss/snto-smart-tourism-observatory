@@ -53,17 +53,7 @@ Detener la app **no** garantiza coste cero. Comprobar en Azure Portal (solo lect
 
 1. Revisar y fusionar esta PR (manual).
 2. Ejecutar la comprobación de facturación de §5.
-3. Si se quiere URL pública (decisión del propietario; **no ejecutado en esta PR**): GitHub Pages desde una rama dedicada. Pages «desde rama» solo admite la raíz o `/docs`, no `site/`, así que el HTML va en la raíz de `gh-pages`:
-   ```bash
-   python scripts/build_static_report.py            # regenera site/index.html
-   git worktree add --detach ../snto-pages          # copia de trabajo aparte
-   cd ../snto-pages
-   git switch --orphan gh-pages                     # rama sin historial; árbol vacío
-   cp ../snto-smart-tourism-observatory/site/index.html index.html
-   touch .nojekyll
-   git add index.html .nojekyll
-   git commit -m "Publish static snapshot"
-   git push -u origin gh-pages
-   ```
-   Después: **Settings → Pages → Build and deployment → Source: Deploy from a branch → `gh-pages` / `/ (root)`**. Para actualizar: repetir copia + commit + push en `gh-pages`. Los repos privados requieren un plan de pago para Pages; en uno público es gratuito. Para retirarlo: borrar la rama `gh-pages` o desactivar Pages.
+3. **URL pública vía GitHub Pages (workflow `.github/workflows/pages.yml`, sin coste).** El propietario activa Pages **una sola vez**: *Settings → Pages → Build and deployment → Source: **GitHub Actions***. Después, cada merge a `main` que toque el informe (`site/`, su generador o sus datos de entrada) ejecuta `validate` (`build_static_report.py --check` + `tests/unit/test_static_report.py`) y, solo si pasa, `deploy` publica **únicamente** `site/`. Las PR ejecutan `validate` pero nunca publican; `deploy` solo corre en `main`. URL esperada: `https://soroushkarahrodi79-oss.github.io/snto-smart-tourism-observatory/` (a verificar tras el primer despliegue; no se asume). Primer despliegue sin cambios en `site/`: *Actions → Pages → Run workflow* (rama `main`). Para retirarlo: *Settings → Pages → Unpublish*. Los repositorios privados requieren un plan de pago; este es público.
+   - La publicación solo muestra evidencia derivada L2 (ver §4): no hay alertas, presupuestos ni simulaciones.
+   - Alternativa manual previa (rama `gh-pages`) ya **no** es necesaria.
 4. Campaña de campo #26 (independiente de todo lo anterior).
