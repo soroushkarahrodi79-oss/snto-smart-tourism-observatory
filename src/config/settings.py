@@ -35,6 +35,14 @@ class Settings(BaseSettings):
     # nunca se gatea. SSO/Entra ID queda diferido (swap aditivo, ver ADR-011).
     snto_api_key: str = ""
 
+    # ── Demo pública de solo lectura ─────────────────────────────────────────
+    # SNTO_PUBLIC_DEMO=true -> la capa de persistencia rechaza TODA sentencia
+    # que no sea de lectura (INSERT/UPDATE/DELETE/DDL), sea cual sea el origen
+    # (UI, servicios, /api/v2, migraciones). Pensado para alojamientos públicos
+    # sin login (p. ej. Streamlit Community Cloud). Falso por defecto: el uso
+    # local no cambia.
+    snto_public_demo: bool = False
+
     # ── Visual Change Explorer (ADR-015) ─────────────────────────────────────
     # Feature flag for the in-process Earth Engine Visual Change Explorer.
     # Falso por defecto -> el explorador queda desactivado y su punto de entrada
