@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+
 from pydantic_settings import BaseSettings
 
 
@@ -35,6 +37,14 @@ class Settings(BaseSettings):
     # nunca se gatea. SSO/Entra ID queda diferido (swap aditivo, ver ADR-011).
     snto_api_key: str = ""
 
+    # ── Demo pública de solo lectura ─────────────────────────────────────────
+    # SNTO_PUBLIC_DEMO=true -> la conexión a la base se abre en solo lectura y
+    # se rechaza toda escritura (UI, servicios, /api/v2, migraciones). Para
+    # alojamientos públicos sin login (p. ej. Streamlit Community Cloud). Falso
+    # por defecto: el uso local no cambia. Un valor no booleano en el entorno
+    # impide el arranque (fail-closed). Consultar siempre is_public_demo().
+    snto_public_demo: bool = False
+
     # ── Visual Change Explorer (ADR-015) ─────────────────────────────────────
     # Feature flag for the in-process Earth Engine Visual Change Explorer.
     # Falso por defecto -> el explorador queda desactivado y su punto de entrada
@@ -59,3 +69,36 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+_FALSEY = {"false", "f", "0", "no", "n", "off"}
+
+
+def _streamlit_secret_requests_public_demo() -> bool:
+    """Read ``SNTO_PUBLIC_DEMO`` from Streamlit secrets, if Streamlit is running.
+
+    Streamlit only copies str/int/float secrets into the environment, so an
+    unquoted TOML ``SNTO_PUBLIC_DEMO = true`` would otherwise be silently
+    ignored and leave the app writable.
+    """
+    st = sys.modules.get("streamlit")
+    if st is None:
+        return False
+    try:
+        if not st.secrets.load_if_toml_exists():
+            return False
+        if "SNTO_PUBLIC_DEMO" not in st.secrets:
+            return False
+        raw = st.secrets["SNTO_PUBLIC_DEMO"]
+    except Exception:  # unreadable secrets file: fail closed
+        return True
+    # Anything that is not an explicit "off" counts as on.
+    return str(raw).strip().lower() not in _FALSEY
+
+
+def is_public_demo() -> bool:
+    """True if either the environment or Streamlit secrets enable public demo mode.
+
+    When the two sources disagree, read-only wins.
+    """
+    return settings.snto_public_demo or _streamlit_secret_requests_public_demo()

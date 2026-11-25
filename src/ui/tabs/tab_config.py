@@ -123,6 +123,7 @@ def _render_tenancy_management() -> None:
     """
     import pandas as pd
 
+    from src.config.settings import is_public_demo
     from src.persistence.enums import UserRole
     from src.ui.services.territory_admin import (
         AdminStatus,
@@ -134,6 +135,11 @@ def _render_tenancy_management() -> None:
     )
 
     st.markdown("#### Gestión de territorios y organizaciones (v3.0)")
+    if is_public_demo():
+        st.caption(
+            "🔒 Demo pública de solo lectura: gestión de tenencia desactivada."
+        )
+        return
     st.caption(
         "Capa de tenancy **real y persistida** (`Organization`/`User`/`Territory`), "
         "distinta del registro de arriba. **Sin sistema de login todavía**: "

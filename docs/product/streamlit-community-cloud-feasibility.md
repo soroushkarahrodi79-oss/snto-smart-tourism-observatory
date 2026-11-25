@@ -1,6 +1,6 @@
 # Streamlit Community Cloud — viabilidad (informe, no despliegue)
 
-> Estado: investigación independiente; **no se ha desplegado nada** ni existe URL. No bloquea la publicación estática (GitHub Pages, ver `static-demo-options.md`).
+> Estado: informe histórico, anterior al despliegue. Actualización 2026-11-25: la app está publicada en https://snto-observatory.streamlit.app/ y el modo de solo lectura explícito que este informe señalaba como defensa correcta existe como `SNTO_PUBLIC_DEMO` (ver [`../runbooks/streamlit-community-cloud.md`](../runbooks/streamlit-community-cloud.md)). El texto de abajo describe la situación previa.
 
 ## Verificado (local, Windows, Python 3.12, entorno limpio desde `requirements.txt`)
 

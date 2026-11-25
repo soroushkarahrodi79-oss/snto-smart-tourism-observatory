@@ -1,6 +1,6 @@
 # Alternativas de demostración sin coste recurrente (post-suspensión de Azure)
 
-> Estado: 2026-11. El despliegue Azure está **suspendido por el propietario**; no hay dashboard público. Esto es un hecho operativo, **no** un fallo científico: código, pruebas, datos derivados versionados, metodología y DOI siguen intactos.
+> Estado: 2026-11. El despliegue Azure está **suspendido por el propietario**. Actualización 2026-11-25: el acceso público se recuperó sin coste con el [dashboard en Streamlit Community Cloud](https://snto-observatory.streamlit.app/) y el [informe estático en GitHub Pages](https://soroushkarahrodi79-oss.github.io/snto-smart-tourism-observatory/). La suspensión de Azure es un hecho operativo, **no** un fallo científico: código, pruebas, datos derivados versionados, metodología y DOI siguen intactos.
 
 ## 1. Qué depende de qué
 
