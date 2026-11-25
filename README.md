@@ -10,7 +10,7 @@ For Sierra de Guadarrama, SNTO derives EHS/NDVI environmental-condition and chan
 [![License](https://img.shields.io/badge/uso-acad%C3%A9mico%20%2F%20source--available-lightgrey)](LICENSE)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20818269-1682D4?logo=zenodo&logoColor=white)](https://doi.org/10.5281/zenodo.20818269)
 
-**Estado del alojamiento: dashboard público _suspendido_** (no hay demo en vivo) · [Instantánea estática reproducible](site/index.html) · [Cómo ejecutarlo en local](#instalación-local) · [DOI record](https://doi.org/10.5281/zenodo.20818269) · [Method and evidence limits](docs/PNSG_DECISION_EVIDENCE_BRIEF.md)
+[Dashboard público](https://snto-observatory.streamlit.app/) · [Informe científico estático](https://soroushkarahrodi79-oss.github.io/snto-smart-tourism-observatory/) · _accesible no significa validado: la campaña de campo (#26) sigue pendiente_ · [Cómo ejecutarlo en local](#instalación-local) · [DOI record](https://doi.org/10.5281/zenodo.20818269) · [Method and evidence limits](docs/PNSG_DECISION_EVIDENCE_BRIEF.md)
 
 </div>
 
@@ -88,7 +88,7 @@ _Vista de auditoría del prototipo. EHS/NDVI se deriva de observaciones reales d
 | **v3.0 — Paquete de piloto (A07)** (`main`, dev) | — | 🟡 [`docs/product/pilot-package.md`](docs/product/pilot-package.md): alcance, entregables, hitos y criterios de aceptación **cerrados y verificados** contra el sistema; las 7 decisiones comerciales/jurídicas quedan como huecos `🔲` para el responsable — un test verifica que **no aparece ninguna cifra económica inventada** |
 | **v3.0 — Contrato OpenAPI publicado** (`main`, dev) | — | ✅ [`docs/api/openapi.json`](docs/api/openapi.json) (OpenAPI 3.1, 21 rutas, 38 esquemas) generado desde el código y verificado en CI, con [guía de integración](docs/api/README.md). Habilita evaluar la integración GIS/BI (ADR-008) **sin desplegar**: el despliegue sigue gobernado por ADR-012 |
 | **Cliente móvil** (`mobile/`, Expo + TypeScript) | PNSG | ✅ Fase 1 (ADR-013) shell nativo sobre fixtures sintéticas + Fase 2 (ADR-014) repositorio HTTP real sobre `/api/v2`; **por defecto en modo sintético** salvo `EXPO_PUBLIC_SNTO_USE_REMOTE_API=true`. CI propia, desacoplada de la de Python |
-| **Dashboard ejecutivo** | PNSG | ✅ Código completo (shell de 4 capas), se ejecuta en local. ⏸️ **Despliegue público en Azure suspendido** por coste; no hay URL pública operativa |
+| **Dashboard ejecutivo** | PNSG | ✅ Código completo (shell de 4 capas), se ejecuta en local. 🌐 Alojado sin coste en [Streamlit Community Cloud](https://snto-observatory.streamlit.app/). ⏸️ Azure sigue suspendido por coste |
 | **CI/CD** | — | ✅ CI en GitHub Actions (activo). ⏸️ Deploy a Azure (ACR build → roll Container App) **suspendido y solo manual**; el encadenado «CI verde → deploy» era el diseño histórico |
 | **Tests** | — | ✅ 1058 passing, 1 skipped, 0 regresiones (suite verde, ver §8) |
 
@@ -325,7 +325,12 @@ bash deploy/azure-bootstrap.sh
 
 _Histórico:_ secretos que usaba el workflow en GitHub (`Settings ▸ Secrets and variables ▸ Actions`): `ACR_LOGIN_SERVER`, `ACR_USERNAME`, `ACR_PASSWORD` y, para OIDC, `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` (no existe `AZURE_CREDENTIALS` ni `ACR_NAME`). Ver cabecera de [`.github/workflows/deploy-azure-container-apps.yml`](.github/workflows/deploy-azure-container-apps.yml) para el detalle.
 
-> **Dashboard en vivo:** _ninguno operativo._ La URL antigua en `azurecontainerapps.io` corresponde al despliegue suspendido y no debe darse por funcional.
+> **Alojamiento público (comprobado 2026-11-25 con peticiones HTTP sin sesión):**
+> - Dashboard interactivo: https://snto-observatory.streamlit.app/ (Streamlit Community Cloud; puede estar dormido y tardar en despertar).
+> - Informe científico estático: https://soroushkarahrodi79-oss.github.io/snto-smart-tourism-observatory/ (GitHub Pages).
+> - La URL antigua en `azurecontainerapps.io` corresponde al despliegue suspendido.
+>
+> El modo de **solo lectura** se activa con `SNTO_PUBLIC_DEMO = "true"` en los *Secrets* de la app; fusionar el código no lo activa. Está activo solo si la app muestra «Public research demo · Read-only». Procedimiento: [`docs/runbooks/streamlit-community-cloud.md`](docs/runbooks/streamlit-community-cloud.md).
 
 ---
 

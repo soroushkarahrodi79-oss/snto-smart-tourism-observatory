@@ -3,8 +3,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from src.config.settings import settings
+from src.config.settings import is_public_demo, settings
 from src.persistence.models import Base
+from src.persistence.session import PublicDemoReadOnlyError
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -84,6 +85,12 @@ def run_migrations_online() -> None:
         with context.begin_transaction():
             context.run_migrations()
 
+
+# Alembic builds its own engine, so the guard in session.py does not reach it.
+if is_public_demo():
+    raise PublicDemoReadOnlyError(
+        "Demo pública de solo lectura (SNTO_PUBLIC_DEMO): migraciones rechazadas."
+    )
 
 if context.is_offline_mode():
     run_migrations_offline()

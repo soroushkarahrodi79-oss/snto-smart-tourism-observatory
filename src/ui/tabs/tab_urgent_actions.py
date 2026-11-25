@@ -27,7 +27,7 @@ import streamlit as st
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.config.settings import settings
+from src.config.settings import is_public_demo
 from src.persistence.enums import AlertStatus
 from src.persistence.services.alert_triage import ReasonRequiredError, triage_alert
 from src.persistence.services.lifecycle import (
@@ -101,7 +101,7 @@ def _render_action(action: UrgentAction) -> None:
     )
     st.caption(" · ".join(meta))
 
-    if settings.snto_public_demo:
+    if is_public_demo():
         st.caption(
             "🔒 Demo pública de solo lectura: triaje y ciclo de vida desactivados."
         )

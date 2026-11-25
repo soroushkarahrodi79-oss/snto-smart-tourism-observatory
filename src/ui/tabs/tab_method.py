@@ -138,11 +138,11 @@ def _render_field_capture_form() -> None:
     Control plots and unregistered assets are reported, never fabricated. Shown
     only in the audit view — the validation-campaign audience.
     """
-    from src.config.settings import settings
+    from src.config.settings import is_public_demo
     from src.ui.services.field_capture import CaptureStatus, capture_field_plot
     from src.validation.field import FieldObservation
 
-    if settings.snto_public_demo:
+    if is_public_demo():
         st.caption(
             "🔒 Demo pública de solo lectura: registro de parcelas desactivado."
         )

@@ -10,6 +10,7 @@ from __future__ import annotations
 import streamlit as st
 
 from src._version import __version__
+from src.config.settings import is_public_demo
 from src.platform.map_layers import LEGEND_ITEMS
 from src.platform.telemetry import record_view, telemetry_enabled
 from src.platform.views import ViewMode, get_view, view_modes
@@ -161,6 +162,10 @@ with st.sidebar:
     st.caption(f"SNTO v{__version__} · Sentinel-2 real + INE/ALMUDENA + calibración")
     st.caption(f"Territorio principal: {_terr_cfg['short']} (Madrid · Segovia)")
 
+
+# ── Indicador de demo pública (SNTO_PUBLIC_DEMO) ─────────────────────────────
+if is_public_demo():
+    st.caption("🔒 **Public research demo · Read-only**")
 
 # ── TAREA 1: Banner dinámico con contextual badging ──────────────────────────
 _render_banner(selected_key, _terr_cfg, dashboard, n_red, n_amb)
